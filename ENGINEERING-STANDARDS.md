@@ -17,7 +17,7 @@ Planning documents must not recommend anything that breaks these rules.
 ## 2. No duplicated code
 
 - Before writing a helper, type, or query, search the codebase for an existing one and reuse it.
-- Every business rule lives in exactly one place. Financial and approval rules live on the server; clients display results and never recompute them.
+- Every business rule has exactly one authoritative implementation. The server is always the final authority on money and approvals. Where a client must apply a rule while offline, it uses that same implementation (shared or generated code), never a hand-written copy, and the server re-checks the result on sync. Where rules run is decided at S4.
 - The API contract is defined once and client types are generated from it. Hand-written copies of request or response types are not allowed.
 - Validation rules, error codes, and constants are defined once and shared.
 - Screens are built from the design system's components. A second copy of a component is a defect.
@@ -72,7 +72,7 @@ Targets marked `[DEFAULT]` are starting values, confirmed or changed at S4 by me
 ## 7. Review and delivery
 
 - Work happens on a branch per task, never directly on the main branch.
-- Every change is reviewed by someone other than its author, in two passes: does it meet the requirement, then is the code sound.
+- Every change is reviewed by a person or review agent other than its author, in two passes: does it meet the requirement, then is the code sound.
 - A change does one thing. Refactoring and behavior change go in separate changes.
 - Commit messages state what changed and why, and cite the requirement or ADR ID.
 - CI must pass before merge: format, lint, duplication check, tests, vulnerability scan.

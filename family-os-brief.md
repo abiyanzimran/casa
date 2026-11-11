@@ -10,7 +10,7 @@ This brief is large. Do not try to produce every deliverable in one pass — tha
 ### 0.1 Hard constraints
 
 - **Planning only.** Do not write application code, initialize projects, install dependencies, generate boilerplate, or create implementation files. Pseudocode, schema sketches, state tables, and Mermaid diagrams inside documentation are allowed when they clarify a design.
-- **Language.** All documents are written in professional, natural Indonesian. Established technical terms (ledger, offline-first, state machine, RBAC, etc.) stay in English.
+- **Language.** All documents under `docs/` are written in professional, natural Indonesian. Instruction files (this brief, `CLAUDE.md`, `ENGINEERING-STANDARDS.md`, agent definitions) are in English. Established technical terms (ledger, offline-first, state machine, RBAC, etc.) stay in English.
 - **Honesty about evidence.** Never present an assumption as fact, never invent competitor capabilities, statistics, or API availability, and never claim research was done unless you actually performed it.
 
 ### 0.2 Progress log
@@ -55,7 +55,7 @@ These constraints shape every recommendation, especially technology choice, scop
 | Team and working rules | `CLAUDE.md` defines the single goal, the order of sources of truth, document ownership per agent, and the review rule |
 | Experience bar | WhatsApp-class: instant cold start, light, reliable on poor networks, professional finish. Recording something must take seconds |
 | Primary launch market | `[DEFAULT]` Indonesia (IDR, Bahasa Indonesia first, English second); design for later internationalization |
-| Platforms | iPhone, Android phones, iPad, Android tablets |
+| Platforms | iPhone, Android phones, iPad, Android tablets, foldables. Phones come first; see the tiers in §1.1 |
 | Target time to MVP | No fixed deadline. Prefer the smallest scope the pilot household will use daily over a date |
 | Monthly infrastructure budget at launch | One modest VPS during the pilot. No usage-priced managed services unless clearly justified |
 | Business model | `[DEFAULT]` Undecided. Evaluate freemium per household, family subscription, and one-time purchase; recommend one with reasoning |
@@ -77,15 +77,17 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 - **Recording is a burden.** The main recorder is forgetful, so entry must take seconds and tolerate late entry.
 - **Secondary pains.** A spouse's mood is unknown unless asked; house issues (e.g., leaking roof) should become a task closed with photos and notes; routine chores are forgotten (e.g., cooking rice); "what should we cook?"; illness needs follow-up (fever reported, family checks again after N days, the sick member confirms recovered, still sick, or going to a clinic); who pays which bill, and how much, must be clear.
 
-**MVP priority tiers** `[DEFAULT]` — challenge them if research or the financial model says otherwise.
+**MVP priority tiers.** Set by the owner. Challenge them, with reasons, if research or the financial model says otherwise; a change takes effect only after the owner approves it at a checkpoint.
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
-| **1 — Core** | `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), assets and net worth, summary reports. `REQ`: budget and outing requests, approval, settlement of the remainder | Full requirements with acceptance criteria |
+| **1 — Core** | `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), assets and net worth, summary reports. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
 | **2 — Light versions** | `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it | Concise requirements |
 | **3 — Deferred** | `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
 
 This depth rule overrides §5 and §16 wherever they ask for uniform detail across all modules.
+
+Deferring a module limits its documentation and its build, not the foundations: the Tier 1 data model and access model must not block Tier 3, in particular household isolation and one person belonging to more than one household.
 
 **Success after three months of pilot use.**
 

@@ -46,10 +46,11 @@ The main session is the lead: it assigns work per stage, merges results, keeps `
 | `finance-domain` | `07-financial-domain.md`; financial terms in `00-glossary.md` |
 | `product-analyst` | `02`, `03`, `04`, `05`, `11`, `12`, `13`, `17` |
 | `ux-designer` | `08-ux-ui-strategy.md` |
-| `architect` | `06`, `09`, `10`, `14`, `15`, `docs/adr/` |
+| `architect` | `06`, `09`, `14`, `15`, `docs/adr/` |
+| `security-privacy` | `10-security-privacy.md` |
 | `critic` | Review reports; never writes deliverables |
 
-The lead writes `README.md`, `_progress.md`, `16-final-recommendations.md`, and `01-executive-summary.md`.
+The lead writes `README.md`, `_progress.md`, `00-glossary.md`, `16-final-recommendations.md`, and `01-executive-summary.md`. The glossary is the one shared file: `finance-domain` writes its financial-terms section, and the lead writes the rest.
 
 ## Working rules
 
@@ -59,5 +60,6 @@ The lead writes `README.md`, `_progress.md`, `16-final-recommendations.md`, and 
 - **Evidence.** Use the labels in the brief §16. Never present an assumption as fact and never claim research that was not done.
 - **Identifiers and traceability.** Use the scheme in the brief §16. Every Tier 1 requirement maps to a feature, a scenario, and a roadmap phase.
 - **Depth follows the MVP tiers** in the brief §1.1: full for Tier 1, concise for Tier 2, one page for Tier 3.
-- **Deferred on purpose.** The mobile stack and the platform order are decided at stage S4, not earlier.
-- **Git.** One commit per completed stage, plus one for each owner-approved revision. Commit only finished, reviewed work.
+- **Computed, not read.** The numbers in every financial worked example are checked by computation (a throwaway script kept outside the repository) before the checkpoint. Reading the table is not a check.
+- **Deferred on purpose.** The mobile stack is recommended at stage S4, not earlier. Which platform is built first is the owner's decision when the build phase starts.
+- **Git.** One commit per completed stage, plus one for each owner-approved revision. Commit only finished, reviewed work. Planning commits go to the main branch; branch-per-task starts with the build phase.
