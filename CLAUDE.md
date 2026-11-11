@@ -52,6 +52,20 @@ The main session is the lead: it assigns work per stage, merges results, keeps `
 
 The lead writes `README.md`, `_progress.md`, `00-glossary.md`, `16-final-recommendations.md`, and `01-executive-summary.md`. The glossary is the one shared file: `finance-domain` writes its financial-terms section, and the lead writes the rest.
 
+## Build team (created when the build phase starts)
+
+Agent files for the build phase are written by the lead only after the owner approves the stack at S4, because their content depends on it. Until then this table is the plan.
+
+| Role | Does |
+|---|---|
+| `backend-dev` | Server, database, migrations, API contract |
+| `ios-dev`, `android-dev` | One per platform if the UI is fully native; a single `mobile-dev` if S4 chooses a shared framework |
+| `ux-designer` (continues) | Reviews every built screen against `docs/08-ux-ui-strategy.md` and the platform's guidelines |
+| `code-reviewer` | Two-pass review of every change: meets the requirement, then code quality against `ENGINEERING-STANDARDS.md` |
+| `qa` | Proves Tier 1 acceptance criteria and financial invariants end to end, on the pilot devices |
+
+Every build agent follows `ENGINEERING-STANDARDS.md` without exception, including live version checks (§8), and works through the Superpowers workflow. Plugins and skills are installed only for the stack that was chosen, and only if a named role will use them.
+
 ## Working rules
 
 - **One owner per document.** Another agent that needs a change asks the owner or the lead; it does not edit the file.

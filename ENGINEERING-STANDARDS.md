@@ -78,7 +78,21 @@ Targets marked `[DEFAULT]` are starting values, confirmed or changed at S4 by me
 - CI must pass before merge: format, lint, duplication check, tests, vulnerability scan.
 - Database schema changes go through versioned, reversible migrations.
 
-## 8. Definition of done
+## 8. Dependencies and versions
+
+Applies to everything installed: language toolchains, frameworks, SDKs, libraries, build tools, the database, and container images.
+
+- **Checked live.** At the moment of installing or upgrading, the current version is looked up in the official registry or release page. A version number from memory, a tutorial, or an article is never used.
+- **Newest stable only.** No alpha, beta, release candidate, canary, or nightly build, and no API its maintainers mark experimental or unstable. An exception needs an ADR.
+- **Known problems checked.** Before adopting a version, read its release notes and check the project's security advisories and open critical issues. If the newest stable release has a known defect that affects this product, use the newest stable release without that defect, and record the reason and the condition for moving up.
+- **Compatible as a set.** Versions must be supported together (framework, OS SDK, build tool, language). Follow the framework's own compatibility table, not the newest number of each part.
+- **Pinned.** Exact versions and a committed lockfile. No floating ranges.
+- **Recorded.** Every added or upgraded dependency states, in its change description: version, date checked, source link, and why it is needed.
+- **Maintained.** No deprecated or unmaintained package, and no deprecated API.
+- **Kept current.** Updates are checked `[DEFAULT]` monthly, and at once for a security advisory. An upgrade is its own change and passes the full test suite.
+- Minimum supported OS versions are set by ADR at S4.
+
+## 9. Definition of done
 
 A task is done only when all of these are true:
 
