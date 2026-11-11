@@ -66,7 +66,7 @@
 
 **Yang tidak boleh dihalangi Tier 1.** Tujuan tabungan Tier 1 dapat kelak membawa tanggal target dan prioritas sebagai kolom tambahan. Mengakhiri tujuan yang masih beralokasi belum punya aturan di 07 (permintaan dokumen 04 kepada `finance-domain`); Tier 1 tidak boleh menghapus alokasi diam-diam. Kontribusi per orang lintas periode tidak dapat naik dalam bentuk apa pun (06 AT-4; 07 §6.3; D-43).
 
-**Syarat naik tingkat.** Calon termurah F-GOL-001 (satu isian tanggal target), dan hanya setelah 07 menetapkan rumus proyeksinya. Pemilik produk dapat menaikkannya di checkpoint S3 (Q-123 butir (b)).
+**Syarat naik tingkat.** Calon termurah F-GOL-001 (satu isian tanggal target), dan hanya setelah 07 menetapkan rumus proyeksinya. Di checkpoint S3 (12 November 2026) tidak ada yang naik: S3-1 (c) diterima lewat "lanjut" (Q-123); pilihan B (tanggal target naik) tidak diambil. Dapat ditimbang lagi sesudah pilot.
 
 ---
 

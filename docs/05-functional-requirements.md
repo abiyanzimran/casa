@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `product-analyst` |
 | Tahap | S3, fase B (12 November 2026); diselaraskan sesudah fase B (chat Tier 1, 06 revisi kesembilan); putaran perbaikan fase D (12 November 2026; 06 revisi kesepuluh, 07 putaran perbaikan S3) |
-| Status | Ditinjau `critic` dan diperiksa `security-privacy` (findings-only) di fase D; perbaikan fase D belum ditinjau ulang. Pengenal butir terbuka diseragamkan ke `PA-<MOD>-N` (CA-06; padanan lama disebut di daftar tiap berkas) |
+| Status | **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat di indeks dan semua berkas modul; FR-CAL-002 menjadi Must Tier 1; Must 192 (184 Tier 1 + 8 Tier 2 Must bersyarat), Should 19. S3-3 (THR sebagai gaji, daftar sumber penghasilan) dibuka ulang sebagian; aturan bawaannya kini 07 §3.1 (**[Usulan]** T-43), ditanyakan di checkpoint S4 (FIN-1.md FR-FIN-020/AC-10 sampai AC-12; dokumen 17 Q-184). Konsep dokumen 11 Tier 1 yang diterima (IDEA-01, 02, 03) dipetakan ke FR induk tanpa FR baru (FR-FIN-135/AC-10, AC-14; FR-FIN-030/AC-13; FR-FIN-100/AC-8; §6; dokumen 17 Q-187); IDEA-08, 15, 19 Tier 2, bukan Must, di luar tabel Must. **Sebelumnya:** ditinjau `critic` dan diperiksa `security-privacy` (findings-only) di fase D; perbaikan fase D belum ditinjau ulang. Pengenal butir terbuka diseragamkan ke `PA-<MOD>-N` (CA-06; padanan lama disebut di daftar tiap berkas) |
 | Membaca lebih dulu | [04-feature-map.md](04-feature-map.md) (fitur), [06-activity-approval-architecture.md](06-activity-approval-architecture.md) (alur, pagar), [07-financial-domain.md](07-financial-domain.md) (aturan uang), [02-product-principles.md](02-product-principles.md) (prinsip) |
 
 ## 1. Tujuan
@@ -27,7 +27,7 @@ Kebutuhan Tier 1 ditulis lengkap dengan Given/When/Then (brief §1.1), sehingga 
 | [tier-3.md](05-functional-requirements/tier-3.md) | Garis besar per modul Tier 3, termasuk garis besar `COM` Tier 3 | 3 | Tanpa nomor FR | 192 | — | — |
 | **Jumlah** | | | | **6.107** | **211** | **194** |
 
-Angka dihitung ulang dengan `grep` pada 12 November 2026 di akhir putaran perbaikan fase D, sesudah tindak lanjut atas 06 §15.12: baris = semua baris berkas; FR = judul `#… FR-`; BR = baris tabel yang diawali `| BR-`. Fase D tidak menambah atau menghapus FR (Must 192 termasuk FR-CAL-002 bersyarat S3-1 (d), Should 19; rinciannya §6); BR bertambah tiga (BR-FAM-019, BR-FAM-020, BR-NTF-020). FR-CAL-002 tetap berjudul FR di `tier-2.md` tetapi kini hanya penunjuk ke N-32 Tier 1 (FR-FIN-100/AC-1, FR-NTF-009/AC-5), berlabel Must bersyarat S3-1 (d), Tier 1 **[Usulan]**; hitungan Must dan Should di §6. Lead menghitung ulang sebelum checkpoint S3.
+Angka dihitung ulang dengan `grep` pada 12 November 2026 di akhir putaran perbaikan fase D, sesudah tindak lanjut atas 06 §15.12: baris = semua baris berkas; FR = judul `#… FR-`; BR = baris tabel yang diawali `| BR-`. Fase D tidak menambah atau menghapus FR (Must 192, Should 19; rinciannya §6); BR bertambah tiga (BR-FAM-019, BR-FAM-020, BR-NTF-020). FR-CAL-002 tetap berjudul FR di `tier-2.md` tetapi hanya penunjuk ke N-32 Tier 1 (FR-FIN-100/AC-1, FR-NTF-009/AC-5); sejak checkpoint S3 (12 November 2026) ia **Must Tier 1** tanpa syarat (S3-1 (d), diterima lewat "lanjut"). Jumlah FR, Must, dan Should tidak berubah oleh pencatatan checkpoint S3; kolom "Baris" adalah hitungan fase D dan dapat bergeser beberapa baris karena catatan status sesudah checkpoint.
 
 Chat rumah tangga (`COM`) kini **Tier 1 versi ringan** atas keputusan pemilik produk 12 November 2026 (`_progress.md`, "Pernyataan pemilik produk tentang chat" dan jawaban sesudahnya; "Chat naik Tier 1" menggantikan jawaban "Tier 2"). Alur dan pagarnya kanonis di 06 §16 dan ADR-011.
 
@@ -89,7 +89,16 @@ Berlaku untuk setiap FR di semua berkas tanpa perlu disebut ulang. Isinya kanoni
 
 ## 6. Tabel keterlacakan
 
-Setiap kebutuhan Must (semua Tier 1, Must bersyarat Tier 2, dan Must bersyarat keputusan checkpoint) dipetakan ke fiturnya (dokumen 04), sekurangnya satu skenario ([dokumen 12](12-scenarios.md)), dan fase roadmap dokumen 13 (diisi di S5). Daftar FR disusun dari `grep` judul `#… FR-` dan baris `Tier / MoSCoW` di semua berkas modul, 12 November 2026: 211 FR, di antaranya 183 Tier 1 Must, 8 Tier 2 Must bersyarat (FR-COM-016, FR-CARE-002, FR-CARE-004, FR-AI-005 sampai FR-AI-009), dan 1 Must bersyarat S3-1 (d), FR-CAL-002 (Tier 1 **[Usulan]**, penunjuk ke N-32, mengikuti 04 F-CAL-002), jadi **191 FR Must ditambah 1 bersyarat S3-1 (d) = 192**. Yang tidak masuk tabel: **19** FR Tier 2 Should (termasuk FR-REQ-044, FR-REQ-045, FR-NTF-004). Bila S3-1 (d) ditolak, FR-CAL-002 kembali Should: 191 Must dan 20 Should. **Tidak ada FR Must tanpa skenario.** Fase D tidak menambah FR; kriteria penerimaan baru dipetakan ke skenario yang sudah ada dan kolom FR skenario itu diperluas (SCN-02, SCN-11, SCN-22, SCN-25, SCN-28, SCN-32, SCN-36, SCN-39, SCN-43, SCN-44, SCN-46).
+Setiap kebutuhan Must (semua Tier 1 dan Must bersyarat Tier 2) dipetakan ke fiturnya (dokumen 04), sekurangnya satu skenario ([dokumen 12](12-scenarios.md)), dan fase roadmap dokumen 13 (diisi di S5). Daftar FR disusun dari `grep` judul `#… FR-` dan baris `Tier / MoSCoW` di semua berkas modul, 12 November 2026: 211 FR, di antaranya **184 Tier 1 Must** (termasuk FR-CAL-002, penunjuk ke N-32, yang menjadi Must Tier 1 sesudah S3-1 (d) diterima lewat "lanjut" di checkpoint S3, mengikuti 04 F-CAL-002) dan **8 Tier 2 Must bersyarat** (FR-COM-016, FR-CARE-002, FR-CARE-004, FR-AI-005 sampai FR-AI-009), jadi **192 FR Must**. Yang tidak masuk tabel: **19** FR Tier 2 Should (termasuk FR-REQ-044, FR-REQ-045, FR-NTF-004). **Tidak ada FR Must tanpa skenario.** **Konsep dokumen 11 Tier 1 sesudah checkpoint S3** (S3-2 (i) sampai (iii), diterima lewat "lanjut"; dokumen 17 Q-187, tertutup kecuali fase): tidak ada FR baru, karena tiap konsep punya FR induk. Jumlah di atas tetap.
+
+| Konsep | FR induk / AC | Fitur (04) | Skenario (12) | Aturan acuan | Fase |
+|---|---|---|---|---|---|
+| IDEA-01 hitung lalu rinci seluruh selisih | FR-FIN-135/AC-10 (bentuk, syarat "seluruh selisih dirinci", perincian sebagian ditolak; CTH-48), AC-14 (hanya uang tunai berpemilik tunggal; CTH-47) | F-FIN-017 | SCN-28 | 07 §3.10 "Menghitung lalu merinci seluruh selisih sekaligus" | S5 |
+| IDEA-02 bagikan seperti terakhir kali | FR-FIN-030/AC-13 (isian dari riwayat pencatat sendiri, kiriman keluarga tidak tercentang; angka CTH-41) | F-FIN-004 | SCN-21 | 07 tabel kedudukan baris S3-2 dan §3.15: isian layar, bukan aturan uang | S5 |
+| IDEA-03 pos rutin tanpa tanggal | FR-FIN-100/AC-8 (CTH-50) | F-FIN-011 | SCN-11 | 07 §3.15 "Tagihan berulang tanpa `due_rule`"; 06 §6.3 "Pos rutin" baris (h), N-32, §13.4 | S5 |
+| THR dan angpau yang diberikan (bukan konsep dokumen 11; Q-185) | FR-FIN-040/AC-14 (CTH-51) | F-FIN-005 | SCN-46 | 07 §3.2, T-42 | S5 |
+
+Fase D tidak menambah FR; kriteria penerimaan baru dipetakan ke skenario yang sudah ada dan kolom FR skenario itu diperluas (SCN-02, SCN-11, SCN-22, SCN-25, SCN-28, SCN-32, SCN-36, SCN-39, SCN-43, SCN-44, SCN-46).
 
 ### 6.1 `FAM`
 
@@ -157,7 +166,7 @@ Setiap kebutuhan Must (semua Tier 1, Must bersyarat Tier 2, dan Must bersyarat k
 | FR-FIN-030 | F-FIN-004 | SCN-21, SCN-27, SCN-43 | S5 |
 | FR-FIN-031 | F-FIN-004 (memakai F-FIN-014, F-FIN-011) | SCN-02, SCN-11, SCN-21 | S5 |
 | FR-FIN-032 | F-FIN-004 | SCN-21 | S5 |
-| FR-FIN-040 | F-FIN-005 | SCN-01, SCN-02, SCN-04, SCN-07, SCN-08, SCN-18, SCN-19, SCN-22, SCN-27 | S5 |
+| FR-FIN-040 | F-FIN-005 | SCN-01, SCN-02, SCN-04, SCN-07, SCN-08, SCN-18, SCN-19, SCN-22, SCN-27, SCN-46 | S5 |
 | FR-FIN-041 | F-FIN-005 | SCN-27 | S5 |
 | FR-FIN-042 | F-FIN-005 | SCN-02 | S5 |
 | FR-FIN-043 | F-FIN-005 | SCN-27, SCN-28 | S5 |
@@ -305,11 +314,11 @@ Setiap kebutuhan Must (semua Tier 1, Must bersyarat Tier 2, dan Must bersyarat k
 | FR-NTF-014 | F-NTF-005 | SCN-30 | S5 |
 | FR-NTF-015 | F-NTF-005 | SCN-30 | S5 |
 
-### 6.7 Must bersyarat (`tier-2.md`)
+### 6.7 Kebutuhan Must di `tier-2.md` (satu Must Tier 1 dan Must bersyarat Tier 2)
 
 | FR | Fitur | Syarat | Skenario | Fase |
 |---|---|---|---|---|
-| FR-CAL-002 (penunjuk; diuji lewat FR-FIN-100/AC-1 dan FR-NTF-009/AC-5) | F-CAL-002 (Tier 1 **[Usulan]** di 04) | Bila S3-1 (d) diterima (N-32 Tier 1, 06 P-36); bila ditolak, Tier 2 Should | SCN-11 | S5 |
+| FR-CAL-002 (penunjuk; diuji lewat FR-FIN-100/AC-1 dan FR-NTF-009/AC-5) | F-CAL-002 (Tier 1 di 04) | **Must Tier 1 tanpa syarat**: S3-1 (d) diterima lewat "lanjut" (12 November 2026; N-32 Tier 1, 06 P-36) | SCN-11 | S5 |
 | FR-CARE-002 | F-CARE-001, F-CARE-002 | Bila F-CARE-001 atau F-CARE-002 dibangun | SCN-09, SCN-10, SCN-39 | S5 |
 | FR-CARE-004 | F-CARE-001, F-CARE-002 | Sama | SCN-10 | S5 |
 | FR-AI-005 | F-AI-005 | Bila F-AI-001 sampai F-AI-004 atau F-AI-008 dibangun | SCN-39, SCN-40 | S5 |

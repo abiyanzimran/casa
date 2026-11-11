@@ -84,11 +84,13 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
-| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, monthly budgets per category, with a period start day chosen by the household (default: the 1st), recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
-| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders, with quiet hours; `PLN` only as far as outing requests need it; `REQ` action requests: a task one member asks of another, which the assignee can accept or decline and the requester can cancel, and which stays pending until the assignee marks it done; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly narrative | Concise requirements |
-| **3 — Deferred** | `AI` open-ended advice conversations, `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
+| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, monthly budgets per category, with a period start day chosen by the household (default: the 1st), recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder. `COM` light household chat: free messages, photos, object cards (requests, agreements, tasks, entries, handovers, shared care status) whose buttons run the object's own commands, delivered and read marks, and presence; no voice notes, groups, reactions, or search (owner decision, S3). `NTF` quiet hours and digests, and bill reminders (owner decision, S3 checkpoint) | Full requirements with acceptance criteria |
+| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine reminders; `PLN` only as far as outing requests need it; `REQ` action requests: a task one member asks of another, which the assignee can accept or decline and the requester can cancel, and which stays pending until the assignee marks it done; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly narrative | Concise requirements |
+| **3 — Deferred** | `AI` open-ended advice conversations, `COM` beyond the light household chat (voice notes, groups, reactions, search), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
 
 Any part of a module not named in Tier 1 or Tier 2 is Tier 3.
+
+Tiers set what is built first, not what is designed: the data model, rules, flows, terms, and screens are designed for every household of the public stage, and the pilot household is their first user (owner direction, S3).
 
 This depth rule overrides §5, §10.3, §12, and §16 wherever they ask for uniform detail across all modules. A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs.
 
@@ -159,7 +161,7 @@ Do not hardcode "husband + wife + children". Support at least:
 
 ### 4.2 Accounts and membership
 
-Every eligible member can have an individual account. Design: family creation, invitations, onboarding, membership, multiple households, profiles, age-appropriate access, guardianship, administration and ownership transfer, member removal, account recovery, household separation, and the boundary between shared and personal information.
+Every eligible member can have an individual account. Design: family creation, invitations, onboarding, membership, multiple households, profiles, age-appropriate access, guardianship, administration and ownership transfer, member exit (an adult leaves on their own; no adult can remove another adult; owner decision, S3), account recovery, household separation, and the boundary between shared and personal information.
 
 Explore how one person can belong to multiple households (e.g., a married son who still supports his parents' household) without leaking information between them.
 
@@ -294,7 +296,7 @@ Approval requests and outcomes, upcoming bills, budget warnings, shopping remind
 An AI companion that helps members care for each other and keeps the household warm. It assists; the people act.
 
 - **Morning greeting.** On opening the app, a short personal line of encouragement or affection.
-- **Suggested words of support.** When a member shares a low mood or an illness, their partner is prompted with a suggested message of encouragement or praise. The partner sends it as is, edits it by hand, or asks the AI to revise it. It is delivered inside the app as a short note attached to that mood or illness status, not through a general chat.
+- **Suggested words of support.** When a member shares a low mood or an illness, their partner is prompted with a suggested message of encouragement or praise. The partner sends it as is, edits it by hand, or asks the AI to revise it. It is sent as a household-chat reply to that status's card, so it is also attached to the status (owner decision, S3).
 - **Warm reminders.** Pending tasks, requests, and outings are worded kindly instead of as bare alerts.
 - **Monthly narrative.** The month's money, what the couple achieved together, and impressions, written as a short narrative.
 - **Advice and encouragement on request.**

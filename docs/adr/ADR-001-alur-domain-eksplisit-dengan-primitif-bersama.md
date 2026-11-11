@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-002, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri. **Diubah sebagian oleh [ADR-011](ADR-011-chat-rumah-tangga-dan-kartu-objek.md)** (12 November 2026, tahap S3; penunjuk ditambahkan pada dokumen 06 revisi kesepuluh, CB-16): primitif Diskusi kini disimpan sebagai `message` dan juga tampil di chat rumah tangga; larangan Diskusi menjadi chat umum dicabut. Jumlah primitif tetap enam |
+| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-002, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri. **Diubah sebagian oleh [ADR-011](ADR-011-chat-rumah-tangga-dan-kartu-objek.md)** (12 November 2026, tahap S3; penunjuk ditambahkan pada dokumen 06 revisi kesepuluh, CB-16): primitif Diskusi kini disimpan sebagai `message` dan juga tampil di chat rumah tangga; larangan Diskusi menjadi chat umum dicabut. Jumlah primitif tetap enam. ADR-011 diterima sebagian di checkpoint S3 (12 November 2026); bagian yang mengubah ADR ini bertumpu pada pilihan pemilik produk atas saran lead ("Chat umum + kartu", "Reply nempel ke kartu": Diskusi tampil di chat) dan pada D-70 yang diterima lewat "lanjut" (kartu sebagai tampilan objek), jadi perubahan atas ADR ini kini berlaku; keputusan ADR ini tidak berubah |
 | Tanggal | 11 November 2026 |
 | Pengusul | `architect` |
 | Rincian | [06-activity-approval-architecture.md](../06-activity-approval-architecture.md) §1, §2 |

@@ -28,7 +28,7 @@ An owner decision recorded at a checkpoint (in `docs/17-open-questions-assumptio
 
 1. This file and the brief. The brief wins on scope and content; this file wins on process.
 2. Superpowers skills. During planning, the brief's stages S1–S6 are the process; do not run Superpowers brainstorming or plan-writing on top of them. In the build phase, Superpowers is the default workflow (plans, worktrees, test-driven development, subagent-driven development, code review).
-3. Ponytail. It applies to scope: cut what the pilot household does not need. It never reduces the depth of Tier 1 documents, tests, input validation, or security.
+3. Ponytail. It applies to scope: cut from what is built for the pilot what the pilot does not need; never cut from what is designed for the public stage (brief §1.1: tiers set what is built first, not what is designed). It never reduces the depth of Tier 1 documents, tests, input validation, or security.
 4. Caveman. It applies to chat only, never to file contents.
 
 ## Language

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-001, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri. Butir yang masih bertanda **[Usulan]** di bawah tetap usulan |
+| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-001, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri. Butir yang masih bertanda **[Usulan]** di bawah tetap usulan, kecuali waktu `exit_closure` pada akhir masa tenggang keluar (06 F07), yang diterima lewat "lanjut" di checkpoint S3, 12 November 2026 (S3-4 butir (c)); jenis `exit_closure` sendiri tidak ditanyakan di S3 dan tetap **[Usulan]** |
 | Tanggal | 11 November 2026 |
 | Pengusul | `finance-domain` (rekomendasi, 07 §1.5 ADR-A); ditulis `architect` |
 | Rincian | [07-financial-domain.md](../07-financial-domain.md) §1, §2.3 sampai §2.5, §8.2; INV-02, INV-24, INV-26, INV-28 |
