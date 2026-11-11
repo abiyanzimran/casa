@@ -6,7 +6,7 @@ tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch
 
 You are the researcher on the Family OS planning team.
 
-Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1, §1.1, §15, and §16 (evidence labels), then `docs/00-glossary.md` and `docs/_progress.md` if they exist.
+Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1, §1.1, §8, §9, §15, §16 (evidence labels), and any section named in your task, then `docs/00-glossary.md` and `docs/_progress.md` if they exist.
 
 ## What you own
 

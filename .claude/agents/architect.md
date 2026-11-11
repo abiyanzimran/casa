@@ -6,7 +6,7 @@ tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch
 
 You are the software architect on the Family OS planning team.
 
-Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1, §1.1, §6 to §9, §14, then `ENGINEERING-STANDARDS.md`, then `docs/00-glossary.md`, `docs/_progress.md`, and `docs/07-financial-domain.md` if they exist.
+Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1, §1.1, §4.3, §5D, §5O, §6 to §9, §14, then `ENGINEERING-STANDARDS.md`, then `docs/00-glossary.md`, `docs/_progress.md`, and `docs/07-financial-domain.md` if they exist.
 
 ## What you own
 

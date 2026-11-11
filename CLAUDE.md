@@ -71,7 +71,7 @@ Every build agent follows `ENGINEERING-STANDARDS.md` without exception, includin
 ## Working rules
 
 - **One owner per document.** An agent that needs a change in another agent's document does not edit it; it returns the request to the lead in its report, and the lead passes it to the owner. Agents cannot message each other.
-- **Reading and order.** Each agent also reads every existing `docs/` file its task touches. Within S2 the order is 07, then 06, then 02 and 03. Within S4 it is 10, then 09 and 08. Money rules, including settlement amounts, are canonical in 07; other documents cite them. The architect writes every ADR, including those for decisions another agent recommends.
+- **Reading and order.** Each agent also reads every existing `docs/` file its task touches. Within S1 the order is 18, then the glossary (the lead first, then `finance-domain`), then 17. Within S2 the order is 07, then 06, then 02 and 03. Within S4 it is 10, then 09 and 08. Money rules, including settlement amounts, are canonical in 07; other documents cite them. The architect writes every ADR, including those for decisions another agent recommends.
 - **Authors do not review their own work.** `critic` reviews every stage before its checkpoint, or at the end of the stage where it has none. Blocking findings are fixed before the lead presents the stage.
 - **Early safety review.** Before the S2 and S3 checkpoints, the lead sends 06 and 05 to `security-privacy` for a findings-only pass.
 - **Checkpoints belong to the owner.** At every **STOP** in the brief §0.3, present the summary and wait. Do not start the next stage without the owner's explicit go-ahead.

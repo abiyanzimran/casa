@@ -28,7 +28,7 @@ If your context is cleared or the session restarts, read `docs/_progress.md` and
 
 | Stage | Output | Checkpoint |
 |---|---|---|
-| **S1 — Framing** | `README.md` (skeleton + links), `00-glossary.md` (first version; financial terms are working definitions, finalized in S2), `17-open-questions-assumptions.md` (first version), `18-market-research.md` | **STOP.** Present your top 10 most decision-critical questions with a proposed default for each. Wait for my answers, or for "lanjut pakai default". |
+| **S1 — Framing** | `README.md` (skeleton + links), `00-glossary.md` (first version; financial terms are working definitions, finalized in S2), `17-open-questions-assumptions.md` (first version), `18-market-research.md` (market and regulation at S1; extended whenever a later stage commissions research) | **STOP.** Present your top 10 most decision-critical questions with a proposed default for each. Wait for my answers, or for "lanjut pakai default". |
 | **S2 — Domain foundation** | `02-product-principles.md`, `03-personas-household-models.md`, `07-financial-domain.md`, `06-activity-approval-architecture.md` | **STOP.** Summarize the financial model and approval model in ≤ 1 page for my review. These two documents constrain everything else. |
 | **S3 — Product definition** | `04-feature-map.md`, `05-functional-requirements.md`, `11-innovation.md`, `12-scenarios.md` | **STOP.** Short summary of the MVP feature cut. Wait for "lanjut". |
 | **S4 — Experience & architecture** | `08-ux-ui-strategy.md`, `09-technical-architecture.md` (+ ADRs), `10-security-privacy.md` | **STOP.** Present the recommended stack and architecture with the main tradeoffs. |
@@ -57,7 +57,7 @@ These constraints shape every recommendation, especially technology choice, scop
 | Primary launch market | `[DEFAULT]` Indonesia (IDR, Bahasa Indonesia first, English second); design for later internationalization |
 | Platforms | iPhone, Android phones, iPad, Android tablets, foldables. Phones come first; see the tiers in §1.1 |
 | Target time to MVP | No fixed deadline. Prefer the smallest scope the pilot household will use daily over a date |
-| Monthly infrastructure budget at launch | One modest VPS during the pilot. No usage-priced managed services unless clearly justified |
+| Monthly infrastructure budget at launch | One modest VPS during the pilot. No usage-priced managed services unless clearly justified. The AI provider for §5O is the one accepted exception, under its hard cost cap |
 | Business model | `[DEFAULT]` Undecided. Evaluate freemium per household, family subscription, and one-time purchase; recommend one with reasoning |
 | **Money movement scope** | `[DEFAULT]` **The app records and organizes money; it does not hold, transfer, or process real funds.** No payment gateway, no stored value, no e-wallet. All "transfers" are records of real-world movements. Evaluate the regulatory and product implications of ever crossing this line, but do not design for it in MVP |
 | Bank / e-wallet sync | `[DEFAULT]` Not in MVP. Investigate what is realistically available in Indonesia and label findings as verified or unverified |
@@ -76,15 +76,17 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 - **Spending and outings are unplanned.** Outings are announced at the last minute and grocery budgets are regularly exceeded. Wanted: either spouse proposes an outing or purchase in advance (date, places, planned items, budget); the other checks the budget and approves, discusses, or counters.
 - **Recording is a burden.** The main recorder is forgetful, so entry must take seconds and tolerate late entry.
 - **Secondary pains.** A spouse's mood is unknown unless asked; house issues (e.g., leaking roof) should become a task closed with photos and notes; routine chores are forgotten (e.g., cooking rice); "what should we cook?"; illness needs follow-up (fever reported, family checks again after N days, the sick member confirms recovered, still sick, or going to a clinic); who pays which bill, and how much, must be clear.
-- **Warmth takes effort.** The couple wants the app to help them be attentive and affectionate: a kind word in the morning, help finding the right words when the other is unwell or low, and things one asks of the other kept as tasks until done. See §5O.
+- **Warmth takes effort.** The couple wants the app to help them be attentive and affectionate: a kind word in the morning, help finding the right words when the other is unwell or low, and things one asks of the other kept as tasks until done. See §5D and §5O.
 
 **MVP priority tiers.** Set by the owner. Challenge them, with reasons, if research or the financial model says otherwise; a change takes effect only after the owner approves it at a checkpoint.
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
-| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
-| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it; tasks one member assigns to another, which stay pending until the assignee completes them; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly summary in plain words | Concise requirements |
+| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, budgets per category and period, recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
+| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders, with quiet hours; `PLN` only as far as outing requests need it; `REQ` action requests: a task one member asks of another, which the assignee can accept or decline and the requester can cancel, and which stays pending until the assignee marks it done; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly narrative | Concise requirements |
 | **3 — Deferred** | `AI` open-ended advice conversations, `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
+
+Any part of a module not named in Tier 1 or Tier 2 is Tier 3.
 
 This depth rule overrides §5, §10.3, §12, and §16 wherever they ask for uniform detail across all modules. A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs.
 
@@ -96,6 +98,7 @@ Deferring a module limits its documentation and its build, not the foundations: 
 2. Both spouses record without being reminded.
 3. The monthly summary shows spending by category and per person, who paid what, savings, and assets.
 4. Outings and non-routine purchases arrive as requests in the app, not as surprises.
+5. Each spouse says the app helped them notice and respond to how the other was doing. This one is judged by the couple, not measured.
 
 **Guardrail.** Requests run in both directions (each spouse asks the other), and mood sharing is always the sharer's choice. See §5D and §8.
 
@@ -234,6 +237,8 @@ Explore: configurable rules, single and multiple approvers, sequential approval,
 
 These are **different request types** and must not be modeled as one financial transaction: asking permission, requesting a budget, requesting reimbursement, requesting an action, proposing a decision.
 
+An **action request** is a task one member asks of another (for example, one spouse asks the other to fix something). The assignee accepts or declines, the requester can cancel, and an accepted task stays pending, with reminders, until the assignee marks it done.
+
 Approval flows must support cooperation, not coercive control or surveillance. Define concrete design safeguards for this (see §8).
 
 ### E — Shopping & Purchasing (`SHP`)
@@ -287,21 +292,30 @@ Approval requests and outcomes, upcoming bills, budget warnings, shopping remind
 An AI companion that helps members care for each other and keeps the household warm. It assists; the people act.
 
 - **Morning greeting.** On opening the app, a short personal line of encouragement or affection.
-- **Suggested words of support.** When a member shares a low mood or an illness, their partner is prompted with a suggested message of encouragement or praise. The partner sends it as is, edits it by hand, or asks the AI to revise it.
+- **Suggested words of support.** When a member shares a low mood or an illness, their partner is prompted with a suggested message of encouragement or praise. The partner sends it as is, edits it by hand, or asks the AI to revise it. It is delivered inside the app as a short note attached to that mood or illness status, not through a general chat.
 - **Warm reminders.** Pending tasks, requests, and outings are worded kindly instead of as bare alerts.
-- **Summaries in plain words.** The month's money, what the couple achieved together, and impressions, written as a short narrative.
+- **Monthly narrative.** The month's money, what the couple achieved together, and impressions, written as a short narrative.
 - **Advice and encouragement on request.**
 
 Requirements:
 - The AI never sends a message, approves a request, or changes a record on anyone's behalf. A person takes every action.
 - It uses only what the member it is helping is already allowed to see. It never reveals, hints at, or paraphrases to one partner what the other kept private.
-- It is a supportive companion, not a psychologist: no diagnosis, no therapy or medical claims. Define what it does on signs of serious distress, self-harm, or violence, including pointing to professional help.
+- It is a supportive companion, not a psychologist: no diagnosis, no therapy or medical claims. `security-privacy` defines, in document 10, what it does on signs of serious distress, self-harm, or violence, including pointing to professional help.
 - Each member opts in separately and can turn it off. State plainly which data leaves the server for an AI provider, and send the minimum.
 - The app is fully usable without it. An AI failure never blocks recording, requests, or approvals.
 - Its wording is natural Indonesian, varied, and never generic or repetitive; it respects quiet hours.
 - Usage cost has a hard cap.
 
-Decide explicitly: which of these belong in the pilot; whether a recipient is told that a message was drafted with AI; and how to keep suggested affection from feeling fake.
+Owner decisions:
+1. **Timing.** The light version (morning greeting, suggested words of support, warm reminders, monthly narrative) is Tier 2 and part of the pilot. Open-ended advice conversations are Tier 3.
+2. **Disclosure.** A drafted message carries no AI marker. Both partners know the feature exists, and the sender must read each message and send it personally.
+3. **Data sent to the provider.** Only with the consent of the member the data is about, and only the minimum, never names:
+   - Suggested words of support: the stated feeling or condition, without the member's free-text reason unless that member allows it.
+   - Warm reminders: the title and due date of the task, request, or outing, without amounts.
+   - The non-money part of the monthly narrative: counts and titles of completed tasks, requests, and outings.
+4. **Money in the monthly narrative.** The AI receives aggregated figures only, never individual transactions.
+
+`security-privacy` assesses decisions 2 to 4 at S4 against the research on UU PDP and recommends a change if the research calls for one. `product-analyst` recommends, in document 05 at S3, how to keep suggested affection from feeling fake; the owner decides at that checkpoint.
 
 ---
 
@@ -465,7 +479,7 @@ Do not put everything in the first release. Use this phase structure, or justify
 - **Phase 1 — MVP:** the smallest coherent product that delivers real daily value and that one family would actually keep using.
 - **Phase 2 — Core Family Operations.**
 - **Phase 3 — Advanced Household Management.**
-- **Phase 4 — Intelligence & Automation** (optional, problem-driven AI).
+- **Phase 4 — Intelligence & Automation** (optional, problem-driven AI beyond the §5O light version, which is part of the MVP).
 - **Phase 5 — Ecosystem & Scale.**
 
 Use one prioritization framework consistently (e.g., RICE scores plus MoSCoW labels). Classify every feature as Must / Should / Could / Future / **Will not build** (with reasons). Show dependencies and sequencing, preferably as a Mermaid diagram.
@@ -537,12 +551,12 @@ Split a document into a subfolder (e.g., `05-functional-requirements/FIN.md`) if
 | 10 | Security & privacy | Threat model, access control, sensitive data, child safety, abuse prevention, data lifecycle, regulation |
 | 11 | Innovation | ≥ 15 concepts with assessment and priority |
 | 12 | Scenarios | ≥ 20 scenarios with edge cases |
-| 13 | Product roadmap | Phases, validation plan, milestones, dependencies |
+| 13 | Product roadmap | Phases, validation plan, milestones, dependencies, and the business-model recommendation asked for in §1 |
 | 14 | Engineering roadmap | Workstreams, testing strategy (incl. financial invariant tests), quality gates, release strategy, operations |
 | 15 | Risk assessment | Product, UX, security, financial, technical, business risks with mitigations |
 | 16 | Final recommendations | MVP, architecture, critical decisions, deferred decisions, features to reconsider, top opportunities |
 | 17 | Open questions & assumptions | Owner decisions needed, assumptions, research to validate, proposed defaults with justification |
-| 18 | Market research | Everything in §15, plus every other research finding (regulation, integrations, platform design, technology), one section per topic, with sources and access dates. Other documents cite it |
+| 18 | Market research | Everything in §15, plus every other research finding (regulation, integrations, platform design, technology), one section per topic, with sources and access dates. Other documents cite it. A finding another agent verifies itself is cited in that agent's own document and reported to the lead, who has the researcher add it here |
 
 ### Identifier scheme
 
