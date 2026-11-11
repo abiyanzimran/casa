@@ -28,7 +28,7 @@ If your context is cleared or the session restarts, read `docs/_progress.md` and
 
 | Stage | Output | Checkpoint |
 |---|---|---|
-| **S1 — Framing** | `README.md` (skeleton + links), `00-glossary.md`, `17-open-questions-assumptions.md` (first version), `18-market-research.md` | **STOP.** Present your top 10 most decision-critical questions with a proposed default for each. Wait for my answers, or for "lanjut pakai default". |
+| **S1 — Framing** | `README.md` (skeleton + links), `00-glossary.md` (first version; financial terms are working definitions, finalized in S2), `17-open-questions-assumptions.md` (first version), `18-market-research.md` | **STOP.** Present your top 10 most decision-critical questions with a proposed default for each. Wait for my answers, or for "lanjut pakai default". |
 | **S2 — Domain foundation** | `02-product-principles.md`, `03-personas-household-models.md`, `07-financial-domain.md`, `06-activity-approval-architecture.md` | **STOP.** Summarize the financial model and approval model in ≤ 1 page for my review. These two documents constrain everything else. |
 | **S3 — Product definition** | `04-feature-map.md`, `05-functional-requirements.md`, `11-innovation.md`, `12-scenarios.md` | **STOP.** Short summary of the MVP feature cut. Wait for "lanjut". |
 | **S4 — Experience & architecture** | `08-ux-ui-strategy.md`, `09-technical-architecture.md` (+ ADRs), `10-security-privacy.md` | **STOP.** Present the recommended stack and architecture with the main tradeoffs. |
@@ -81,11 +81,11 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
-| **1 — Core** | `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), assets and net worth, summary reports. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
-| **2 — Light versions** | `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it | Concise requirements |
+| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
+| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it | Concise requirements |
 | **3 — Deferred** | `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
 
-This depth rule overrides §5 and §16 wherever they ask for uniform detail across all modules.
+This depth rule overrides §5, §10.3, §12, and §16 wherever they ask for uniform detail across all modules. A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs.
 
 Deferring a module limits its documentation and its build, not the foundations: the Tier 1 data model and access model must not block Tier 3, in particular household isolation and one person belonging to more than one household.
 
@@ -302,7 +302,7 @@ Compare a unified generic workflow engine against explicit domain-specific workf
 
 Financial accuracy is non-negotiable. Provide worked examples (tables showing balances before and after each step) for at least:
 
-Spending from personal cash; spending from shared household cash; husband transfers money to wife; allocating money to mother-in-law; paying on behalf of another member; reimbursement; moving money between bank, e-wallet, and cash; full and partial refunds; recurring bills; split expenses; debt repayment; savings contributions; budget reservations; settling unused budget; cash reconciliation (counted cash ≠ recorded cash); incorrect transactions and corrections; concurrent updates; duplicate submissions.
+Spending from personal cash; spending from shared household cash; husband transfers money to wife; allocating money to mother-in-law; paying on behalf of another member; reimbursement; moving money between bank, e-wallet, and cash; full and partial refunds; recurring bills; split expenses; debt repayment; savings contributions; budget reservations; settling unused budget; cash reconciliation (counted cash ≠ recorded cash); incorrect transactions and corrections; concurrent updates; duplicate submissions; salary arrival and allocation as in §1.1; an installment payment; a loan to extended family and its repayment; one spouse borrowing back from money the other holds; an asset purchase and its effect on net worth.
 
 Define each of these terms canonically in `00-glossary.md` and use them consistently: income, expense, transfer, allocation, authorization, reservation, liability, settlement, reimbursement, available balance, recorded balance.
 
@@ -516,7 +516,7 @@ Split a document into a subfolder (e.g., `05-functional-requirements/FIN.md`) if
 | 15 | Risk assessment | Product, UX, security, financial, technical, business risks with mitigations |
 | 16 | Final recommendations | MVP, architecture, critical decisions, deferred decisions, features to reconsider, top opportunities |
 | 17 | Open questions & assumptions | Owner decisions needed, assumptions, research to validate, proposed defaults with justification |
-| 18 | Market research | Everything in §15, with sources and access dates |
+| 18 | Market research | Everything in §15, plus every other research finding (regulation, integrations, platform design, technology), one section per topic, with sources and access dates. Other documents cite it |
 
 ### Identifier scheme
 
@@ -530,11 +530,11 @@ Split a document into a subfolder (e.g., `05-functional-requirements/FIN.md`) if
 | Risk | `RISK-NN` | `RISK-05` |
 | Decision record | `ADR-NNN` | `ADR-002` |
 
-Maintain traceability: every Must-have requirement maps to a feature, at least one scenario, and a roadmap phase. Include a traceability table in `05-functional-requirements.md` or `13-product-roadmap.md`.
+Maintain traceability: every Must-have requirement (all of Tier 1, plus any Tier 2 requirement labeled Must) maps to a feature and at least one scenario from S3, and to a roadmap phase from S5. Include a traceability table in `05-functional-requirements.md` or `13-product-roadmap.md`.
 
 ### Evidence labels
 
-Tag every non-trivial claim that is not your own design reasoning:
+Tag every non-trivial claim. Where this brief says "unverified", use **[Perlu validasi]** and state what was searched and why it could not be confirmed:
 
 - **[Terverifikasi]** — confirmed through research; include source and access date.
 - **[Asumsi]** — reasonable belief, not verified.

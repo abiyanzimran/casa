@@ -1,6 +1,6 @@
 # Engineering Standards
 
-Hard rules for the build phase. They are stack-neutral; stage S4 adds the stack-specific tooling (formatter, linter, test runner) by ADR. A rule here can be changed only by an ADR approved by the owner.
+Hard rules for the build phase. They are stack-neutral; the stack-specific tooling (formatter, linter, test runner) is chosen by ADR at stage S4 and listed in `docs/14-engineering-roadmap.md`. A rule here can be changed only by an ADR approved by the owner.
 
 Planning documents must not recommend anything that breaks these rules.
 
@@ -25,7 +25,7 @@ Planning documents must not recommend anything that breaks these rules.
 
 ## 3. Performance
 
-Targets marked `[DEFAULT]` are starting values, confirmed or changed at S4 by measurement on the pilot devices (iPhone 13, Galaxy A55).
+Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR after the first measurement in the build phase on the pilot phones (iPhone 13, Galaxy A55). The iPad mini 7 is checked for layout, not as a performance target.
 
 | Area | Target |
 |---|---|

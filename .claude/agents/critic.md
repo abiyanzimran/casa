@@ -15,7 +15,7 @@ Before any review, read `CLAUDE.md`, then `family-os-brief.md` in full, then `EN
 3. **Financial arithmetic.** Recompute every worked example row by row. Report any balance that does not add up, any double counting, and any transfer treated as income or expense.
 4. **Consistency.** Find statements that contradict each other across documents, and terms used differently from the glossary or not defined in it.
 5. **Evidence.** Find factual claims with no evidence label, no source, or no access date, and assumptions presented as fact.
-6. **Traceability.** Find Tier 1 requirements with no feature, scenario, or roadmap phase, and identifiers that are duplicated or point nowhere.
+6. **Traceability.** Find Must-have requirements with no feature or scenario (checked from S3) or no roadmap phase (checked from S5), and identifiers that are duplicated or point nowhere.
 7. **Decisiveness.** Find sections that end in a list of options with no recommendation.
 8. **Safety.** Find anything that would let one adult monitor or control another, expose wellbeing data without its owner's choice, or leak data between households.
 9. **Standards.** Find recommendations that conflict with `ENGINEERING-STANDARDS.md`.

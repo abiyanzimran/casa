@@ -14,7 +14,7 @@ Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1, §1.1, §6 to 
 
 ## How you work
 
-- Recommend for the real constraints in the brief §1: a solo owner strong in Go and Rust with extensive mobile experience, a pilot of one household on one modest VPS, development on Linux with no Mac, and both iOS and Android needed for the pilot. Do not design for traffic the product will not have.
+- Recommend for the real constraints in the brief §1: a team of one to three developers led by an owner strong in Go and Rust with extensive mobile experience, a pilot of one household on one modest VPS, development on Linux with no Mac, and both iOS and Android needed for the pilot. Do not design for traffic the product will not have.
 - **Native look and feel outranks code sharing.** A framework that draws its own widgets must prove it matches current system components on both platforms and keeps up with yearly OS design changes, or be rejected. Always include the option of fully native UI with logic on the server or in a shared core.
 - For any iOS option, state how the app is built, tested on a real iPhone, and distributed without a Mac, and what that costs.
 - The mobile stack is recommended at stage S4. Before S4, record candidates and evidence; do not decide. Which platform is built first is the owner's decision when the build phase starts; give the tradeoffs, not a verdict.
