@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Diusulkan; menunggu persetujuan pemilik produk di checkpoint S2 |
+| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-002, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri |
 | Tanggal | 11 November 2026 |
 | Pengusul | `architect` |
 | Rincian | [06-activity-approval-architecture.md](../06-activity-approval-architecture.md) §1, §2 |

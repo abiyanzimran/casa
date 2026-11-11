@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Diusulkan; menunggu persetujuan pemilik produk di checkpoint S2 |
+| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-05; tidak dibacakan satu per satu). Bukan pernyataannya sendiri |
 | Tanggal | 11 November 2026 |
 | Pengusul | `finance-domain` (rekomendasi, 07 §1.5 ADR-E); ditulis `architect` |
 | Rincian | [07-financial-domain.md](../07-financial-domain.md) §3.10, §3.11; INV-19, INV-22 |

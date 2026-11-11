@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik dokumen | `researcher` |
 | Tahap | S1 (Framing) — pasar dan regulasi |
-| Status | Draf, direvisi setelah tinjauan pertama dan kedua `critic` (11 November 2026). Temuan PP 33/2026 di §2 diperbarui dari pembacaan salinan teks lengkap (tindak lanjut R-01, 11 November 2026; lihat §2.6); pembaruan itu belum ditinjau `critic`. |
+| Status | Draf, direvisi setelah tinjauan pertama dan kedua `critic` (11 November 2026). Temuan PP 33/2026 di §2 diperbarui dari pembacaan salinan teks lengkap (tindak lanjut R-01, 11 November 2026; lihat §2.6); pembaruan itu belum ditinjau `critic`. §4 (desain platform dan referensi desain) ditulis 11 November 2026, lebih awal dari jadwal S4, atas permintaan pemilik produk yang disampaikan lead; ditinjau `critic` dan direvisi 12 November 2026 (temuan S13, S14, S15, M1, M2, M3, serta pemeriksaan atribusi kepada pemilik produk); revisi itu belum ditinjau ulang. §3 dan §5 masih placeholder. |
 | Tanggal akses | 11 November 2026 untuk semua sumber, tanpa kecuali. Tanggal lain yang tertulis di samping tautan, selalu diawali kata "terbit", adalah tanggal terbit artikel, bukan tanggal akses. |
 | Dirujuk oleh | `17`, `10`, `02`, `13`, `15`, `16`, `01` |
 
@@ -15,7 +15,7 @@
 1. **Pasar.** Aplikasi apa yang sebanding dengan Family OS, apa yang benar-benar mereka tawarkan untuk masalah inti di brief §1.1 (uang rumah tangga tidak terlihat, tidak jelas siapa memegang berapa, permintaan dan persetujuan antar-pasangan), mengapa aplikasi semacam ini ditinggalkan, dan di mana peluang pembedaannya?
 2. **Regulasi.** Aturan Indonesia dan aturan toko aplikasi apa yang membatasi desain Family OS, terutama untuk data keuangan, data kesehatan dan suasana hati, akun anak, pengiriman data ke penyedia AI di luar negeri, dan batas "mencatat uang, tidak memegang uang"?
 
-Integrasi (marketplace, bank), bahasa desain platform, dan teknologi **tidak** diteliti pada tahap ini. Bagiannya disediakan kosong di §3 sampai §5.
+Integrasi (marketplace, bank) dan teknologi **tidak** diteliti pada tahap ini; bagiannya disediakan kosong di §3 dan §5. Bahasa desain platform dan referensi desain diteliti kemudian, 11 November 2026, dengan pertanyaan risetnya sendiri di §4.0.
 
 ### 0.2 Label bukti
 
@@ -461,9 +461,275 @@ Semua kutipan verbatim dari salinan teks; labelnya **[Perlu validasi] — salina
 
 Catatan bawaan dari S1 untuk riset itu: lihat §2.5 butir 3 tentang "penyediaan informasi Sumber Dana".
 
-## 4. Desain platform
+## 4. Desain platform dan referensi desain
 
-**Belum diteliti — dijadwalkan pada tahap S4** (brief §10: pedoman desain iOS dan Android terkini, komponen sistem, adaptasi tablet dan foldable).
+Diteliti 11 November 2026, lebih awal dari jadwal S4, atas permintaan pemilik produk. Bagian ini **menyediakan referensi bersumber dan batasan**; bagian ini tidak mengusulkan arah visual. Arah visual adalah pekerjaan `ux-designer` di dokumen 08 (S4).
+
+### 4.0 Pertanyaan riset dan batas pembacaan
+
+**Pertanyaan.** (1) Aplikasi keuangan yang sudah terbit dan beridentitas visual jelas, untuk dipelajari. (2) Galeri layar yang dapat dijelajahi pemilik produk sendiri. (3) Bahasa desain dan pedoman tata letak adaptif iOS/iPadOS dan Android yang berlaku, termasuk foldable dan perangkat dua layar. (4) Tipografi dan warna untuk aplikasi keuangan rumah tangga berbahasa Indonesia. (5) Mode terang dan gelap. (6) Antarmuka percakapan: utas diskusi pada permintaan antar-pasangan dan pendamping AI (brief §5O).
+
+**Batas yang berlaku untuk seluruh §4:**
+
+- **Peneliti membaca halaman sebagai teks dan tidak melihat gambar.** Tidak ada satu pun pernyataan di §4 tentang rupa sebuah layar yang berasal dari pengamatan peneliti. Yang ditulis hanyalah apa yang dikatakan teks sumber. Galeri di §4.2 adalah bahan untuk **dinilai pemilik produk dengan matanya sendiri**.
+- Label mengikuti §0.2. **[Terverifikasi]** hanya untuk sumber primer yang dibuka; untuk pedoman platform, sumber primer berarti halaman pedoman milik Apple, Google, Microsoft, atau W3C.
+- Halaman Apple Human Interface Guidelines (HIG) dirender dengan JavaScript. Yang dibuka adalah berkas data halaman yang sama di `developer.apple.com/tutorials/data/design/human-interface-guidelines/<nama>.json`; tautan di bawah menunjuk ke halaman yang dibaca manusia. Halaman `color` dan `typography` terbaca sebagian (100 ribu karakter pertama). Hal yang sama berlaku untuk halaman dokumentasi pengembang Apple `UIKeyboardLayoutGuide` (§4.7): yang dibuka adalah `developer.apple.com/tutorials/data/documentation/uikit/uikeyboardlayoutguide.json`. Peneliti tidak membandingkan berkas data itu dengan halaman yang tampil di peramban.
+- Tanggal "pembaruan terakhir" halaman `developer.android.com` tidak terbaca oleh alat; yang dicatat adalah versi pustaka dan tanggal dari halaman catatan rilis.
+- Daftar yang **tidak dapat dibuka** ada di §4.9.
+
+### 4.1 Aplikasi terbit untuk dipelajari
+
+Kolom "Identitas menurut sumber" hanya memuat yang tertulis di sumber. Sel kosong berarti tidak ada sumber pihak pertama yang berhasil dibuka, bukan bahwa aplikasinya tidak beridentitas.
+
+| Aplikasi | Identitas menurut sumber | Tablet / foldable menurut sumber | Sumber dan label |
+|---|---|---|---|
+| **Monzo** (Inggris) | Warna utama "hot coral", diikuti "deep navy" dan "soft white"; warna sekunder jingga, merah muda, kuning-hijau, teal, biru, khaki. Huruf: Oldschool Grotesk sebagai huruf utama ("warm, analog friendliness") dan Monzo Sans (potongan khusus Universal Sans) sebagai huruf fungsional. Ilustrasi baru oleh Ola Dobrzyńska, menjauh dari geometri datar. Agensi: Ragged Edge. Terbit 17 Oktober 2022. Nada bahasa: tiga asas, "straightforward kindness", "everyday magic", "warm wit"; mendahulukan hal yang menyangkut pembaca, kalimat aktif, tanpa jargon, meminta maaf satu kali dengan tulus. | Halaman App Store AS: "Only for iPhone", iOS 17.0 atau lebih baru; tidak ada tangkapan layar iPad. | **[Terverifikasi]** primer: [monzo.com/blog/weve-had-a-little-makeover](https://monzo.com/blog/weve-had-a-little-makeover), [monzo.com/tone-of-voice](https://monzo.com/tone-of-voice/), [App Store](https://apps.apple.com/us/app/monzo/id1052238659) |
+| **Copilot Money** (AS) | Situs vendor menyebut "Apple Design Awards Finalist" tanpa tahun. Halaman Apple Design Awards 2024 mencantumkannya sebagai finalis kategori **Innovation** (iPhone, Mac); Apple tidak menulis uraian untuk finalis. Situs vendor tidak menguraikan sistem warna atau hurufnya. | Situs vendor: iPhone, iPad, Mac, Web; Android tidak disebut. | **[Terverifikasi]** primer: [copilot.money](https://www.copilot.money/), [developer.apple.com/design/awards/2024](https://developer.apple.com/design/awards/2024/). Mengapa Apple memilihnya: **[Perlu validasi]**, tidak tertulis. |
+| **Wise** (Inggris) | Situs desain Wise berjudul "Building a System for a Borderless World". Isi tentang warna, huruf, dan cara menulis jumlah uang **tidak terbaca**: halaman depan hanya memuat navigasi, dan `docs.wise.design` dialihkan ke halaman 404. | Tidak diperoleh. | **[Perlu validasi]** — [wise.design](https://wise.design/) terbuka tanpa isi yang berguna |
+| **Bank Jago** (Indonesia) | Halaman App Store menyebut "Pocket" sebagai wadah uang dan *Kantong Bersama*: "Save together with loved ones in one shared account." Bahasa: Inggris dan Indonesia. Tidak ada tulisan pihak pertama tentang identitas visual yang ditemukan. | Halaman App Store Indonesia: "Only for iPhone" (iOS 15.0), ditambah Apple Vision. | **[Terverifikasi]** primer: [App Store Indonesia](https://apps.apple.com/id/app/jago/id1539402234). `jago.com` tetap HTTP 403 (§1.1). |
+| **Jenius** (Indonesia) | Catatan rilis 4.81.0: "Transfer Money now comes with a new look." Tidak ada uraian identitas visual di halaman itu. Sebuah rekaman ceramah IxDA tentang kerja sama Sixty Two dan BTPN untuk Jenius muncul di hasil pencarian, **tidak dibuka**. | Halaman App Store menyatakan kompatibel dengan iPad (iPadOS 15.1). **Kompatibel bukan berarti punya tata letak tablet**; halaman itu tidak menyebut tata letak tablet. | **[Terverifikasi]** primer untuk isi halaman: [App Store Indonesia](https://apps.apple.com/id/app/id1079340119). Ceramah IxDA: **[Perlu validasi]**, [ixda.org](https://ixda.org/video/a-digital-banking-transformation-journey-in-indonesia) |
+| **wondr by BNI** (Indonesia) | Cuplikan pencarian: tercatat di daftar pemenang iF Design Award sebagai perancangan ulang aplikasi dan pembuatan merek, 2025. | Tidak diperoleh. | **[Perlu validasi]** — [ifdesign.com](https://ifdesign.com/en/winner-ranking/project/bni-wondr/708721) mengembalikan HTTP 403; hanya cuplikan |
+| **GoPay / Gojek** (Indonesia) | Cuplikan pencarian: Gojek punya design language system bernama Asphalt; warna merek diganti lewat token. Tidak ditemukan tulisan pihak pertama tentang tipografi atau warna GoPay. | Tidak diperoleh. | **[Perlu validasi]** — [blog.gojek.io](https://blog.gojek.io/of-dreams-deadlines-and-a-design-system) terbuka tanpa isi artikel |
+| **SeaBank** (Indonesia) | Tidak diperoleh. | Cuplikan pencarian: halaman App Store menyebut iPhone dan iPad. | **[Perlu validasi]** — hanya cuplikan |
+| Revolut, Cash App, YNAB, N26, Lunar, Emma, Honeydue, Splitwise, Apple Wallet, blu, Bibit, Finansialku | Tidak ada sumber pihak pertama tentang identitas visual yang berhasil dibuka. | Splitwise: cuplikan pencarian menyebut iPhone dan iPad. Lainnya tidak diperoleh. | **[Perlu validasi]** — `revolut.com/brand` dan `cash.app/press` HTTP 403; `ynab.com/blog/a-new-look-for-ynab` 404; sisanya tidak dicari satu per satu |
+
+**Penghargaan desain.** **[Terverifikasi]** Halaman Apple Design Awards 2026 diperiksa khusus: tidak ada aplikasi keuangan, perbankan, anggaran, atau pengatur rumah tangga di antara pemenang maupun finalis ([developer.apple.com/design/awards](https://developer.apple.com/design/awards/)). **[Perlu validasi]** Google Play Best of 2025: cuplikan pencarian tidak menunjukkan kategori atau pemenang keuangan; halaman resminya tidak dibuka. Material Design Awards, Red Dot, Awwwards, dan Webby tidak dicari.
+
+**Dua tema pada aplikasi rujukan.** **[Perlu validasi]** Tidak satu pun sumber yang dibuka menyatakan apakah aplikasi di tabel ini menyediakan mode terang dan gelap. Halaman App Store Monzo, Jago, dan Jenius diperiksa khusus untuk hal itu dan tidak menyebutnya. Ini perlu dilihat langsung di perangkat.
+
+**Kesimpulan peneliti.** **[Usulan]** Dari daftar ini hanya Monzo yang identitasnya terdokumentasi oleh pemiliknya sendiri sampai ke nama warna, huruf, ilustrasi, dan nada bahasa. Untuk aplikasi lain, satu-satunya cara menilai adalah memasangnya atau melihat galeri di §4.2. Dua halaman toko (Monzo, Jago) menyatakan "Only for iPhone": aplikasi rujukan yang paling sering disebut justru tidak memberi contoh tata letak tablet, sehingga contoh tata letak adaptif harus diambil dari pedoman platform (§4.3, §4.4), bukan dari aplikasi keuangan.
+
+### 4.2 Galeri untuk dijelajahi pemilik produk
+
+| Galeri | Isinya menurut sumber | Akun / biaya | Label |
+|---|---|---|---|
+| **Page Flows** | **Produk terbit.** "Explore real-world user flows and design patterns from leading apps and websites"; rekaman alur dengan anotasi; iOS, Android, Web, Email. | Berbayar: uji coba 3 hari USD 2,95; USD 39 per kuartal atau USD 99 per tahun. | **[Terverifikasi]** primer: [pageflows.com](https://pageflows.com/) |
+| **Mobbin** | **Produk terbit** menurut cuplikan pencarian (tangkapan layar aplikasi iOS bernama, misalnya Monzo, Revolut, Wise, Cash App). | Cuplikan menyebut perlu akun; harga tidak diperoleh. | **[Perlu validasi]** — semua halaman `mobbin.com` mengembalikan HTTP 403 kepada alat |
+| **Pttrns** | **Produk terbit**: "in-production app interfaces and screenshots". | "Pttrns is now completely free"; akun gratis. | **[Terverifikasi]** primer: [pttrns.com](https://www.pttrns.com/). Halaman kategori yang dicoba 404. |
+| **ScreensDesign** (dahulu UI Sources) | **Produk terbit**: rekaman alur dari "2,930 apps in the top charts"; juga memuat alat pembuat layar dengan AI, yang hasilnya **bukan** produk terbit. Tidak ada kategori keuangan di halaman depan. | Ada paket Pro; harga tidak tertulis di halaman depan. | **[Terverifikasi]** primer: [screensdesign.com](https://screensdesign.com/); `uisources.com` dialihkan ke sini |
+| **Screenlane** | Sudah tidak berdiri sendiri: dialihkan (301) ke Page Flows. | — | **[Terverifikasi]** dari pengalihan |
+| **Refero** | Halaman depan hanya memuat judul. | Tidak diperoleh. | **[Perlu validasi]** |
+| **Galeri tata letak adaptif Android** | **Pihak pertama (Google)**: contoh rancangan untuk ponsel, tablet, foldable, desktop; saringan pola tata letak (list, detail, feed, supporting pane), kategori (termasuk Productivity, Social, Messages), dan postur (Folded, Flat, Tabletop). Tidak ada kategori keuangan. Ini contoh rancangan dari Google, bukan tangkapan aplikasi keuangan terbit. | Gratis, tanpa akun. | **[Terverifikasi]** primer: [developer.android.com/large-screens/gallery](https://developer.android.com/large-screens/gallery) |
+| **Dribbble, tag finance-app** | **Konsep.** Halaman tidak terbaca oleh alat (isi kosong). | Tidak diperoleh. | **[Perlu validasi]** — [dribbble.com/tags/finance-app](https://dribbble.com/tags/finance-app) |
+| **Behance** | **Campuran, sebagian besar konsep.** Satu pencarian tentang studi kasus perancangan ulang bank Indonesia yang benar-benar terbit tidak menemukan satu pun; yang muncul adalah proyek pribadi (satu di antaranya menyatakan tidak diminta oleh banknya). | Gratis untuk melihat **[Asumsi]**. | **[Perlu validasi]** — tidak ada halaman Behance yang dibuka |
+
+**Tautan yang layak dibuka.** Tautan bertanda (a) dibuka peneliti; (b) alamatnya dibaca dari halaman yang dibuka, tetapi halaman itu sendiri tidak dibuka; (c) hanya dari cuplikan pencarian.
+
+| # | Tautan | Berguna untuk | Jenis |
+|---|---|---|---|
+| 1 | [Page Flows — Finance, iOS](https://pageflows.com/ios/products/finance/) | Daftar alur aplikasi keuangan terbit (Revolut, Monzo, N26, Starling, Cash App, Wise, dan lain-lain). | Terbit (a) |
+| 2 | [Page Flows — Monzo](https://pageflows.com/post/ios/onboarding/monzo/) | Alur nyata aplikasi yang identitasnya terdokumentasi di §4.1. | Terbit (b) |
+| 3 | [Page Flows — Revolut](https://pageflows.com/post/ios/onboarding/revolut/), [N26](https://pageflows.com/post/ios/onboarding/n26/), [Cash App](https://pageflows.com/post/ios/onboarding/cash-app/), [Wise](https://pageflows.com/post/ios/onboarding/transferwise/) | Membandingkan empat identitas neobank pada alur yang sama. | Terbit (b) |
+| 4 | [Page Flows — Communication & Messaging, iOS](https://pageflows.com/ios/products/communication-messaging/) | Alur percakapan WhatsApp, Telegram, Signal, Discord (§4.7). | Terbit (a) |
+| 5 | [Mobbin — Bank app](https://mobbin.com/explore/mobile/screens/bank-app) | Layar beranda dan analitik aplikasi bank bernama. | Terbit (c) |
+| 6 | [Mobbin — Wallet & balance](https://mobbin.com/explore/mobile/screens/wallet-balance) | Cara aplikasi terbit menulis saldo dan wadah uang. | Terbit (c) |
+| 7 | [Mobbin — Transfer / send money](https://mobbin.com/explore/mobile/screens/transfer-send-money) | Layar memasukkan jumlah dan konfirmasi; dekat dengan serah terima. | Terbit (c) |
+| 8 | [Mobbin — kategori Finance](https://mobbin.com/explore/mobile/app-categories/finance) | Pintu masuk per aplikasi. | Terbit (c) |
+| 9 | [Galeri tata letak adaptif Android](https://developer.android.com/large-screens/gallery) | Satu-satunya galeri di daftar ini yang menunjukkan tablet, foldable, dan postur tabletop. | Contoh pihak pertama (a) |
+| 10 | [Monzo — "We've had a little makeover"](https://monzo.com/blog/weve-had-a-little-makeover) | Contoh identitas yang diuraikan pemiliknya: warna, dua huruf, ilustrasi. | Tulisan pihak pertama (a) |
+| 11 | [Monzo — Tone of voice](https://monzo.com/tone-of-voice/) | Contoh pedoman nada bahasa produk keuangan. Relevan dengan pernyataan arah pemilik produk di `_progress.md` ("aplikasi ini bukan menunjukan siapa yang salah, tapi mencatat apa yang perlu di catat"); bahwa itu berarti kata-kata layar tanpa bahasa pelanggaran adalah **bacaan lead, [Usulan]**, belum ia kukuhkan kata per kata. | Tulisan pihak pertama (a) |
+| 12 | [Apple Design Awards](https://developer.apple.com/design/awards/) dan [edisi 2024](https://developer.apple.com/design/awards/2024/) | Tolok ukur mutu aplikasi iOS menurut Apple; Copilot Money finalis 2024. | Penghargaan (a) |
+| 13 | [ScreensDesign — AI chatbot apps](https://screensdesign.com/categories/ai-chatbot-apps/) | Layar aplikasi percakapan AI yang terbit (§4.7). | Terbit (b) |
+| 14 | [Dribbble — finance-app](https://dribbble.com/tags/finance-app) | Rujukan gaya yang ditunjuk pemilik produk sendiri. Tercatat di `_progress.md`, paragraf "Arahan pemilik produk tentang tampilan (11 November 2026)": "ia menunjuk galeri Dribbble bertanda finance-app sebagai contoh arah". | **Konsep** (tidak terbaca) |
+| 15 | [Contoh Jetchat](https://github.com/android/compose-samples/tree/main/Jetchat) dan [Reply](https://github.com/android/compose-samples/tree/main/Reply) | Contoh resmi Google: percakapan dengan Material 3, dan aplikasi adaptif (bar, rail, drawer). Kode, bukan galeri. | Contoh pihak pertama (a untuk Jetchat; b untuk Reply) |
+
+**Yang perlu diperiksa pada gambar konsep.** **[Asumsi]** — peneliti tidak melihat satu gambar pun (§4.0), dan halaman Dribbble tidak terbaca. Daftar ini **bukan pengamatan** tentang rupa atau seberapa sering sesuatu muncul di gambar konsep, dan tidak ada sumber yang dicarikan untuknya. Isinya pertanyaan yang diturunkan dari syarat brief dan pedoman di §4.3 sampai §4.6, untuk dijawab pemilik produk pada tiap gambar yang ia sukai:
+
+- Apakah rancangan ini berasal dari aplikasi yang sudah dibangun dan terbit, atau gambar saja? Gambar konsep menurut pengertiannya belum teruji pada perangkat dan data nyata.
+- Apakah komponennya (bar navigasi, tombol, lembar, daftar) komponen sistem iOS atau Android, atau digambar sendiri? Brief §10.1 mewajibkan platform-native.
+- Apakah kontras teks dan latarnya memenuhi batas di §4.6 (4,5:1 untuk teks, 3:1 untuk teks besar dan unsur grafis)? Ini hanya dapat dipastikan dengan alat ukur kontras, bukan dengan melihat.
+- Apakah tata letaknya masih muat bila jumlahnya ditulis dalam rupiah ("Rp12.450.000", "Rp1.250.000.000") dan labelnya dalam bahasa Indonesia? Apakah label Indonesia lebih panjang daripada padanan Inggrisnya tidak diteliti: **[Asumsi]**, diperiksa pada kata-kata layar yang sebenarnya.
+- Apakah gambar itu menunjukkan keadaan kosong, galat, luring, teks diperbesar (Dynamic Type), mode gelap, tablet, atau foldable? Bila tidak, rancangan untuk keadaan-keadaan itu belum ada.
+
+### 4.3 Bahasa desain dan tata letak iOS dan iPadOS
+
+| Topik | Yang dikatakan sumber | Sumber, tanggal, label |
+|---|---|---|
+| Bahasa desain yang berlaku | **Liquid Glass**, diumumkan 9 Juni 2025; hadir di iOS 26, iPadOS 26, macOS Tahoe 26, watchOS 26, tvOS 26. API baru untuk SwiftUI, UIKit, dan AppKit. | **[Terverifikasi]** [Apple Newsroom, terbit 9 Juni 2025](https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/). Versi sistem operasi terbaru per November 2026 tidak diperiksa: **[Perlu validasi]**. |
+| Tempat Liquid Glass | "Liquid Glass forms a distinct functional layer for controls and navigation elements — like tab bars and sidebars — that floats above the content layer." "Don't use Liquid Glass in the content layer." "Use Liquid Glass effects sparingly." Varian *regular* untuk komponen berteks banyak; *clear* hanya di atas latar yang kaya visual. | **[Terverifikasi]** [HIG Materials](https://developer.apple.com/design/human-interface-guidelines/materials), log perubahan terakhir 9 September 2025 |
+| Size class | Dua kelas per dimensi, *compact* dan *regular*. "Determine layout based on size classes, not device type or orientation." "Don't change your app's functionality based on the space it occupies"; yang boleh berubah adalah banyaknya yang tampil. Sistem menetapkan kelas menurut perangkat, konfigurasi jendela, dan keadaan multitasking. | **[Terverifikasi]** [HIG Layout](https://developer.apple.com/design/human-interface-guidelines/layout), log perubahan terakhir 9 September 2026 |
+| Jendela iPad | Di iPad, aplikasi dapat berjalan layar penuh atau berjendela; jendela "resizable", dengan perilaku "similar to macOS". "Apps don't control multitasking configurations or receive any indication of the ones that people choose." "every app needs to work well with multitasking", dengan pengecualian yang jarang. Halaman ini tidak lagi menyebut Split View, Slide Over, atau Stage Manager dengan nama. | **[Terverifikasi]** [HIG Multitasking](https://developer.apple.com/design/human-interface-guidelines/multitasking), log perubahan terakhir 9 Juni 2025 |
+| Navigasi utama | iOS: "A tab bar floats above content at the bottom of the screen." iPadOS: tab bar tampil "near the top of the screen", tetap atau dengan tombol yang mengubahnya menjadi sidebar. Daftar tab bawaan "five or fewer to preserve continuity between compact and regular view sizes." | **[Terverifikasi]** [HIG Tab bars](https://developer.apple.com/design/human-interface-guidelines/tab-bars), log perubahan terakhir 8 Juni 2026 |
+| Sidebar | Gaya `sidebarAdaptable` "responds automatically to rotation and window resizing"; sidebar saja lewat `NavigationSplitView` atau `UISplitViewController`. Sidebar "requires a large amount of vertical and horizontal space". | **[Terverifikasi]** [HIG Sidebars](https://developer.apple.com/design/human-interface-guidelines/sidebars), log perubahan terakhir 8 Juni 2026 |
+| Safe area dan teks | Menghormati safe area "is essential"; tata letak wajib mengikuti Dynamic Type. Ukuran teks iOS/iPadOS: bawaan 17 pt, minimum 11 pt. Kontrol: bawaan 44×44 pt, minimum 28×28 pt. | **[Terverifikasi]** HIG Layout; [HIG Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility), log perubahan terakhir 9 Juni 2025 |
+| iPhone lipat | Halaman HIG Layout **diperiksa khusus**: tidak menyebut iPhone lipat, lipatan, engsel, atau keadaan lipat. Cuplikan pemberitaan menyebut Apple mengumumkan "iPhone Duo" pada 9 September 2026; tidak ada halaman Apple yang dibuka untuk itu. | **[Terverifikasi]** bahwa halaman HIG Layout tidak menyebutnya. Keberadaan dan spesifikasi perangkatnya: **[Perlu validasi]**, hanya cuplikan media. Pedoman Apple untuk tata letak pada iPhone lipat: **tidak ditemukan**. |
+
+### 4.4 Bahasa desain dan tata letak Android, termasuk foldable dan dua layar
+
+| Topik | Yang dikatakan sumber | Sumber, versi, label |
+|---|---|---|
+| Bahasa desain yang berlaku | **Material 3 Expressive**: "an expansion of Material Design 3, including research-backed updates to theming, components, motion, typography, and more"; "complements the Android 16 visual style and system UI". Diumumkan 13 Mei 2025 bersama Android 16. | **[Terverifikasi]** [Material Design 3 in Compose](https://developer.android.com/develop/ui/compose/designsystems/material3); [blog.google, terbit 13 Mei 2025](https://blog.google/products/android/material-3-expressive-android-wearos-launch/) |
+| Kematangan pustaka | Compose Material 3: stabil **1.4.0**; pra-rilis 1.5.0-beta02 (21 Oktober 2026). Menurut catatan rilis, API Expressive (tema, motion scheme, tombol, FAB, list item) naik dari eksperimental di rangkaian alpha 1.5.0; `MaterialShapes` dan `LoadingIndicator` masih eksperimental. Apakah 1.4.0 stabil sudah memuat API Expressive: tidak tertulis di bagian yang terbaca. | **[Terverifikasi]** [catatan rilis Compose Material 3](https://developer.android.com/jetpack/androidx/releases/compose-material3) (100 ribu karakter pertama) |
+| Window size class (lebar) | Compact < 600 dp; Medium 600–839 dp; Expanded 840–1199 dp; Large 1200–1599 dp; Extra-large ≥ 1600 dp. Tinggi: Compact < 480 dp; Medium 480–899 dp; Expanded ≥ 900 dp. "Window size classes are not intended for *isTablet*‑type logic"; kelas dapat berubah selama aplikasi berjalan (rotasi, multi-window, lipat/buka). | **[Terverifikasi]** [Use window size classes](https://developer.android.com/develop/ui/compose/layouts/adaptive/use-window-size-classes) |
+| Canonical layout | **List-detail**: dua panel pada lebar expanded; satu panel pada medium dan compact. **Supporting pane**: compact, isi pendukung di bawah atau di bottom sheet; medium, ruang dibagi rata; expanded, 70% utama dan 30% pendukung. **Feed**: grid yang menyesuaikan jumlah kolom dengan lebar. | **[Terverifikasi]** [Canonical layouts](https://developer.android.com/develop/ui/compose/layouts/adaptive/canonical-layouts) |
+| Navigasi adaptif | `NavigationSuiteScaffold`, bawaan: "Navigation bar if the width or height is compact or if the device is in tabletop posture"; "Navigation rail for everything else". Drawer permanen adalah pilihan yang disetel sendiri untuk lebar expanded. | **[Terverifikasi]** [Build adaptive navigation](https://developer.android.com/develop/ui/compose/layouts/adaptive/build-adaptive-navigation) |
+| Foldable: keadaan dan postur | Keadaan `FLAT` dan `HALF_OPENED`. Pada `HALF_OPENED`: **tabletop** (lipatan mendatar) dan **book** (lipatan tegak). "Position dialog boxes and pop‑up menus so they don't overlay the fold." Isi dibagi dua: atas-bawah pada tabletop, kiri-kanan pada book. Saat melipat atau membuka, aplikasi berhenti dan mulai lagi, dan "must preserve and restore its state seamlessly". | **[Terverifikasi]** [Learn about foldables](https://developer.android.com/develop/ui/compose/layouts/adaptive/foldables/learn-about-foldables) |
+| Engsel dan dua layar | `FoldingFeature` memberi `state`, `orientation`, `occlusionType` (`NONE` atau `FULL`), `isSeparating`, dan `bounds`. "On dual‑screen devices, the `occlusionType` is `FULL`, no content is viewable in the fold (hinge) area even though an app might span both screens." "On foldable devices that have two screens separated by a hinge, use layouts designed for tabletop and book postures even if the `FoldingFeature.State` is `FLAT`." Sudut engsel tidak disediakan API. | **[Terverifikasi]** [Make your app fold aware](https://developer.android.com/develop/ui/compose/layouts/adaptive/foldables/make-your-app-fold-aware). Jetpack WindowManager stabil **1.5.1**, alpha 1.6.0-alpha05 (pembaruan 17 Juni 2026); Compose Material 3 Adaptive stabil **1.3.0**, alpha 1.4.0-alpha03 (pembaruan 7 Oktober 2026): [window](https://developer.android.com/jetpack/androidx/releases/window), [compose-material3-adaptive](https://developer.android.com/jetpack/androidx/releases/compose-material3-adaptive) |
+| Orientasi dan ukuran tidak boleh dikunci | Untuk aplikasi yang menargetkan Android 16 (API 36), pembatasan orientasi, resizability, dan rasio aspek "no longer apply on displays with smallest width >= 600dp". Opt-out bersifat sementara dan "won't apply when targeting API level 37". Pengecualian: game, dan layar di bawah `sw600dp`. | **[Terverifikasi]** [Behavior changes: Android 16](https://developer.android.com/about/versions/16/behavior-changes-16) |
+| Edge-to-edge | Wajib sejak aplikasi menargetkan SDK 35; opt-out dihapus untuk target API 36. Inset `safeDrawing`, `safeGestures`, `safeContent`, `ime`, `displayCutout`. | **[Terverifikasi]** halaman Android 16 di atas; [Window insets in Compose](https://developer.android.com/develop/ui/compose/system/insets) |
+| Tingkat mutu | Pedoman "adaptive app quality" menggantikan "large screen app quality". Tier 3 *adaptive ready* (tidak letterbox, alur penting dapat diselesaikan); Tier 2 *adaptive optimized* (tata letak dioptimalkan untuk semua ukuran); Tier 1 *adaptive differentiated* (multitasking, postur foldable, drag and drop, stylus bila relevan). Perangkat uji minimum mencakup foldable 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp. | **[Terverifikasi]** [Adaptive app quality](https://developer.android.com/docs/quality-guidelines/adaptive-app-quality) (alamat lama `large-screen-app-quality` membuka halaman ini) |
+| Material Design (m3.material.io) | **Tidak terbaca.** Halaman window size class mengembalikan 404 kepada alat; artikel blog Expressive terbuka tanpa isi. Rekomendasi Material tentang jumlah panel per kelas dan kapan memakai drawer tidak diperoleh dari sumbernya. | **[Perlu validasi]** |
+
+**Surface Duo.**
+
+- **[Terverifikasi]** Dokumentasi pengembang dua layar Microsoft sudah diarsipkan: halaman SDK Surface Duo kini berada di bawah `previous-versions`, bertanda `is_archived: true`, pembaruan terakhir 17 Desember 2024 ([learn.microsoft.com](https://learn.microsoft.com/en-us/previous-versions/dual-screen/android/)).
+- **[Terverifikasi]** Halaman siklus hidup Surface yang dibuka hanya mencakup perangkat berbasis Windows dan tidak memuat Surface Duo ([learn.microsoft.com](https://learn.microsoft.com/en-us/surface/surface-driver-firmware-lifecycle-support)).
+- **[Perlu validasi]** — dilaporkan konsisten oleh sumber sekunder; halaman dukungan Microsoft tidak dibuka (satu alamat yang dicoba 404): dukungan Surface Duo generasi pertama berakhir 10 September 2023 dan Surface Duo 2 pada 21 Oktober 2024; tidak ada perangkat penerus.
+- **[Usulan]** Pedoman Android tidak menyebut Surface Duo dengan nama; yang diaturnya adalah **kelas perangkat**: dua layar dengan engsel yang menutupi isi (`occlusionType` `FULL`). Aplikasi yang mematuhi `FoldingFeature` menangani kelas itu tanpa SDK khusus Microsoft. Seberapa jauh Surface Duo diuji adalah keputusan cakupan, bukan pertanyaan teknis: perangkatnya tidak lagi menerima pembaruan.
+
+### 4.5 Arti kedua pedoman bagi "satu sistem tata letak yang menyesuaikan"
+
+Seluruh subbagian ini **[Usulan]**: kesimpulan peneliti dari §4.3 dan §4.4, sebagai batasan untuk `ux-designer` (dokumen 08) dan `architect` (dokumen 09, pilihan stack).
+
+1. **Tata letak ditentukan ruang jendela, bukan jenis perangkat.** Kedua platform menyatakannya dengan kata-kata sendiri (HIG: "not device type or orientation"; Android: bukan logika *isTablet*). Rancangan yang bercabang pada "ponsel" lawan "tablet" bertentangan dengan keduanya.
+2. **Titik potong tidak sama di kedua platform.** Android: lima kelas lebar dengan angka dp (600, 840, 1200, 1600). Apple: dua kelas, compact dan regular, tanpa angka di halaman yang dibuka. Batasannya: rancangan yang sama harus dapat dinyatakan dalam kelas kedua platform. Bagaimana keadaan tata letak dirumuskan dan dipetakan ke kelas-kelas itu adalah keputusan `ux-designer`; pedoman yang dikutip tidak menetapkan satu cara.
+3. **Jumlah panel.** Android: satu panel pada compact dan medium untuk list-detail, dua pada expanded; supporting pane boleh berdampingan sejak medium (50/50) dan 70/30 pada expanded. Apple: split view dengan sidebar bila ruang cukup.
+4. **Navigasi berubah bentuk, tujuannya tetap.** Android: navigation bar (compact, atau postur tabletop), lalu navigation rail, lalu drawer permanen bila dipilih. Apple: tab bar di bawah pada iPhone; di iPad tab bar di atas yang dapat berubah menjadi sidebar. Paling banyak lima tujuan tingkat atas menjaga kesinambungan di kedua platform.
+5. **Ukuran jendela berubah saat aplikasi berjalan.** Rotasi, multi-window, jendela iPad yang dapat diubah ukurannya, serta lipat dan buka. Keadaan layar (isian setengah jadi, butir terpilih, posisi gulir) harus bertahan. Untuk Family OS ini menyentuh pencatatan yang sedang diisi.
+6. **Mengunci orientasi potret bukan pilihan di layar besar Android** sejak target API 36, dan tidak dapat dihindari sejak target API 37.
+7. **Lipatan dan engsel adalah pemisah.** Tidak ada kontrol, dialog, atau teks penting di atas lipatan; pada dua layar berengsel, isi dibagi dua walau keadaannya `FLAT`. Layar jumlah uang dan tombol persetujuan tidak boleh terpotong lipatan.
+8. **Bagi pilihan stack.** Kerangka yang menggambar komponennya sendiri harus menunjukkan bahwa ia memberi (a) window size class dan `FoldingFeature` atau padanannya, (b) komponen navigasi adaptif setara `NavigationSuiteScaffold` dan `sidebarAdaptable`, (c) Liquid Glass dan Material 3 Expressive yang mengikuti pembaruan tahunan. Butir (c) sudah menjadi syarat brief §9.1; butir (a) dan (b) adalah tambahan dari riset ini. Kemampuan tiap kerangka **belum diteliti** (§5).
+
+### 4.6 Tipografi, warna, kontras, dan dua tema
+
+**Huruf.**
+
+| Huruf | Yang dikatakan sumber | Lisensi | Label |
+|---|---|---|---|
+| **SF Pro, New York** (Apple) | "SF Pro is the system font in iOS and iPadOS." Lisensi: dipakai "solely for creating mock-ups of user interfaces to be used in software products running on Apple's iOS, OS X or tvOS"; "may not embed the Apple Font in any software programs". | Milik Apple. Dipakai sebagai huruf sistem di iOS; **tidak boleh** dibawa ke Android. | **[Terverifikasi]** [developer.apple.com/fonts](https://developer.apple.com/fonts/), [HIG Typography](https://developer.apple.com/design/human-interface-guidelines/typography) |
+| **Roboto** | Huruf bawaan skala tipe Material 3 di Compose (15 gaya, `displayLarge` 57/64 sampai `labelSmall` 11/16). | Tidak diperiksa di halaman itu: **[Perlu validasi]**. | **[Terverifikasi]** untuk perannya: [Material Design 3 in Compose](https://developer.android.com/develop/ui/compose/designsystems/material3) |
+| **Inter** | Fitur `tnum`: "enables an entire set of dedicated glyphs that have the same width across all weights"; nol bergaris (`zero`); `case`; "over 2000 glyphs covering 147 languages"; bobot 100–900. | SIL Open Font License 1.1 | **[Terverifikasi]** [rsms.me/inter](https://rsms.me/inter/) |
+| **Plus Jakarta Sans** | Dirancang Gumpita Rahayu (Tokotype), "originally commissioned by 6616 Studio" untuk identitas +Jakarta City of Collaboration, 2020. Angka tabular ditambahkan pada v2.600; tiga set gaya (Lancip, Lurus, Lingkar); pengodean berdasar GF Latin Pro dan GF Latin Plus; font variabel sumbu bobot. | SIL Open Font License | **[Terverifikasi]** [github.com/tokotype/PlusJakartaSans](https://github.com/tokotype/PlusJakartaSans) |
+| **Google Sans Flex** | Dilaporkan dirilis 18 November 2025 dengan OFL 1.1, tersedia di Google Fonts. Angka tabular tidak disebut di sumber mana pun. | OFL 1.1 menurut sumber sekunder | **[Perlu validasi]** — hanya cuplikan media; halaman Google Fonts tidak dibuka |
+
+- **Cakupan bahasa Indonesia.** **[Asumsi]** Bahasa Indonesia ditulis dengan huruf Latin dasar tanpa diakritik wajib, sehingga huruf Latin mana pun mencakupnya. Tidak dicarikan sumber. Yang perlu diperiksa pada tiap calon huruf adalah angka tabular, titik pemisah ribuan, dan lambang "Rp", bukan cakupan aksara.
+- **Yang tidak diteliti.** Halaman `fonts.google.com` tidak dibuka (dirender JavaScript). Calon lain yang lazim (Manrope, DM Sans, Figtree, IBM Plex Sans, Public Sans) **tidak diperiksa**; menyebutnya di sini bukan temuan.
+- **Batasan dari sumber.** **[Usulan]** Karena SF Pro tidak boleh dibawa ke Android, "tipografi yang sama di kedua platform" hanya mungkin dengan huruf berlisensi terbuka; sebaliknya, memakai huruf sistem di tiap platform berarti kedua aplikasi tidak berhuruf sama. Brief §10.1 mengizinkan keduanya (tipografi termasuk hal yang mengikuti platform; warna merek, ikon, dan kata-kata yang bersama). Ini keputusan `ux-designer`.
+
+**Kontras dan sasaran sentuh.**
+
+| Aturan | Isi | Sumber dan label |
+|---|---|---|
+| WCAG 2.2 | W3C Recommendation, 12 Desember 2024. | **[Terverifikasi]** [w3.org/TR/WCAG22](https://www.w3.org/TR/WCAG22/) |
+| 1.4.3 Contrast (Minimum), AA | Teks paling sedikit 4,5:1; teks besar 3:1. | **[Terverifikasi]** sama |
+| 1.4.6 Contrast (Enhanced), AAA | Teks 7:1; teks besar 4,5:1. | **[Terverifikasi]** sama |
+| 1.4.11 Non-text Contrast, AA | Komponen antarmuka dan objek grafis yang diperlukan: 3:1 terhadap warna di sebelahnya. Berlaku untuk garis grafik, batang anggaran, dan ikon status. | **[Terverifikasi]** sama; penerapan pada grafik **[Usulan]** |
+| 1.4.1 Use of Color, A | Warna tidak boleh menjadi satu-satunya cara menyampaikan informasi. | **[Terverifikasi]** sama |
+| 1.4.4 Resize Text, AA | Teks dapat diperbesar sampai 200% tanpa kehilangan isi atau fungsi. | **[Terverifikasi]** sama |
+| 2.5.8 Target Size (Minimum), AA | Sasaran paling sedikit 24×24 piksel CSS, dengan pengecualian. | **[Terverifikasi]** sama |
+| Apple | Kontras: sampai 17 pt 4,5:1; 18 pt ke atas atau tebal 3:1. Bila tidak terpenuhi secara bawaan, sediakan skema kontras lebih tinggi saat Increase Contrast aktif. Beri penanda bentuk atau ikon "in addition to color". Idealnya teks dapat diperbesar paling sedikit 200%. | **[Terverifikasi]** [HIG Accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility) |
+
+WCAG ditulis untuk konten web; penerapannya pada aplikasi native adalah praktik umum, bukan kewajiban yang ditemukan dalam riset ini. Apakah ada aturan aksesibilitas Indonesia yang mengikat aplikasi seluler swasta: **tidak diteliti**.
+
+**Mode terang dan gelap.**
+
+| Platform | Yang dikatakan sumber | Sumber dan label |
+|---|---|---|
+| Apple | "Avoid offering an app-specific appearance setting." Pakai warna yang menyesuaikan tampilan; hindari nilai warna yang ditanam. "At a minimum, make sure the contrast ratio between colors is no lower than 4.5:1"; untuk warna kustom, "strive for a contrast ratio of 7:1, especially in small text". Uji di kedua tampilan. | **[Terverifikasi]** [HIG Dark Mode](https://developer.apple.com/design/human-interface-guidelines/dark-mode), log perubahan 6 Agustus 2024 |
+| Apple, warna | Warna dinamis "semantically defined by its purpose"; jangan mengubah arti semantiknya. Warna kustom wajib punya varian terang dan gelap **dan** "an increased contrast option for each variant". "Even if your app ships in a single appearance mode, provide both light and dark colors to support Liquid Glass adaptivity". Liquid Glass "has no inherent color"; warna dipakai hemat di atasnya. | **[Terverifikasi]** [HIG Color](https://developer.apple.com/design/human-interface-guidelines/color), log perubahan terakhir 16 Desember 2025 |
+| Android | Dark theme tersedia sejak Android 10 (API 29). Pilihan di dalam aplikasi yang dianjurkan: Light, Dark, dan "System default (the recommended default option)". Hindari warna dan ikon yang ditanam untuk tema terang. | **[Terverifikasi]** [Implement dark theme](https://developer.android.com/develop/ui/views/theming/darktheme) |
+| Material 3, peran warna | Skema dibangun dari lima warna kunci; tiap warna punya tonal palette 13 tone. Peran berpasangan: on-primary di atas primary, on-primary-container di atas primary-container; memasangkan peran yang salah menghasilkan kontras buruk. Skema terang dan gelap dihasilkan terpisah (Material Theme Builder). | **[Terverifikasi]** [Material Design 3 in Compose](https://developer.android.com/develop/ui/compose/designsystems/material3) |
+| Material 3, dynamic color | Tersedia di Android 12 ke atas: warna diturunkan dari wallpaper pengguna; bila tidak tersedia, pakai skema kustom. "Dynamic color is designed to meet accessibility standards for color contrast." | **[Terverifikasi]** sama |
+| Material 3, elevasi di tema gelap | "Elevation overlays in dark themes have also changed to tonal color overlays in Material 3. The overlay color comes from the primary color slot." Elevasi dinyatakan terutama dengan warna tonal, selain bayangan. | **[Terverifikasi]** sama |
+
+**Ketegangan antarplatform yang perlu diputuskan.** **[Usulan]**
+
+- Brief §10.2 meminta tema terang, gelap, dan otomatis. Android menganjurkan ketiga pilihan itu di dalam aplikasi; Apple menganjurkan **tidak** menyediakan setelan tampilan khusus aplikasi. Pilihan di iOS perlu keputusan sadar di dokumen 08, dan K-baru di dokumen 17 bila lead menganggapnya pertentangan sumber.
+- Dynamic color mengganti warna aplikasi dengan warna wallpaper. Itu perlu ditimbang terhadap arahan pemilik produk tentang tampilan di `_progress.md` (kata-katanya: "pallet warna font ... harusnya kita membangun kesan untuk aplikasi kita sendiri"); bahwa arahan itu berarti aplikasi punya identitas warna sendiri adalah rumusan lead di catatan yang sama. Sumber mengizinkan skema kustom sebagai gantinya. Dipakai, tidak dipakai, atau hanya untuk permukaan netral: keputusan `ux-designer`.
+
+**Arti bagi layar keuangan.** **[Usulan]** — penerapan aturan di atas, bukan kutipan sumber:
+
+- Pemasukan, pengeluaran, selisih, dan status permintaan tidak boleh dibedakan dengan warna saja (WCAG 1.4.1; HIG). Tanda plus atau minus, ikon, atau kata harus ikut. Ini sejalan dengan bacaan lead (**[Usulan]**, belum dikukuhkan pemilik produk kata per kata) atas pernyataan arah di `_progress.md`, yaitu bahwa tanda, keberatan, dan selisih memakai bahasa keterangan. Kata-kata pemilik produk sendiri: "aplikasi ini bukan menunjukan siapa yang salah, tapi mencatat apa yang perlu di catat, liat perkembangan, status" dan, pada pernyataan arah kedua, "bukan untuk membebankan, tapi mengingat dan mencatat".
+- Tiap pasangan warna teks dan latar diperiksa di **kedua** tema; warna status yang lolos 4,5:1 di atas putih sering gagal di atas permukaan gelap, sehingga tema gelap butuh nilai tersendiri (brief §10.2: "designed, not inverted").
+- Garis dan batang grafik memenuhi 3:1 terhadap latarnya di kedua tema (WCAG 1.4.11), dan deret data dibedakan juga dengan label atau pola.
+- Jumlah uang memakai angka tabular agar kolom rata, dan tetap terbaca pada teks 200%.
+- Kartu di tema gelap dibedakan dengan tone permukaan, bukan bayangan saja (Material 3).
+
+**Preferensi pengguna Indonesia.** **[Perlu validasi]** Satu pencarian berbahasa Indonesia tentang penelitian kepercayaan pengguna terhadap desain antarmuka aplikasi keuangan menghasilkan beberapa artikel jurnal Indonesia yang memasukkan *user interface* sebagai variabel kepuasan atau kepercayaan (BRImo, BSI Mobile, wondr by BNI, Pegadaian Digital). Menurut cuplikannya, tidak satu pun meneliti unsur visual tertentu (warna, huruf, ilustrasi) atau isyarat kepercayaan visual. **Tidak ada yang dibuka.** Jadi: **tidak ditemukan riset bersumber tentang preferensi visual pengguna Indonesia**, dan tidak ada pernyataan semacam itu yang boleh ditulis sebagai fakta di dokumen lain.
+
+### 4.7 Antarmuka percakapan: utas diskusi dan pendamping AI
+
+**Temuan pertama adalah ketiadaan.** Dari halaman yang dibuka, **tidak ditemukan pedoman platform pihak pertama yang khusus mengatur tata letak utas pesan** (gelembung, pengelompokan, cap waktu, status baca): HIG tidak punya halaman semacam itu di antara yang dibuka, Material 3 tidak punya komponen percakapan di halaman Compose yang dibuka, dan galeri Android hanya punya label saringan "Messages" tanpa teks. Pencarian ini tidak menyeluruh: **[Perlu validasi]**. Akibatnya konvensi utas pesan harus dipelajari dari aplikasi terbit (lihat tabel contoh), dan itu hanya bisa dilakukan dengan melihatnya.
+
+| Topik | Yang dikatakan sumber | Sumber dan label |
+|---|---|---|
+| Contoh resmi Android | Jetchat: aplikasi percakapan contoh dengan komponen Material 3; dynamic color di Android 12+; tata letak edge-to-edge; "synchronized IME transitions when running on API 30+ devices"; pengelolaan fokus antara keyboard dan panel emoji; tombol kembali menutup pemilih emoji. | **[Terverifikasi]** [android/compose-samples — Jetchat](https://github.com/android/compose-samples/tree/main/Jetchat) |
+| Keyboard dan safe area, Android | `WindowInsets.ime` menyatakan ruang yang ditempati keyboard; `imeAnimationSource` dan `imeAnimationTarget` untuk animasi; `safeDrawing` melindungi isi dari antarmuka sistem; `safeContent` menggabungkan perlindungan gambar dan gestur. | **[Terverifikasi]** [Window insets in Compose](https://developer.android.com/develop/ui/compose/system/insets) |
+| Keyboard, iOS dan iPadOS | `UIKeyboardLayoutGuide` (iOS 15+) mewakili ruang yang ditempati keyboard; properti `followsUndockedKeyboard` menentukan apakah panduan itu mengikuti keyboard yang dilepas dari tepi bawah (iPad). | **[Terverifikasi]** [UIKeyboardLayoutGuide](https://developer.apple.com/documentation/uikit/uikeyboardlayoutguide) |
+| Percakapan di tablet dan foldable | List-detail "is ideal for messaging apps": daftar dan rincian berdampingan pada lebar expanded; pada medium dan compact tampil salah satu, dan tombol kembali memunculkan daftar. Saat jendela menyempit dari expanded, panel rincian yang tetap tampil. Navigation bar dipakai pada postur tabletop. | **[Terverifikasi]** [Canonical layouts](https://developer.android.com/develop/ui/compose/layouts/adaptive/canonical-layouts), [Build adaptive navigation](https://developer.android.com/develop/ui/compose/layouts/adaptive/build-adaptive-navigation) |
+| Aksesibilitas | WCAG 4.1.3 Status Messages (AA): pesan status harus dapat dikenali teknologi bantu "without receiving focus". Halaman penjelasannya tidak menyebut percakapan. Ditambah aturan §4.6: kontras 4,5:1 untuk teks gelembung di kedua tema, sasaran sentuh, teks 200%, warna bukan satu-satunya pembeda pengirim. | **[Terverifikasi]** [Understanding 4.1.3](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html); penerapannya pada utas pesan **[Usulan]**. Pedoman VoiceOver dan TalkBack untuk daftar pesan **tidak dibuka**. |
+| Tombol terstruktur di dalam pesan | Telegram, inline keyboard: tombol di bawah pesan; "pressing buttons on inline keyboards doesn't send messages to the chat"; dokumen menganjurkan **menyunting** pesan dan tombolnya saat keadaan berubah, alih-alih mengirim pesan baru. | **[Terverifikasi]** [core.telegram.org/bots/features](https://core.telegram.org/bots/features) |
+| Kartu terstruktur lain | Pesan interaktif WhatsApp (tombol balasan) dan Adaptive Cards Microsoft. | **[Perlu validasi]** — halaman WhatsApp 404; halaman Adaptive Cards terbuka tanpa isi |
+| AI: keterbukaan | "Communicate where your app uses AI." "Never trick someone into thinking they're interacting with or viewing content authored by a human if they're actually interacting with AI." "Clearly communicate that AI-generated content may contain errors." | **[Terverifikasi]** [HIG Generative AI](https://developer.apple.com/design/human-interface-guidelines/generative-ai), halaman baru 9 Juni 2025, diperbarui 8 Juni 2026 |
+| AI: menunggu, galat, tidak tersedia | "design a loading experience or generate in the background"; pesan yang menjelaskan apa yang sedang terjadi lebih membantu daripada status samar; "If something goes wrong, describe what happened in plain language and offer a clear next step." "Ensure a great experience even when generative features aren't available or people opt not to use them"; "consider offering a non-AI fallback." Halaman ini **tidak** membahas keluaran streaming maupun sitasi. | **[Terverifikasi]** sama |
+| AI: kendali dan privasi | Kontrol "Edit, Undo, Retry, or Adjust" di dekat isi buatan AI; "Ask for confirmation before performing a significant action on someone's behalf"; "Ask permission before using personal information and usage data"; bila diproses di server, "make sure people know their information may be sent to a server." | **[Terverifikasi]** sama |
+| AI: 18 pedoman Microsoft | Amershi dkk., CHI 2019 (Honorable Mention): "18 generally applicable design guidelines for human-AI interaction", diuji antara lain dengan "49 design practitioners" terhadap "20 popular AI-infused products". Daftar ke-18 butirnya **tidak terbaca** dari halaman yang dibuka. | **[Terverifikasi]** untuk keberadaan dan abstrak: [Microsoft Research](https://www.microsoft.com/en-us/research/publication/guidelines-for-human-ai-interaction/). Isi butir: **[Perlu validasi]** |
+| AI: sitasi dan penafian | Nielsen Norman Group (M. Chan, 12 Desember 2025): sitasi sering keliru tetapi memberi kesan dapat dipercaya; letakkan sumber di samping klaimnya dengan label yang bermakna; penafian hanya berguna bila dekat kotak masukan, berbahasa sederhana, dan disertai tindakan; hindari uraian langkah demi langkah yang "imply certainty or transparency". | **[Terverifikasi]** untuk isi artikel: [nngroup.com/articles/explainable-ai](https://www.nngroup.com/articles/explainable-ai/). NN/g adalah firma riset, **bukan pedoman platform**. |
+| AI: perilaku jendela percakapan | NN/g (Kenderova, Rosala, Kohler, 24 April 2026), dari pengamatan pengguna chatbot di situs web: antara lain "Offer Relevant Suggested Questions as Buttons, Not Text", "Use Progressive Disclosure to Keep the Chat Short", "Don't Autoscroll Users to the End of a Response". Konteksnya chatbot situs web, bukan aplikasi seluler. | **[Terverifikasi]** untuk isi artikel: [nngroup.com/articles/ai-chatbots-design-guidelines](https://www.nngroup.com/articles/ai-chatbots-design-guidelines/). Penerapan pada aplikasi seluler: **[Asumsi]** |
+| AI: Google PAIR Guidebook | Tidak terbaca (hanya judul). | **[Perlu validasi]** — [pair.withgoogle.com/guidebook](https://pair.withgoogle.com/guidebook/) |
+| Keluaran streaming | **Tidak ditemukan pedoman pihak pertama.** HIG Generative AI tidak membahasnya; yang terdekat adalah anjuran NN/g agar tidak menggulir otomatis ke akhir jawaban. | **[Perlu validasi]** |
+| Aturan toko untuk AI | Sudah dicatat di §2.4 (izin sebelum data pribadi dibagikan ke AI pihak ketiga; pelaporan di dalam aplikasi untuk aplikasi dalam cakupan kebijakan konten AI Google). | Lihat §2.4 |
+
+**Contoh terbit untuk dilihat pemilik produk.** Peneliti tidak melihat satu pun; daftar ini menunjukkan *apa* yang perlu diamati.
+
+| Yang diamati | Tempat melihat | Label |
+|---|---|---|
+| Utas pesan: gelembung, pengelompokan, cap waktu | WhatsApp, Telegram, Signal di [Page Flows — Messaging](https://pageflows.com/ios/products/communication-messaging/) (berbayar), atau aplikasinya sendiri | Tautan **[Terverifikasi]** ada; isinya tidak dilihat |
+| Tombol tindakan di dalam pesan | Bot Telegram dengan inline keyboard (dokumen di atas) | **[Terverifikasi]** untuk dokumennya |
+| Percakapan yang menempel pada satu transaksi | Honeydue: situs vendor menyebut chat dan komentar per tagihan atau pengeluaran (§1.2) | **[Terverifikasi]** untuk isi halaman vendor (§1.2); layarnya tidak dilihat |
+| Kartu permintaan atau pembayaran di dalam percakapan | Aplikasi pesan dengan fitur bayar atau minta uang | **[Perlu validasi]** — tidak ada sumber yang dibuka; contoh spesifik tidak boleh disebut sebagai fakta |
+| Percakapan dengan asisten AI | [ScreensDesign — AI chatbot apps](https://screensdesign.com/categories/ai-chatbot-apps/) | Tautan dibaca dari halaman depan; halamannya tidak dibuka |
+
+**Tiga hal pada rancangan produk yang bersinggungan dengan temuan di atas.** **[Usulan]**
+
+- Menurut penugasan lead untuk riset ini, Family OS sengaja **tanpa tanda sudah dibaca dan tanpa "terakhir aktif"**. Peneliti tidak mencocokkan pernyataan itu dengan brief atau dokumen 06; pencarian kata di brief tidak menemukannya. Tidak ditemukan pedoman platform yang mewajibkan keduanya, dan tidak ditemukan pula sumber yang membahas akibat meniadakannya. **[Asumsi]**, tidak diteliti: pengguna yang terbiasa dengan aplikasi pesan bertanda baca (rumah tangga pilot memakai WhatsApp, brief §1.1) mungkin membaca ketiadaan itu sebagai gangguan ("pesannya terkirim atau tidak?"). Yang dapat dikatakan tanpa asumsi: status **terkirim ke server** adalah hal berbeda dari **sudah dibaca**, sehingga meniadakan yang kedua tidak mengharuskan meniadakan yang pertama. Diuji di pilot.
+- Tindakan terstruktur di utas (setuju, usul balik, "belum sepakat") mengubah keadaan permintaan. Pola Telegram, yaitu menyunting kartu yang sama alih-alih menambah pesan baru, bertemu dengan aturan Family OS bahwa catatan tidak diubah diam-diam (dokumen 06). Apakah kartu berubah di tempat sementara riwayat keputusannya tetap tercatat sebagai butir tersendiri adalah keputusan `architect` dan `ux-designer`, bukan temuan riset.
+- Pendamping AI: brief §5O keputusan pemilik 2 ("Disclosure") berbunyi "A drafted message carries no AI marker. Both partners know the feature exists, and the sender must read each message and send it personally." Keputusan itu menyangkut **pesan yang dirancang AI lalu dikirim sendiri oleh pengirimnya**, bukan seluruh antarmuka pendamping. HIG Generative AI yang dibuka pada riset ini menyatakan "Communicate where your app uses AI" dan "Never trick someone into thinking they're interacting with or viewing content authored by a human if they're actually interacting with AI". Apakah pesan tanpa penanda yang dibaca dan dikirim sendiri oleh pasangan, dalam rumah tangga yang tahu fiturnya ada, masih sejalan dengan anjuran itu: **[Perlu validasi]**, tidak dapat diputuskan dari teks. §2.4 mencatat bahwa tidak ditemukan **aturan toko** yang melarang ketiadaan penanda; HIG adalah pedoman desain, bukan aturan peninjauan. Peneliti mengusulkan lead mencatatnya di dokumen 17 sebagai hal yang perlu ditimbang di checkpoint S4.
+
+### 4.8 Ringkasan §4
+
+**Terkonfirmasi dari sumber primer (11 November 2026):**
+
+1. Liquid Glass adalah bahasa desain Apple sejak iOS 26 dan iPadOS 26, hanya untuk lapisan kontrol dan navigasi; Material 3 Expressive adalah perluasan Material 3 yang menyertai Android 16.
+2. Kedua platform menetapkan tata letak menurut ruang jendela; Android memberi lima kelas lebar dengan angka dp dan tiga canonical layout; Apple memberi dua size class.
+3. Android: navigation bar pada compact dan tabletop, rail selebihnya; pembatasan orientasi diabaikan pada layar ≥ 600 dp sejak target API 36 dan tanpa opt-out sejak API 37; engsel dua layar dilaporkan sebagai `occlusionType` `FULL`.
+4. Dokumentasi pengembang Surface Duo milik Microsoft sudah diarsipkan.
+5. WCAG 2.2: 4,5:1, 3:1, warna bukan satu-satunya pembeda, sasaran 24×24 piksel CSS; Apple: 44×44 pt, teks bawaan 17 pt.
+6. SF Pro tidak boleh dipakai di luar platform Apple; Inter dan Plus Jakarta Sans berlisensi OFL dan punya angka tabular.
+7. Identitas Monzo terdokumentasi oleh Monzo; Monzo dan Jago "Only for iPhone" di App Store; Copilot Money finalis Apple Design Awards 2024.
+8. Page Flows dan Pttrns memuat produk terbit; Screenlane dan UI Sources sudah dialihkan.
+9. HIG Generative AI meminta keterbukaan pemakaian AI, penanganan galat dalam bahasa sederhana, dan jalan lain bila AI tidak tersedia.
+
+**Belum terverifikasi:** lihat §4.9.
+
+**Keputusan brief yang terpengaruh:**
+
+| Bagian brief | Pengaruh |
+|---|---|
+| §10.1 platform-native | Diperkuat: Liquid Glass dan Material 3 Expressive memang bahasa desain yang berlaku. Batasan dari HIG Materials dan HIG Color (§4.3, §4.6): di iOS, lapisan kontrol dan navigasi memakai Liquid Glass, yang "has no inherent color" dan diberi warna dengan hemat. Di mana identitas merek ditempatkan dalam batasan itu adalah keputusan `ux-designer`. **[Usulan]** |
+| §10.2 tema | Apple menganjurkan tanpa setelan tampilan khusus aplikasi; Android menganjurkan tiga pilihan. Perlu keputusan per platform. |
+| §10.3 perangkat | Daftar perangkat brief sejalan dengan pedoman. "Mid-transition states" berarti aplikasi berhenti dan mulai lagi saat melipat, sehingga keadaan layar wajib dipulihkan. Pedoman Apple untuk iPhone lipat tidak ditemukan. Surface Duo: perangkat tidak lagi didukung pembuatnya; kelas dua layar tetap ditangani API Android. |
+| §9.1 pilihan stack | Tambahan kriteria: window size class, `FoldingFeature`, dan komponen navigasi adaptif (§4.5 butir 8). |
+| §5O keputusan pemilik 2 (pesan rancangan AI tanpa penanda) | Perlu ditimbang terhadap anjuran HIG Generative AI tentang keterbukaan pemakaian AI; apakah keduanya bertentangan **[Perlu validasi]** (§4.7). |
+| §5D diskusi pada permintaan; tanpa tanda baca (yang kedua menurut penugasan lead, tidak dicocokkan dengan brief) | Tidak ada pedoman platform yang menghalangi; tidak ada pula yang menuntun. Perlu dirancang dan diuji di pilot. |
+
+### 4.9 Yang tidak dapat dibuka atau tidak diteliti
+
+| Sumber | Yang terjadi |
+|---|---|
+| `m3.material.io` (window size classes, blog Expressive) | 404 atau tanpa isi; pedoman Material dibaca lewat `developer.android.com` |
+| `mobbin.com` (semua halaman) | HTTP 403; tautan di §4.2 dari cuplikan pencarian |
+| `dribbble.com/tags/finance-app` | Isi kosong |
+| `refero.design`, `pair.withgoogle.com/guidebook`, `adaptivecards.microsoft.com`, `blog.gojek.io`, `wise.design` | Terbuka tanpa isi yang berguna |
+| `revolut.com/brand`, `cash.app/press`, `ifdesign.com` (wondr by BNI) | HTTP 403 |
+| `ynab.com/blog/a-new-look-for-ynab`, `monzo.com/blog/monzo-brand-refresh`, `pttrns.com/categories`, dokumen pesan interaktif WhatsApp, satu alamat riwayat pembaruan Surface Duo | HTTP 404 |
+| `play.google.com` | Tidak terbaca (§0.3); tangkapan layar tablet di Google Play tidak dapat diperiksa untuk aplikasi mana pun |
+| `fonts.google.com`, Behance | Tidak dibuka |
+| Halaman dukungan Microsoft tentang akhir dukungan Surface Duo; halaman Apple tentang iPhone lipat; halaman resmi Google Play Best of 2025 | Tidak dibuka; hanya sumber sekunder atau cuplikan |
+| Daftar 18 pedoman Microsoft; HIG `color` dan `typography` sesudah 100 ribu karakter pertama; catatan rilis Compose Material 3 sesudah 100 ribu karakter pertama | Terbaca sebagian |
+| Material Design Awards, Red Dot, Awwwards, Webby; pedoman VoiceOver dan TalkBack untuk daftar pesan; aturan aksesibilitas Indonesia; kemampuan adaptif tiap kerangka mobile | Tidak diteliti |
+
+**Tidak ada aplikasi yang dipasang dan tidak ada gambar yang dilihat.** Semua penilaian visual menunggu pemilik produk dan `ux-designer`.
 
 ## 5. Teknologi
 
@@ -518,7 +784,7 @@ Semua butir di bawah dibaca dari sumber primer pada 11 November 2026.
 | Bagian brief | Pengaruh temuan |
 |---|---|
 | §5O keputusan pemilik 3 dan 4; §8 "AI data flows"; §9.5 | Persetujuan dan minimisasi sejalan dengan UU Pasal 56 (terverifikasi). Namun menurut salinan teks PP 33/2026 Pasal 173 ayat (2), transfer atas dasar persetujuan "dapat dilakukan hanya dalam hal" lima syarat, termasuk "tidak berulang" dan subjek "dengan jumlah terbatas", tanpa definisi (**[Perlu validasi] — salinan teks**, §2.3, §2.6). Bila naskah resmi berbunyi sama, persetujuan saja tidak cukup untuk transfer berulang ke luar negeri sejak PP berlaku (16 atau 17 Januari 2027). Tanggal itu diperkirakan jatuh sebelum atau selama pilot, bukan di tahap publik; pilot hanya lepas dari aturan ini bila tercakup pengecualian Pasal 2 ayat (2) UU dan Pasal 3 PP, yang **[Perlu validasi]** hukum. Tiga hal baru dari salinan teks yang menyentuh keputusan ini: (1) dua jenjang lain bergantung pada penetapan, persetujuan, atau pengakuan Lembaga (Pasal 168–171), jadi perjanjian pemrosesan biasa dengan penyedia bukan dengan sendirinya jalan keluar; (2) de-identifikasi tidak disebut sebagai cara keluar dari cakupan "Data Pribadi"; (3) ukuran transfer adalah penerima yang "berada di luar wilayah hukum" (Pasal 160 ayat (3)), sehingga "diproses di Indonesia" oleh penyedia asing belum tentu bukan transfer (**[Usulan]**, L-16). Menambah bobot pada opsi self-hosted dan pada penyedia yang berkedudukan dan memproses di Indonesia; kelayakannya belum diteliti (R-05). |
-| §5O keputusan pemilik 2 (tanpa penanda AI) | Tidak ditemukan aturan toko yang melarangnya (§2.4). |
+| §5O keputusan pemilik 2 ("Disclosure": "A drafted message carries no AI marker. Both partners know the feature exists, and the sender must read each message and send it personally.") | Keputusan ini menyangkut pesan yang dirancang AI lalu dikirim sendiri oleh pengirimnya, bukan seluruh antarmuka pendamping. Tidak ditemukan aturan toko yang melarangnya (§2.4). Hubungannya dengan anjuran HIG Generative AI: **[Perlu validasi]** (§4.7). |
 | §1 "Parents and children get logins later"; §4; §8 "child-account protection", "A child turns 18" | Login anak di bawah 13 tahun kemungkinan tidak tersedia; 13–15 bergantung pada penetapan risiko rendah; perlu penilaian mandiri, verifikasi usia, dan verifikasi persetujuan orang tua (§2.2). |
 | §7 butir terakhir; §8 "export and deletion" | Hapus akun di dalam aplikasi wajib di kedua toko dan menjadi hak di UU PDP; harus diselaraskan dengan ledger yang tidak diubah diam-diam (§2.1, §2.4). |
 | §5K `CARE` | Kemungkinan data pribadi spesifik (kesehatan) dan memicu kebijakan aplikasi kesehatan Google Play (§2.1, §2.4). Penjelasan PP 33/2026 Pasal 6 menurut salinan teks memasukkan "kesehatan mental" ke dalam data kesehatan; suasana hati tidak disebut, penggolongannya tetap **[Perlu validasi]** hukum. |

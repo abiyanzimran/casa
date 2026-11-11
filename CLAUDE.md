@@ -22,6 +22,8 @@ Higher entries win. When two sources conflict, follow the higher one and log the
 4. `ENGINEERING-STANDARDS.md` — hard rules for the build phase; planning documents must be compatible with them.
 5. Everything else in `docs/`.
 
+An owner decision recorded at a checkpoint (in `docs/17-open-questions-assumptions.md`) ranks with the brief on the matter it decides. Where the brief's wording has not been updated yet, the decision wins and the difference is logged in `docs/17-open-questions-assumptions.md`.
+
 ## Instruction priority
 
 1. This file and the brief. The brief wins on scope and content; this file wins on process.

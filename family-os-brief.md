@@ -35,6 +35,8 @@ If your context is cleared or the session restarts, read `docs/_progress.md` and
 | **S5 — Plan & synthesis** | `13-product-roadmap.md`, `14-engineering-roadmap.md`, `15-risk-assessment.md`, `16-final-recommendations.md`, then `01-executive-summary.md` **last** | — |
 | **S6 — Consistency pass** | Fix contradictions, broken links, undefined terms, untraced requirements | Report what was changed. |
 
+An owner decision recorded at a checkpoint (in `docs/17-open-questions-assumptions.md`) ranks with this brief on the matter it decides. Where this brief's wording has not been updated yet, the decision wins and the difference is logged in `docs/17-open-questions-assumptions.md`.
+
 Write the executive summary last, because it must summarize decisions that do not exist yet at the start.
 
 ---
@@ -82,7 +84,7 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
-| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, budgets per category and period, recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
+| **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, monthly budgets per category, with a period start day chosen by the household (default: the 1st), recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
 | **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders, with quiet hours; `PLN` only as far as outing requests need it; `REQ` action requests: a task one member asks of another, which the assignee can accept or decline and the requester can cancel, and which stays pending until the assignee marks it done; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly narrative | Concise requirements |
 | **3 — Deferred** | `AI` open-ended advice conversations, `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
 
@@ -201,7 +203,7 @@ One of the most important modules. Must support detailed financial organization 
 - **Income:** salary, business income, allowances, gifts, refunds, other; recurring and irregular; income ownership and allocation.
 - **Expenses:** daily/weekly/monthly/annual, recurring and one-time, shared vs personal vs for a specific member, categories and subcategories, receipts, notes, history.
 - **Money & balances:** cash, bank accounts, e-wallets, shared funds, personal funds, funds held by another member, transfers, allocated vs unallocated money, savings, emergency funds, debts and receivables.
-- **Budgets:** daily/weekly/monthly/custom periods, per category, per member, per household, per event; allocation, remaining balance, overspending warnings, adjustments, rollover rules, approval, utilization analysis.
+- **Budgets:** daily/weekly/monthly/custom periods, per category, per member, per household, per event; allocation, remaining balance, overspending warnings, adjustments, rollover rules, approval, utilization analysis. **Pilot scope (owner decision, S1 and S2 checkpoints):** Tier 1 builds monthly budgets per category with a household-chosen start day. Other periods, per-member and per-event budgets, and rollover rules are Tier 3.
 - **Reports:** income vs expense, cash flow, budget vs actual, trends, by category / member / beneficiary / household, recurring costs, savings progress, history, export.
 
 **Custody example.** The family has IDR 10,000,000 in total:

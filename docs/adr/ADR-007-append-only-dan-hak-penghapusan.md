@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Diusulkan sebagai **keputusan sementara**; menunggu persetujuan pemilik produk di checkpoint S2, dan tetap sementara sampai butir tinjauan hukum L-04 dan L-20 terjawab |
+| Status | **Diterima sebagai keputusan sementara.** Keputusan pemilik produk, checkpoint S2 (dokumen 17 S2-8 pilihan A): bacaan ini dipakai sampai advokat menjawab. Tetap sementara sampai butir tinjauan hukum L-04 dan L-20 terjawab (pertanyaan tertulisnya: L-22, L-23). Butir tambahan 6 sampai 9 tercakup penerimaan yang sama; yang bertanda **[Usulan]** atau **[Perlu validasi]** tetap demikian |
 | Tanggal | 11 November 2026 |
 | Pengusul | `finance-domain` (rekomendasi, 07 §1.5 ADR-F); ditulis `architect`; memerlukan masukan `security-privacy` di S4 |
 | Rincian | [07-financial-domain.md](../07-financial-domain.md) §8, INV-09; [17-open-questions-assumptions.md](../17-open-questions-assumptions.md) Q-22, K-10, L-04, L-20; [18-market-research.md](../18-market-research.md) §2.1 |
@@ -36,7 +36,7 @@ Catatan dana bersama adalah catatan dua orang. Menghapus entri seorang anggota m
 4. Di buku rumah tangga tidak ada baris yang dihapus: pemetaan identitas anggota itu diputus dan rincian yang ia tulis dihapus, dengan batas yang dinyatakan di 07 §8.3.
 5. Penghapusan rincian dan pemutusan pemetaan menjangkau salinan cadangan dalam jangka yang ditetapkan dokumen 10.
 
-**Tambahan 11 November 2026 (temuan `security-privacy` SP-11 dan SP-12).** Statusnya sama dengan butir 1 sampai 5: diusulkan, sementara; sisi hukumnya **[Perlu validasi]** (L-04, L-20).
+**Tambahan 11 November 2026 (temuan `security-privacy` SP-11 dan SP-12).** Statusnya sama dengan butir 1 sampai 5: diterima sebagai keputusan sementara (checkpoint S2); sisi hukumnya **[Perlu validasi]** (L-04, L-20).
 
 6. **Catatan alur mengikuti pemisahan tiga bagian yang sama** (dokumen 06 §2.5). *Inti alur* hanya ditambah: permintaan, versi syarat sejauh menyangkut jumlah dan tanggal, tanggapan, Peristiwa, kesepakatan, status konfirmasi custody, keberatan beserta alasan dari daftar tertutup; pelaku dan pihak sebagai pengenal internal. *Rincian* dapat dihapus tanpa menyentuh inti: judul, catatan, tempat, peserta, alasan teks bebas, pesan diskusi, lampiran. *Pemetaan identitas* adalah tabel yang sama dengan ledger dan diputus bersama. "Peristiwa tidak pernah dihapus" (06 INV-A01) dibaca atas inti alur.
 7. **Catatan `CARE` berada di luar aturan hanya-menambah.** Tindak lanjut sakit, status suasana hati, dan Peristiwa keduanya dapat dihapus pemiliknya kapan saja, seluruhnya, tanpa sisa dan tanpa pemberitahuan kepada siapa pun. Catatan itu bukan catatan bersama; tidak ada angka atau hak orang lain yang bergantung padanya. Karena itu Peristiwanya disimpan terpisah dari Peristiwa alur lain.
@@ -49,7 +49,7 @@ Catatan dana bersama adalah catatan dua orang. Menghapus entri seorang anggota m
 
 - Pemisahan inti moneter, rincian, dan pemetaan identitas harus ada sejak skema pertama; menambahkannya kemudian berarti migrasi atas seluruh riwayat. Ini satu-satunya bagian ADR ini yang tidak dapat ditunda.
 - Model harus mampu menjalankan opsi D tanpa rancang ulang: saldo awal per posisi sudah ada sebagai jenis entri (07 §3.17), dan invarian sudah mengizinkan entri pertama berupa saldo awal.
-- Di rumah tangga dua orang, "mantan anggota" tetap dikenali pasangannya; pseudonimisasi hanya memutus kaitan bagi operator dan pihak lain (07 §8.3). Apakah itu cukup adalah isi L-04 dan L-20. **Pada pilot, pemilik produk adalah operator server sekaligus anggota** (catatan SP-17): "memutus kaitan bagi operator" tidak berarti apa pun di sana, dan larangan peran (06 V-5) mengikat peran aplikasi, bukan akses basis data. Batas ini dinyatakan dan diserahkan ke dokumen 10.
+- Di rumah tangga dua orang, "mantan anggota" tetap dikenali pasangannya; pseudonimisasi hanya memutus kaitan bagi operator dan pihak lain (07 §8.3). Apakah itu cukup adalah isi L-04 dan L-20. **Pada pilot, pemilik produk adalah operator server sekaligus anggota** (catatan SP-17): "memutus kaitan bagi operator" tidak berarti apa pun di sana, dan larangan peran (06 V-5) mengikat peran aplikasi, bukan akses basis data. Batas ini dinyatakan dan diserahkan ke dokumen 10. Pemilik produk menerima keadaan itu untuk pilot dengan syarat istrinya diberi tahu dengan terus terang sebelum mulai memakai (keputusan pemilik produk, checkpoint S2; dokumen 17 S2-10 pilihan A); apakah pemberitahuan itu sudah terjadi belum diketahui.
 - Test tambahan untuk butir 6 sampai 8: hash inti alur identik sebelum dan sesudah penghapusan rincian; setelah pemilik menghapus catatan `CARE`-nya tidak ada baris atau Peristiwa yang tersisa; perintah keluar tidak pernah ditolak karena klaim atau objek alur yang terbuka (06 INV-A35).
 - Teks bebas dan foto struk pada entri dana bersama dapat memuat data orang yang pergi dan tidak dapat dipilah otomatis; diperlakukan sebagai data bersama dan dinyatakan sebagai batas.
 - Test: hash inti moneter entri lama identik sebelum dan sesudah perintah apa pun, kecuali perintah penghapusan buku pribadi, yang punya test sendiri (angka rumah tangga tidak berubah; INV-02 tetap berlaku di buku rumah tangga).
