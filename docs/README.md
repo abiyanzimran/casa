@@ -98,8 +98,23 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Riset yang perlu divalidasi | `R-NN` | `R-02` |
 | Pertentangan antar-sumber | `K-NN` | `K-01` |
 | Butir tinjauan hukum | `L-NN` | `L-05` |
+| Contoh terhitung (dokumen 07) | `CTH-NN` | `CTH-21` |
+| Invarian keuangan (dokumen 07) | `INV-NN` | `INV-06` |
+| Invarian alur (dokumen 06) | `INV-ANN` | `INV-A04` |
+| Pagar pencegah kendali (dokumen 06) | `PG-NN` | `PG-03` |
+| Peristiwa notifikasi (dokumen 06) | `N-NN` | `N-02` |
+| Butir terbuka dokumen 06 / 07 | `P-NN` / `T-NN` | `P-01`, `T-08` |
+| Prinsip produk (dokumen 02) | `PRN-NN` | `PRN-06` |
+| Ketegangan antar-prinsip (dokumen 02) | `KT-N` | `KT-9` |
+| Persona (dokumen 03) | `PSN-NN` | `PSN-02` |
+| Kebutuhan inti (dokumen 03) | `KB-NN` | `KB-12` |
+| Masalah inti brief §1.1, kriteria sukses, pagar, tujuan (dokumen 02) | `MSL-N`, `KS-N`, `PAGAR`, `TUJUAN` | `MSL-5`, `KS-2` |
+| Pertanyaan checkpoint, default, peringatan (dokumen 17) | `S2-N`, `D-NN`, `W-NN` | `S2-1`, `D-48`, `W-13` |
+| Temuan pemeriksaan `security-privacy` | `SP-NN` | `SP-01` |
+| Larangan visibilitas dan aturan tampilan (dokumen 06) | `V-N`, `AT-N` | `V-8`, `AT-4` |
+| Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I` | `K06`, `C05` |
 
-Lima baris terakhir adalah tambahan atas skema di brief §16, dipakai hanya di [17-open-questions-assumptions.md](17-open-questions-assumptions.md).
+Baris sesudah `ADR-NNN` adalah tambahan atas skema di brief §16; tiap pengenal hanya dipakai di dokumen yang disebut. Pengenal transisi tidak bertanda hubung (`K06`) agar tidak tertukar dengan pengenal bertanda hubung berhuruf sama (`K-29` pertentangan, `T-08` butir terbuka, `D-48` default). `KB-NN` adalah kebutuhan inti dokumen 03; `KB` tanpa nomor adalah kolom kekayaan bersih di tabel dokumen 07.
 
 Kode modul: `FAM`, `COM`, `FIN`, `REQ`, `SHP`, `INV`, `PLN`, `GOL`, `MNT`, `MEAL`, `CARE`, `CAL`, `TML`, `NTF`, `AI`. Kepanjangan tiap kode ada di [00-glossary.md](00-glossary.md).
 
