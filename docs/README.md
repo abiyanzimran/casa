@@ -109,10 +109,17 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Persona (dokumen 03) | `PSN-NN` | `PSN-02` |
 | Kebutuhan inti (dokumen 03) | `KB-NN` | `KB-12` |
 | Masalah inti brief §1.1, kriteria sukses, pagar, tujuan (dokumen 02) | `MSL-N`, `KS-N`, `PAGAR`, `TUJUAN` | `MSL-5`, `KS-2` |
-| Pertanyaan checkpoint, default, peringatan (dokumen 17) | `S2-N`, `D-NN`, `W-NN` | `S2-1`, `D-48`, `W-13` |
+| Pertanyaan checkpoint, default, peringatan (dokumen 17) | `S<tahap>-N`, `D-NN`, `W-NN` | `S2-1`, `S3-4`, `D-48`, `W-13` |
+| Kaitan antarmodul (dokumen 04 §5) | `KM-NN` | `KM-08` |
+| Pertentangan per modul di peta fitur (dokumen 04 §10.3) | `Konflik-<MOD>-N`; yang dibawa ke dokumen 17 mendapat `K-NN` | `Konflik-COM-3` |
+| Aturan yang belum ada, ditemukan saat menulis kebutuhan atau skenario (dokumen 05, 12) | `PA-<MOD>-N`, dengan `<MOD>` kode modul atau `SCN`; nomor tidak dipakai ulang | `PA-FIN-11`, `PA-COM-4`, `PA-SCN-2` |
+| Celah yang ditemukan saat menyelaraskan dokumen 06 | `G-NN` | `G-08` |
 | Temuan pemeriksaan `security-privacy` | `SP-NN` | `SP-01` |
 | Larangan visibilitas dan aturan tampilan (dokumen 06) | `V-N`, `AT-N` | `V-8`, `AT-4` |
-| Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I` | `K06`, `C05` |
+| Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I`, `F` | `K06`, `C05`, `F04` |
+| Kriteria penerimaan (dokumen 05) | `AC-N`, lokal per kebutuhan; dikutip `FR-<MOD>-NNN/AC-N` | `FR-FIN-012/AC-3` |
+| Persyaratan lintas modul (dokumen 05, indeks) | `LM-NN` | `LM-05` |
+| Kriteria umum keuangan (dokumen 05, FIN-1) | `KU-N` | `KU-2` |
 
 Baris sesudah `ADR-NNN` adalah tambahan atas skema di brief §16; tiap pengenal hanya dipakai di dokumen yang disebut. Pengenal transisi tidak bertanda hubung (`K06`) agar tidak tertukar dengan pengenal bertanda hubung berhuruf sama (`K-29` pertentangan, `T-08` butir terbuka, `D-48` default). `KB-NN` adalah kebutuhan inti dokumen 03; `KB` tanpa nomor adalah kolom kekayaan bersih di tabel dokumen 07.
 

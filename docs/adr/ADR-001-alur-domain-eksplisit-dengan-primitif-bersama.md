@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-002, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri |
+| Status | **Diterima.** Diterima pemilik produk di checkpoint S2 lewat "lanjut" (dokumen 17 D-04, bersama ADR-002, 004, 005, dan 008; tidak dibacakan satu per satu). Bukan pernyataannya sendiri. **Diubah sebagian oleh [ADR-011](ADR-011-chat-rumah-tangga-dan-kartu-objek.md)** (12 November 2026, tahap S3; penunjuk ditambahkan pada dokumen 06 revisi kesepuluh, CB-16): primitif Diskusi kini disimpan sebagai `message` dan juga tampil di chat rumah tangga; larangan Diskusi menjadi chat umum dicabut. Jumlah primitif tetap enam |
 | Tanggal | 11 November 2026 |
 | Pengusul | `architect` |
 | Rincian | [06-activity-approval-architecture.md](../06-activity-approval-architecture.md) §1, §2 |
@@ -25,7 +25,7 @@ Kendala yang menentukan: tim 1–3 developer; satu rumah tangga pilot; Tier 1 ha
 
 ## Keputusan
 
-**Opsi B.** Primitif bersama yang dipertahankan ada enam: Permintaan (memuat versi syarat dan tanggapan), Tugas, Diskusi, Lampiran, Peristiwa, Notifikasi. Objek-objek ditautkan dengan `subject_ref = (kind, id)`.
+**Opsi B.** Primitif bersama yang dipertahankan ada enam: Permintaan (memuat versi syarat dan tanggapan), Tugas, Diskusi, Lampiran, Peristiwa, Notifikasi. Objek-objek ditautkan dengan `subject_ref = (kind, id)`. Sejak ADR-011, chat rumah tangga adalah permukaan atas Diskusi dan Peristiwa, bukan primitif ketujuh dan bukan state machine baru.
 
 Dari kandidat brief §6: Activity bukan primitif (tidak ada tipe induk generik); Proposal dan Approval adalah bagian dari Permintaan; Assignment adalah atribut Tugas; Audit Record sama dengan Peristiwa; Timeline Entry adalah proyeksi Tier 3; Budget dan Financial Transaction adalah milik domain keuangan (dokumen 07).
 
