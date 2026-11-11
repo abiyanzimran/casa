@@ -76,14 +76,15 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 - **Spending and outings are unplanned.** Outings are announced at the last minute and grocery budgets are regularly exceeded. Wanted: either spouse proposes an outing or purchase in advance (date, places, planned items, budget); the other checks the budget and approves, discusses, or counters.
 - **Recording is a burden.** The main recorder is forgetful, so entry must take seconds and tolerate late entry.
 - **Secondary pains.** A spouse's mood is unknown unless asked; house issues (e.g., leaking roof) should become a task closed with photos and notes; routine chores are forgotten (e.g., cooking rice); "what should we cook?"; illness needs follow-up (fever reported, family checks again after N days, the sick member confirms recovered, still sick, or going to a clinic); who pays which bill, and how much, must be clear.
+- **Warmth takes effort.** The couple wants the app to help them be attentive and affectionate: a kind word in the morning, help finding the right words when the other is unwell or low, and things one asks of the other kept as tasks until done. See §5O.
 
 **MVP priority tiers.** Set by the owner. Challenge them, with reasons, if research or the financial model says otherwise; a change takes effect only after the owner approves it at a checkpoint.
 
 | Tier | Scope | Documentation depth |
 |---|---|---|
 | **1 — Core** | `FAM` as far as one household with two adult accounts needs: creation, invitation, and the roles and permissions that `FIN` and `REQ` use. `FIN`: custody, income allocation, expenses, recurring bills, installments, debts and loans (between spouses and to extended family), simple savings tracking, assets and net worth, summary reports. `NTF` for requests and approvals. `REQ`: budget and outing requests, discussion and counter-proposal on the request itself, approval, settlement of the remainder | Full requirements with acceptance criteria |
-| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it | Concise requirements |
-| **3 — Deferred** | `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
+| **2 — Light versions** | `SHP` shopping lists with estimated and actual cost against a budget; `MNT` issue to task; `CARE` voluntary mood status (what the member feels and, optionally, why; once the member has chosen to share with their partner, the partner is notified on every change) and illness follow-up; `CAL`/`NTF` routine and bill reminders; `PLN` only as far as outing requests need it; tasks one member assigns to another, which stay pending until the assignee completes them; `AI` light version: morning greeting, suggested words of support, warm reminders, monthly summary in plain words | Concise requirements |
+| **3 — Deferred** | `AI` open-ended advice conversations, `COM` general chat (the family keeps WhatsApp), `INV`, `MEAL`, `GOL` beyond simple savings tracking, `TML`, online shopping integrations, multiple households, dedicated tablet and foldable screen designs (layouts must still adapt to any width from day one; see §10.3) | One-page outline per module |
 
 This depth rule overrides §5, §10.3, §12, and §16 wherever they ask for uniform detail across all modules. A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs.
 
@@ -179,7 +180,7 @@ For each module, analyze: purpose, target users, problems solved, features, prim
 
 The feature lists below are starting points, not a specification. Add, merge, cut, or defer as justified.
 
-**Module codes** (use them in all identifiers): `FAM`, `COM`, `FIN`, `REQ`, `SHP`, `INV`, `PLN`, `GOL`, `MNT`, `MEAL`, `CARE`, `CAL`, `TML`, `NTF`.
+**Module codes** (use them in all identifiers): `FAM`, `COM`, `FIN`, `REQ`, `SHP`, `INV`, `PLN`, `GOL`, `MNT`, `MEAL`, `CARE`, `CAL`, `TML`, `NTF`, `AI`.
 
 ### A — Family & Household Management (`FAM`)
 Family and household creation, invitations, member profiles, relationship visualization, configurable roles, fine-grained permissions, guardian/dependent links, household-specific roles, contact directory, announcements, member activity history, responsibility delegation, emergency contacts.
@@ -282,6 +283,26 @@ Milestones, completed goals, repairs, past events, major purchases, financial mi
 ### N — Notifications & Activity Feed (`NTF`)
 Approval requests and outcomes, upcoming bills, budget warnings, shopping reminders, announcements, urgent issues, plans and events, task assignments, help requests. Design priority levels, quiet hours, digests, granular preferences, and **privacy-safe notification content** on lock screens. Minimize notification fatigue.
 
+### O — Family Companion (`AI`)
+An AI companion that helps members care for each other and keeps the household warm. It assists; the people act.
+
+- **Morning greeting.** On opening the app, a short personal line of encouragement or affection.
+- **Suggested words of support.** When a member shares a low mood or an illness, their partner is prompted with a suggested message of encouragement or praise. The partner sends it as is, edits it by hand, or asks the AI to revise it.
+- **Warm reminders.** Pending tasks, requests, and outings are worded kindly instead of as bare alerts.
+- **Summaries in plain words.** The month's money, what the couple achieved together, and impressions, written as a short narrative.
+- **Advice and encouragement on request.**
+
+Requirements:
+- The AI never sends a message, approves a request, or changes a record on anyone's behalf. A person takes every action.
+- It uses only what the member it is helping is already allowed to see. It never reveals, hints at, or paraphrases to one partner what the other kept private.
+- It is a supportive companion, not a psychologist: no diagnosis, no therapy or medical claims. Define what it does on signs of serious distress, self-harm, or violence, including pointing to professional help.
+- Each member opts in separately and can turn it off. State plainly which data leaves the server for an AI provider, and send the minimum.
+- The app is fully usable without it. An AI failure never blocks recording, requests, or approvals.
+- Its wording is natural Indonesian, varied, and never generic or repetitive; it respects quiet hours.
+- Usage cost has a hard cap.
+
+Decide explicitly: which of these belong in the pilot; whether a recipient is told that a message was drafted with AI; and how to keep suggested affection from feeling fake.
+
 ---
 
 ## 6. UNIVERSAL FAMILY ACTIVITY ENGINE
@@ -337,6 +358,8 @@ Define behavior for:
 
 Family membership never grants unlimited access to another adult's private data.
 
+**AI data flows.** For the companion in §5O, define what is sent to an AI provider, under whose consent, how long the provider keeps it, and how one member's private data is kept out of anything generated for another. Research how UU PDP treats sending mood and health data to a provider outside Indonesia, and flag it for legal review.
+
 ---
 
 ## 9. TECHNICAL ARCHITECTURE & TECHNOLOGY SELECTION
@@ -360,6 +383,9 @@ Cover: modular monolith vs microservices (do not assume microservices are better
 Provide comparison matrices, state risks, **recommend one primary architecture**, and record each major decision as an ADR (`docs/adr/ADR-NNN-title.md`: context, options, decision, consequences). Explicitly list which decisions must be made now and which can be deferred.
 
 Use web research for anything version-, pricing-, or capability-dependent, and cite sources with dates.
+
+### 9.5 AI
+For the companion in §5O, compare a hosted AI provider against a self-hosted model on Indonesian-language quality, privacy, cost on the pilot budget, and operational burden. Recommend one, with a cost cap and a fallback when the AI is unavailable. All AI calls go through the server, never directly from the app.
 
 ---
 

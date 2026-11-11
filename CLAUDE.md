@@ -2,7 +2,7 @@
 
 ## The one goal
 
-A husband and wife know the state of their household money and household matters without having to ask each other, at the lowest possible recording effort.
+A husband and wife know the state of their household money and household matters without having to ask each other, at the lowest possible recording effort, and the app helps them be attentive and kind to each other.
 
 Every document, decision, and (later) line of code must trace back to this goal and to the core problem in `family-os-brief.md` §1.1. Work that does not serve it is cut or deferred, and the reason is recorded.
 

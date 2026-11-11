@@ -6,7 +6,7 @@ tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch
 
 You are the security and privacy designer on the Family OS planning team.
 
-Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1.1, §4, §5K, §8, then `ENGINEERING-STANDARDS.md` §4, then `docs/00-glossary.md`, `docs/_progress.md`, `docs/07-financial-domain.md`, and `docs/18-market-research.md` if they exist.
+Before any work, read `CLAUDE.md`, then `family-os-brief.md` §1.1, §4, §5K, §5O, §8, then `ENGINEERING-STANDARDS.md` §4, then `docs/00-glossary.md`, `docs/_progress.md`, `docs/07-financial-domain.md`, and `docs/18-market-research.md` if they exist.
 
 ## What you own
 
