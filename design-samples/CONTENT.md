@@ -63,14 +63,17 @@ Judul halaman: **"Casa · Beranda"** (§25.9).
 
 | | Ringkas (< 600) | Sedang (600–839) | Lebar (840–1199) | Sangat lebar (≥ 1200) |
 |---|---|---|---|---|
-| Navigasi | Dok mengambang 64, setiap tab berlabel; tombol Catat bulat biru 56 di kanannya | Bilah atas 64: simpul kiri, grup tab berlabel di tengah, tombol biru "Catat" 48 kanan | Sama, ditambah kata "Casa" di samping simpul | Sama dengan Lebar |
+| Navigasi | Dok mengambang 64, setiap tab berlabel; tombol Catat bulat biru 56 di kanannya | **Rail 80 di kiri**: simpul 32, tombol Catat 56 berlabel, lalu empat tujuan berlabel | Sama dengan Sedang | Bilah atas 64: simpul dan kata "Casa" kiri, grup tab berlabel di tengah, tombol biru "Catat" 48 kanan |
 | Baris kepala isi | Simpul 32 · `h1` "Rumah Kenanga"; kanan kosong | `h1` "Rumah Kenanga"; kanan kosong | `h1`; kanan tombol ikon 40 "Chat di samping" (`chat-circle`) | Sama dengan Lebar |
+| Lebar isi di perangkat uji | 358 (390) | 616 (744) | 1005: utama 646, samping 335 (1133) | 1200: 3 × 384 (1280) |
 | Kolom | 1 | 1, paling lebar 640, di tengah | Utama (kartu 1–2) dan samping (kartu 3–5) | Kolom 1: kartu 1–2; kolom 2: kartu 3–4; kolom 3: kartu 5 |
 | Margin; jarak antarkartu; padding kartu | 16; 12; 16 | 24; 16; 24 | 24; 24; 24 utama, 16 samping | 32; 24; 24 |
 
-**Dok** (Ringkas; §19.13.6): empat tab, masing-masing indikator 56 × 32 dengan ikon 24 dan **label tampak di bawahnya**. Beranda (`house`; terpilih: indikator `pil-navigasi`, ikon `house-fill` `navigasi`, label `pil-navigasi`, `aria-current="page"`; lencana "2"), Uang (`wallet`), Chat (`chat-circle`, lencana "2"), Saya (`user`). Tab tidak terpilih: ikon Regular dan label `di-atas-navigasi`, tanpa indikator. Nama aksesibel tab adalah labelnya ditambah lencana sebagai teks ("Chat, 2 belum dibaca"). Lencana berangka 16, `sorot` dengan angka `di-atas-sorot`. Tombol Catat: bulat 56, `aksen`, ikon `plus` 24 `di-atas-aksen`, nama aksesibel "Catat".
+**Dok** (Ringkas; §19.13.6): pil `navigasi` 64, padding mendatar 8; empat tab 64 × 64, masing-masing ikon 24 dan **label tampak di bawahnya** (jarak 4, 13 px 600). Beranda (`house`; terpilih: **pil `pil-navigasi` 64 × 56 yang melingkupi ikon `house-fill` dan label "Beranda"**, keduanya `navigasi`, padding dalam 6 tegak dan 8 mendatar, `aria-current="page"`; lencana "2"), Uang (`wallet`), Chat (`chat-circle`, lencana "2"), Saya (`user`). Tab tidak terpilih: ikon Regular dan label `di-atas-navigasi`, tanpa pil. Nama aksesibel tab adalah labelnya ditambah lencana sebagai teks ("Chat, 2 belum dibaca"). Lencana berangka 16, `sorot` dengan angka `di-atas-sorot`, cincin 2 px warna permukaan di bawahnya. Tombol Catat: bulat 56, `aksen`, ikon `plus` 24 `di-atas-aksen`, nama aksesibel "Catat". Lebar dok dan Catat: 8 + 4 × 64 + 8 + 8 + 56 = 336.
 
-**Grup tab** (Sedang ke atas): empat tab 48 berikon 24 dan berlabel; terpilih pil `tinta` dengan ikon Fill dan label `kartu`; `aria-current="page"`; lencana sama dengan dok. Bila tidak muat, tab bertumpuk (ikon di atas label); label tidak pernah disembunyikan. Tombol "Catat": pil biru 48, padding 24, ikon `plus` 20 dan kata "Catat".
+**Rail** (Sedang dan Lebar; §19.13.6): lebar 80, menempel di kiri setinggi viewport, latar `kertas`. Dari atas: padding 16, simpul 32, jarak 16, tombol Catat (bulat 56 `aksen`, ikon `plus` 24, label tampak "Catat" 13 px 600 `tinta` di bawahnya; satu tombol 80 × 76), jarak 24, lalu empat tujuan 80 × 64 dengan ikon 24 dan label di bawahnya. Terpilih: **pil `tinta` 64 × 56 yang melingkupi ikon Fill dan label**, keduanya `kartu`; tidak terpilih: ikon Regular dan label `tinta`. Lencana sama dengan dok.
+
+**Grup tab** (Sangat lebar): empat tab 48 berikon 24 dan berlabel; terpilih pil `tinta` yang melingkupi ikon Fill dan label `kartu`; `aria-current="page"`; lencana sama dengan dok. Bila tidak muat, tab bertumpuk (ikon di atas label, pil 64 × 56); label tidak pernah disembunyikan. Tombol "Catat": pil biru 48, padding 24, ikon `plus` 20 dan kata "Catat".
 
 ### 1.2 Kartu, urutan dari atas
 
@@ -167,7 +170,7 @@ Judul halaman: **"Casa · Chat"**.
 
 ### 3.1 Kepala dan kerangka
 
-Baris kepala: `h1` "Sari" (`judul-layar`), di bawahnya "online" teks kecil `tinta-2`; kanan kosong. Tanpa tombol kembali. Ringkas: dok di tengah dengan Chat terpilih (tanpa lencana; Beranda tetap "2"), **tanpa tombol Catat bulat**; Catat lewat tombol tambah di kotak tulis. Sedang ke atas: bilah atas dengan Chat terpilih; utas satu kolom paling lebar 640 di tengah.
+Baris kepala: `h1` "Sari" (`judul-layar`), di bawahnya "online" teks kecil `tinta-2`; kanan kosong. Tanpa tombol kembali. Ringkas: dok di tengah dengan Chat terpilih (tanpa lencana; Beranda tetap "2"), **tanpa tombol Catat bulat**; Catat lewat tombol tambah di kotak tulis. Sedang dan Lebar: rail dengan Chat terpilih (tombol Catat tetap di kepala rail); Sangat lebar: bilah atas dengan Chat terpilih. Utas satu kolom paling lebar 640 di tengah ruang isi.
 
 ### 3.2 Utas, dari atas
 
