@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4. Diperbarui S4 fase D |
-| Tanggal | 12 November 2026 (S4 fase C) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: PostgreSQL 18, satu skema dengan `household_id` di setiap kunci, RLS, `SERIALIZABLE`, foto di basis data pada pilot (D-99, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect` |
 | Mengubah | [ADR-005](ADR-005-idempotency-key-per-perintah-tulis.md): menetapkan bentuk kunci, cara keunikan dijaga, dan jangka simpan yang diserahkannya ke dokumen 09. [ADR-008](ADR-008-jumlah-uang-bilangan-bulat.md): menetapkan representasi di basis data, kontrak, dan perangkat |
 | Rincian | [09.2 §2 sampai §12](../09-technical-architecture/02-data-dan-skema.md) |

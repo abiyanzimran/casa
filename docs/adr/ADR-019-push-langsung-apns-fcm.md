@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 |
-| Tanggal | 12 November 2026 (S4 fase C) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **langsung ke APNs dan FCM** dengan payload umum (D-101, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
+| Tanggal | 12 November 2026 (S4 fase C; status checkpoint S4) |
 | Pengusul | `architect`, atas SEC-49 sampai SEC-58 (`security-privacy`) |
 | Mengubah | — |
 | Rincian | [09.1 §9](../09-technical-architecture/01-pilihan-teknologi.md); [09.3 §8](../09-technical-architecture/03-sinkron-waktu-nyata-notifikasi.md) |

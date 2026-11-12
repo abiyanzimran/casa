@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026; diperbarui S4 fase D); akan diputuskan pemilik produk di checkpoint S4. Menyelesaikan pertentangan dokumen 10 §8 butir 1 dan 2 menurut rekomendasi `security-privacy` di sana |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: UUIDv4 untuk semua pengenal dan umpan sinkron per pembaca (D-99, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk"). Menyelesaikan pertentangan dokumen 10 §8 butir 1 dan 2 menurut rekomendasi `security-privacy` di sana |
 | Tanggal | 12 November 2026 (S4 fase C) |
 | Pengusul | `architect`, atas persyaratan SEC-03 dan SEC-04 (`security-privacy`) |
 | Mengubah | 06 S-11 (a) dan INV-A47 (d): `seq` pesan menjadi internal (permintaan revisi 06, indeks 09 §8) |

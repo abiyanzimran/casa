@@ -1,6 +1,6 @@
 # 09.4 — Keamanan, operasi, CI/CD, pengujian, cadangan, biaya, dan risiko
 
-Bagian dari [dokumen 09](../09-technical-architecture.md). Semua butir **[Usulan]** `architect`, kecuali yang diberi label lain.
+Bagian dari [dokumen 09](../09-technical-architecture.md). Semua butir **[Usulan]** `architect`, kecuali yang diberi label lain. **Checkpoint S4:** ADR-022 (build iOS), ADR-025 (alat kualitas), dan ADR-013 (vektor uji emas) diterima; penyedia hosting, cadangan, dan email (§1, §2, §6, §7.1) tetap usulan sampai S4-2 dijawab menjelang deploy.
 
 ---
 
@@ -24,7 +24,7 @@ flowchart TB
   subgraph google["Google"]
     FCM[FCM]
   end
-  subgraph vps1["VPS utama: Biznet Gio NEO Lite MS 4.2, Indonesia"]
+  subgraph vps1["VPS utama di Indonesia (usulan Biznet Gio NEO Lite MS 4.2; S4-2)"]
     APP[familyos: satu biner Go<br/>TLS, API Connect, SSE, pekerja]
     PG[(PostgreSQL 18)]
     BR[pgBackRest]
@@ -70,7 +70,7 @@ flowchart TB
 | Batas laju | Ember token di memori proses per (akun, alamat jaringan) untuk masuk, pemulihan, undangan, dan pendaftaran. Pada tahap publik dengan beberapa proses, dipindah ke PostgreSQL | SEC-12 |
 | Pemulihan | Tautan email sekali pakai, 30 menit, token tersimpan sebagai hash | SEC-24 |
 | Undangan | Token ≥ 128 bit, disimpan sebagai hash, 7 hari; tanggapan seragam untuk token salah, kedaluwarsa, atau sudah dipakai | SEC-28, SEC-30 |
-| Pengiriman email | **Amazon SES di wilayah Jakarta `ap-southeast-3` lewat API HTTPS** (`email.ap-southeast-3.amazonaws.com`), dari biner dengan AWS SDK for Go v2 (`sesv2`). Endpoint SMTP SES **tidak** tersedia di Jakarta, jadi API HTTPS adalah satu-satunya jalan di wilayah itu ([docs.aws.amazon.com/general/latest/gr/ses.html](https://docs.aws.amazon.com/general/latest/gr/ses.html), diakses 12 November 2026) **[Terverifikasi]**. Isinya hanya alamat penerima dan teks templat (tautan sekali pakai); tidak ada data rumah tangga. SPF, DKIM, dan DMARC di domain produk. Di pilot, mode sandbox cukup karena penerimanya dua alamat yang diverifikasi. Alasan dan pembandingnya di [ADR-026](../adr/ADR-026-pengiriman-email.md) | SEC-24; BT-5; BT-6 |
+| Pengiriman email | **Usulan, menunggu S4-2:** **Amazon SES di wilayah Jakarta `ap-southeast-3` lewat API HTTPS** (`email.ap-southeast-3.amazonaws.com`), dari biner dengan AWS SDK for Go v2 (`sesv2`). Endpoint SMTP SES **tidak** tersedia di Jakarta, jadi API HTTPS adalah satu-satunya jalan di wilayah itu ([docs.aws.amazon.com/general/latest/gr/ses.html](https://docs.aws.amazon.com/general/latest/gr/ses.html), diakses 12 November 2026) **[Terverifikasi]**. Isinya hanya alamat penerima dan teks templat (tautan sekali pakai); tidak ada data rumah tangga. SPF, DKIM, dan DMARC di domain produk. Di pilot, mode sandbox cukup karena penerimanya dua alamat yang diverifikasi. Alasan dan pembandingnya di [ADR-026](../adr/ADR-026-pengiriman-email.md) | SEC-24; BT-5; BT-6 |
 
 ---
 
@@ -98,8 +98,8 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 | Contoh kerja | Setiap CTH di 07 §7 dan setiap SCN di dokumen 12 sebagai uji tabel dengan angka yang sama (ES §5) | `testing` | CI Linux |
 | AC Tier 1 | Satu uji per `FR-…/AC-n`, bernama pengenalnya, di tingkat API (Connect di atas server uji dan basis data nyata) | `testing` | CI Linux |
 | Isolasi | Untuk setiap kueri sqlc: uji lintas rumah tangga yang dibangkitkan (SEC-02, LM-09); "tidak ada" sama dengan "tidak boleh" (SEC-05) | Pembangkit di atas daftar kueri sqlc | CI Linux |
-| Privasi | Uji "tidak pernah terlihat" (SEC-86); simetri berpermutasi 3 sampai 5 dewasa (SEC-89, LM-01); **urutan kursor identik byte demi byte** dengan 0, 1, dan 5 entri pribadi (SEC-04); pengacakan `read_state` dan `presence` tidak mengubah keluaran di luar chat (LM-11); tidak ada hitungan per orang (SEC-07) | `testing` | CI Linux |
-| Kontrak dan bantuan isian | `buf lint`, `buf breaking`; bila 09-F A: **vektor uji emas** bantuan isian (selisih baris, bagi rata, bentuk masukan) dibangkitkan dari acuan Go (07 INV-02, aturan protovalidate) dan dijalankan di Swift dan Kotlin; beda hasil memblokir merge (berkas 01 §3; ADR-013) | buf; `testing`; Swift Testing; JUnit | CI Linux (Go, Kotlin, Swift non-UI bila dapat dibangun di Linux); Xcode Cloud (Swift) |
+| Privasi | Uji "tidak pernah terlihat" (SEC-86); simetri berpermutasi 3 sampai 5 dewasa (SEC-89, LM-01); **urutan kursor identik byte demi byte** dengan 0, 1, dan 5 entri pribadi (SEC-04); pengacakan `read_state` dan `presence` tidak mengubah keluaran di luar chat (LM-11); tidak ada hitungan per orang (SEC-07); **sebutan anggota** (F-FAM-021, Tier 2, bila dibangun): uji SEC-155 (b) sampai (i) persis seperti kolom "Cara menguji" di 10.4 §6.3, termasuk tanggapan API dan `Sync` yang identik byte demi byte bagi orang yang disebut dan anggota ketiga, dan payload push tanpa sebutan (02 §5.5) | `testing` | CI Linux |
+| Kontrak dan bantuan isian | `buf lint`, `buf breaking`; **vektor uji emas** (09-F A, diterima) bantuan isian (selisih baris, bagi rata, bentuk masukan) dibangkitkan dari acuan Go (07 INV-02, aturan protovalidate) dan dijalankan di Swift dan Kotlin; beda hasil memblokir merge (berkas 01 §3; ADR-013) | buf; `testing`; Swift Testing; JUnit | CI Linux (Go, Kotlin, Swift non-UI bila dapat dibangun di Linux); Xcode Cloud (Swift) |
 | Payload push | Tangkap payload untuk setiap N-NN: hanya teks kelas dan `r` (SEC-50, SEC-51) | Server uji dengan klien APNs/FCM tiruan | CI Linux |
 | Log | Jalankan rangkaian AC, lalu pindai log untuk angka berformat uang, kata status `CARE`, teks pesan uji, dan email uji (SEC-44) | Skrip uji | CI Linux |
 | Migrasi | Setiap migrasi naik, turun, naik lagi pada salinan skema; biner lama berjalan di atas skema baru | goose | CI Linux |
@@ -128,7 +128,7 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 2. **Sekali**: sewa Mac jarak jauh minimal 24 jam (Scaleway Mac mini M4, sekitar EUR 0,22 per jam → 24 × 0,22 = **EUR 5,28** **[Perlu validasi]**). Mac itu dipakai untuk membuat proyek Xcode, menghubungkan repositori, dan menyiapkan alur kerja Xcode Cloud pertama, yang menurut 18 §5.2 harus dibuat di Xcode.
 3. Sesudahnya setiap push memicu build di Xcode Cloud. Jatah 25 jam komputasi per bulan sudah termasuk keanggotaan. Dengan build sekitar 10 menit **[Asumsi]**, itu sekitar 150 build per bulan.
 4. Build dipasang di iPhone 13 dan iPad mini 7 lewat TestFlight internal.
-5. **Batasnya:** tanpa pratinjau SwiftUI, simulator, dan debugger di Linux, setiap perubahan UI iOS diuji lewat perjalanan build dan TestFlight. Pemicu untuk Mac bulanan (Scaleway sekitar EUR 149 per bulan **[Perlu validasi]**) atau Mac mini sendiri (iBox Rp12.749.000 **[Perlu validasi]**) adalah dimulainya pekerjaan UI iOS harian (09-C).
+5. **Batasnya:** tanpa pratinjau SwiftUI, simulator, dan debugger di Linux, setiap perubahan UI iOS diuji lewat perjalanan build dan TestFlight. Pemicu untuk Mac bulanan (Scaleway sekitar EUR 149 per bulan **[Perlu validasi]**) atau Mac mini sendiri (iBox Rp12.749.000 **[Perlu validasi]**) adalah dimulainya pekerjaan UI iOS harian (ADR-022 butir 4; 09-C A diterima).
 6. xtool tidak dipakai sampai 17 L-31 dijawab advokat.
 
 ---
@@ -148,6 +148,21 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 | Uji pemulihan | Sebelum pilot memakai data nyata, dan sesudahnya bulanan: pulihkan ke instans PostgreSQL sementara **di VPS cadangan** (data tetap di Indonesia), jalankan `ops.invariant_check` dan jurnal penghapusan, lalu hapus instans itu. RTO yang diukur dicatat | SEC-43 |
 | **RTO** | ≤ 4 jam **[Usulan]**: sewa VPS baru, pasang biner, pulihkan, ubah DNS | — |
 
+Penyedia VPS utama dan VPS cadangan menunggu S4-2 (ditunda sampai menjelang deploy; ADR-020). Rancangan di atas tidak bergantung pada penyedia, hanya pada syaratnya: keduanya di Indonesia dan pada pihak kontrak yang berbeda.
+
+### 6.1 Butir operasi sebelum pilot memproses data nyata
+
+Daftar kanonisnya dokumen 10 §4.1 (sembilan butir, dicentang bertanggal di runbook pilot). Butir yang dikerjakan lewat rancangan dokumen ini:
+
+| 10 §4.1 | Butir | Di dokumen ini |
+|---|---|---|
+| 1 | Persyaratan berkolom "Pilot" dibangun dan lulus uji | §4, §8 |
+| 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. Waktu ini **[Usulan]** `security-privacy` (10 §3.1), **menunggu Q-208** | ADR-020; ADR-026 |
+| 7 | Penyedia hosting dan cadangan dipilih (S4-2), dengan pihak kontrak dan lokasi pusat data tercatat dan pernyataan tertulis bahwa isi VPS dan cadangan tetap di Indonesia | ADR-020 butir 1; RISK-04 |
+| 8 | Pemulihan cadangan diuji sekali; uji SEC-96 dan SEC-97 lulus | §6 "Uji pemulihan", "Umur data paling tua", "Jurnal penghapusan" |
+
+**Bukan syarat sebelum data nyata** (10-C A, S4-4 (iii) A): jawaban advokat atas L-01, L-14, L-24. Risiko PSE (W-32) diterima pemilik produk. Pemicu dokumen 10 §4.1 (pengguna di luar rumah tangga pilot sebelum tahap publik berarti advokat dijawab lebih dulu) masih **[Usulan]** `security-privacy`, **menunggu Q-209**, belum berlaku.
+
 | Skenario | Akibat | Pemulihan |
 |---|---|---|
 | Disk VPS utama rusak | Layanan mati | Pulihkan ke VPS baru dari repositori; kehilangan ≤ 1 menit |
@@ -162,22 +177,24 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 
 ### 7.1 Pilot, per bulan
 
+Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email yang ditunda pemilik produk sampai menjelang deploy; angkanya usulan ADR-020 dan ADR-026 dan dihitung ulang dengan harga yang dicek saat itu. Baris lain mengikuti keputusan yang sudah diterima (ADR-021, ADR-022).
+
 | Butir | Hitungan | Rupiah | USD | Label |
 |---|---|---|---|---|
-| VPS utama Biznet Gio NEO Lite MS 4.2 | Harga halaman | Rp139.000 | — | **[Terverifikasi]** harga; PPN tidak disebut |
-| VPS cadangan IDCloudHost (2 core, 4 GB, 60 GB) | Cuplikan pencarian 18 §5.8 | Rp105.000 | — | **[Perlu validasi]** |
+| **(S4-2)** VPS utama, usulan Biznet Gio NEO Lite MS 4.2 | Harga halaman | Rp139.000 | — | **[Terverifikasi]** harga; PPN tidak disebut |
+| **(S4-2)** VPS cadangan, usulan IDCloudHost (2 core, 4 GB, 60 GB) | Cuplikan pencarian 18 §5.8 | Rp105.000 | — | **[Perlu validasi]** |
 | Apple Developer Program | 99 ÷ 12 | — | 8,25 | **[Terverifikasi]** |
 | `AI` R1, pembangunan kumpulan bulanan | Berkas 03 §11.1: 0,06 × 2 + 0,12 × 10 | — | 1,32 (batas 10) | Harga **[Terverifikasi]**; jumlah token **[Asumsi]** |
 | Xcode Cloud | Di dalam 25 jam | — | 0 | **[Terverifikasi]** jatah |
 | CI Linux | Sekitar 100 push × 15 menit = 1.500 menit × USD 0,006 = USD 9, di dalam jatah Free USD 12 | — | 0 | Tarif **[Terverifikasi]** (18 §5.2); jumlah push **[Asumsi]** |
 | Push APNs dan FCM | — | — | 0 | **[Asumsi]** tanpa biaya untuk volume ini |
 | Domain | Sekitar Rp200.000 per tahun ÷ 12 | Rp16.667 | — | **[Asumsi]** |
-| Email Amazon SES | Puluhan email per bulan **[Asumsi]** | — | Mendekati 0 | Tarif per pesan **[Perlu validasi]** (ADR-026) |
-| **Jumlah** | | **Rp260.667** + PPN bila berlaku | **USD 9,57** + email (paling tinggi 18,25 + email bila batas `AI` tercapai) | |
+| **(S4-2)** Email, usulan Amazon SES | Puluhan email per bulan **[Asumsi]** | — | Mendekati 0 | Tarif per pesan **[Perlu validasi]** (ADR-026) |
+| **Jumlah** | | **Rp260.667** + PPN bila berlaku, **dengan Rp244.000 di antaranya bergantung pada S4-2** | **USD 9,57** + email (paling tinggi 18,25 + email bila batas `AI` tercapai) | |
 
-Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667**. Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
+Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667** (juga **(S4-2)**). Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
 
-**Satu kali:** sewa Mac 24 jam ≈ EUR 5,28 **[Perlu validasi]**. **Pilihan (09-C):** Mac bulanan sekitar EUR 149 per bulan selama fase UI iOS, atau Mac mini Rp12.749.000 sekali (keduanya **[Perlu validasi]**).
+**Satu kali:** sewa Mac 24 jam ≈ EUR 5,28 **[Perlu validasi]**. **Bila ADR-022 butir 4 terpicu:** Mac bulanan sekitar EUR 149 per bulan selama fase UI iOS, atau Mac mini Rp12.749.000 sekali (keduanya **[Perlu validasi]**).
 
 ### 7.2 Tahap publik
 
@@ -245,7 +262,8 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-85 | Skema tanggungan minimum | Skema (Tier 3; tidak ada kolom di luar 06) | 02 §5 (pembuka) |
 | SEC-86, SEC-89 | Uji tidak pernah terlihat; simetri berpermutasi | Rangkaian uji | 04 §4 |
 | SEC-92 | Kecocokan kategori | Modul `budget` (satu fungsi) | 02 §1 baris `budget` |
-| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G). Di pilot "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun; sesudah pilot laporan ke pengelola yang bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan | `chat` (`member_mute`); sesudah pilot `report` dan `familyos ops report` | 06 §16.12; 02 §5.3 |
+| SEC-155 | Sebutan anggota per pembaca (F-FAM-021, Tier 2): hanya pembuat yang membaca; diterapkan di perangkat pembuat saat tampil; tidak di push, Peristiwa, kartu, ringkasan server, `AI`, log, atau ekspor orang lain; dihapus dua arah pada F07, hapus akun, dan undangan yang gugur | `household` (`member_label`, `invitation.inviter_label`); `read`; `lifecycle` (ekspor dan hapus) | 02 §5.5; 04 §4 |
+| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G A, Tier 1). Di pilot "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun; sesudah pilot laporan ke pengelola yang bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan | `chat` (`member_mute`); sesudah pilot `report` dan `familyos ops report` | 06 §16.12; 02 §5.3 |
 | SEC-93 | Tanpa agregasi sisi keluarga | Hubungan tidak disimpan; uji laporan | 02 §2 |
 | SEC-94, SEC-100 | Penghapusan 90 hari | Pekerjaan `lifecycle.*` | 03 §9 |
 | SEC-96, SEC-97 | Cadangan kedaluwarsa; pemulihan menjalankan jurnal penghapusan | pgBackRest; `deletion_journal` | 04 §6 |
@@ -270,20 +288,20 @@ Pengenal memakai skema `RISK-NN` dari README. Dokumen 15 (S5) mengambil alih daf
 
 | # | Risiko | Kemungkinan | Akibat | Penanganan |
 |---|---|---|---|---|
-| RISK-01 | Siklus pengembangan UI iOS tanpa Mac terlalu lambat | Tinggi | Fase iOS molor | Pemicu Mac bulanan atau Mac mini (09-C); kode non-UI diuji di Linux |
+| RISK-01 | Siklus pengembangan UI iOS tanpa Mac terlalu lambat | Tinggi | Fase iOS molor | Pemicu Mac bulanan atau Mac mini (ADR-022 butir 4); kode non-UI diuji di Linux |
 | RISK-02 | Pustaka 0.x berubah tidak kompatibel: connect-kotlin, `golang.org/x/crypto`, `golang.org/x/oauth2` | Sedang | Pekerjaan ulang di satu paket | Dipatok dengan lockfile; jalan mundur per pustaka di ADR-023 |
 | RISK-03 | Satu VPS adalah titik gagal tunggal | Sedang | Pilot mati beberapa jam | RPO 1 menit, RTO 4 jam; pencatatan offline tetap jalan (LM-02) |
-| RISK-04 | Kota pusat data Biznet Gio untuk NEO Lite tidak dinyatakan; kebijakan privasinya mengizinkan data pribadi diproses di luar Indonesia | Sedang | Syarat "di Indonesia" tidak dapat dibuktikan tertulis | Minta pernyataan tertulis sebelum data nyata; butir advokat (ADR-020) |
+| RISK-04 | Kota pusat data penyedia usulan (Biznet Gio NEO Lite) tidak dinyatakan; kebijakan privasinya mengizinkan data pribadi diproses di luar Indonesia | Sedang | Syarat "di Indonesia" tidak dapat dibuktikan tertulis | Penyedia dipilih di S4-2 menjelang deploy; pernyataan tertulis penyedia sebelum data nyata (10 §4.1 butir 7); penilaian advokat sebelum tahap publik (S4-4 (iii) A; ADR-020) |
 | RISK-05 | pgBackRest belum menyatakan dukungan PG18 "penuh" | Rendah | Cadangan tidak andal | Uji pemulihan sebelum pilot dan bulanan; WAL-G v3.0.9 sebagai alternatif |
 | RISK-06 | Email pemulihan tidak sampai (masuk spam, kuota sandbox SES) | Rendah | Pemulihan akun gagal | SPF, DKIM, DMARC; uji kirim sebelum pilot; pengiriman sebagai job yang dicoba ulang (ADR-026) |
 | RISK-07 | Foto di PostgreSQL membesarkan cadangan | Rendah di pilot | Cadangan lambat | Batas pindah 5 GB / 20 GB (berkas 02 §11) |
 | RISK-08 | SSE terputus di jaringan seluler atau proxy operator | Sedang | Chat terasa lambat | Tarik `Sync` saat tersambung ulang; push tetap menjadi jalan saat tidak di depan |
 | RISK-09 | Eksponen IDR produk (0) berbeda dari ISO 4217 (2) | Rendah | Ekspor dibaca salah oleh alat lain; pustaka platform membaca 2 | Eksponen hanya dari tabel produk; ekspor membawa `minor_unit_exponent` (07 INV-39; berkas 02 §5) |
 | RISK-10 | Satu pemegang pengetahuan (bus factor) | Tinggi | Operasi berhenti bila pemimpin berhalangan | Runbook pemulihan, rilis, dan rotasi rahasia ditulis di fase bangun; komponen sedikit |
-| RISK-11 | Operator adalah pasangan (keputusan 25) | Pasti di pilot | Operator dapat membaca data; laporan Apple 1.2 tentang operator jatuh ke operator itu sendiri | Kendali dokumen 10 (SEC-33, SEC-34, 10-F, 10-G); arsitektur tidak dapat menutupnya tanpa E2EE (10-D) |
+| RISK-11 | Operator adalah pasangan (keputusan 25) | Pasti di pilot | Operator dapat membaca data; laporan Apple 1.2 tentang operator jatuh ke operator itu sendiri | Kendali dokumen 10 (SEC-33, SEC-34, 10-F A, 10-G A); arsitektur tidak dapat menutupnya tanpa E2EE, yang tidak dipakai di pilot (S4-6 (i) A) dan dinilai lewat ADR sebelum tahap publik, termasuk sebutan anggota (SEC-155 (j)) |
 | RISK-12 | Lisensi alat build iOS (17 L-31); transfer push dan `AI` (L-16) | Sedang | Jalur harus diganti | Xcode Cloud sebagai jalur resmi; R1 tanpa data rumah tangga |
 | RISK-13 | Pembungkus SQLite iOS tidak dapat dibangun di Linux | Sedang | Uji non-UI iOS hanya di Xcode Cloud | Dinilai `ios-dev` di awal fase bangun (berkas 03 §2) |
 | RISK-14 | Biometrik membuka kunci aplikasi untuk sidik jari pasangan yang terdaftar | Sedang | Kunci aplikasi tidak menahan pasangan | Pilihan kode aplikasi; kebijakan yang batal saat daftar biometrik berubah (berkas 03 §2) |
-| RISK-15 | Pemilik produk menolak pengecualian ES §2 untuk bantuan isian (09-F) | Sedang | FR-FIN-042/AC-2 dan AC-3 harus diubah; perintah salah bentuk baru ditolak saat tersambung | Opsi 09-F B sudah dirancang: server menolak dengan kode galat per medan |
-| RISK-16 | Peninjau App Store menolak aplikasi karena Guideline 1.2 (konten buatan pengguna di chat) | Sedang, saat beralih ke TestFlight eksternal atau App Store | Rilis tertunda | Mekanisme 06 §16.12 menurut 10-G; dibangun sebelum peninjauan pertama (ADR-022) |
+| RISK-15 | Pemilik produk menolak pengecualian ES §2 untuk bantuan isian (09-F) | **Ditutup** (checkpoint S4: 09-F A disetujui tegas) | — | Pengenal tidak dipakai ulang |
+| RISK-16 | Peninjau App Store menolak aplikasi karena Guideline 1.2 (konten buatan pengguna di chat) | Sedang, saat beralih ke TestFlight eksternal atau App Store | Rilis tertunda | Mekanisme 06 §16.12 (10-G A, Tier 1); sisa SEC-153 (d) dan SEC-154 dibangun sebelum peninjauan pertama (ADR-022) |
 | RISK-17 | API eksperimental Compose (`ModalBottomSheet`) berubah atau rilis stabil berikutnya mengubah perilakunya | Sedang | Lembar Catat di Android dikerjakan ulang | Dipatok ke 1.4.0; jalan mundur dialog layar penuh (ADR-012 butir 5, ADR-023 butir 5) |

@@ -17,7 +17,8 @@ Planning documents must not recommend anything that breaks these rules.
 ## 2. No duplicated code
 
 - Before writing a helper, type, or query, search the codebase for an existing one and reuse it.
-- Every business rule has exactly one authoritative implementation. The server is always the final authority on money and approvals. Where a client must apply a rule while offline, it uses that same implementation (shared or generated code), never a hand-written copy, and the server re-checks the result on sync. Where rules run is decided at S4.
+- Every business rule has exactly one authoritative implementation. The server is always the final authority on money and approvals. Where a client must apply a rule while offline, it uses that same implementation (shared or generated code), never a hand-written copy, and the server re-checks the result on sync. Where rules run was decided at S4: on the server only (ADR-013), with the exception below.
+- Exception (ADR-013, approved by the owner at checkpoint S4): exactly three client input aids may be hand-written once in Swift and once in Kotlin: (a) the difference between an entry's lines and its total, with save unavailable until they match; (b) "split evenly", with the remainder on the first line; (c) input shape (required, positive integer, text length). Golden test vectors generated from the server's reference implementation run in each client's CI, and a mismatch blocks merge. The server re-checks (a) and (c). Any other client-side rule needs a new ADR approved by the owner.
 - The API contract is defined once and client types are generated from it. Hand-written copies of request or response types are not allowed.
 - Validation rules, error codes, and constants are defined once and shared.
 - Screens are built from the design system's components. A second copy of a component is a defect.
@@ -83,7 +84,7 @@ Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR afte
 Applies to everything installed: language toolchains, frameworks, SDKs, libraries, build tools, the database, and container images.
 
 - **Checked live.** At the moment of installing or upgrading, the current version is looked up in the official registry or release page. A version number from memory, a tutorial, or an article is never used.
-- **Newest stable only.** No alpha, beta, release candidate, canary, or nightly build, and no API its maintainers mark experimental or unstable. An exception needs an ADR.
+- **Newest stable only.** No alpha, beta, release candidate, canary, or nightly build, and no API its maintainers mark experimental or unstable. An exception needs an ADR. A 0.x release that is not a pre-release, or an API marked experimental inside a stable release, counts as stable only if it is listed in ADR-023 with its fallback; anything else needs its own ADR (approved by the owner at checkpoint S4).
 - **Known problems checked.** Before adopting a version, read its release notes and check the project's security advisories and open critical issues. If the newest stable release has a known defect that affects this product, use the newest stable release without that defect, and record the reason and the condition for moving up.
 - **Compatible as a set.** Versions must be supported together (framework, OS SDK, build tool, language). Follow the framework's own compatibility table, not the newest number of each part.
 - **Pinned.** Exact versions and a committed lockfile. No floating ranges.

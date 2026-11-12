@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
+| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). Belum ditinjau `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
 | Pemilik | `ux-designer` |
 | Tingkat kedalaman | Tier 1 penuh (brief §1.1); Tier 2 ringkas; Tier 3 daftar saja. Rancangan berlaku untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pemakai pertamanya (brief §1.1, "Tiers set what is built first, not what is designed") |
 | Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1); `_progress.md` |
@@ -32,10 +32,10 @@
 | 16 | Ponsel, tablet, dan perangkat lipat |
 | 17 | Sistem desain di atas komponen native |
 | 18 | Kata-kata dan nada |
-| 19 | Tiga arah identitas visual untuk checkpoint S4 |
+| 19 | Identitas visual: arah C sebagai sistem kerja, anti-templat, warna uang |
 | 20 | Catatan keputusan desain sasaran dewasa (SEC-82) |
 | 21 | Pemenuhan persyaratan dokumen 10 untuk dokumen 08 |
-| 22 | Keputusan untuk checkpoint S4 |
+| 22 | Keputusan checkpoint S4 yang mengikat dokumen ini |
 | 23 | Permintaan kepada pemilik dokumen lain, fakta untuk dokumen 18, butir terbuka |
 | 24 | Sumber |
 
@@ -55,14 +55,18 @@
 |---|---|---|
 | UI native penuh: Swift (SwiftUI) untuk iPhone dan iPad, Kotlin (Jetpack Compose, Material 3) untuk Android | Diputuskan pemilik produk: "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." | `_progress.md`, 12 November 2026 |
 | Identitas visual sendiri, dibangun di dalam komponen native | Arahan pemilik produk sebagai syarat untuk dokumen ini; kata-katanya atas sketsa lead: "keliatan banget AI SLOP nya kaya gak ada seni tersendiri, standar app atau layout profesional, pallet warna font ... harusnya kita membangun kesan untuk aplikasi kita sendiri". Dua arah buatan lead ("Nila dan Kunyit", "Struk") ia tolak ("ai slop semua") dan tidak dipakai | `_progress.md`, "Arahan pemilik produk tentang tampilan (11 November 2026)" |
-| Contoh halaman depan Android hitam dengan satu aksen hijau limau dan huruf Manrope | **Gambaran yang ia terima sebagai arah kasar, bukan keputusan desain**; kata-katanya: "oke sudah bagus untuk gambaran mah, tapi nanti layout tata letak tetep di s4 yaa supaya enak nyaman di semua menu dan fiturnya" | Sama |
+| Contoh halaman depan Android hitam dengan satu aksen hijau limau dan huruf Manrope | **Gambaran yang ia terima sebagai arah kasar, bukan keputusan desain**; kata-katanya: "oke sudah bagus untuk gambaran mah, tapi nanti layout tata letak tetep di s4 yaa supaya enak nyaman di semua menu dan fiturnya". Digantikan arah C di checkpoint S4 (baris berikut) | Sama |
+| Identitas visual arah C: terang dan tenang, aksen hijau kebiruan tua, Plus Jakarta Sans | **Diterima atas saran lead** di checkpoint S4 (S4-10 (i) C). Ia bertanya lebih dulu (disalin utuh): "standar dan bagus nya di zaman sekarang gimana? coba research orang orang suka gimnaa? bagusnya gmna? cleannya gmna? profesionalnya gmna?"; sesudah riset 18 §4.10 disajikan dan lead menyarankan C dengan syarat glif, ikon aplikasi, dan nada dikerjakan sungguh-sungguh agar tidak terasa templat, ia menjawab: "oke saya ikut saran kamu aja". Syarat itu bagian dari saran yang ia terima, dan menjadi §19.8 | `_progress.md`, "Checkpoint S4: jawaban pemilik produk", jawaban kelima dan keenam |
 | Responsif di ponsel Android, iPhone, iPad, tablet Android, ponsel lipat termasuk layar ganda; mode gelap dan terang; UI percakapan dikerjakan sungguh-sungguh | Syarat pemilik produk | Sama |
 | Perangkat lipat | Ditunda pemilik produk ("masalah perangkat simpan dulu aja desainnya yang penting"); bawaan (c) kelas ukuran jendela ditambah emulator tetap berlaku (bacaan lead **[Usulan]**) | 17 S3-10 (i), Q-120 |
-| Chat dengan tanda terkirim dan dibaca, kehadiran | Tanda pada pesan chat: pernyataan pemilik produk sendiri ("ada tanda di baca/delivery chat itu wajib loh"); tanda pada kartu: diterima atas saran lead; kehadiran "Semua seperti WhatsApp": diputuskan sendiri, berlawanan dengan saran lead. Opsi P2 menunggu checkpoint S4 (10-A); ketelitian "terakhir aktif" menunggu UX-5, dengan bawaan yang mempertahankan keputusannya (§10.3) | `_progress.md`; 10 §3 10-A |
+| Chat dengan tanda terkirim dan dibaca, kehadiran | Tanda pada pesan chat: pernyataan pemilik produk sendiri ("ada tanda di baca/delivery chat itu wajib loh"); tanda pada kartu: diterima atas saran lead; kehadiran "Semua seperti WhatsApp": diputuskan sendiri, berlawanan dengan saran lead, dan **dipertahankannya di checkpoint S4** (S4-5 (i) A, diputuskan sendiri; kata-katanya: "A tetap seperti WhatsApp"): digerakkan pemakaian di bagian mana pun aplikasi. "Terakhir aktif" dengan menit tepat (S4-5 (ii) A) adalah bacaan lead atas kalimat yang sama, dikukuhkan lewat "lanjut" (§10.3) | `_progress.md`, "Checkpoint S4", jawaban pertama dan keputusan yang dikukuhkan |
+| Sapaan aplikasi "kamu"; tema iPhone dan iPad ikut sistem; angka tampil saat dibuka | S4-10 (iv) A: bacaan lead atas "kamu aja", dikukuhkan lewat "lanjut"; (ii) A dan (iii) A tidak ia sebut, jatuh ke bawaan dan dikukuhkan dengan "lanjut" | Sama |
+| Sebutan anggota per pembaca (F-FAM-021, Tier 2) | Permintaan pemilik produk sendiri (kata-katanya: "sapaan di atur pas nambah keluarga. suami boleh atur sapaan ke semua anggotanya begitupun yang lain"); usulan lead, hanya pembuatnya yang melihat dan Tier 2, ia terima: "3 ya" (§7.4) | Sama, jawaban ketiga dan kelima |
 | Layar kunci N-28 "Ada kabar baru" | Bentuk (a), diterima lewat "lanjut" (S3-8 (vii)) | 17 S3-8 |
-| Hanya komponen dan API stabil | Aturan keras: versi stabil terbaru, tanpa alpha, beta, rc, atau API berlabel eksperimental kecuali lewat ADR. Komponen Material 3 Expressive tidak dipakai sampai rilis stabil yang memuatnya terbit (§17.1) | `ENGINEERING-STANDARDS.md` §8; ADR-012 butir 4 dan 5 (**Diusulkan**) |
+| Hanya komponen dan API stabil | Aturan keras: versi stabil terbaru, tanpa alpha, beta, rc, atau API berlabel eksperimental kecuali lewat ADR. Komponen Material 3 Expressive tidak dipakai sampai rilis stabil yang memuatnya terbit (§17.1) | `ENGINEERING-STANDARDS.md` §8 (kalimat ADR-023 dipasang lead sesudah S4-1 (iii) A); ADR-012 butir 4 dan 5; ADR-023 |
+| Versi OS minimum iOS dan iPadOS 26, Android 10 | Diputuskan pemilik produk di checkpoint S4 (S4-3 (ii) A). Status ADR-012 butir 2 diperbarui `architect` | `_progress.md`, "Checkpoint S4" |
 
-**Dua batas evidensi.** (1) `researcher` membaca halaman sebagai teks dan tidak melihat gambar (18 §4.0); saya juga tidak melihat gambar. Tidak ada kalimat di dokumen ini tentang rupa aplikasi rujukan yang berasal dari pengamatan. (2) Uji langsung aplikasi pesaing (R-02) belum dilakukan, jadi sasaran kecepatan mencatat di §9.1 adalah **[Asumsi]** dari `ENGINEERING-STANDARDS.md` §3 dan dari pola di dokumen 03 §2.4, bukan dari pengukuran.
+**Dua batas evidensi.** (1) Saya tidak melihat gambar. Rupa aplikasi rujukan di dokumen ini hanya dikutip dari 18 §4.10.2, tempat `researcher` membuka tangkapan layar App Store sebelas aplikasi keuangan dengan batas yang ia nyatakan sendiri (materi pemasaran pilihan vendor, satu tema, warna disebut dengan mata); di luar itu `researcher` membaca halaman sebagai teks (18 §4.0). (2) Uji langsung aplikasi pesaing (R-02) belum dilakukan, jadi sasaran kecepatan mencatat di §9.1 adalah **[Asumsi]** dari `ENGINEERING-STANDARDS.md` §3 dan dari pola di dokumen 03 §2.4, bukan dari pengukuran.
 
 ---
 
@@ -76,7 +80,7 @@
 | 4 | Bagaimana tindakan yang paling sering memakan sangat sedikit langkah? | Satu tombol **Catat** di setiap tujuan utama (Android: FAB; iOS: tombol utama di bilah navigasi dengan menu tekan-lama), lembar catat yang langsung membuka papan angka dengan tempat uang dan kategori terisi dari catatan terakhir, sisa anggaran tampil tanpa ketukan tambahan, tombol "000", dan pintasan dari ikon aplikasi. Belanja yang berulang: ketik jumlah, satu ketukan Simpan | §9.1 |
 | 5 | Bagaimana anggota yang lebih tua bernavigasi dengan nyaman? | Empat tujuan saja di Tier 1 dengan label kata (bukan ikon saja); sasaran sentuh 48 pt/dp untuk tindakan utama; tata letak yang mengalir ulang sampai teks 200% dan ukuran aksesibilitas Dynamic Type tanpa memotong jumlah uang; setiap gestur punya jalan berupa tombol; "Urungkan" setelah setiap tindakan sendiri, kecuali pesan chat dan perintah pelindung, yang tidak pernah ditahan (§9.3); tidak ada "mode lansia" yang memperlakukan orang dewasa sebagai tanggungan (03 §6) | §15 |
 | 6 | Bagaimana pengguna berpindah rumah tangga? | Dibangun di Tier 3 (F-FAM-009); dirancang sekarang. Nama rumah tangga adalah judul Beranda; bila orang itu anggota lebih dari satu rumah tangga, judul itu menjadi pemilih (iOS: menu pada judul; Android: menu pada judul bilah atas; iPad dan layar lebar: kepala sidebar atau rail). Berpindah memuat ulang seluruh aplikasi untuk rumah tangga itu; tidak ada layar, notifikasi, lencana, atau angka yang menggabungkan dua rumah tangga | §4.4 |
-| 7 | Bagaimana informasi peka disembunyikan? | Tombol **"Sembunyikan angka"** (ikon mata) di Beranda dan Uang, setelan pribadi per perangkat, yang menyamarkan semua jumlah di seluruh aplikasi; pilihan "selalu tersembunyi saat dibuka" (pertanyaan UX-3); kunci aplikasi (SEC-19); pengalih aplikasi selalu ditutup layar netral (SEC-20); layar kunci hanya teks kelas (SEC-51). Status suasana hati dan sakit (Tier 2) tidak pernah tampil di Beranda pasangan | §12 |
+| 7 | Bagaimana informasi peka disembunyikan? | Tombol **"Sembunyikan angka"** (ikon mata) di Beranda dan Uang, setelan pribadi per perangkat, yang menyamarkan semua jumlah di seluruh aplikasi; angka tampil saat pertama dibuka dan pilihan mata diingat per perangkat (S4-10 (iii) A); fitur ini F-FIN-027, Tier 3 Could menurut 05, jadi di pilot perlindungannya adalah yang berikut; kunci aplikasi (SEC-19); pengalih aplikasi selalu ditutup layar netral (SEC-20); layar kunci hanya teks kelas (SEC-51). Status suasana hati dan sakit (Tier 2) tidak pernah tampil di Beranda pasangan | §12 |
 | 8 | Fitur apa yang muncul kontekstual, bukan di menu? | "Bagikan" sesudah mencatat uang masuk; "Siapkan uang tagihan" bila ada tagihan yang belum disiapkan; "Pakai yang disetujui" saat mencatat belanja yang cocok dengan otorisasi terbuka; "Selesaikan sisa" pada permintaan yang belanjanya sudah tertaut; "Minta konfirmasi" pada catatan bertanda; "Hitung uang" pada tempat uang tunai; "Kirim ke chat" pada setiap objek yang boleh menjadi kartu; "Minta anggaran" saat catatan baru akan melewati ambang | §9.4 |
 | 9 | Bagaimana fitur yang banyak tidak menjadi menu yang melelahkan? | Empat tujuan di Tier 1 (Beranda, Uang, Chat, Saya), lima di Tier 2 (tambah Rumah); semua pekerjaan uang di satu daftar "Uang" yang bersekat; pembuatan apa pun lewat satu "Catat"; tindakan lanjutan muncul pada objeknya (pertanyaan 8); rincian opsional terlipat di "Tambah rincian". Tidak ada layar pengaturan izin di pilot (S3-1 (a)) | §3, §4 |
 
@@ -98,6 +102,8 @@ Kata sifat brief §10.1 (hangat, tenang, premium, dan seterusnya) tidak dapat ga
 | 8 | Ruang jendela, bukan jenis perangkat | Tata letak bercabang pada "ponsel" lawan "tablet", atau ada fungsi yang hilang di jendela sempit (18 §4.5 butir 1) |
 | 9 | Tanpa unsur indikator D | Ada unsur di §20 tanpa keputusan tercatat (SEC-82) |
 | 10 | Tidak ada yang menunggu jaringan | Mencatat, membaca angka terakhir, atau menulis pesan menunggu sambungan (PRN-06; 06 S-7) |
+
+Pemeriksaan 11 sampai 15 (identitas tanpa templat) ada di §19.8.
 
 ---
 
@@ -146,7 +152,7 @@ graph TD
     S --> S1[Siapa melihat apa]
     S --> S2[Notifikasi dan jam tenang]
     S --> S3[Keamanan: kunci aplikasi, sesi]
-    S --> S4[Keanggotaan dan keluar]
+    S --> S4["Keanggotaan, sebutan anggota (Tier 2), keluar"]
     S --> S5[Pihak luar]
     S --> S6[Bantuan]
     S --> S7["Pendamping (Tier 2)"]
@@ -205,7 +211,7 @@ Tinggi *compact* (ponsel lanskap, Android < 480 dp) diperlakukan sebagai Ringkas
 
 | Keadaan | iOS / iPadOS | Android |
 |---|---|---|
-| Ringkas | Tab bar yang mengambang di bawah (Liquid Glass; 18 §4.3). Pada daftar panjang tab bar boleh mengecil saat menggulir ke bawah (`tabBarMinimizeBehavior`, API iOS 26, §24 [S6]; bila 09-E menetapkan minimum di bawah 26, tanpa pengecilan pada versi lama, §17.1 butir 4). Tiap tab punya `NavigationStack` sendiri dengan judul besar | `NavigationSuiteScaffold` menampilkan navigation bar (18 §4.4); tiap tujuan punya tumpukan navigasinya sendiri; bilah atas Material 3 |
+| Ringkas | Tab bar yang mengambang di bawah (Liquid Glass; 18 §4.3). Pada daftar panjang tab bar boleh mengecil saat menggulir ke bawah (`tabBarMinimizeBehavior`, API iOS 26, §24 [S6]; minimum iOS 26 sudah diputuskan, S4-3 (ii) A, jadi tanpa cabang versi). Tiap tab punya `NavigationStack` sendiri dengan judul besar | `NavigationSuiteScaffold` menampilkan navigation bar (18 §4.4); tiap tujuan punya tumpukan navigasinya sendiri; bilah atas Material 3 |
 | Sedang | Tab bar di atas yang dapat diubah pengguna menjadi sidebar (`sidebarAdaptable`; 18 §4.3) | Navigation rail (bawaan `NavigationSuiteScaffold`) |
 | Lebar | Sidebar (`sidebarAdaptable`) dengan sub-bagian Uang sebagai butir sidebar; `NavigationSplitView` di dalam Uang | Navigation rail. **Drawer permanen tidak dipakai**: lima tujuan muat di rail, dan drawer tidak menambah apa pun bagi daftar sependek ini (ponytail) **[Usulan]** |
 | Postur tabletop (Android) | — | Navigation bar (bawaan `NavigationSuiteScaffold` untuk tabletop; 18 §4.4) |
@@ -237,10 +243,10 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-02 | Daftar dan masuk | Email, kata sandi minimal 12 karakter tanpa aturan komposisi (SEC-11); saran memakai email yang hanya dibuka sendiri (10.1 §9) | F-FAM-001 | Form; isian dengan `textContentType` email dan kata sandi baru agar pengelola kata sandi sistem bekerja | Form; autofill kata sandi sistem |
 | LY-03 | Periksa email | Menunggu tautan verifikasi; kirim ulang | F-FAM-001 | Layar | Layar |
 | LY-04 | Pernyataan usia | "Saya berusia 18 tahun atau lebih" tanpa tanggal lahir (SEC-80) | SEC-80, SEC-32 | Layar dengan satu kotak centang dan tombol | Sama |
-| LY-05 | Pemberitahuan pengelola server | Teks 10.1 §11.3 utuh, dibaca sebelum data apa pun (SEC-34, SEC-35) | F-FAM-008, FR-FAM-019 | Layar gulir; tombol aktif sesudah dibaca sampai akhir | Sama |
+| LY-05 | Pemberitahuan pengelola server | Teks final §7.5 (dari 10.1 §11.3, tanpa kalimat janji), dibaca utuh sebelum data apa pun (SEC-34, SEC-35) | F-FAM-008, FR-FAM-019 | Layar gulir; tombol aktif sesudah dibaca sampai akhir | Sama |
 | LY-06 | Buat rumah tangga | Nama (wajib), zona waktu (terisi dari perangkat), hari mulai bulan anggaran (bawaan 1); mata uang hanya tampil bila produk mendukung lebih dari satu (FR-FAM-001) | F-FAM-001 | Form | Form |
-| LY-07 | Undang | Pernyataan sebelum mengundang (FR-FAM-003/AC-1, AC-8; D-90), tombol bagikan dengan teks tanpa nama (SEC-29) | F-FAM-002 | Lembar bagikan sistem | Sharesheet sistem |
-| LY-08 | Kukuhkan anggota | Email terverifikasi penerima utuh dan nama tampilannya; "pastikan ini email orang yang kamu undang" (SEC-31) | F-FAM-002 | Layar dengan tombol "Kukuhkan" dan "Bukan dia" | Sama |
+| LY-07 | Undang | Pernyataan sebelum mengundang (FR-FAM-003/AC-1, AC-8; D-90), tombol bagikan dengan teks tanpa nama (SEC-29); pada Tier 2, isian sebutan opsional yang menempel pada undangan dan tidak pernah masuk teks undangan (§7.4; SEC-155 (a), (c)) | F-FAM-002; F-FAM-021 | Lembar bagikan sistem | Sharesheet sistem |
+| LY-08 | Kukuhkan anggota | Email terverifikasi penerima utuh dan nama tampilannya; "pastikan ini email orang yang kamu undang" (SEC-31); pada Tier 2, sebutan yang dibuat di LY-07 tampil di samping nama akun, tidak menggantikannya, dan dapat diubah (§7.4; SEC-155 (d)) | F-FAM-002; F-FAM-021 | Layar dengan tombol "Kukuhkan" dan "Bukan dia" | Sama |
 | LY-09 | Tempat uang pertama | "Di mana uang rumah tangga sekarang?" Tunai, rekening, e-wallet; pemegang; "Uang yang ada saat mulai" (saldo awal, F-FIN-001) | F-FIN-001 | Form berulang "Tambah lagi" | Sama |
 | LY-10 | Tawaran kunci aplikasi | Sekali; mati secara bawaan; kalimat SEC-14 | SEC-19 | Layar dengan "Nyalakan" dan "Nanti" | Sama |
 | **Tujuan utama** | | | | | |
@@ -248,7 +254,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-21 | Menunggu | Daftar lengkap: "Menunggu kamu" dan "Menunggu {nama}", masing-masing dengan umur objek (06 §16.2 "Menunggu sejak") | F-REQ-012 | Daftar bersekat | Daftar |
 | LY-30 | Uang | Daftar bersekat ke LY-31 sampai LY-45 | F-FIN-* | Daftar `insetGrouped`; di Lebar menjadi kolom pertama `NavigationSplitView` | Daftar; di Lebar menjadi panel daftar list-detail |
 | LY-31 | Tempat uang | "Ada Rp…" dan "Bisa dipakai Rp…" (§18.2), pemegang, bagian belum dikonfirmasi dan dikeberatani, riwayat catatan per tanggal kejadian; "Hitung uang" untuk tunai | F-FIN-001, F-FIN-002, F-FIN-017 | Layar dorong | Layar; panel rincian di Lebar |
-| LY-32 | Catat | Lembar dengan pilihan jenis di atas: Belanja, Uang masuk, Kasih ke, Terima dari, Pindah; §9.1 | F-FIN-003, 005, 006, 007 | Lembar dengan detent sedang dan besar | Satu composable pembungkus milik kita dengan `ModalBottomSheet`, pada 09-G A maupun B (ADR-012 butir 5 (b); ADR-023 butir 5). Dialog layar penuh hanya cadangan bila API itu rusak atau ditolak (§17.4 baris Lembar) |
+| LY-32 | Catat | Lembar dengan pilihan jenis di atas: Belanja, Uang masuk, Kasih ke, Terima dari, Pindah; §9.1 | F-FIN-003, 005, 006, 007 | Lembar dengan detent sedang dan besar | Satu composable pembungkus milik kita dengan `ModalBottomSheet`, tercatat di ADR-023 butir 5 (S4-1 (iii) A; ADR-012 butir 5 (b)). Dialog layar penuh hanya cadangan bila API itu rusak atau ditolak (§17.4 baris Lembar) |
 | LY-33 | Bagikan uang masuk | Satu layar banyak baris penerima: serah terima, kiriman keluarga, penyisihan, siapkan uang tagihan (06 §7.4; SCN-21) | F-FIN-004, F-FIN-014 | Layar dorong dari LY-32 | Sama |
 | LY-34 | Hitung uang | Jumlah yang dihitung, selisih, rincian selisih; dompet campuran dua isian dalam satu layar (SCN-23) | F-FIN-017 | Lembar | Lembar |
 | LY-35 | Anggaran bulan ini | Per kategori: batas, terpakai, sudah dijanjikan, sisa; rentang tanggal bulan anggaran | F-FIN-009, F-FIN-010 | Daftar | Daftar |
@@ -261,7 +267,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-42 | Rincian catatan | Riwayat satu catatan (F-FIN-019): siapa mencatat, membayar, kapan kejadian; "Perbaiki", "Batalkan catatan", "Aku tidak sepakat", "Kirim ke chat", diskusinya | F-FIN-018, F-FIN-019, F-COM-010 | Layar | Layar |
 | LY-43 | Uang pribadi saya | Buku pribadi; label "Hanya kamu yang melihat ini" | F-FIN-007 | Layar | Layar |
 | LY-44 | Jatah pribadi | Jumlah per bulan, sisa milik sendiri, usul ubah | F-FIN-008 | Layar | Layar |
-| LY-45 | Kesepakatan rumah tangga | Ambang permintaan, hari mulai bulan anggaran; usulan yang menunggu | F-REQ-008 | Daftar | Daftar |
+| LY-45 | Kesepakatan rumah tangga | Ambang permintaan, hari mulai bulan anggaran; usulan yang menunggu. Usulan ambang menampilkan kalimat kesepakatan ambang (§18.3) sebelum tombol "Setuju" | F-REQ-008 | Daftar | Daftar |
 | **Permintaan** | | | | | |
 | LY-50 | Minta anggaran / Jalan-jalan | Jumlah, untuk apa, kategori, tanggal opsional; untuk jalan-jalan juga tempat, rentang waktu, peserta, barang (F-REQ-002); sisa anggaran kategori tampil | F-REQ-001, F-REQ-002 | Lembar | Lembar |
 | LY-51 | Rincian permintaan | Syarat versi terakhir, riwayat versi, diskusi, tombol menurut hak, pengingat (§9.5), belanja tertaut, "Selesaikan sisa" | F-REQ-003 sampai 007, 011 | Layar | Layar |
@@ -270,18 +276,18 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | **Chat (§10)** | | | | | |
 | LY-60 | Chat | Satu percakapan rumah tangga | F-COM-001, 008 sampai 012 | Tab; di Lebar boleh menjadi panel `inspector` | Tujuan; di Lebar panel pendamping |
 | LY-61 | Penampil foto | Layar penuh, simpan ke galeri atas pilihan sendiri | F-COM-001 | Layar penuh | Layar penuh |
-| LY-62 | Sembunyikan pesan {nama} (bersyarat 10-G A atau C) | Konfirmasi menyembunyikan pesan bebas satu anggota di layar sendiri; jalan untuk menampilkannya lagi (§10.7) | SEC-153; 06 §16.12 | `confirmationDialog` | `AlertDialog` |
-| LY-63 | Laporkan (bersyarat 10-G A, B, atau C) | Pesan atau foto yang dipilih pelapor, teks opsional, tanda terima; di pilot membuka LY-76 dan jalan keluar (§10.7) | SEC-154; 06 §16.12 | Lembar | Lembar bawah (pembungkus yang sama dengan LY-32) |
+| LY-62 | Sembunyikan pesan {nama} (F-COM-014, S4-7 A) | Konfirmasi menyembunyikan pesan bebas satu anggota di layar sendiri; jalan untuk menampilkannya lagi (§10.7) | SEC-153; 06 §16.12 | `confirmationDialog` | `AlertDialog` |
+| LY-63 | Laporkan (F-COM-014, S4-7 A) | Pesan atau foto yang dipilih pelapor, teks opsional, tanda terima; di pilot membuka LY-76 dan jalan keluar (§10.7) | SEC-154; 06 §16.12 | Lembar | Lembar bawah (pembungkus yang sama dengan LY-32) |
 | **Saya** | | | | | |
 | LY-70 | Saya | Nama tampilan, foto opsional, daftar ke LY-71 sampai LY-79 | F-FAM-003 | Daftar | Daftar |
 | LY-71 | Siapa melihat apa | Isi SEC-87 (a) sampai (f); sama bagi setiap anggota | FR-FAM-010 | Layar gulir | Sama |
 | LY-72 | Notifikasi | Jam tenang, jam ringkasan, rincian di layar kunci tidak ditawarkan (SEC-51), tautan ke setelan sistem | F-NTF-002 sampai 005 | Form | Form |
 | LY-73 | Keamanan | Kunci aplikasi, daftar sesi dan perangkat milik sendiri (SEC-16), ganti kata sandi | SEC-13, 16, 19, 21 | Form | Form |
-| LY-74 | Keanggotaan | Anggota, "sudah keluar" (SEC-56), keluar dengan aman dan masa tenggangnya | F-FAM-006 | Daftar | Daftar |
+| LY-74 | Keanggotaan | Anggota, "sudah keluar" (SEC-56), keluar dengan aman dan masa tenggangnya; pada Tier 2, tiap baris anggota lain membuka LY-87 sebutan (§7.4) | F-FAM-006; F-FAM-021 | Daftar | Daftar |
 | LY-75 | Data saya | Ekspor (SEC-101), hapus akun (SEC-105), batas penghapusan (FR-FAM-014/AC-4) | F-FAM-006 | Daftar | Daftar |
 | LY-76 | Bantuan | Halaman statis SEC-134 | SEC-134 | Layar | Layar |
 | LY-77 | Autentikasi ulang | Kata sandi akun (bukan biometrik saja) untuk tindakan SEC-13 | SEC-13 | Lembar | Lembar |
-| LY-78 | Tampilan | Android: Terang, Gelap, Ikuti sistem. iOS: tergantung jawaban UX-2 | brief §10.2 | Menurut UX-2 | Form |
+| LY-78 | Tampilan | Android: Terang, Gelap, Ikuti sistem (bawaan Ikuti sistem). iOS dan iPadOS: **layar ini tidak ada**; tema mengikuti setelan sistem (S4-10 (ii) A; HIG Dark Mode, 18 §4.6). Selisih dengan bunyi brief §10.2 adalah K-32; kalimat brief disusun lead lewat D-111 | brief §10.2; K-32 | Tidak ada | Form |
 | LY-79 | Pihak luar | Nama panggilan, tanpa data lain (F-FAM-007) | F-FAM-007 | Daftar | Daftar |
 
 ### 5.2 Tier 2 (ringkas)
@@ -295,6 +301,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-84 | Status saya | Suasana hati dari daftar tertutup, alasan opsional, sakit, "Butuh tenang hari ini" (IDEA-19); berbagi | Baris bantuan SEC-133 hanya bagi pemilik status berat; kata IDEA-19 §18.4 |
 | LY-85 | Berbagi status | Penerima dipilih; kalimat SEC-62 sebelum penerima pertama | Default tidak berbagi (brief §5K) |
 | LY-86 | Pendamping | Ikut serta per fitur dengan kalimat SEC-126; nuansa religi pilihan sendiri | Mati secara bawaan; tidak ada fitur yang menunggu `AI` (PRN-06) |
+| LY-87 | Sebutan anggota | Sebutan yang hanya terlihat oleh pembuatnya untuk satu anggota lain; ubah atau hapus (F-FAM-021) | §7.4. iOS: lembar; Android: lembar bawah (pembungkus LY-32) |
 | — | Saran kata di chat | Baris saran di atas kotak tulis: "Pakai", "Saran lain", "Tutup" (Q-32 pilihan C); pesan terkirim tanpa penanda `AI` (brief §5O keputusan 2) | Tanpa ikon kilau; label kata "Saran kata" **[Usulan]** (§20 baris animasi) |
 | — | Kata penyemangat | Satu kalimat di bagian atas Beranda, dapat ditutup (F-AI-001) | Tidak pernah memuat angka atau nama pasangan |
 
@@ -364,7 +371,7 @@ flowchart TD
 |---|---|---|---|
 | Akun | Email dan kata sandi | Ya | SEC-11; tanpa nomor telepon, tanggal lahir, atau nama lengkap |
 | Pernyataan usia | Satu kotak centang | Ya, sebelum bergabung atau membuat rumah tangga | SEC-80; tanpa pernyataan, pembuatan ditolak |
-| Pemberitahuan pengelola | Teks 10.1 §11.3 | Ya, sebelum data pribadi apa pun | SEC-34; kalimat janji hanya bila pemilik produk memilihnya (10-F, SEC-35) |
+| Pemberitahuan pengelola | Teks §7.5 | Ya, sebelum data pribadi apa pun | SEC-34; dibaca sendiri, pengakuan tercatat bertanggal dan berversi, **tanpa kalimat janji** (S4-6 (ii) A; SEC-35) |
 | Buat rumah tangga | Nama | Hanya nama (FR-FAM-001/AC-3) | Zona waktu terisi; hari mulai bawaan 1; mata uang tersembunyi selama hanya IDR yang didukung, tetapi ruangnya ada di layar (FR-FAM-001 "Mata uang dan pasar"); tidak ada pertanyaan hubungan atau struktur keluarga |
 | Tempat uang pertama | Satu atau beberapa | Tidak; dapat dilewati | Saldo awal sekali (F-FIN-001); "Tambah lagi" untuk tempat berikutnya |
 | Undang | Pernyataan dulu, lalu bagikan | Tidak; dapat nanti dari Saya | FR-FAM-003/AC-1; teks terbagi tanpa nama (SEC-29) |
@@ -389,7 +396,8 @@ flowchart TD
     G --> H["Menunggu pengundang mengukuhkan (N-24 kepadanya)"]
     H --> I[N-25: kamu sudah menjadi anggota]
     I --> J["LY-71 Siapa melihat apa, ringkas, sekali"]
-    J --> K[LY-20 Beranda]
+    J --> S["Tier 2: sebutan untuk anggota lain, boleh dilewati (§7.4)"]
+    S --> K[LY-20 Beranda]
 ```
 
 - Undangan yang tidak berlaku menghasilkan satu kalimat yang sama untuk keempat keadaan, tanpa nama rumah tangga (SEC-30): "Undangan ini tidak dapat dipakai. Minta undangan baru kepada yang mengundangmu."
@@ -405,7 +413,83 @@ Tambahan bila rumah tangga pernah punya anggota dewasa yang sudah keluar:
 
 > Ia tidak akan membaca chat lama, dan tidak melihat nama, catatan, atau foto dari anggota yang sudah keluar. Catatan uangnya tetap ada dan tampil sebagai "mantan anggota".
 
-Teks yang ikut terbagi (SEC-29): "Kamu diundang bergabung di Family OS. Buka tautan ini: {tautan}". Nama produk mengikuti nama kerja; tidak ada nama rumah tangga atau nama pengundang.
+Teks yang ikut terbagi (SEC-29): "Kamu diundang bergabung di Family OS. Buka tautan ini: {tautan}". Nama produk mengikuti nama kerja; tidak ada nama rumah tangga, nama pengundang, atau sebutan (SEC-155 (c)).
+
+### 7.4 Sebutan anggota (F-FAM-021, Tier 2 Should; ringkas)
+
+**Asal.** Permintaan pemilik produk sendiri di checkpoint S4 (kata-katanya: "sapaan di atur pas nambah keluarga. suami boleh atur sapaan ke semua anggotanya begitupun yang lain"); usulan lead bahwa sebutan hanya terlihat pembuatnya dan masuk Tier 2 ia terima dengan "3 ya" (`_progress.md`, "Checkpoint S4", jawaban ketiga dan kelima). Sebutan berbeda dari sapaan aplikasi kepada pengguna, yang tetap "kamu" (S4-10 (iv) A). Tingkat Should adalah **[Usulan]** saya; nomor FR dan BR diberikan `product-analyst`, aturan keamanannya SEC-155 milik `security-privacy`.
+
+**Aturan tampil.** Aturannya milik SEC-155 (10.4 §6.3, `security-privacy`); tabel ini menyatakan bentuknya di layar. Yang tidak menunjuk SEC-155 adalah **[Usulan]** saya.
+
+| Hal | Rancangan |
+|---|---|
+| Apa | Satu kata atau frasa pendek per anggota lain, misalnya "Bunda" atau "Ayah", yang dibuat seorang anggota untuk layarnya sendiri. Bukan data hubungan: aturan mana pun tidak membacanya (F-FAM-003; 06 PG-01) |
+| Siapa membuat | Setiap anggota yang punya akun, satu sebutan untuk setiap anggota lain; sama ke semua arah (keputusan di atas; SEC-155 (a)) |
+| Siapa melihat | **Hanya pembuatnya.** Yang disebut dan anggota lain tidak melihatnya dan tidak dapat mengetahui ada tidaknya sebutan; membuat, mengubah, atau menghapusnya tidak menghasilkan Peristiwa atau notifikasi dan tidak menyimpan riwayat (SEC-155 (b)) |
+| Di mana tampil | Di layar biasa pembuat, menggantikan nama akun: pemegang di Beranda ("Dipegang Bunda"), "Menunggu Bunda", kepala chat, nama di gelembung dan baris peristiwa ("Bunda setuju · 14.20"), kartu, rincian catatan, LY-74. Nama dirender di perangkat pembuat dari pengenal anggota; sebutan tidak pernah ditulis ke isi yang disimpan atau dikirim (SEC-155 (c)) |
+| **Layar penentu penerima data atau wewenang** | **Nama akun selalu tampil, sebutan hanya di sampingnya, tidak pernah sendirian** (SEC-155 (d)): "Sari · Bunda", nama akun dengan bobot teks utama, sebutan `tinta-2`. Berlaku di: LY-08 Kukuhkan anggota (F04, SEC-31; bersama email); LY-85 pemilih penerima berbagi `CARE`; pemilih penerima berbagi tempat uang pribadi (F-FAM-005); daftar pihak dan pemberi persetujuan di LY-50 sebelum permintaan dikirim dan di LY-51; LY-71 Siapa melihat apa; LY-74 bagian keluar; LY-75 ekspor. Di layar-layar ini dua anggota dengan sebutan sama tetap dapat dibedakan |
+| Nama akun di layar biasa | Tetap terjangkau: di LY-74 dan LY-87 nama akun selalu tertulis di bawah sebutan ("Nama akun: Sari"); mengetuk judul chat membuka rincian anggota dengan kedua nama. Pembaca layar membaca sebutan, lalu "nama akun Sari" pada kepala chat dan LY-74 |
+| Tidak pernah tampil | Teks notifikasi mana pun, **termasuk notifikasi pembuat sendiri**, karena layar kunci terbaca orang lain; layar luar perangkat lipat; pintasan ikon aplikasi; teks lembar bagikan; teks undangan (§7.3); badan pesan chat (nama yang disisipkan otomatis, bila ada, memakai nama akun); kartu objek; Peristiwa; teks ringkasan yang disusun server; teks saran pendamping dan apa pun yang dikirim ke `AI` (SEC-155 (c), (e)). Juga setiap teks buatan aplikasi yang terkirim atas nama pembuat (misalnya N-21 "nanti aku jawab"), karena memakai nama akun |
+| Bawaan | Tidak ada sebutan; nama akun dipakai seperti sekarang. Tidak ada pilihan yang terisi |
+| Isian | **1 sampai 30 karakter tampak** sesudah dipangkas, **teks polos, satu baris** (SEC-155 (h), angka **[Asumsi]** `security-privacy`). Papan ketik satu baris, tombol kembali papan ketik berarti "Simpan". Ditampilkan tanpa format, tanpa deteksi tautan atau nomor. Menurut ketetapan lead yang dimasukkan `security-privacy` ke SEC-155 (h), sebutan tidak boleh sama dengan sebutan lain milik pembuat yang sama, supaya "Dipegang Bunda" di layar biasa tidak tertukar; layar penentu tetap aman walau ada nama yang mirip, karena nama akun selalu tampil (baris di atas) |
+| Siapa memeriksa isian | **Aplikasi hanya memeriksa wajib isi dan panjang 1 sampai 30** (bantuan bentuk masukan, S4-1 (ii) A; pengecualian `ENGINEERING-STANDARDS.md` §2 (c) adalah daftar tertutup). Karakter kontrol, pemisah baris, karakter arah teks, normalisasi NFC, dan sebutan kembar **diperiksa server saja**; aplikasi menampilkan galat per medan dari server di bawah isian, dengan kata di tabel berikut |
+| Berlaku di | Semua perangkat pembuat di rumah tangga itu; tidak terbaca di rumah tangga lain (SEC-155 (b), (i)) |
+| Ekspor | Ekspor pembuat selama ia aktif memuat bagian tersendiri "Sebutan yang kamu buat" (nama akun, sebutan); catatan bersama di ekspor tetap memakai nama akun. Tidak di ekspor anggota lain dan tidak di ekspor sesudah keluar (SEC-155 (f)) |
+| Dihapus | Pembuat menghapusnya kapan saja; sebutan antara dua orang hilang ke dua arah saat salah satunya benar-benar keluar (F07) atau menghapus akun; undangan yang batal, lewat masa, atau ditolak menghapus sebutannya; selama masa tenggang keluar sebutan tetap, dan kembali bila keluarnya dibatalkan (SEC-155 (g)) |
+
+**Kapan diatur.** Saat membuat undangan, sebutan menempel pada undangan dan baru tampil sesudah keanggotaan aktif (SEC-155 (a)).
+
+```mermaid
+flowchart TD
+    A["Pengundang: LY-07 Undang"] --> B["Isian 'Sebutan di layarmu' untuk orang yang diundang, boleh dilewati; tidak masuk teks undangan"]
+    B --> B2["LY-08 Kukuhkan: nama akun dan email, sebutan di sampingnya, dapat diubah"]
+    C["Anggota baru: sesudah LY-71 ringkas"] --> D["Satu isian per anggota yang sudah ada, boleh dilewati"]
+    E["Kapan saja: LY-74, ketuk anggota"] --> F[LY-87 Sebutan anggota]
+    B2 --> G["Tampil hanya di layar pembuat, sesudah keanggotaan aktif"]
+    D --> G
+    F --> G
+```
+
+**Kata-kata.** Kalimat keterbukaan adalah bunyi SEC-155 (i); selebihnya **[Usulan]**.
+
+| Tempat | Kata |
+|---|---|
+| Judul isian (LY-07, langkah anggota baru, LY-87) | "Sebutan di layarmu" |
+| Contoh di dalam isian kosong | "Misalnya Bunda, Ayah, Kakak" |
+| Keterangan di bawah isian, di setiap tempat itu (SEC-155 (i)) | "Sebutan ini hanya tampil di aplikasimu. Orang yang melihat layarmu dapat membacanya, dan pengelola server dapat membacanya di basis data." |
+| Baris kedua keterangan | "{Nama akun} tidak diberi tahu." |
+| Tombol | "Simpan" dan "Lewati" (LY-07 dan langkah anggota baru); di LY-87 "Simpan" dan, bila sudah ada sebutan, "Hapus sebutan" |
+| Baris LY-74 tanpa sebutan | "{Nama akun}" dengan keterangan kecil "Belum ada sebutan · Tambah" |
+| Baris LY-74 dengan sebutan | "Bunda", di bawahnya "Nama akun: Sari" |
+| Terlalu panjang (aplikasi) | "Sebutan paling banyak 30 karakter." |
+| Karakter yang ditolak (galat server) | "Sebutan hanya boleh berisi satu baris teks biasa." |
+| Sebutan kembar (galat server) | "Sebutan ini sudah kamu pakai untuk {nama akun lain}. Pilih yang lain supaya tidak tertukar." |
+| Sesudah menghapus | "Sekarang tampil sebagai {nama akun}." Seketika, tanpa jeda urungkan |
+| LY-71 Siapa melihat apa (tambahan) | "Sebutan yang kamu beri untuk anggota lain hanya kamu yang melihat. Anggota lain juga bisa memberi sebutan untukmu di layarnya; kamu tidak melihatnya." |
+
+Menyimpan sebutan tidak ditahan 5 detik dan tidak menghasilkan Peristiwa, kartu, atau notifikasi (SEC-155 (b)).
+
+### 7.5 Teks pemberitahuan pengelola server (LY-05; SEC-34, SEC-35)
+
+Bunyi final dari 10.1 §11.3 versi pilot, **tanpa kalimat janji** (S4-6 (ii) A). Disalin utuh; `{pengelola}` adalah nama tampilan yang diisi saat pemasangan. Dua kalimat bertanda **[Tier 2]** hanya tampil bila fiturnya ada di build yang dipasang (SEC-35), dan menambahkannya berarti versi baru yang meminta pembacaan ulang (SEC-34). Teks tahap publik diganti teks lain (FR-FAM-019/AC-6).
+
+> **Siapa yang dapat melihat datamu di luar aplikasi**
+>
+> Server aplikasi ini dikelola oleh {pengelola}, yang juga anggota rumah tangga ini.
+>
+> Di dalam aplikasi, pasanganmu tidak dapat melihat dana pribadimu, isi dompet campuranmu, status suasana hati atau kabar sakit yang tidak kamu bagikan, setelan jam tenangmu, atau apa pun yang ditandai "hanya kamu".
+>
+> **Di luar aplikasi berbeda.** Pengelola server dapat membuka basis data dan salinan cadangan secara langsung. Dari sana semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Aturan di aplikasi tidak mencegah itu, dan data ini tidak dienkripsi terhadap pengelola server.
+>
+> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca pengelola server.
+>
+> **[Tier 2]** Sebutan yang kamu berikan untuk anggota lain hanya tampil di aplikasimu, tetapi tersimpan di server dan dapat terbaca pengelola server.
+>
+> Bila keadaan ini tidak cocok untukmu, jangan mengisi data pribadi apa pun. Kamu dapat membaca pemberitahuan ini lagi kapan saja di "Siapa melihat apa".
+>
+> [ ] Saya sudah membaca dan memahami pemberitahuan ini.
+
+Bentuk layar tetap LY-05: layar gulir; kotak centang dan tombol lanjut aktif sesudah dibaca sampai akhir; tanggal dan versi yang dibaca tersimpan sebagai catatan milik pembacanya.
 
 ---
 
@@ -544,8 +628,8 @@ Belanja berulang di tempat yang sama: **ketik jumlah, satu ketukan Simpan**. Bel
 | Pesan teks dan foto di chat | Tidak ada konfirmasi; terkirim saat diketuk kirim (atau antre bila luring, §10.2) | Tanda pesan biasa (§10.2) | "Hapus" di menu pesan, dengan konfirmasi "Hapus pesan ini? {Nama} tidak akan melihatnya lagi." karena tidak ada urungkan |
 | Mempersempit siapa yang melihat (mencabut berbagi status, menjadikan pribadi) | Tanpa konfirmasi tambahan | "Sekarang hanya kamu yang melihat ini." | Berbagi lagi; berbagi lagi adalah perintah biasa yang ditahan 5 detik |
 | Menghapus (pesan sendiri; status, Tier 2). Catatan uang tidak dihapus, melainkan "Dibatalkan" lewat jalur biasa yang ditahan 5 detik (07 §1.4) | Konfirmasi yang menyebut akibatnya (baris pesan di atas; status: §18.3) | "Sudah dihapus." | Tidak ada |
-| Sembunyikan untuk saya (bersyarat 10-G) | LY-62 (§10.7) | "Pesan dari {nama} disembunyikan di layarmu." | "Tampilkan lagi pesan {nama}" (§10.7) |
-| Laporkan (bersyarat 10-G) | LY-63 (§10.7) | Tanda terima (§10.7) | Tidak ada |
+| Sembunyikan untuk saya (F-COM-014) | LY-62 (§10.7) | "Pesan dari {nama} disembunyikan di layarmu." | "Tampilkan lagi pesan {nama}" (§10.7) |
+| Laporkan (F-COM-014) | LY-63 (§10.7) | Tanda terima (§10.7) | Tidak ada |
 | Mencabut sesi lain, keluar, dan setiap perintah dengan autentikasi ulang (LY-77) | Autentikasi ulang lalu konfirmasi (baris "Tindakan yang tidak dapat ditarik" di atas) | Menurut tindakannya; keluar: kalimat masa tenggang §18.3 | Keluar: "Batalkan keluar" selama masa tenggang; lainnya tidak ada |
 
 iOS: kalimat hasil tampil di baris hasil yang sama dengan jeda urungkan, tanpa tombol; Undo sistem (`UndoManager`) tidak mendaftarkan perintah ini. Android: `Snackbar` tanpa aksi.
@@ -612,7 +696,7 @@ Aturan alur kanonis di 06 §16; di sini bentuknya. Tidak ada pedoman platform pi
 
 **Gelembung.** Pesan sendiri di sisi akhir dengan wadah warna merek tingkat rendah; pesan peserta lain di sisi awal dengan wadah permukaan. Pengirim dibedakan juga oleh sisi dan, di pesan pertama tiap kelompok, oleh nama: warna bukan satu-satunya pembeda (WCAG 1.4.1). Pesan berurutan dari pengirim yang sama dalam 5 menit dikelompokkan **[Usulan]**. Waktu kecil di dalam gelembung, waktu **server menerima** (SEC-64). **Tanpa foto profil atau avatar di utas** (§20).
 
-**Tindakan pada pesan.** Tekan lama membuka menu: Balas, Salin, Tautkan ke kartu (hanya pesan sendiri, 06 §16.3), Hapus (hanya pesan sendiri, dengan konfirmasi, §9.3), Info tanda (§10.2); pada pesan orang lain, bersyarat 10-G: "Sembunyikan pesan {nama}" dan "Laporkan" (§10.7). Pesan terkirim tanpa jeda urungkan (§9.3). Gestur geser untuk membalas tersedia di kedua platform sebagai jalan pintas, selalu dengan padanan di menu. iOS: `contextMenu`; Android: menu dari tekan lama.
+**Tindakan pada pesan.** Tekan lama membuka menu: Balas, Salin, Tautkan ke kartu (hanya pesan sendiri, 06 §16.3), Hapus (hanya pesan sendiri, dengan konfirmasi, §9.3), Info tanda (§10.2); pada pesan orang lain: "Sembunyikan pesan {nama}" dan "Laporkan" (§10.7). Pesan terkirim tanpa jeda urungkan (§9.3). Gestur geser untuk membalas tersedia di kedua platform sebagai jalan pintas, selalu dengan padanan di menu. iOS: `contextMenu`; Android: menu dari tekan lama.
 
 ### 10.2 Tanda pesan (W-27)
 
@@ -632,18 +716,12 @@ Aturan alur kanonis di 06 §16; di sini bentuknya. Tidak ada pedoman platform pi
 | Keadaan | Teks di kepala chat | Aturan |
 |---|---|---|
 | Sedang mengetik | "sedang mengetik…" | Hanya selama mengetik di chat (06 §16.6) |
-| Online | "online" | Sesuai 10-A: pilihan A, pemakaian di bagian mana pun; pilihan B, hanya di layar chat |
-| Terakhir aktif hari ini, kemarin, lebih lama | Menurut UX-5 (tabel di bawah) | Sumber waktunya menurut 10-A |
+| Online | "online" | Digerakkan pemakaian di bagian mana pun aplikasi (S4-5 (i) A) |
+| Terakhir aktif hari ini | "terakhir aktif 14.07" (menit tepat) | S4-5 (ii) A |
+| Terakhir aktif kemarin | "terakhir aktif kemarin 21.37" | Sama |
+| Terakhir aktif lebih lama | "terakhir aktif Sel, 10 Nov 21.37" | Sama |
 
-**Ketelitian "terakhir aktif" (UX-5, §22).** Keputusan pemilik produk sendiri untuk kehadiran adalah "Semua seperti WhatsApp" (berlawanan dengan saran lead; `_progress.md`; 10 indeks §3 10-A). SEC-60 (dokumen 10.2) mengikuti jawaban UX-5: bawaan A memakai menit tepat, sedangkan rekomendasi `security-privacy` **[Usulan]** adalah B atau C (15 menit, dan tanpa jam untuk kemarin dan sebelumnya). B dan C **mengubah** keputusannya, jadi tidak diberlakukan diam-diam: ketelitiannya diajukan sebagai pertanyaan sendiri, dengan bawaan yang mempertahankan keputusannya. Apa pun jawabannya, server tidak mengirim waktu yang lebih teliti daripada yang tampil (SEC-60).
-
-| UX-5 | Hari ini | Kemarin | Lebih lama | Terhadap keputusan pemilik dan rekomendasi SEC-60 |
-|---|---|---|---|---|
-| **A (bawaan)** | "terakhir aktif 14.07" (menit tepat) | "terakhir aktif kemarin 21.37" | "terakhir aktif Sel, 10 Nov 21.37" | Mempertahankan "Semua seperti WhatsApp"; bahwa WhatsApp menampilkan jam pada ketiga baris adalah **[Asumsi]** dari pemakaian umum, tidak diteliti. Bawaan SEC-60; bukan rekomendasi `security-privacy` |
-| **B (disarankan)** | "terakhir aktif 14.00" (dibulatkan ke bawah ke 15 menit) | "terakhir aktif kemarin" (tanpa jam) | "terakhir aktif Sel, 10 Nov" (tanpa jam) | Rekomendasi SEC-60; paling sedikit membuka pola tidur dan jam pemakaian (10.2 §6). Mengubah keputusan pemilik |
-| C | "terakhir aktif 14.00" (15 menit) | "terakhir aktif kemarin 21.30" (15 menit) | "terakhir aktif Sel, 10 Nov" (tanpa jam) | Termasuk rekomendasi SEC-60; lebih dekat ke WhatsApp daripada B. Mengubah keputusan pemilik sebagian |
-
-Hubungan dengan 10-A: UX-5 mengatur **bunyi** waktunya, 10-A mengatur **apa yang menggerakkannya** (pilihan A: pemakaian di bagian mana pun; B: hanya layar chat; C dan D: orang yang menyembunyikan kehadiran tidak menampilkan "terakhir aktif" sama sekali). Semua pasangan huruf sah. Pembulatan, bila ada, dikerjakan server sebelum waktu dikirim ke perangkat pasangan, sehingga menit tepatnya tidak ada di perangkat itu (SEC-60, uji "aktif pukul 23.07: tampil 23.00"; `architect` lewat §23.1).
+**Kedudukan.** Pemilik produk mempertahankan keputusannya sendiri "Semua seperti WhatsApp" di checkpoint S4 dengan "A tetap seperti WhatsApp", sesudah peringatan W-18 dibacakan: S4-5 (i) A dicatat sebagai keputusannya sendiri (17 keputusan 35); S4-5 (ii) A, menit tepat, adalah bacaan lead atas kalimat itu, dikukuhkan lewat "lanjut". Pilihan yang disarankan `security-privacy` dan dokumen ini (hanya layar chat; pembulatan 15 menit; tanpa jam untuk hari lalu) **tidak dipilih**. Server mengirim waktu dengan ketelitian menit, tidak lebih teliti dari yang tampil (SEC-60). Bahwa WhatsApp menampilkan jam pada ketiga baris adalah **[Asumsi]** dari pemakaian umum, tidak diteliti.
 
 Kehadiran tidak tampil di luar kepala chat: tidak di Beranda, daftar anggota, notifikasi, atau panel Chat yang tertutup (SEC-61). Tidak ada titik hijau pada ikon atau nama di layar lain.
 
@@ -662,6 +740,8 @@ Kehadiran tidak tampil di luar kepala chat: tidak di Beranda, daftar anggota, no
 | Usulan kesepakatan (jatah, pos rutin, aturan) | Setuju · Usul lain · Belum sepakat | Tarik |
 | Serah terima | Sudah terima · Tidak sesuai | — |
 | Catatan | Lihat rincian · Aku tidak sepakat (menurut hak) | Lihat rincian |
+
+Kartu usulan **ambang** (membuat, mengubah, atau mengakhiri) memuat kalimat kesepakatan ambang (§18.3) di atas tombolnya, jadi kalimat itu terbaca sebelum "Setuju" baik dari chat maupun dari LY-45.
 
 Kolom "Terima" di 06 §16.4 adalah nama perintahnya; **kata tombolnya "Setuju"**, kecuali pada serah terima ("Sudah terima"), supaya satu kata dipakai untuk satu arti **[Usulan]**. Perubahan syarat dan konfirmasi susulan tidak punya "Usul lain" (06 §16.4).
 
@@ -694,18 +774,17 @@ Bentuk tombol: iOS, tombol bergaris dan satu tombol menonjol untuk "Setuju"; And
 - Postur tabletop: utas di bagian atas, kotak tulis dan keyboard di bagian bawah lipatan.
 - Postur buku atau dua layar berengsel: utas di satu sisi, kartu yang sedang dibuka di sisi lain; tidak ada gelembung atau kartu yang melintasi engsel (18 §4.4).
 
-### 10.7 Menyembunyikan, melaporkan, dan kontak (bersyarat 10-G; SEC-153, SEC-154; 06 §16.12)
+### 10.7 Menyembunyikan, melaporkan, dan kontak (F-COM-014; SEC-153, SEC-154; 06 §16.12)
 
-**Kedudukan.** Bagian ini berlaku menurut jawaban pemilik produk atas 10-G (Apple App Review Guideline 1.2). Aturan alurnya milik 06 §16.12 dan INV-A53; persyaratannya SEC-153 dan SEC-154. Tidak ada pemindaian isi (SEC-135) dan tidak ada tombol untuk mengeluarkan orang dewasa lain (06 INV-A48).
+**Kedudukan.** Pemilik produk memilih S4-7 A (Apple App Review Guideline 1.2): F-COM-014 masuk Tier 1 dengan FR-COM-019 dan FR-COM-020. Aturan alurnya milik 06 §16.12 dan INV-A53; persyaratannya SEC-153 dan SEC-154. Tidak ada pemindaian isi (SEC-135) dan tidak ada tombol untuk mengeluarkan orang dewasa lain (06 INV-A48; pilihan C tidak dipilih).
 
-| Unsur | 10-G A (bawaan, disarankan) | B | C | D | Kapan dibangun |
-|---|---|---|---|---|---|
-| Sembunyikan pesan {nama} (LY-62) | Ya | Tidak | Ya | Tidak | Pilot (SEC-153 (a) sampai (c), (e)) |
-| Foto diburamkan bila peringatan konten sensitif sistem menyala | Ya | Tidak | Ya | Tidak | Sebelum TestFlight eksternal atau App Store (SEC-153 (d)) |
-| Laporkan (LY-63) | Ya | Ya | Ya | Tidak | Pilot: membuka LY-76; ke pengelola: sebelum TestFlight eksternal atau App Store (SEC-154) |
-| Kontak pengelola di LY-76 | Ya | Ya | Ya | Ya | Sebelum kiriman toko pertama (SEC-154 (d)) |
-| Keluar dari rumah tangga (LY-74) | Ya | Ya | Ya | Ya | Sudah ada (06 F06) |
-| Mengeluarkan orang dewasa lain | Tidak | Tidak | **Belum dirancang**; dirancang hanya bila C dipilih, karena mengubah brief §4.2 dan 06 INV-A48 | Tidak | — |
+| Unsur | Kapan dibangun |
+|---|---|
+| Sembunyikan pesan {nama} (LY-62) | Pilot (SEC-153 (a) sampai (c), (e)) |
+| Foto diburamkan bila peringatan konten sensitif sistem menyala | Sebelum TestFlight eksternal atau App Store (SEC-153 (d)) |
+| Laporkan (LY-63) | Pilot: membuka LY-76; ke pengelola: sebelum TestFlight eksternal atau App Store (SEC-154) |
+| Kontak pengelola di LY-76 | Sebelum kiriman toko pertama (SEC-154 (d)) |
+| Keluar dari rumah tangga (LY-74) | Sudah ada (06 F06) |
 
 **Pintu masuk.** Tekan lama pada pesan atau foto orang lain: "Sembunyikan pesan {nama}" dan "Laporkan". Menu kepala chat: "Sembunyikan pesan {nama}" atau, bila sudah, "Tampilkan lagi pesan {nama}"; pada rumah tangga dengan lebih dari dua dewasa, satu butir per anggota. iOS: `Menu` di bilah navigasi chat dan `contextMenu` pada pesan. Android: menu luapan `DropdownMenu` di bilah atas dan menu tekan lama. Kedua butir tidak pernah ada pada kartu objek, baris peristiwa, atau pesan sendiri.
 
@@ -719,7 +798,7 @@ Bentuk tombol: iOS, tombol bergaris dan satu tombol menonjol untuk "Setuju"; And
 | Sesudahnya | Seketika, tanpa jeda dan tanpa "Urungkan" (§9.3): "Pesan dari {nama} disembunyikan di layarmu." |
 | Utas | Setiap pesan bebas anggota itu diganti satu baris di sisi awal, tanpa gelembung: "Pesan disembunyikan · Tampilkan". Pesan tersembunyi yang berurutan tanpa sela digabung menjadi satu baris "3 pesan disembunyikan · Tampilkan" (tampilan di perangkat saja) **[Usulan]**. "Tampilkan" membuka pesan itu di tempatnya sampai chat ditutup |
 | Yang tetap tampil | Kartu objek, baris peristiwa, balasan yang menempel pada objek, butir "Menunggu kamu", dan notifikasi selain N-23 (06 §16.12) |
-| Kehadiran | Baris "sedang mengetik…" dari anggota itu tidak ditampilkan di perangkat pembaca ini; "online" dan "terakhir aktif" tetap menurut 10-A. Kehadiran pembaca sendiri tetap terkirim kepada anggota itu seperti biasa (06 §16.12; INV-A53) |
+| Kehadiran | Baris "sedang mengetik…" dari anggota itu tidak ditampilkan di perangkat pembaca ini; "online" dan "terakhir aktif" tetap tampil seperti §10.3. Kehadiran pembaca sendiri tetap terkirim kepada anggota itu seperti biasa (06 §16.12; INV-A53) |
 | Menampilkan lagi | "Tampilkan lagi pesan {nama}" di menu kepala chat; perintah biasa yang ditahan 5 detik dengan "Urungkan" |
 | Privasi | Setelan pribadi seperti SEC-19: tidak terbaca anggota lain, tidak di LY-71 milik orang lain, tidak di ekspor orang lain (SEC-153 (e)) |
 | Foto diburamkan (SEC-153 (d)) | Foto dari anggota lain diburamkan dengan "Ketuk untuk melihat" bila pemilik ponsel menyalakan peringatan konten sensitif di setelan sistem; hasil analisis tidak keluar dari ponsel. iOS: SensitiveContentAnalysis (06 §16.12 **[Terverifikasi]**); Android **[Perlu validasi]** (18 §2.12.5) |
@@ -730,9 +809,9 @@ Bentuk tombol: iOS, tombol bergaris dan satu tombol menonjol untuk "Setuju"; And
 
 | Keadaan | Rancangan **[Usulan]** |
 |---|---|
-| Pilot, dan setiap rumah tangga yang pengelola servernya juga anggota (SEC-154 (c)) | "Laporkan" membuka LY-76 dengan satu bagian di atasnya: "Pengelola aplikasi ini juga anggota rumah tanggamu, jadi laporan tidak dikirim kepadanya." Lalu layanan bantuan (§12.4), dan, bila 10-G A atau C, "Sembunyikan pesan {nama}", lalu "Keluar dari rumah tangga" ke LY-74. Tidak ada yang terkirim |
+| Pilot, dan setiap rumah tangga yang pengelola servernya juga anggota (SEC-154 (c)) | "Laporkan" membuka LY-76 dengan satu bagian di atasnya: "Pengelola aplikasi ini juga anggota rumah tanggamu, jadi laporan tidak dikirim kepadanya." Lalu layanan bantuan (§12.4), "Sembunyikan pesan {nama}", lalu "Keluar dari rumah tangga" ke LY-74. Tidak ada yang terkirim |
 | Tahap publik | Lembar dengan kutipan pesan atau foto yang dipilih, isian "Mau menambahkan sesuatu? (boleh kosong)", dan kalimat: "Hanya pesan yang kamu pilih dan tulisanmu yang dikirim ke pengelola aplikasi. {Nama} tidak diberi tahu. Pengelola tidak bisa membaca chat kalian." Tombol "Kirim laporan" dan "Batal". Satu laporan memuat satu pesan atau foto; laporan berikutnya boleh dibuat lagi (ponytail: pilih banyak ditambah bila laporan menunjukkan perlunya) |
-| Sesudah dikirim | Seketika, tanpa jeda dan tanpa "Urungkan" (§9.3). Tanda terima: "Laporan terkirim. Kami membalas lewat email akunmu." Saluran balasan **[Asumsi]**; tenggat 3 × 24 jam di runbook adalah **[Asumsi]** SEC-154 (e) dan tidak ditulis di layar sebelum dikukuhkan. Di bawahnya: "Kalau kamu dalam bahaya, hubungi layanan bantuan" ke LY-76 dan, bila 10-G A atau C, "Sembunyikan pesan {nama}" |
+| Sesudah dikirim | Seketika, tanpa jeda dan tanpa "Urungkan" (§9.3). Tanda terima: "Laporan terkirim. Kami membalas lewat email akunmu." Saluran balasan **[Asumsi]**; tenggat 3 × 24 jam di runbook adalah **[Asumsi]** SEC-154 (e) dan tidak ditulis di layar sebelum dikukuhkan. Di bawahnya: "Kalau kamu dalam bahaya, hubungi layanan bantuan" ke LY-76 dan "Sembunyikan pesan {nama}" |
 | Luring | Laporan antre di ponsel dan terkirim saat tersambung: "Laporan akan terkirim saat tersambung." |
 | Jejak | Tanpa Peristiwa, notifikasi, baris di chat, atau perubahan yang terbaca anggota yang dilaporkan (SEC-154 (b)); tidak ada daftar laporan yang dapat dibuka anggota lain |
 
@@ -750,7 +829,7 @@ Bentuk tombol: iOS, tombol bergaris dan satu tombol menonjol untuk "Setuju"; And
 | `kabar` (termasuk N-23 pesan chat dan N-28 kabar kepedulian) | "Ada kabar baru" | "Kabar" | Tidak |
 | `ringkasan` | "Ringkasan hari ini sudah ada" **[Usulan]** | "Ringkasan" | Tidak |
 
-Judul notifikasi adalah nama produk; tidak ada nama rumah tangga, nama orang, jenis peristiwa, jumlah, judul, atau kata kepedulian, **juga bila penerima memilih pratinjau "selalu" di setelan sistem** (SEC-51). Pengelompokan notifikasi per kelas, tidak per pengirim (SEC-52). Layar luar perangkat lipat memakai teks yang sama (SEC-54).
+Judul notifikasi adalah nama produk; tidak ada nama rumah tangga, nama orang, jenis peristiwa, jumlah, judul, atau kata kepedulian, **juga bila penerima memilih pratinjau "selalu" di setelan sistem** (SEC-51). Pengelompokan notifikasi per kelas, tidak per pengirim (SEC-52). Layar luar perangkat lipat memakai teks yang sama (SEC-54). Sebutan anggota tidak pernah masuk teks notifikasi mana pun, juga notifikasi kepada pembuatnya sendiri (SEC-155 (c)).
 
 ### 11.2 Sesudah notifikasi dibuka
 
@@ -786,7 +865,7 @@ Aturannya milik 06: paling banyak satu N-28 berbunyi per 60 menit per (pemilik s
 | LY-85, bagi pemilik status, di bawah kalimat SEC-62 | "Kalau kamu mengubah status beberapa kali dalam satu jam, {nama} hanya mendapat satu bunyi." | — | — |
 | Jam tenang | Berlaku di atasnya (§11.4); lipat tidak menambah bunyi sesudah jam tenang berakhir | — | — |
 
-Kalimat LY-85 menyatakan perilaku yang berbeda dari brief §1.1 dan §5K ("notified on every change"); selisih itu dicatat lead di 17 sebagai K bila checkpoint menerima bawaannya (`_progress.md`, fase C). Bila pemilik produk menolak lipat, kedua kalimat di LY-72 dan LY-85 tidak tampil.
+Kalimat LY-85 menyatakan perilaku yang berbeda dari brief §1.1 dan §5K ("notified on every change"). Lipat itu diterima di checkpoint S4 lewat D-108 (K-57); kalimat brief yang mengikutinya disusun lead lewat D-111 dan ditunjukkan kepada pemilik produk lebih dulu.
 
 ---
 
@@ -801,7 +880,8 @@ Kalimat LY-85 menyatakan perilaku yang berbeda dari brief §1.1 dan §5K ("notif
 | Membuka satu angka | Ketuk lama pada angka itu menampilkannya selama ditekan |
 | Mencatat saat tersamar | Isian jumlah yang sedang diketik tetap terlihat (orang perlu melihat yang ia ketik); sisa anggaran tersamar |
 | Penyimpanan | Setelan per perangkat, pribadi, tanpa Peristiwa atau notifikasi; tidak terbaca anggota lain (seperti SEC-19) |
-| "Selalu tersembunyi saat dibuka" | Pilihan di LY-73; bawaannya menurut jawaban UX-3 |
+| Saat aplikasi dibuka | Angka tampil pada pemakaian pertama. Pilihan mata **diingat per perangkat**: bila disembunyikan, angka tetap tersembunyi saat aplikasi dibuka lagi sampai ditampilkan dengan mata (S4-10 (iii) A). Tidak ada setelan "selalu tersembunyi" tersendiri |
+| Tier | F-FIN-027, Tier 3 Could menurut 05 (pemilik produk tidak menaikkannya di S4-10 (iii)). Rancangan ini berlaku saat fiturnya dibangun; sampai itu, perlindungan angka di layar adalah kunci aplikasi (§12.3), layar netral pengalih aplikasi, dan teks kelas di layar kunci (§12.2) |
 | Status `CARE` (Tier 2) | Tidak pernah di Beranda siapa pun; hanya di chat bagi penerima yang dipilih pemiliknya dan di LY-84 milik pemiliknya |
 
 ### 12.2 Aturan per layar
@@ -814,7 +894,7 @@ Kalimat LY-85 menyatakan perilaku yang berbeda dari brief §1.1 dan §5K ("notif
 | LY-84 Status saya (Tier 2) | Suasana hati, sakit | — | Layar netral | N-28 "Ada kabar baru" | Tidak diblokir |
 | LY-73 Keamanan | Sesi, perangkat | — | Layar netral | — | Tidak diblokir |
 | LY-76 Bantuan | Fakta bahwa orang membukanya | — | Layar netral | Tanpa jejak (SEC-134) | Tidak diblokir |
-| LY-62 Sembunyikan, LY-63 Laporkan (bersyarat 10-G) | Fakta bahwa orang menyembunyikan atau melaporkan; isi pesan yang dilaporkan | Jumlah di kutipan kartu: ya | Layar netral | Tidak ada notifikasi bagi siapa pun (SEC-153 (b), SEC-154 (b)) | Tidak diblokir |
+| LY-62 Sembunyikan, LY-63 Laporkan (F-COM-014) | Fakta bahwa orang menyembunyikan atau melaporkan; isi pesan yang dilaporkan | Jumlah di kutipan kartu: ya | Layar netral | Tidak ada notifikasi bagi siapa pun (SEC-153 (b), SEC-154 (b)) | Tidak diblokir |
 
 Layar netral pengalih aplikasi adalah warna permukaan dengan ikon aplikasi, sama dengan layar peluncuran **[Usulan]**.
 
@@ -832,7 +912,7 @@ Biometrik di kedua platform menerima **setiap** sidik jari atau wajah yang terda
 | Salah berkali-kali | Sesudah 5 kali salah **[Asumsi]**, kode tidak diterima lagi dan yang diminta kata sandi akun | Sama | Sama |
 | Mematikan | Memerlukan kata sandi akun (SEC-13) | Sama | Sama |
 
-Setelan kunci, termasuk ada tidaknya biometrik, tidak terbaca anggota lain dan tidak menghasilkan Peristiwa atau notifikasi (SEC-19). Angka 6 dan 5 diserahkan ke `security-privacy` untuk ditinjau (§23.1).
+Setelan kunci, termasuk ada tidaknya biometrik, tidak terbaca anggota lain dan tidak menghasilkan Peristiwa atau notifikasi (SEC-19). Rancangan ini diterima di checkpoint S4 lewat D-107; angka 6 dan 5 tetap **[Asumsi]**.
 
 ### 12.4 Halaman Bantuan (LY-76; SEC-133, SEC-134, SEC-138)
 
@@ -846,7 +926,7 @@ Isi dari daftar di server (SEC-138), jadi nomor dapat diperbaiki tanpa rilis. **
 | 112 | Ya, dengan batas | "Darurat 112, di daerah yang sudah dilayani." Tidak disebut sebagai nomor darurat nasional | **[Terverifikasi]** per Maret 2025 (161 kabupaten dan kota); cakupan terkini **[Perlu validasi]** |
 | SAPA 129 (KemenPPPA) | **Tidak**, sampai diverifikasi | — | Nomornya hanya dari situs pemerintah lain, bukan situs penyelenggara; belum memenuhi SEC-138 (18 §2.12.1 butir 2). Ditambahkan ke daftar server sesudah pemilik produk atau operator memeriksa situs KemenPPPA atau menelepon 129 dan mencatat hasilnya bertanggal (18 §6, butir 9), sebelum pilot memproses data nyata |
 | 119 gawat darurat medis | Tidak, sampai diverifikasi | — | Cuplikan pencarian saja (18 §2.12.1) |
-| Hubungi pengelola aplikasi (bersyarat 10-G) | Ya, kecuali pengelola server anggota rumah tangga pembaca (pilot) | "Hubungi pengelola aplikasi" dengan alamat email | SEC-154 (d); §10.7 |
+| Hubungi pengelola aplikasi (F-COM-014) | Ya, kecuali pengelola server anggota rumah tangga pembaca (pilot) | "Hubungi pengelola aplikasi" dengan alamat email | SEC-154 (d); §10.7 |
 
 Bentuk: daftar statis tanpa gambar. "Telepon" membuka aplikasi telepon sistem dengan nomor terisi, tanpa memanggil langsung (iOS: konfirmasi panggilan sistem; Android: aplikasi telepon, tanpa izin `CALL_PHONE`). Tautan situs dibuka di peramban sistem, bukan di dalam aplikasi. Membuka halaman ini tidak menghasilkan Peristiwa, notifikasi, log berpengenal akun, atau analitik (SEC-134). Halaman ini terbuka dari LY-70 bagi setiap anggota, dan dari baris bantuan SEC-133 (§18.3).
 
@@ -901,7 +981,7 @@ Bila izin ditolak: fitur tetap berjalan sejauh mungkin; satu baris di LY-72 "Not
 
 | Hal | Rancangan | iOS | Android |
 |---|---|---|---|
-| Ukuran teks | Semua teks mengikuti ukuran sistem sampai ukuran terbesar; diuji pada 200% (WCAG 1.4.4; 18 §4.6). Jumlah uang **tidak pernah** dipotong, dielipsis, atau dikecilkan agar muat; bila tidak muat, label pindah ke atas dan jumlah ke baris sendiri **[Usulan]** | Dynamic Type, termasuk ukuran aksesibilitas; huruf merek diskalakan relatif terhadap gaya teks sistem | Satuan sp; skala huruf nonlinear sampai 200% (§24 [S5]); pratinjau 85% sampai 200% |
+| Ukuran teks | Semua teks mengikuti ukuran sistem sampai ukuran terbesar; diuji pada 200% (WCAG 1.4.4; 18 §4.6). Jumlah uang **tidak pernah** dipotong, dielipsis, atau dikecilkan agar muat; bila tidak muat, label pindah ke atas dan jumlah ke baris sendiri **[Usulan]**. Satu-satunya batas: `angka-utama` berhenti membesar saat memenuhi lebar kolom, tanpa pernah lebih kecil dari ukuran dasarnya (§19.4) | Dynamic Type, termasuk ukuran aksesibilitas; huruf merek diskalakan relatif terhadap gaya teks sistem | Satuan sp; skala huruf nonlinear sampai 200% (§24 [S5]); pratinjau 85% sampai 200% |
 | Sasaran sentuh | **48 × 48 pt/dp untuk tindakan utama dan tombol kartu** **[Usulan]** (di atas minimum 44 pt Apple dan 48 dp Material); jarak antar-sasaran sehingga tidak bertumpuk (Q-89) | 44 × 44 pt minimum (18 §4.3) | 48 dp minimum (§24 [S4]) |
 | Pembaca layar | Jumlah dibacakan utuh dalam kata ("delapan puluh tujuh ribu rupiah"); kartu dibacakan sebagai satu kesatuan (jenis, judul, jumlah, keadaan) dengan tombolnya sebagai tindakan kustom; tanda pesan dibacakan sebagai kata ("dibaca"); baris peristiwa dibacakan sebagai pesan status tanpa merebut fokus (WCAG 4.1.3, 18 §4.7) | VoiceOver: label aksesibilitas dan tindakan kustom pada kartu | TalkBack: semantik gabungan pada kartu, tindakan kustom, label klik ("Ketuk dua kali untuk menyetujui") |
 | Kontras | Teks 4,5:1, teks besar dan unsur grafis 3:1 di kedua tema (18 §4.6); untuk warna kustom pada teks kecil, sasaran 7:1 (HIG Dark Mode, 18 §4.6); skema kontras tinggi bila sistem memintanya | Varian warna "increased contrast" untuk tiap warna kustom (HIG Color, 18 §4.6) | Skema kontras tinggi **[Perlu validasi]** dukungan setelan kontras sistem di versi pustaka yang dipakai |
@@ -964,12 +1044,12 @@ Di emulator atau perangkat: iPhone 13; Galaxy A55; iPad mini 7 potret, lanskap, 
 3. **Material 3 dengan skema warna merek, tanpa warna dinamis** **[Usulan]**. Pemilik produk meminta identitas sendiri (`_progress.md`, 11 November 2026); warna dinamis mengganti warna merek dengan warna wallpaper. Skema dibuat dari palet nada merek (18 §4.4 tonal palettes), dengan varian terang, gelap, dan kontras tinggi.
 4. **Hanya komponen dan API dari rilis stabil** (`ENGINEERING-STANDARDS.md` §8; ADR-012 butir 4 dan 5).
    - **Android.** Per 12 November 2026, rilis stabil Compose Material 3 adalah **1.4.0** (24 September 2025); 1.5.0 masih **rc01** (4 November 2026), dan Material 3 Adaptive stabil **1.3.0** (12 Agustus 2026) (§24 [S3], [S9]) **[Terverifikasi]**. Sejak 1.4.0-beta01 semua API berlabel `ExperimentalMaterial3ExpressiveApi` **dihapus** dari jalur 1.4.0, jadi komponen Expressive tidak ada di rilis stabil sama sekali. Kelulusan `ButtonGroup`, menu FAB, daftar Expressive, bilah atas fleksibel, dan `motionScheme` terjadi di pra-rilis 1.5.0 (§24 [S7]); "lulus" di pra-rilis berarti tidak lagi eksperimental **di jalur pra-rilis itu**, bukan stabil. Aturannya: setiap komponen di §17.4 memakai **padanan yang ada di rilis stabil**; padanan Expressive ditulis sebagai "dipakai bila 1.5.0 stabil" dan baru diganti sesudah rilis stabil itu terbit dan diperiksa live saat bangun. Komponen stabil yang masih membawa anotasi `@ExperimentalMaterial3Api` atau `@ExperimentalMaterial3AdaptiveApi` di rilis stabil hanya dipakai lewat ADR pengecualian (§17.4 kolom status). **Tidak dipakai di versi mana pun**: `LoadingIndicator` dan `MaterialShapes` (promosinya ditarik kembali di 1.5.0-alpha19) dan gerak *expressive* yang memantul (§20, D-14).
-   - **iOS.** Hanya API di SDK publik Xcode stabil terbaru (ADR-012 butir 4); tidak ada API dari Xcode atau SDK beta. API yang lebih baru dari versi iOS minimum (09-E; bawaan iOS dan iPadOS 26, ADR-012 butir 2 **Diusulkan**) hanya dipakai di balik pemeriksaan ketersediaan dengan padanan yang disebut untuk versi lama. Dengan minimum 26, semua API iOS di dokumen ini tersedia tanpa cabang; bila 09-E menetapkan versi lebih rendah, tombol kaca menonjol (§9.1) turun ke tombol menonjol biasa dan pengecilan tab bar (§4.3) tidak ada. Penggeser kaca iOS 27 (butir 2) adalah setelan pengguna, bukan API, dan tidak memerlukan cabang.
+   - **iOS.** Hanya API di SDK publik Xcode stabil terbaru (ADR-012 butir 4); tidak ada API dari Xcode atau SDK beta. Versi minimum iOS dan iPadOS 26 diputuskan di checkpoint S4 (S4-3 (ii) A), jadi semua API iOS di dokumen ini, termasuk tombol kaca menonjol (§9.1) dan pengecilan tab bar (§4.3), tersedia tanpa cabang. API yang lebih baru dari 26 hanya dipakai di balik pemeriksaan ketersediaan dengan padanan untuk 26. Penggeser kaca iOS 27 (butir 2) adalah setelan pengguna, bukan API, dan tidak memerlukan cabang.
 5. **Terang dan gelap dirancang masing-masing.** Gelap bukan kebalikan terang: permukaan bertingkat dengan nada (Android tonal elevation, 18 §4.4; iOS warna sistem bertingkat), aksen diturunkan kecerahannya agar tidak menyilaukan, angka besar tidak memakai putih murni di atas hitam murni **[Usulan]**. Setiap warna kustom punya varian terang, gelap, dan kontras tinggi (HIG Color, 18 §4.6).
 
 ### 17.2 Peran warna
 
-Nilai warna dipilih saat pemilik produk memilih arah (§19); kontrasnya diukur dengan alat saat token dibuat, bukan diperkirakan di dokumen ini. Peran di bawah sama bagi ketiga arah.
+Nilai warna arah C ada di §19.3; kontras yang tertulis di sana dihitung dengan rumus WCAG dan diukur ulang dengan alat saat token dibuat. Pemetaan ke peran Material 3 di §19.3 lebih rinci dari tabel ini dan menang bila berbeda.
 
 | Peran | Dipakai untuk | iOS | Android (peran `ColorScheme`) |
 |---|---|---|---|
@@ -978,21 +1058,21 @@ Nilai warna dipilih saat pemilik produk memilih arah (§19); kontrasnya diukur d
 | Permukaan | Latar layar dan bagian | Warna latar sistem bertingkat | `surface`, `surfaceContainerLow` sampai `surfaceContainerHighest` |
 | Teks utama dan sekunder | Isi, label | Warna label sistem | `onSurface`, `onSurfaceVariant` |
 | Garis | Pemisah, garis bagian pribadi | Warna pemisah sistem | `outline`, `outlineVariant` |
-| Netral informatif | Tanda, "sedang dibahas", "menunggu" | Warna sekunder; tidak merah | `secondary` atau `tertiary`; **bukan** `error` |
+| Netral informatif | Tanda, "sedang dibahas", "menunggu" | Wadah pasir; tidak merah | `tertiaryContainer`, `onTertiaryContainer` (§19.3); **bukan** `error` |
 | Galat sistem | Hanya galat teknis yang perlu tindakan (gagal masuk, kata sandi salah) | Warna merah sistem | `error` |
 
-Uang masuk dan uang keluar **tidak** diberi pasangan hijau-merah: keduanya warna teks utama, dibedakan oleh tanda "+" dan kata (§15; pemeriksaan 6).
+Uang masuk dan uang keluar **tidak** diberi pasangan hijau-merah: keduanya warna teks utama, dibedakan oleh tanda "+" dan kata (§15; pemeriksaan 6). Pilihan ini diperiksa ulang terhadap pola pasar di 18 §4.10.2 dan dipertahankan (§19.9).
 
 ### 17.3 Huruf
 
 | Hal | Rancangan **[Usulan]** | iOS | Android |
 |---|---|---|---|
 | Teks isi | Huruf sistem, agar ukuran teks, keterbacaan, dan nuansa platform tetap utuh | SF Pro lewat gaya teks sistem (`body`, `callout`, `subheadline`, `footnote`, `caption`) | Huruf sistem lewat skala tipe Material 3 (`body`, `label`) |
-| Jumlah uang dan judul besar | **Huruf merek**, sama di kedua platform, angka tabular, diskalakan relatif terhadap gaya teks sistem | Huruf kustom yang diskalakan Dynamic Type relatif terhadap `largeTitle`, `title`, `headline` | `FontFamily` kustom pada `display`, `headline`, `title` |
+| Jumlah uang dan judul bagian di lapisan isi | **Plus Jakarta Sans** (arah C), sama di kedua platform, angka tabular, diskalakan relatif terhadap gaya teks sistem; skala dan bobot di §19.4. Judul di bilah navigasi dan bilah atas tetap huruf sistem, karena bilahnya komponen sistem | Huruf kustom yang diskalakan Dynamic Type relatif terhadap gaya sistem (§19.4) | `FontFamily` kustom pada peran `display`, `headline`, `title` yang dipakai (§19.4) |
 | Penulisan angka | "Rp87.000"; tanpa spasi, titik pemisah ribuan, **tanpa desimal** di layar mana pun, termasuk isian jumlah, ringkasan, dan kartu. Dasarnya eksponen milik produk (IDR = 0; 07 §2.1, INV-39; ADR-008), **bukan** eksponen pustaka mata uang platform: ISO 4217 mencantumkan IDR dengan eksponen 2, sehingga gaya mata uang bawaan dapat menampilkan "Rp87.000,00" atau menafsirkan 87000 sebagai Rp870,00 **[Asumsi]** (07 §2.1 butir (a)). Karena itu angka diformat sebagai bilangan bulat dengan pemisah ribuan menurut lokal, digit pecahan 0, dan awalan "Rp" dari token produk; papan angka isian jumlah tanpa tombol koma. Jumlah besar tidak disingkat menjadi "87rb" atau "1,2jt" di layar mana pun **[Usulan]** | Pemformat angka lokal `id_ID` gaya desimal, digit pecahan maksimum 0; papan angka `numberPad` | Pemformat angka lokal `id-ID` gaya desimal, digit pecahan maksimum 0; papan angka bilangan bulat |
 | Ukuran dasar | Mengikuti sistem: iOS isi 17 pt bawaan, minimum 11 pt (18 §4.3) | — | Satuan sp |
 
-Alasan: SF Pro tidak boleh dikirim di Android (18 §4.6), jadi huruf yang sama di kedua aplikasi hanya mungkin dengan huruf berlisensi terbuka. Membatasinya pada angka dan judul memberi identitas di tempat yang paling sering dilihat (angka *Uang kita*) tanpa melepas huruf sistem yang dirancang untuk keterbacaan dan Dynamic Type.
+Alasan: SF Pro tidak boleh dikirim di Android (18 §4.6), jadi huruf yang sama di kedua aplikasi hanya mungkin dengan huruf berlisensi terbuka. Membatasinya pada angka dan judul memberi identitas di tempat yang paling sering dilihat (angka *Uang kita*) tanpa melepas huruf sistem yang dirancang untuk keterbacaan dan Dynamic Type. Satu huruf merek ditambah huruf sistem memenuhi anjuran HIG Typography agar huruf sedikit (18 §4.10.3).
 
 ### 17.4 Komponen per pola
 
@@ -1005,7 +1085,7 @@ Kolom Android menyebut komponen dari rilis stabil (§17.1 butir 4). Kolom terakh
 | Bilah atas | Bilah navigasi sistem, judul besar | `TopAppBar` dan varian yang tidak beranotasi | Sebagian fungsi bilah atas lepas anotasi di 1.4.0-alpha18 **[Terverifikasi]**; hanya yang tanpa anotasi dipakai; bilah atas fleksibel bila 1.5.0 stabil |
 | Master–detail | `NavigationSplitView` | **Pilot:** dua panel buatan sendiri dari komponen stabil, dipilih menurut kelas ukuran jendela (daftar di kiri, rincian di kanan; di Ringkas satu panel dengan navigasi dorong) | `ListDetailPaneScaffold` di Adaptive 1.3.0 beranotasi `@ExperimentalMaterial3AdaptiveApi` dan **tidak dipakai di pilot** (ADR-023 butir 5; tidak ada tablet Android di pilot). Dua panel itu tetap wajib bekerja di setiap lebar, termasuk foldable terbuka, postur buku, dan dua layar berengsel (§16.3): batas panel diletakkan di engsel bila ada. Dinilai ulang bila scaffold kehilangan anotasinya |
 | Panel pendamping | `inspector` | **Pilot:** sama dengan baris di atas (panel kedua 30% lebar di Lebar) | `SupportingPaneScaffold` di artefak yang sama tidak dipakai di pilot **[Asumsi]** beranotasi sama; diperiksa `android-dev` |
-| Lembar | `sheet` dengan detent | **Satu composable pembungkus milik kita** untuk LY-32, LY-50, LY-52, LY-53, LY-63, yang memakai **`ModalBottomSheet`** (beranotasi `@ExperimentalMaterial3Api`, dicatat sebagai pengecualian di ADR-023 butir 5 bila 09-G A, atau di ADR tersendiri yang isinya sama bila 09-G B; ADR-012 butir 5 (b)). 09-G hanya menentukan ADR mana yang mencatatnya, bukan bentuk lembarnya. **Cadangan, bukan pilihan 09-G:** dialog layar penuh dari `Dialog` dan `Scaffold` stabil di Ringkas (bilah atas dengan tombol tutup di awal dan "Simpan" di akhir; papan angka langsung terbuka; kembali sistem dan tombol tutup menyimpan draf, §9.3), dialog berlebar terbatas di Sedang dan Lebar, hanya bila API itu rusak atau berubah saat naik versi atau pemakaiannya ditolak sama sekali (ADR-023). Alur, urutan isian, dan jumlah ketukan §9.1 sama pada kedua bentuk | Compose Material 3 stabil terbaru masih 1.4.0; pra-rilis 1.5.0-rc01 (4 November 2026) (§24 [S3], diakses 12 November 2026) **[Terverifikasi]**. Di jalur 1.5.0, `rememberModalBottomSheetState` digantikan `rememberBottomSheetState` (1.5.0-alpha20) **[Terverifikasi]**, alasan lain untuk pembungkus tunggal. Anotasi di 1.4.0 menurut 09 indeks §9 dan ADR-023 |
+| Lembar | `sheet` dengan detent | **Satu composable pembungkus milik kita** untuk LY-32, LY-50, LY-52, LY-53, LY-63, yang memakai **`ModalBottomSheet`** (beranotasi `@ExperimentalMaterial3Api`, dicatat sebagai pengecualian di ADR-023 butir 5, S4-1 (iii) A; ADR-012 butir 5 (b)). **Cadangan:** dialog layar penuh dari `Dialog` dan `Scaffold` stabil di Ringkas (bilah atas dengan tombol tutup di awal dan "Simpan" di akhir; papan angka langsung terbuka; kembali sistem dan tombol tutup menyimpan draf, §9.3), dialog berlebar terbatas di Sedang dan Lebar, hanya bila API itu rusak atau berubah saat naik versi atau pemakaiannya ditolak sama sekali (ADR-023). Alur, urutan isian, dan jumlah ketukan §9.1 sama pada kedua bentuk | Compose Material 3 stabil terbaru masih 1.4.0; pra-rilis 1.5.0-rc01 (4 November 2026) (§24 [S3], diakses 12 November 2026) **[Terverifikasi]**. Di jalur 1.5.0, `rememberModalBottomSheetState` digantikan `rememberBottomSheetState` (1.5.0-alpha20) **[Terverifikasi]**, alasan lain untuk pembungkus tunggal. Anotasi di 1.4.0 menurut 09 indeks §9 dan ADR-023 |
 | Pilihan jenis catat | Tombol jenis di kepala LY-32 ("Belanja" dengan tanda pilih) yang membuka `Picker` gaya menu | Tombol jenis di kepala LY-32 yang membuka `DropdownMenu` | Menu dipilih ganti baris bersegmen lima butir, karena lima segmen tidak muat pada teks 200% (pemeriksaan 7). `SegmentedButton` (stabil sejak 1.3.0-alpha04 **[Terverifikasi]**) dipakai hanya untuk pilihan dua atau tiga butir |
 | Tombol utama | Tombol menonjol (kaca berwarna aksen di bilah; tombol isi di layar) | `Button` terisi; `ExtendedFloatingActionButton` | Anotasi diperiksa; menu FAB (`FloatingActionButtonMenu`) bila 1.5.0 stabil (§9.1) |
 | Tombol kartu | Tombol bergaris dan satu menonjol | Satu `Button` terisi dan `OutlinedButton`, sama tinggi (§10.4) | Anotasi diperiksa; `ButtonGroup` bila 1.5.0 stabil |
@@ -1022,11 +1102,11 @@ Kolom Android menyebut komponen dari rilis stabil (§17.1 butir 4). Kolom terakh
 | Skema warna | Warna aset bervarian | `lightColorScheme`, `darkColorScheme` dari palet nada merek | Skema Expressive (`expressiveLightColorScheme`) hanya di 1.5.0; tidak diperlukan karena skema dibuat dari palet merek (butir 3) |
 | Ikon | SF Symbols | Material Symbols | 1.4.0 tidak lagi menganjurkan pustaka `material-icons`; Material Symbols dipakai sebagai aset **[Terverifikasi]** (§24 [S3]) |
 
-Untuk iOS, semua API di kolom iOS ada di SDK stabil dan tersedia di iOS 26 (minimum bawaan 09-E); kecuali `tabBarMinimizeBehavior` dan gaya kaca, tidak ada yang bergantung pada versi di atas iOS 18 **[Asumsi]** dari dokumentasi SwiftUI yang dikenal, diperiksa `ios-dev` saat bangun bersama minimum yang diputuskan.
+Untuk iOS, semua API di kolom iOS ada di SDK stabil dan tersedia di iOS 26, minimum yang diputuskan (S4-3 (ii) A) **[Asumsi]** dari dokumentasi SwiftUI yang dikenal, diperiksa `ios-dev` saat bangun.
 
 ### 17.5 Ikon
 
-Ikon antarmuka memakai set sistem tiap platform (SF Symbols; Material Symbols) dengan **makna yang sama** di kedua aplikasi (rumah, dompet, gelembung percakapan, daftar centang, orang, mata, jam, centang). Ketebalan ikon mengikuti ketebalan huruf di sampingnya. Identitas sendiri ada pada **ikon aplikasi** dan pada tiga glif tempat uang (tunai, rekening, e-wallet) yang digambar menurut arah terpilih, masing-masing dalam varian terang, gelap, dan diwarnai sistem **[Usulan]**. Tidak ada ikon bergaya mainan (§20).
+Ikon antarmuka memakai set sistem tiap platform (SF Symbols; Material Symbols) dengan **makna yang sama** di kedua aplikasi (rumah, dompet, gelembung percakapan, daftar centang, orang, mata, jam, centang). Ketebalan ikon mengikuti ketebalan huruf di sampingnya. Identitas sendiri ada pada **ikon aplikasi** dan pada empat glif milik produk (tunai, rekening, e-wallet, dan simpul kesepakatan), diuraikan di §19.5. Tidak ada ikon bergaya mainan (§20).
 
 ### 17.6 Gerak dan haptik
 
@@ -1042,7 +1122,7 @@ Ikon antarmuka memakai set sistem tiap platform (SF Symbols; Material Symbols) d
 ### 17.7 Jarak, sudut, elevasi
 
 - Jarak berkelipatan 4 pt/dp; jarak tepi layar mengikuti margin sistem tiap platform dan kelas ukuran jendela.
-- Sudut: iOS mengikuti bentuk kontrol sistem (tidak diubah); kartu chat dan bagian Beranda memakai satu nilai sudut menurut arah terpilih. Android memakai skala bentuk Material 3 (`Shapes`) yang diisi menurut arah terpilih.
+- Sudut: iOS mengikuti bentuk kontrol sistem (tidak diubah); kartu chat dan bagian Beranda memakai **12 pt**, label kecil dan wadah tanda **8 pt** **[Usulan]** (arah C, sudut sedang-kecil). Android memakai skala bentuk Material 3 (`Shapes`) dengan `medium` 12 dp untuk kartu dan `small` 8 dp untuk wadah tanda; bentuk lembar, dialog, dan FAB dibiarkan bawaan komponen.
 - Elevasi: iOS tanpa bayangan pada isi; Android elevasi nada, bukan bayangan, kecuali FAB dan lembar.
 
 ---
@@ -1060,7 +1140,7 @@ Ikon antarmuka memakai set sistem tiap platform (SF Symbols; Material Symbols) d
 | Tanpa desakan | Tidak ada "segera", "jangan lupa", "ayo", hitung mundur | "Menunggu sejak Sel 09.00" | "Sari belum menjawab 2 hari!" |
 | Tanpa tanda seru | Kecuali tidak ada **[Usulan]** | — | — |
 
-**Sapaan.** Dokumen ini memakai "kamu" (sejalan dengan draf teks di dokumen 10). Untuk anggota yang lebih tua dan untuk tahap publik, "Anda" mungkin lebih terasa hormat **[Asumsi]**. Pilihannya diajukan sebagai UX-4 (§22).
+**Sapaan.** Aplikasi menyapa pengguna dengan **"kamu"** (S4-10 (iv) A: bacaan lead atas jawaban pemilik produk "kamu aja", dikukuhkan lewat "lanjut"). "Anda" tidak dipakai di layar mana pun. Sapaan ini berbeda dari sebutan anggota (§7.4), yang adalah nama yang dipilih seorang anggota untuk anggota lain di layarnya sendiri.
 
 **Kata yang tidak dipakai** (Q-119; 02 arah 1): melanggar, salah, curang, perintah, izin, ditolak, keberatan (di layar), kurang, hilang, telat, gagal (untuk orang). Untuk saran `AI` berlaku juga daftar terlarang T1 sampai T11 (10.4 §1.5), termasuk diagnosis, saran medis, dan interogasi.
 
@@ -1107,11 +1187,12 @@ Kata yang tidak pernah tampil di layar: debit, kredit, jurnal, buku besar, nerac
 | Sebelum menyimpan sesuatu dari sisi pribadi yang akan terlihat (SEC-88) | "{Nama} akan melihat jumlah ini dan tanggalnya. Isi uang pribadimu tetap tidak terlihat." |
 | Gaji dengan bagian pribadi (SEC-88) | "Jumlah gaji dan bagian yang disepakati sebagai uang pribadi terlihat oleh {nama}." |
 | Menyimpan penyisihan ke uang pribadi (07 §1.4), di setiap layar yang menyimpannya, antara lain LY-33 | Di atas tombol Simpan: "Pindah ke uang pribadi {nama} Rp300.000. Uang kita berkurang Rp300.000." Baris hasil sesudahnya mengulang "Uang kita berkurang Rp300.000" bersama "Urungkan" (perintah biasa, ditahan 5 detik, §9.3). Tersamar menurut §12.1 bila "Sembunyikan angka" menyala. Kalimat ini tidak dipakai untuk "Pindah uang", yang tidak mengubah *Uang kita* |
+| Kesepakatan ambang, sebelum tombol "Setuju" pada usulan membuat, mengubah, atau mengakhiri ambang (10 indeks §3.2 butir 2; 10.3 §2.4; keputusan pemilik produk S4-9 (i) A, kata-katanya: "ambang di akhiri berdua juga") | "Ambang ini hanya bisa diubah atau diakhiri kalau semua yang menyepakatinya setuju. Tidak ada yang bisa mengubah atau mengakhirinya sendirian." Pada usulan mengakhiri, ditambah: "Ambang berakhir begitu semua setuju." **[Usulan]** bunyinya |
 | Mencabut sesi lain (SEC-21) | "Catatan di perangkat itu yang belum terkirim akan hilang." |
 | Keluar (masa tenggang), di LY-74 sebelum mengukuhkan | "Begitu kamu keluar, kamu langsung tidak bisa melihat rumah tangga ini lagi. Selama 7 hari kamu masih bisa membatalkan keluarmu dari akunmu; sesudah itu keluar tidak bisa dibatalkan. Catatan uang bersamamu tetap ada." Ini langkah keselamatan: akses berakhir seketika pada F06, dan masa tenggang hanya untuk membatalkan langkah yang tidak dapat ditarik (F07), bukan untuk tetap melihat (10.3 SEC-23; FR-FAM-022/AC-4; 06 F06 sampai F08). Angka 7 hari **[Asumsi]** 10.4 |
 | Hapus status (SEC-68, Tier 2) | "Statusmu hilang dari chat. Balasan yang sudah ditulis tetap ada sebagai pesan penulisnya." |
 | Berbagi status (SEC-62, Tier 2) | "{Nama} akan melihat statusmu di chat. Kamu akan melihat kapan ia membacanya, tanpa jamnya." |
-| Ikut serta pendamping (SEC-126, Tier 2) | **Bergantung jawaban 10-B**; teks yang tidak berlaku tidak boleh tampil, karena kalimat R1 hanya benar bila tidak ada data yang keluar. **10-B A (R1):** "Kalimat saran ditulis AI lebih dulu, tanpa data rumah tanggamu. Server kami di Indonesia memilih kalimat yang cocok untukmu. Tidak ada data rumah tanggamu yang dikirim ke penyedia AI. Pesan yang kamu kirim dari saran tidak diberi tanda." Tombol "Nyalakan" dan "Nanti". **10-B B (R2, panggilan langsung):** "Untuk menulis saran, {daftar data yang dikirim} dikirim ke {penyedia} di {negara}. {Judul catatan, isi chat, dan foto} tidak pernah dikirim. Pesan yang kamu kirim dari saran tidak diberi tanda. Kamu bisa mematikannya kapan saja di Saya." Tombol "Saya setuju data ini dikirim" dan "Jangan nyalakan", sama besar; persetujuan tercatat bertanggal (SEC-109, SEC-144). Isi kurung kurawal diambil per fitur dari tabel medan 10.4 §1.2 dan SEC-123, bukan ditulis bebas. **10-B C:** seperti teks R2 dengan "{penyedia} di {negara}" menjadi "server di Indonesia"; tetap meminta persetujuan. **10-B D:** layar ini tidak ada |
+| Ikut serta pendamping (SEC-126, Tier 2) | Jalur R1 diputuskan di checkpoint S4 (S4-4 (i) A, penyedia Claude, (ii) A): "Kalimat saran ditulis AI lebih dulu, tanpa data rumah tanggamu. Server kami di Indonesia memilih kalimat yang cocok untukmu. Tidak ada data rumah tanggamu yang dikirim ke penyedia AI. Pesan yang kamu kirim dari saran tidak diberi tanda." Tombol "Nyalakan" dan "Nanti". Kalimat ini hanya benar selama tidak ada data rumah tangga yang keluar; bila jalurnya kelak berubah, teksnya ditulis ulang lebih dulu dan persetujuan diminta lagi (SEC-109, SEC-144) |
 | Butuh tenang hari ini (IDEA-19, SP-59) | "{Nama} akan tahu kamu butuh tenang. 'Online' dan tanda dibaca tetap terlihat." |
 | Baris bantuan status berat (SEC-133) | Satu baris dapat ditutup, paling banyak sekali sehari, hanya bagi pemilik status: "Kalau perlu teman bicara, ada layanan bantuan." dengan tautan ke LY-76 |
 | Biometrik (SEC-14) | §12.3 |
@@ -1122,109 +1203,217 @@ Katalog bawaan berisi kategori netral (Dapur, Listrik dan air, Transportasi, Sek
 
 ---
 
-## 19. Tiga arah identitas visual untuk checkpoint S4
+## 19. Identitas visual: arah C
 
-### 19.1 Dasar dan batasnya
+### 19.1 Keputusan dan dasar
 
-- Pemilik produk meminta identitas sendiri yang dibangun dari rujukan nyata, dan menolak dua arah buatan lead (`_progress.md`, 11 November 2026). Ketiga arah di bawah **tidak memakai** "Nila dan Kunyit" maupun "Struk".
-- **Batas rujukan.** Dari rujukan di 18 §4, hanya Monzo yang identitas visualnya terdokumentasi dalam teks (warna, huruf, ilustrator, nada; 18 §4.8). Copilot Money, Jago, wondr, dan Gojek Asphalt tercatat di 18 tanpa uraian rupa yang dapat dikutip, atau berstatus belum terverifikasi; Dribbble tidak terbaca (18 §4.0). Karena itu setiap arah menyebut terang-terangan rujukan mana yang benar-benar mendasarinya. Tidak ada arah yang meniru aplikasi lain.
-- Ketiga arah memakai struktur, komponen, dan kata yang sama (§3 sampai §18). Yang berbeda hanya token: warna, huruf merek, sudut, glif tempat uang, ikon aplikasi, dan perlakuan keadaan kosong.
-- Setiap arah perlu **papan suasana dan contoh layar** sebelum dipilih final; dokumen ini menguraikannya dalam kata. Lead atau desainer membuat contoh layar dari uraian ini di kedua platform dan kedua tema bila pemilik produk ingin melihat sebelum memilih (pertanyaan UX-1).
+**Keputusan.** Arah C, "huruf Indonesia, terang dan tenang", adalah identitas visual Family OS: permukaan terang dan lapang, satu aksen hijau kebiruan tua, Plus Jakarta Sans untuk angka dan judul bagian. Pemilik produk menerimanya atas saran lead di checkpoint S4 (S4-10 (i) C; kata-katanya dan syaratnya di §0). Syarat yang melekat pada saran itu, yakni glif, ikon aplikasi, dan nada dikerjakan sungguh-sungguh agar tidak terasa templat, adalah §19.8. Arah A dan B dicatat singkat di §19.10. "Nila dan Kunyit" dan "Struk" tetap tidak dipakai (`_progress.md`, 11 November 2026).
 
-### 19.2 Arah A — Gelap dengan satu aksen
+**Dasar dari riset 18 §4.10 (12 November 2026).** Rancangan pertama bagian ini hanya punya satu rujukan identitas yang terdokumentasi (Monzo, 18 §4.8). Celah itu kini ditutup oleh 18 §4.10:
 
-**Rujukan:** contoh halaman depan Android yang diterima pemilik produk sebagai gambaran (hitam, satu aksen hijau limau, Manrope; `_progress.md`); HIG Dark Mode dan Color tentang warna kustom bervarian (18 §4.6); palet nada Material 3 (18 §4.4).
+| Temuan | Sumber di 18 | Artinya bagi arah C **[Usulan]** |
+|---|---|---|
+| Bagi penglihatan normal, teks dan angka kecil lebih mudah dibaca di latar terang; gelap lebih nyaman di cahaya redup | §4.10.1 butir 1, 3, 4 (NN/g 2020; Gazit dkk. 2025; Atsani dkk. 2025) | Tema terang dirancang dan diuji lebih dulu; tema gelap tetap dirancang penuh untuk malam hari (§17.1 butir 5) |
+| Preferensi terbagi kira-kira sepertiga; pengguna mengharapkan aplikasi mengikuti setelan sistem | §4.10.1 butir 2, 5 (NN/g 2023) | Kedua tema sama matangnya; tema mengikuti sistem (S4-10 (ii) A) |
+| 9 dari 11 aplikasi keuangan dalam sampel memamerkan layar terang dengan satu warna merek yang kuat; Revolut gelap, dan YNAB tidak dihitung terang maupun gelap karena memakai gradasi ungu ke hijau yang pekat; keenam aplikasi Indonesia terang dan lebih ramai (ilustrasi, karakter 3D, spanduk promosi, emoji); Monzo, Copilot, dan Monarch lebih tenang: permukaan netral terang, kartu putih, satu aksen | §4.10.2, "Pola yang terlihat" | C memakai pola yang sudah dikenal (terang, satu aksen) dan membedakan diri dari aplikasi Indonesia yang ramai lewat ketenangan, bukan lewat hiasan |
+| "Bersih" dan "profesional" diterjemahkan menjadi delapan ciri yang dapat diperiksa: satu hal terpenting per layar, sedikit huruf tanpa bobot tipis, warna hemat pada kontrol, ruang putih, pola yang dikenal, gerak singkat, tanpa salah ketik, angka tabular | §4.10.3 | Semuanya sudah ada di §17 dan di sini; hal terpenting per layar adalah angka |
+| Plus Jakarta Sans: buatan Tokotype, OFL, angka tabular sejak v2.600 | §4.6 | Huruf merek arah C terverifikasi untuk angka (§19.4) |
+| Tidak ada bukti bersumber primer tentang selera visual pengguna Indonesia, termasuk asosiasi warna dengan uang | §4.10.4 | Selera diuji dengan contoh layar kepada pemilik produk dan pasangannya (§19.8, gerbang); itu pengujian dua orang, bukan riset pasar |
 
-| Unsur | Uraian |
-|---|---|
-| Watak | Tenang, padat, seperti instrumen: angka besar di atas permukaan gelap, satu warna yang hanya muncul di tempat orang harus bertindak |
-| Warna, gelap | Permukaan hampir hitam dengan nada sedikit hangat (bukan hitam murni), tingkat permukaan naik dengan nada; teks utama putih gading, teks sekunder abu hangat; **aksen hijau limau** hanya pada tombol utama, tab terpilih, tanda dibaca, dan batang anggaran; wadah aksen limau yang sangat gelap untuk gelembung sendiri |
-| Warna, terang | Dirancang tersendiri: permukaan putih tulang, teks hampir hitam; limau terang tidak cukup kontras sebagai teks di atas putih, jadi pada tema terang aksen menjadi **limau tua kehijauan** untuk teks dan tombol, dan limau terang hanya sebagai isi tombol dengan teks gelap di atasnya **[Usulan]**; kontras diukur saat token dibuat |
-| Huruf merek | Manrope untuk jumlah dan judul besar, angka tabular. Lisensi SIL OFL 1.1 dengan Reserved Font Name; ketersediaan fitur angka tabular **[Perlu validasi]** (§24 [S8]). Bila tidak tersedia, pengganti: Inter (OFL, 18 §4.6) |
-| Bentuk | Sudut kecil dan konsisten; garis pemisah tipis; kartu chat persegi dengan sudut kecil |
-| Glif tempat uang dan ikon aplikasi | Garis tunggal, geometris; ikon aplikasi: tanda sederhana berwarna limau di atas hampir hitam |
-| Keadaan kosong | Tipografis saja, tanpa ilustrasi |
-| Gerak | Pudar dan geser pendek; angka berganti dengan pudar |
-| Di dalam Liquid Glass | Bilah kaca di atas permukaan gelap tampak gelap pada pengaturan bening dan tetap gelap pada pengaturan diwarnai; limau hanya pada tombol Catat dan tab terpilih. Risiko: limau pada kaca bening di atas isi terang (foto di chat) dapat turun kontrasnya; tombol kaca menonjol diuji di atas foto |
-| Di dalam Material 3 (skema dari palet merek, rilis stabil) | Skema dari palet nada limau dengan sekunder abu hangat; `surfaceContainer*` dari nada netral hangat |
-| SEC-82 | Lolos dengan catatan: limau terang adalah warna mencolok, tetapi bukan pastel dan dipakai sebagai aksen fungsi pada bidang kecil, tidak sebagai identitas permukaan. Manrope adalah sans geometris, bukan huruf bulat informal **[Asumsi]** dari bentuknya yang umum dikenal |
-| Kekuatan | Paling dekat dengan yang sudah diterima pemilik produk; angka paling menonjol; nyaman di malam hari |
-| Risiko | Gelap sebagai watak utama membuat tema terang terasa "versi kedua" bila tidak dirancang sungguh-sungguh; hitam dengan satu aksen terang adalah pola yang umum di aplikasi keuangan, jadi kekhasannya bergantung pada huruf, glif, dan nada kata |
+**Batas.** Rupa aplikasi di atas berasal dari tangkapan layar toko yang dipilih vendor, satu tema, warna disebut dengan mata (18 §4.10). Sampelnya kecil dan tidak acak. Tidak ada token di bawah yang meniru aplikasi lain. Arti kata "light" di brief §10.1 ("ringan" atau "terang") tidak ditafsirkan di sini (18 §4.10.5).
 
-### 19.3 Arah B — Hangat dan lugas
+### 19.2 Watak
 
-**Rujukan:** identitas Monzo yang terdokumentasi di 18 §4.8 (koral panas, biru tua pekat, putih lembut; huruf grotesk; nada "straightforward kindness"). Yang diambil adalah **cara** Monzo menyusun identitas, yakni satu warna hangat yang berani, satu warna gelap yang dalam, dan nada yang lugas dan baik hati. Warna dan hurufnya sendiri tidak ditiru.
+Angka di depan, orang di sebelahnya, satu warna untuk bertindak. Terang, lapang, dan tenang; terasa buatan Indonesia lewat huruf dan kata, bukan lewat motif budaya atau agama (SEC-90).
 
-| Unsur | Uraian |
-|---|---|
-| Watak | Hangat, ramah orang dewasa, langsung: terasa seperti catatan rumah, bukan bank |
-| Warna, terang | Permukaan putih hangat, teks biru tua pekat; **aksen terakota** (lebih tanah dan lebih gelap dari koral Monzo) pada tindakan utama; wadah aksen terakota sangat muda untuk gelembung sendiri |
-| Warna, gelap | Permukaan biru tua pekat bertingkat (bukan hitam), teks putih hangat; aksen terakota diterangkan agar kontras tanpa menyilaukan |
-| Huruf merek | Grotesk berlisensi terbuka dengan angka tabular, misalnya Inter (OFL, 18 §4.6) untuk jumlah dan judul; pilihan huruf yang lebih berwatak diperiksa `researcher` (§23.2) |
-| Bentuk | Sudut sedang; kartu chat dengan sudut sedang; bagian Beranda sebagai wadah bersudut |
-| Glif tempat uang dan ikon aplikasi | Garis tebal sederhana; ikon aplikasi terakota dengan tanda biru tua |
-| Keadaan kosong | Ilustrasi garis **benda** rumah tangga (dompet, amplop, daftar), tanpa wajah, orang, hewan, atau karakter |
-| Gerak | Seperti A |
-| Di dalam Liquid Glass | Aksen terakota pada tombol utama dan tab terpilih; kaca di atas permukaan putih hangat atau biru tua tetap netral |
-| Di dalam Material 3 (skema dari palet merek, rilis stabil) | Skema dari palet nada terakota, sekunder biru tua; `tertiary` dari nada pasir untuk tanda netral |
-| SEC-82 | Lolos dengan catatan: ilustrasi dibatasi pada benda dan diperiksa satu per satu agar tidak menjadi gaya kartun; terakota bukan pastel |
-| Kekuatan | Paling hangat; tema terang dan gelap sama kuat; paling dekat dengan "rumah" |
-| Risiko | Kemiripan watak dengan Monzo; ilustrasi menambah pekerjaan dan risiko SEC-82 |
+1. **Angka adalah hal terpenting di layar** yang memuatnya (18 §4.10.3 butir 1): ukurannya paling besar, letaknya di atas, rata kiri bersama label dan pemegangnya (§19.8 motif).
+2. **Satu aksen, hanya untuk bertindak**: tombol utama, tab terpilih, tanda dibaca, isian yang sedang difokus. Aksen tidak pernah mewarnai jumlah uang, batang, atau tanda.
+3. **Tanpa hiasan**: tanpa ilustrasi, gradasi buatan, foto stok, karakter, atau pola latar.
 
-### 19.4 Arah C — Huruf Indonesia, terang dan tenang
+### 19.3 Token warna
 
-**Rujukan:** Plus Jakarta Sans, huruf buatan studio Indonesia Tokotype, berlisensi OFL, dengan angka tabular sejak v2.600 dan gaya alternatif Lancip, Lurus, dan Lingkar (18 §4.6). Konteks pasar: Jago, wondr, dan Gojek tercatat di 18 §4 sebagai produk Indonesia yang dirujuk, tanpa uraian rupa yang terverifikasi, sehingga tidak dijadikan dasar visual.
+Kontras di kolom kanan memakai rumus luminans relatif WCAG 2.2, dipotong ke satu desimal. **Semua angka di tabel ini diperiksa lead dengan skrip pada 12 November 2026**, termasuk keempat pasangan teal terang `#0C524E`. Saat token dibuat, setiap pasangan tetap diukur di perangkat (§19.11), dan nilainya digeser bila ada yang tidak lolos. Sasaran: teks 4,5:1, teks kecil berwarna kustom 7:1 bila dapat (HIG Dark Mode, 18 §4.6), unsur grafis 3:1 (WCAG 1.4.11). Semua nilai **[Usulan]**.
 
-| Unsur | Uraian |
-|---|---|
-| Watak | Terang, lapang, berakar lokal lewat huruf, bukan lewat motif: terasa buatan Indonesia tanpa ornamen |
-| Warna, terang | Permukaan putih kertas, teks arang; **aksen hijau tua kebiruan** yang dalam pada tindakan utama; nada pasir untuk tanda netral |
-| Warna, gelap | Permukaan arang bertingkat, teks putih kertas, aksen hijau kebiruan diterangkan |
-| Huruf merek | Plus Jakarta Sans untuk jumlah dan judul, angka tabular, gaya bawaan atau **Lurus**. **Gaya Lingkar tidak dipakai** (bulat, §20) |
-| Bentuk | Sudut sedang-kecil; ruang putih lebar; garis tipis |
-| Glif tempat uang dan ikon aplikasi | Garis tipis mengikuti ketebalan huruf; ikon aplikasi hijau kebiruan dengan tanda putih |
-| Keadaan kosong | Tipografis, dengan satu pola geometris abstrak tipis pada latar ikon aplikasi saja **[Usulan]**; tanpa motif budaya atau agama (SEC-90) |
-| Gerak | Seperti A |
-| Di dalam Liquid Glass | Aksen pada tombol utama dan tab terpilih; kaca di atas putih kertas tampak bening dan ringan |
-| Di dalam Material 3 (skema dari palet merek, rilis stabil) | Skema dari palet nada hijau kebiruan, sekunder pasir |
-| SEC-82 | Lolos: tanpa ilustrasi, tanpa warna mencolok, huruf bukan gaya bulat |
-| Kekuatan | Satu-satunya arah dengan rujukan identitas yang terdokumentasi dan lokal; paling tenang untuk anggota yang lebih tua |
-| Risiko | Paling mudah terasa "standar" bila glif, ikon aplikasi, dan nada kata tidak dikerjakan sungguh-sungguh, padahal itu yang ditolak pemilik produk |
+| Token | Peran | Terang | Gelap | Kontras (terang / gelap) | Material 3 (`ColorScheme`) |
+|---|---|---|---|---|---|
+| `kertas` | Latar layar | `#FAFAF7` | `#121716` | — | `surface`, `background`, `surfaceContainerLowest` |
+| `kertas-1` | Bagian bertingkat rendah | `#F4F4F0` | `#181E1D` | — | `surfaceContainerLow` |
+| `kertas-2` | Kartu, bagian Beranda, wadah pesan orang lain | `#EEEEE9` | `#1E2523` | — | `surfaceContainer`, `surfaceContainerHigh` |
+| `kertas-3` | Lintasan batang, permukaan tertinggi | `#E8E8E2` | `#2C3532` | — | `surfaceContainerHighest` |
+| `tinta` | Teks utama, jumlah uang | `#1C2321` | `#ECEFEC` | 15,3 / 15,6 di atas `kertas` | `onSurface`, `onPrimaryContainer`, `onTertiaryContainer` |
+| `tinta-2` | Teks sekunder, "Rp" kecil, glif, isi batang | `#4F5A57` | `#A9B4B1` | 6,8 / 8,4 di atas `kertas`; 6,1 / 7,3 di atas `kertas-2`; 5,8 / 5,9 di atas `kertas-3` | `onSurfaceVariant` |
+| `garis-tegas` | Batas isian | `#737D7A` | `#8A9592` | 4,0 / 5,8 di atas `kertas` | `outline` |
+| `garis` | Pemisah dekoratif | `#C9CEC9` | `#3A4441` | Tidak wajib (bukan satu-satunya pembeda) | `outlineVariant` |
+| `teal` | Aksen: tindakan utama, tab terpilih, tanda dibaca, isian fokus | `#0C524E` | `#5CC2B6` | 8,6 / 8,4 di atas `kertas`; 7,7 di atas `kertas-2` (terang) | `primary` |
+| `di-atas-teal` | Teks dan ikon di atas `teal` | `#FFFFFF` | `#0B2A27` | 9,0 / 7,1 | `onPrimary` |
+| `teal-muda` | Wadah pesan sendiri, butir terpilih, penanda tab Android | `#DCEDEA` | `#173A36` | `tinta` di atasnya 13,2 / 10,6; tanda dibaca `teal` di atasnya 7,4 / 5,8 | `primaryContainer`, `secondaryContainer` |
+| `pasir` | Wadah netral informatif: tanda, "Sedang dibahas", "Menunggu" | `#EFE6D6` | `#3A3326` | `tinta` di atasnya 12,9 / 10,7 | `tertiaryContainer` |
+| Galat sistem | Hanya galat teknis (§17.2) | Merah sistem | Merah sistem | Dari sistem | `error` dari skema yang dihasilkan Material Theme Builder untuk kunci `teal` |
 
-### 19.5 Perbandingan
+**Teal terang digelapkan** dari `#0F5E5A` sesudah pemeriksaan skrip lead. Dengan `#0F5E5A` angkanya 7,2 di atas `kertas`, 7,5 untuk `di-atas-teal`, 6,2 di atas `teal-muda`, dan 6,5 di atas `kertas-2`. Kedua angka terakhir di bawah sasaran 7:1 untuk teks kecil berwarna kustom, padahal tombol bergaris di kartu (iOS) dan `OutlinedButton` (Android) menulis teksnya dengan warna aksen di atas `kertas-2`.
 
-| | A | B | C |
+**Kontras tinggi.** Setiap token punya varian kontras tinggi: `teal` digelapkan di tema terang dan diterangkan di tema gelap, `tinta-2` naik menjadi `tinta`, `garis` menjadi `garis-tegas`. Sasarannya 7:1 untuk semua teks; nilainya dihitung saat token dibuat. iOS: varian "High Contrast" pada setiap set warna (HIG Color, 18 §4.6). Android: skema kontras sedang dan tinggi dari Material Theme Builder; dukungan setelan kontras sistem **[Perlu validasi]** (§15).
+
+**Per platform.**
+
+| | iOS | Android |
+|---|---|---|
+| Tempat token | Set warna di katalog aset dengan varian Any, Dark, dan High Contrast; `teal` sebagai warna aksen aplikasi | `lightColorScheme` dan `darkColorScheme` dari tabel di atas; tanpa warna dinamis (§17.1 butir 3) |
+| Lapisan isi | `kertas`, `tinta`, `tinta-2` dipakai langsung | Peran `ColorScheme` di atas |
+| Komponen sistem (bilah, tab bar, menu, lembar sistem, dialog) | Warna dan material sistem tidak diganti; hanya diberi aksen (§19.7) | Komponen Material 3 membaca peran skema; tidak ada warna yang ditanam pada komponen |
+
+### 19.4 Huruf dan skala angka
+
+Plus Jakarta Sans hanya untuk jumlah uang dan judul bagian di lapisan isi; selebihnya huruf sistem (§17.3). Bobot yang dipakai hanya Medium (500), SemiBold (600), dan Bold (700), karena HIG menganjurkan menghindari bobot tipis (18 §4.10.3). Ukuran di bawah adalah ukuran dasar milik dokumen ini **[Usulan]**; keduanya ikut membesar bersama ukuran teks sistem.
+
+| Token | Dipakai untuk | iOS: ukuran dasar, diskalakan relatif terhadap | Android: ukuran dasar dan tinggi baris, peran yang diisi | Bobot | Angka |
+|---|---|---|---|---|---|
+| `angka-utama` | *Uang kita* di Beranda | 40 pt, `largeTitle` | 40/48 sp, `displaySmall` | SemiBold | Tabular |
+| `angka-besar` | Jumlah di kartu objek, "Ada Rp…" di LY-31, isian jumlah LY-32 | 28 pt, `title` | 28/36 sp, `headlineMedium` | SemiBold | Tabular |
+| `angka-baris` | Jumlah di baris daftar, pemegang, sisa anggaran, ringkasan | 17 pt, `body` | 16/24 sp, `titleMedium` | Medium | Tabular |
+| `judul-bagian` | "Uang kita", "Menunggu", "Minggu ini", judul kartu, judul bagian Uang | 20 pt, `title3` | 22/28 sp, `titleLarge` | Bold | — |
+
+**Aturan angka.**
+
+- **Angka tabular** di semua token angka. iOS: `monospacedDigit()`, yang tidak mengubah apa pun bila huruf dasarnya tidak mendukung; Android: `fontFeatureSettings` dengan `"tnum"`, yang bekerja menurut format CSS-nya **[Asumsi]** (18 §4.10.3). **Satu pemeriksaan saat bangun di kedua platform:** "Rp1.111.111" dan "Rp8.888.888" pada setiap token angka harus sama lebar pada teks 100% dan 200%; gagal berarti fitur tabular tidak terpasang.
+- **"Rp" kecil** pada `angka-utama` dan `angka-besar`: 60% ukuran angka, garis dasar sama, warna `tinta-2`, tanpa spasi ("Rp" lalu "2.150.000"). Pada `angka-baris` "Rp" berukuran dan berwarna sama dengan angkanya. Pembaca layar membaca jumlah utuh dalam kata (§15).
+- Penulisan tetap menurut §17.3: titik ribuan, tanpa desimal, tanpa singkatan "rb" atau "jt".
+- **Teks besar.** `angka-baris` dan `angka-besar` tidak pernah dipotong atau dikecilkan (§15). `angka-utama` membesar bersama ukuran teks sistem sampai jumlah terpanjang yang ditampilkan memenuhi lebar kolom, lalu berhenti membesar; ia tidak pernah lebih kecil dari ukuran dasarnya 40 pt/sp, yang sudah termasuk teks besar. Perkiraan saya: "Rp1.000.000.000" pada 40 pt muat di kolom iPhone 13 dan Galaxy A55 **[Asumsi]**, diukur saat bangun.
+- **Gaya alternatif.** Dipakai gaya bawaan. "Lurus" hanya dipakai bila nomor stylistic set-nya terverifikasi dan bentuk angkanya lebih jelas; repositori menyebut ketiga gaya (Lancip, Lurus, Lingkar) tanpa nomor set **[Perlu validasi]** (§24 [S12]). "Lingkar" tidak dipakai: dekoratif (§20 D-11).
+- **Berkas huruf.** Disertakan di kedua aplikasi menurut SIL OFL 1.1; versi rilis terbaru dipastikan saat bangun dari halaman rilis repositori, karena urutan entri catatan perubahannya tidak menunjukkan dengan jelas mana yang terbaru (§24 [S12]) **[Perlu validasi]**.
+
+### 19.5 Glif dan ikon aplikasi
+
+**Glif milik produk.** Ikon antarmuka lain tetap SF Symbols dan Material Symbols (§17.5). Empat glif digambar sendiri **[Usulan]**:
+
+| Glif | Arti | Bentuk | Tampil di |
 |---|---|---|---|
-| Rujukan terdokumentasi | Contoh yang diterima pemilik produk; pedoman platform | Monzo (18 §4.8) | Plus Jakarta Sans (18 §4.6) |
-| Tema terkuat | Gelap | Keduanya | Terang |
-| Risiko SEC-82 | Rendah (aksen terang tercatat) | Sedang (ilustrasi) | Rendah |
-| Risiko "standar" | Sedang | Rendah | Sedang |
-| Pekerjaan tambahan | Rendah | Sedang (ilustrasi) | Rendah |
+| Tunai | Tempat uang tunai | Dua lembar uang kertas bertumpuk sedikit bergeser; **bukan koin** | Baris pemegang, LY-31, pemilih tempat uang di LY-32 |
+| Rekening | Rekening bank | Buku tabungan tertutup dengan satu garis punggung | Sama |
+| E-wallet | Dompet digital | Ponsel tegak dengan satu persegi kecil di layarnya | Sama |
+| Simpul | Kesepakatan berdua | Dua tali yang bertemu dan bersilang sekali menjadi simpul longgar, kedua ujungnya terbuka | Baris "Disepakati" di kartu dan baris peristiwa, LY-45 Kesepakatan rumah tangga, pos rutin yang sudah disepakati di LY-37, ikon aplikasi |
 
-Bawaan UX-1 adalah **A**, karena dekat dengan gambaran yang sudah diterima pemilik produk; ini bukan rekomendasi bahwa A lebih baik dari B atau C.
+Aturan gambar: kisi dan ketebalan garis sama dengan ikon sistem di sebelahnya, ujung garis lurus mengikuti gaya bawaan Plus Jakarta Sans, sudut kecil. iOS: simbol kustom SF Symbols agar mengikuti bobot dan ukuran teks; Android: vektor 24 dp pada kisi Material Symbols **[Asumsi]** cara pembuatannya, diperiksa `ios-dev` dan `android-dev`. Warna `tinta` atau `tinta-2`, **tidak pernah `teal`**, karena teal berarti tindakan. Glif selalu disertai kata (WCAG 1.4.1).
+
+**Ikon aplikasi.** Diperiksa terhadap HIG App Icons (log perubahan terakhir 28 Oktober 2026) dan pedoman adaptive icon Android, diakses 12 November 2026 (§24 [S10], [S11]).
+
+| Hal | Rancangan **[Usulan]** | Dasar |
+|---|---|---|
+| Tanda | Simpul tebal berwarna terang di atas latar `teal`; satu bentuk besar dan sederhana, tanpa garis tipis | HIG: Liquid Glass diterapkan pada "large, simple shapes", tidak pada "text and thin lines"; hindari "extremely thin line weights and sharp corners" [S10] |
+| Yang tidak dipakai | Teks, "Rp", huruf F, koin, dompet, celengan, grafik naik, atap rumah, tanda centang, tangkapan layar, gradasi buatan, bayangan, kilau | HIG: teks hanya bila perlu; "Let the system handle blurring and other visual effects"; jangan meniru komponen antarmuka [S10]. Selebihnya pilihan anti-templat (§19.8) |
+| iOS dan iPadOS | Berkas Icon Composer berlapis: lapisan latar `teal`, lapisan depan simpul. Varian default, dark (latar arang, simpul `teal` terang), clear, dan tinted; ciri ikon sama di semua varian, dan varian gelap diturunkan dari yang terang | HIG: "Keep your icon's features consistent across appearances"; "Use your light app icon as the basis for your dark icon"; ikon tetap terbaca di setiap varian [S10] |
+| Android | Adaptive icon: lapisan latar `teal` dan lapisan depan simpul, masing-masing 108 × 108 dp; simpul di dalam zona aman 66 × 66 dp dan tidak lebih kecil dari 48 × 48 dp. Lapisan `monochrome` berisi simpul untuk ikon bertema | [S11]: ikon bertema sejak Android 13; tanpa lapisan monokrom, mulai Android 16 QPR 2 sistem membuat sendiri warna temanya, jadi lapisan milik kita yang menjaga bentuk simpul |
+| Ikon toko Google Play | Turunan dari ikon yang sama | Spesifikasi ikon Google Play tidak dibaca **[Perlu validasi]** |
+| Layar peluncuran dan pengalih aplikasi (§12.2) | Permukaan `kertas` dengan simpul `teal` di tengah; tanpa nama rumah tangga, angka, atau nama orang | §12.2; SEC-20 |
+| Risiko | Simpul dapat terbaca sebagai lambang tak hingga atau pita kepedulian. Diperiksa bersama contoh layar di gerbang §19.8; bila terbaca demikian, bentuk simpul diubah, maknanya tetap | **[Asumsi]** |
+
+### 19.6 Keadaan kosong
+
+Tipografis: satu glif milik produk yang berkaitan, 40 pt/dp, warna `tinta-2`, di atas satu kalimat ajakan dan paling banyak satu tombol. Tanpa ilustrasi, pola, atau karakter (§13.1 butir 4; §20). Kata-katanya tetap §13.2.
+
+| Keadaan (§13.2) | Glif |
+|---|---|
+| Beranda tanpa tempat uang | Tunai |
+| Chat baru | Simpul |
+| LY-45 tanpa kesepakatan | Simpul |
+| Belum ada belanja bulan ini (LY-35) | Tanpa glif; teks saja, karena tombol Catat sudah ada |
+| Menunggu kosong | Bagian tidak tampil |
+
+### 19.7 Di dalam Liquid Glass dan Material 3
+
+| Hal | iOS dan iPadOS 26 (Liquid Glass) | Android (Material 3, rilis stabil 1.4.0) |
+|---|---|---|
+| Lapisan isi | `kertas`, kartu `kertas-2`; tidak pernah kaca (pemeriksaan 2) | `surface` dan `surfaceContainer*` dengan elevasi nada |
+| Bilah dan navigasi | Kaca sistem tanpa warna; di atas `kertas` tema terang tampak terang, di tema gelap tampak gelap. Warna hanya pada tombol Catat (kaca menonjol berwarna `teal`) dan tab terpilih (`tint` `teal`) | Bilah atas `surface`; navigation bar dan rail dengan penanda `secondaryContainer` (`teal-muda`) sehingga tab terpilih berwarna teal **[Asumsi]** pemetaan token komponen di 1.4.0, diperiksa `android-dev` |
+| Tombol utama | Tombol menonjol `teal` dengan teks `di-atas-teal` | `Button` terisi dan Extended FAB "Catat" dengan wadah `primary` (`teal`) dan isi `onPrimary`, ditetapkan eksplisit, bukan wadah bawaan FAB **[Usulan]** |
+| Huruf | Plus Jakarta Sans hanya di lapisan isi; menu, lembar, dan dialog sistem memakai huruf sistem | `Typography` dengan Plus Jakarta Sans pada peran §19.4; `body` dan `label` huruf bawaan |
+| Kaca yang dapat diatur pengguna (iOS 27) | Tidak ada keterbacaan yang bergantung pada tembusnya kaca (§17.1 butir 2) | — |
+| Uji saat bangun | Tombol Catat berwarna di atas foto terang dan gelap di chat: tanda di atasnya tetap 3:1 | Ikon bertema dan tidak bertema di peluncur Galaxy A55 |
+| Yang tidak dipakai | Kaca berwarna di luar dua tempat itu | Warna dinamis; komponen dan skema Expressive (§17.1 butir 4) |
+
+### 19.8 Anti-templat
+
+**Mengapa.** Pemilik produk menolak tampilan yang "standar app atau layout profesional" tanpa "seni tersendiri" (11 November 2026; kata-katanya di §0), dan risiko arah C yang dicatat rancangan pertama adalah justru "paling mudah terasa 'standar'". Di sisi lain, riset menyebut pola yang dikenal sebagai syarat aplikasi keuangan yang profesional (18 §4.10.3 butir 5; peringatan Google tentang perbankan). Jadi kekhasan **tidak** dibangun dengan mengganti komponen native atau menambah hiasan, melainkan dengan lima hal berikut.
+
+| # | Unsur | Yang membuatnya milik Family OS |
+|---|---|---|
+| 1 | Glif | Empat glif sendiri (§19.5), terutama simpul: satu tanda untuk "disepakati berdua", yang juga tanda ikon aplikasi. Maknanya berasal dari arahan pemilik produk "karena semua butuh kesepakatan" (`_progress.md`, pernyataan arah kedua) |
+| 2 | Ikon aplikasi | Simpul di atas teal, tanpa satu pun lambang uang yang lazim (§19.5) |
+| 3 | Nada kata | Kata keluarga yang menyatakan, tidak menilai (§18): "Uang kita", "Dipegang Sari", "Menunggu kamu", "Belum sepakat", "Lebih dari Rp500.000 yang kita sepakati". **Kata templat yang tidak pernah dipakai** **[Usulan]**: "Selamat datang kembali", "Kelola keuanganmu", "Dashboard", "Insight", "Fitur", "Yuk", "Ups", "Oops", "Transaksi berhasil", "Saldo Anda", emoji di teks antarmuka, dan tanda seru (§18.1) |
+| 4 | Tipografi angka | Plus Jakarta Sans tabular, "Rp" kecil dengan warna sekunder, tanpa desimal dan tanpa singkatan, angka sebagai unsur terbesar (§19.4) |
+| 5 | **Motif tata letak: angka bersama pemegangnya** | Setiap jumlah uang bersama diikuti siapa yang memegangnya, dalam susunan yang sama di mana pun: label kecil, angka rata kiri, satu garis tipis, lalu baris pemegang berisi glif tempat uang, nama atau sebutan (§7.4), dan jumlahnya rata kanan; bagian yang belum dikonfirmasi tampil di bawah baris pemegangnya dengan wadah `pasir`. Tampil di Beranda (bagian 2 dan 3), LY-31, kartu serah terima (glif "dari" dan "ke"), LY-33, dan tabel pemegang di ringkasan. Motif ini menggambar pertanyaan inti produk, "uangnya ada di siapa", sehingga ia hanya masuk akal di aplikasi ini |
+
+**Gerbang sebelum token dibekukan [Usulan].** Lead menunjukkan contoh layar Beranda, Catat, dan Chat di iOS dan Android, terang dan gelap, beserta ikon aplikasi, kepada pemilik produk dan pasangannya. Bila mereka menilainya masih seperti templat, yang diubah adalah kelima unsur di atas, bukan komponen native dan bukan arah C.
+
+**Pemeriksaan tambahan** saat `ux-designer` meninjau setiap layar yang dibangun, melanjutkan sepuluh pemeriksaan §2 **[Usulan]**:
+
+| # | Pemeriksaan | Gagal bila |
+|---|---|---|
+| 11 | Glif dan ikon sendiri | Ada glif tempat uang dari set sistem atau lambang uang lazim (koin, celengan) di tempat glif milik produk; ikon aplikasi tanpa simpul |
+| 12 | Tanpa hiasan | Ada ilustrasi, gradasi buatan, karakter, foto stok, spanduk promosi, atau pola latar |
+| 13 | Angka bertoken | Ada jumlah uang yang tidak memakai token angka §19.4 atau tidak tabular |
+| 14 | Motif hadir | Beranda, LY-31, kartu serah terima, atau LY-33 menampilkan jumlah bersama tanpa baris pemegangnya |
+| 15 | Kata templat | Ada frasa dari daftar kata templat di butir 3 |
+
+### 19.9 Warna uang
+
+**Yang ditemukan pasar.** Dalam sampel 18 §4.10.2, hijau dipakai untuk uang masuk (Monzo dan SeaBank, dengan tanda "+"), kenaikan (Monarch), dan keadaan baik (Copilot); wondr memasangkan hijau untuk pemasukan dengan merah untuk pengeluaran. Arti konvensi itu bagi pengguna tidak diteliti, dan tidak ada riset tentang asosiasi warna dengan uang di Indonesia (18 §4.10.4, §4.10.5 butir 8).
+
+**Keputusan [Usulan]: §17.2 dipertahankan.** Uang masuk dan keluar sama-sama `tinta`, dibedakan dengan "+" dan kata. Alasannya:
+
+1. Hijau dan merah menilai: merah pada pengeluaran membaca belanja sebagai kesalahan, padahal aplikasi "bukan menunjukan siapa yang salah" (arah pemilik produk; pemeriksaan 6).
+2. Aksen arah C adalah hijau kebiruan. Jumlah berwarna hijau akan terbaca sebagai sesuatu yang dapat diketuk dan mengaburkan aturan satu aksen untuk tindakan (§19.2 butir 2). 18 §4.10.5 butir 8 mencatat teal tua "lebih jauh dari hijau 'uang masuk', tetapi tetap keluarga hijau" **[Asumsi]**; karena itu teal tidak pernah dipakai pada jumlah.
+3. Warna tidak boleh menjadi satu-satunya pembeda (WCAG 1.4.1), jadi tanda "+" dan kata tetap wajib, dengan atau tanpa warna.
+
+| Tempat | Warna |
+|---|---|
+| Uang masuk, uang keluar, saldo, sisa | `tinta`; uang masuk dengan "+" |
+| Batang anggaran dan tabungan | Isi `tinta-2` di atas lintasan `kertas-3`; tidak berubah warna saat mendekati atau melewati batas (§20 D-7) |
+| Tanda, selisih hitung, "Sedang dibahas" | Wadah `pasir` dengan teks `tinta` dan ikon info (§9.6) |
+| Galat | Merah hanya untuk galat teknis (§17.2) |
+
+**Risiko dan uji.** Pengguna yang terbiasa dengan hijau untuk uang masuk mungkin membaca daftar lebih lambat **[Asumsi]**. Di minggu pertama pilot, kedua anggota ditanya apakah mereka dapat membedakan uang masuk dan keluar sekilas di LY-31; bila tidak, yang ditambah lebih dulu adalah kata atau ikon arah, bukan hijau dan merah.
+
+### 19.10 Arah yang tidak dipilih
+
+| Arah | Ringkasnya | Alasan tidak dipilih, menurut 18 §4.10.5 |
+|---|---|---|
+| A — Gelap dengan satu aksen | Permukaan hampir hitam, aksen hijau limau, Manrope; diturunkan dari contoh halaman depan Android yang diterima sebagai gambaran kasar | Keterbacaan condong ke latar terang (butir 1); kira-kira dua pertiga responden NN/g memakai mode terang atau campuran, jadi tema terang A akan sering terlihat sebagai "versi kedua" (butir 2); angka tabular Manrope belum terverifikasi (butir 5) |
+| B — Hangat dan lugas | Putih hangat dan biru tua pekat, aksen terakota, grotesk terbuka, ilustrasi garis benda | Kemiripan watak dengan Monzo; ilustrasi menambah pekerjaan dan risiko SEC-82; terakota dekat dengan merah yang di wondr berarti pengeluaran (butir 8) |
+
+Token, huruf, dan ilustrasi kedua arah tidak dibawa ke sistem kerja. Contoh halaman depan Android 11 November tetap catatan sejarah (§0).
+
+### 19.11 Diperiksa saat token dibuat
+
+1. Kontras setiap pasangan di §19.3 di kedua tema dan varian kontras tinggi, dengan alat.
+2. Lebar angka tabular di kedua platform (§19.4).
+3. Tombol Catat berwarna di atas foto di chat (§19.7).
+4. Ikon aplikasi di keempat varian iOS dan di peluncur Android, bertema dan tidak (§19.5).
+5. Teks 200% dan ukuran aksesibilitas terbesar pada Beranda, LY-31, LY-32, dan kartu (§15, pemeriksaan 7).
+6. Gerbang anti-templat (§19.8).
 
 ---
 
 ## 20. Catatan keputusan desain sasaran dewasa (SEC-82)
 
-Bukti untuk indikator D Kepmen Komdigi 142/2026 (18 §2.9 butir 3). Berlaku bagi ketiga arah §19 dan semua tier. Diperbarui setiap kali `ux-designer` meninjau layar yang dibangun.
+Bukti untuk indikator D Kepmen Komdigi 142/2026 (18 §2.9 butir 3). Berlaku bagi arah C (§19) dan semua tier. Diperbarui setiap kali `ux-designer` meninjau layar yang dibangun.
 
 Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ bila syarat layanan melarang pengguna di bawah 18 (SEC-80), dan di Google Play target audiensnya "Ages 18 and over" saja (18 §2.12.3 **[Terverifikasi]**; kewajibannya di SEC-83, dokumen 10). Kata di LY-04 ("Saya berusia 18 tahun atau lebih") dan halaman toko memakai batas usia yang sama. Deskriptor Apple "Dating and Relationships" harus dijawab paling lambat 12 Januari 2027; jawabannya **[Perlu validasi]** dengan Apple (18 §2.12.3 butir 2) dan bukan urusan layar.
 
 | # | Unsur indikator D | Keputusan | Alasan | Tempat yang mirip dan cara membedakannya |
 |---|---|---|---|---|
-| D-1 | Animasi perayaan (confetti, sparkle, bounce) | Tidak dipakai | Aplikasi mencatat uang dan kesepakatan orang dewasa; perayaan menjadikan mencatat sebagai permainan | Haptik "berhasil" saat menyimpan (§17.6) adalah konfirmasi teknis, satu kali, tanpa gambar |
+| D-1 | Animasi perayaan (confetti, sparkle, bounce) | Tidak dipakai | Aplikasi mencatat uang dan kesepakatan orang dewasa; perayaan menjadikan mencatat sebagai permainan | Haptik "berhasil" saat menyimpan (§17.6) adalah konfirmasi teknis, satu kali, tanpa gambar. Glif simpul pada baris "Disepakati" tampil diam, tanpa animasi |
 | D-2 | Poin | Tidak ada | PRN-08, PRN-11: tanpa skor | — |
 | D-3 | Level | Tidak ada | Sama | — |
 | D-4 | Badge (lencana penghargaan) | Tidak ada | Sama | Lencana angka pada tab dan ikon aplikasi (SEC-53) adalah hitungan hal yang menunggu, bukan penghargaan |
 | D-5 | Streak | Tidak ada | PRN-08; D-75: tanpa pengingat mencatat | — |
 | D-6 | Hadiah harian | Tidak ada | Sama | Kata penyemangat (Tier 2) adalah satu kalimat yang dapat ditutup, tanpa hadiah dan tanpa hitungan hari |
 | D-7 | Progress bar yang mendorong | Tidak ada | SEC-82 | Batang anggaran dan tabungan bersifat informatif: selalu dengan angka, tanpa warna yang berubah menjadi merah, tanpa pesan "hampir sampai", tanpa animasi saat penuh |
-| D-8 | Karakter kartun atau maskot | Tidak ada | SEC-82 | Ilustrasi arah B dibatasi pada benda tanpa wajah |
+| D-8 | Karakter kartun atau maskot | Tidak ada | SEC-82 | Arah C tanpa ilustrasi; keadaan kosong memakai glif garis (§19.6) |
 | D-9 | Avatar lucu | Tidak ada | SEC-82 | Foto profil opsional milik orangnya sendiri, hanya di LY-70 dan daftar anggota; tidak di utas chat (§10.1) |
-| D-10 | Ikon mirip mainan | Tidak ada | SEC-82 | Ikon sistem (SF Symbols, Material Symbols) dan glif garis |
-| D-11 | Tipografi playful atau bulat informal | Tidak ada | SEC-82 | Gaya Lingkar Plus Jakarta Sans dikecualikan (arah C); Manrope dan Inter adalah sans geometris dan grotesk |
-| D-12 | Warna pastel mencolok sebagai identitas | Tidak ada | SEC-82 | Limau arah A adalah warna terang pada bidang kecil untuk tindakan, bukan pastel dan bukan warna permukaan |
+| D-10 | Ikon mirip mainan | Tidak ada | SEC-82 | Ikon sistem (SF Symbols, Material Symbols) dan empat glif garis; ikon aplikasi simpul tanpa wajah atau karakter (§19.5) |
+| D-11 | Tipografi playful atau bulat informal | Tidak ada | SEC-82 | Plus Jakarta Sans gaya bawaan, bobot Medium sampai Bold; gaya alternatif Lingkar ("Swirl" menurut repositori, §24 [S12]) dikecualikan |
+| D-12 | Warna pastel mencolok sebagai identitas | Tidak ada | SEC-82 | Teal tua dan pasir arah C adalah nada dalam dan redup, bukan pastel mencolok; `teal-muda` hanya wadah pesan sendiri dan butir terpilih (§19.3) |
 | D-13 | Kontras tinggi | **Dipakai** | Aksesibilitas (WCAG 1.4.3, 1.4.11; HIG Color) | Dicatat di sini sebagai pengecualian yang diizinkan SEC-82 |
 | D-14 | Gerak memantul M3 Expressive | Tidak dipakai | Mendekati "bounce" (D-1) | Skema gerak standar (§17.6) |
 | D-15 | Ikon kilau untuk `AI` (Tier 2) | Tidak dipakai | Mendekati "sparkle" (D-1) | Label kata "Saran kata" |
@@ -1235,10 +1424,10 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 
 | Persyaratan | Dipenuhi di |
 |---|---|
-| SEC-82 desain sasaran dewasa dan catatan bukti | §20; §19 baris SEC-82 tiap arah |
-| SEC-87 "Yang dilihat pasanganmu tentang kamu, dan yang tidak", isi (a) sampai (f), sama bagi setiap anggota | LY-71 (§5.1); isinya: (a) tabel 10.3 §2.1 sebagai "tidak pernah"; (b) persentuhan dana pribadi 07 §5.3 B1 sampai B6; (c) tanda dibaca dan arti "terkirim" (§10.2), kehadiran menurut 10-A (§10.3), tanda baca kartu status; (d) pesan mungkin berasal dari saran tanpa penanda; (e) salinan di perangkat luring baru hilang saat sinkron; (f) pemberitahuan pengelola server |
+| SEC-82 desain sasaran dewasa dan catatan bukti | §20; §19.2, §19.5, §19.6 (arah C tanpa ilustrasi, karakter, atau gaya huruf bulat) |
+| SEC-87 "Yang dilihat pasanganmu tentang kamu, dan yang tidak", isi (a) sampai (f), sama bagi setiap anggota | LY-71 (§5.1); isinya: (a) tabel 10.3 §2.1 sebagai "tidak pernah"; (b) persentuhan dana pribadi 07 §5.3 B1 sampai B6; (c) tanda dibaca dan arti "terkirim" (§10.2), kehadiran seperti WhatsApp (§10.3), tanda baca kartu status, dan sebutan anggota yang hanya terlihat pembuatnya (§7.4); (d) pesan mungkin berasal dari saran tanpa penanda; (e) salinan di perangkat luring baru hilang saat sinkron; (f) pemberitahuan pengelola server |
 | SEC-88 "disepakati sebagai" dan pernyataan sebelum menyimpan | §9.4, §18.2, §18.3 |
-| SEC-34, SEC-35 pemberitahuan pengelola server | LY-05, §7.1; kalimat janji menurut 10-F |
+| SEC-34, SEC-35 pemberitahuan pengelola server | LY-05, §7.1; teks final §7.5 dari 10.1 §11.3, tanpa kalimat janji (S4-6 (ii) A) |
 | SEC-62 layar berbagi `CARE` | LY-85; §18.3 |
 | SEC-13 autentikasi ulang | LY-77; §9.3 |
 | SEC-14 kata biometrik | §12.3 |
@@ -1251,11 +1440,11 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 | SEC-32 urutan sebelum aktif | §7.2 |
 | SEC-51, SEC-52, SEC-53, SEC-54 notifikasi | §11.1; §4.1 (lencana); §16.3 (layar luar) |
 | SEC-56 N-26 tanpa masa tenggang | §11.3 |
-| SEC-60, SEC-61 kehadiran | §10.3; SEC-60 mengikuti jawaban UX-5 (bawaan A, menit tepat; rekomendasi `security-privacy` B atau C); server tidak mengirim waktu lebih teliti daripada yang tampil |
+| SEC-60, SEC-61 kehadiran | §10.3; menit tepat (S4-5 (ii) A); server tidak mengirim waktu lebih teliti daripada yang tampil |
 | SEC-64 waktu chat | §10.1, §10.4 |
 | SEC-68 layar sebelum menghapus status | §18.3 |
 | SEC-101, SEC-105, FR-FAM-014/AC-4 | LY-75 |
-| SEC-125, SEC-126 ikut serta `AI` | LY-86; §18.3 (teks per jawaban 10-B) |
+| SEC-125, SEC-126 ikut serta `AI` | LY-86; §18.3 (teks R1, S4-4 (i) A) |
 | SEC-133 baris bantuan | LY-84; §18.3 |
 | SEC-134 halaman Bantuan | LY-76; §12.2, §12.4 |
 | SEC-138 hanya nomor terverifikasi | §12.4 (SAPA 129 tidak tampil sampai diverifikasi) |
@@ -1263,27 +1452,36 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 | SEC-93 tanpa tampilan per sisi keluarga | LY-38 |
 | SEC-20 pengalih aplikasi | §12.2 |
 | SEC-67 pemilih foto sistem | §14 |
-| SEC-153 sembunyikan untuk saya (bersyarat 10-G) | LY-62; §10.7; §9.3 (tidak ditahan); §12.2 |
-| SEC-154 lapor dan kontak (bersyarat 10-G) | LY-63; §10.7; LY-76 butir kontak; §12.2 |
+| SEC-153 sembunyikan untuk saya (F-COM-014) | LY-62; §10.7; §9.3 (tidak ditahan); §12.2 |
+| SEC-154 lapor dan kontak (F-COM-014) | LY-63; §10.7; LY-76 butir kontak; §12.2 |
 | SEC-57 lipat N-28 | §11.5 |
+| SEC-155 sebutan anggota (10.4 §6.3) | §7.4: (a) kapan diatur, LY-07; (b) siapa melihat; (c) "Tidak pernah tampil", §7.3, §11.1; (d) layar penentu penerima, LY-08; (f) ekspor; (g) dihapus; (h) isian 1–30 karakter teks polos satu baris; (i) kalimat keterbukaan; LY-87. Teks pengelola §7.5 memuat kalimat [Tier 2] sebutan |
+| Indeks §3.2 butir 2, kesepakatan ambang | §18.3 kalimat kesepakatan ambang; LY-45; §10.4 kartu usulan ambang |
 
 ---
 
-## 22. Keputusan untuk checkpoint S4
+## 22. Keputusan checkpoint S4 yang mengikat dokumen ini
 
-Lima pertanyaan untuk pemilik produk, masing-masing dijawab dengan satu huruf. Bawaan berlaku bila ia menjawab "lanjut".
+Dikukuhkan pemilik produk 12 November 2026 (`_progress.md`, "Keputusan checkpoint S4 (dikukuhkan …)"). Kedudukan per butir mengikuti 17 "Checkpoint S4": "dinyatakan sendiri" bila 17 mencatatnya di (a); "diterima atas saran lead" bila di (b); "bacaan lead, dikukuhkan" bila di (c); "bawaan" bila ia tidak menyebutnya dan mengukuhkannya dengan "lanjut".
 
-| # | Pertanyaan | Pilihan | Bawaan |
-|---|---|---|---|
-| UX-1 | Arah identitas visual | **A** Gelap dengan satu aksen · **B** Hangat dan lugas · **C** Huruf Indonesia, terang dan tenang · **D** lihat dulu contoh layar dua arah yang ia sebut, baru memilih | A |
-| UX-2 | Pilihan tema di iPhone dan iPad | **A** Ikut setelan sistem saja, seperti saran Apple (18 §4.6); Android tetap punya Terang, Gelap, Ikuti sistem · **B** Kedua platform punya Terang, Gelap, Ikuti sistem di dalam aplikasi (brief §10.2) | A |
-| UX-3 | "Sembunyikan angka" saat aplikasi dibuka | **A** Angka tampil; tombol mata menyembunyikan, dan pilihan itu diingat per perangkat · **B** Angka selalu tersembunyi setiap kali dibuka, ketuk mata untuk melihat | A |
-| UX-4 | Sapaan di layar | **A** "kamu" · **B** "Anda" | A |
-| UX-5 | Ketelitian "terakhir aktif" di kepala chat (berpasangan dengan 10-A; rincian §10.3) | **A** Menit tepat, kemarin dan tanggal lama dengan jam, sesuai keputusannya sendiri "Semua seperti WhatsApp"; bawaan SEC-60 · **B (disarankan)** Hari ini dibulatkan ke 15 menit; kemarin dan sebelumnya tanpa jam · **C** Hari ini dan kemarin dibulatkan ke 15 menit; tanggal lama tanpa jam | A |
+| Pertanyaan 08 | Butir 17 | Keputusan | Kedudukan | Diterapkan di |
+|---|---|---|---|---|
+| UX-1 arah identitas | S4-10 (i) | **C** | Diterima atas saran lead ("oke saya ikut saran kamu aja"), dengan syarat anti-templat | §19 |
+| UX-2 tema iPhone dan iPad | S4-10 (ii) | **A**: iOS dan iPadOS ikut sistem; Android Terang, Gelap, Ikuti sistem | Bawaan | LY-78; K-32 dan D-111 (kalimat brief §10.2 disusun lead) |
+| UX-3 angka saat dibuka | S4-10 (iii) | **A**: angka tampil; pilihan mata diingat per perangkat. F-FIN-027 tidak dinaikkan dari Tier 3 | Bawaan | §12.1 |
+| UX-4 sapaan | S4-10 (iv) | **A**: "kamu" | Bacaan lead atas "kamu aja", dikukuhkan lewat "lanjut" (17 Checkpoint S4 (c)) | §18.1 |
+| UX-5 ketelitian "terakhir aktif" | S4-5 (ii) | **A**: menit tepat | Bacaan lead atas "A tetap seperti WhatsApp", dikukuhkan lewat "lanjut" (17 Checkpoint S4 (c)) | §10.3 |
+| — (10-A) | S4-5 (i) | **A**: kehadiran digerakkan pemakaian di bagian mana pun | Dinyatakan sendiri ("#S4-5: A tetap seperti WhatsApp"; 17 keputusan 35) | §10.3 |
+| — (10-G) | S4-7 | **A**: sembunyikan untuk saya, laporkan, kontak, keluar; F-COM-014 Tier 1 | Dinyatakan sendiri ("A") | §10.7, LY-62, LY-63 |
+| — (10-B, 09-D) | S4-4 (i), (ii) | **A**: jalur R1, Claude | (ii) dinyatakan sendiri ("Claude"); (i) bacaan lead atas "integerasiin aja dulu", dikukuhkan | §18.3 SEC-126 |
+| — (10-F) | S4-6 (ii) | **A**: dibaca sendiri, pengakuan tercatat, tanpa kalimat janji | Bawaan | §7.1 |
+| — (09-E) | S4-3 (ii) | **A**: iOS dan iPadOS 26, Android 10 | Dinyatakan sendiri | §4.3, §17.1, §17.4 |
+| — (09-G) | S4-1 (iii) | **A**: kalimat ADR-023 di `ENGINEERING-STANDARDS.md` §8 | Bacaan lead atas jawaban keempat ("yang penting kan versi stable, versi stable ga musti dari 1 kan?"), dikukuhkan dengan "lanjut" | LY-32, §17.4 |
+| Fitur baru | — | **F-FAM-021 sebutan anggota**, Tier 2, hanya terlihat pembuatnya | Permintaan sendiri; usulan lead diterima ("3 ya") | §7.4, LY-87 |
 
-UX-5 dijawab bersama 10-A (misalnya "10-A B, UX-5 B"). **Bawaan A sengaja mempertahankan keputusan pemilik produk**; pilihan B dan C mengubahnya dan hanya berlaku bila ia memilihnya. Rancangan pertama dokumen ini menulis bentuk B sebagai **[Usulan]** di bawah keputusannya tanpa menanyakannya; itu dikoreksi di sini (temuan `critic` CS-B-14).
+Pilihan yang tidak dipilih (arah A dan B; tema dalam aplikasi di iOS; angka selalu tersembunyi; "Anda"; kehadiran hanya di layar chat dan pembulatan 15 menit yang disarankan `security-privacy` dan dokumen ini) tidak berlaku di mana pun di dokumen ini.
 
-Keputusan lain yang ditetapkan dokumen ini sebagai **[Usulan]** dan dapat diubah pemilik produk bila ia menyebutnya: jeda urungkan 5 detik, dengan pesan chat dan perintah pelindung tanpa jeda (§9.3; 06 S-7, P-41); kalimat lipat N-28 di LY-72 dan LY-85 (§11.5); tanpa tombol jawab di notifikasi (§9.2); tanpa "Setujui semua" pada kelompok usulan tagihan rutin (§10.4); kode aplikasi sebagai dasar kunci aplikasi (§12.3); SAPA 129 tidak tampil sampai diverifikasi (§12.4); baris "Belum disiapkan untuk apa pun" di Beranda (§6.1); tanpa drawer permanen (§4.3); sasaran sentuh 48 pt/dp (§15). Kehadiran (10-A) diputuskan di dokumen 10, bukan di sini.
+Keputusan lain yang ditetapkan dokumen ini sebagai **[Usulan]** dan tidak disebut pemilik produk di checkpoint, sehingga tetap usulan yang dapat ia ubah: jeda urungkan 5 detik, dengan pesan chat dan perintah pelindung tanpa jeda (§9.3; 06 S-7, P-41); kata-kata lipat N-28 di LY-72 dan LY-85 (§11.5; perilakunya diterima lewat D-108); tanpa tombol jawab di notifikasi (§9.2); tanpa "Setujui semua" pada kelompok usulan tagihan rutin (§10.4); SAPA 129 tidak tampil sampai diverifikasi (§12.4); baris "Belum disiapkan untuk apa pun" di Beranda (§6.1); tanpa drawer permanen (§4.3); sasaran sentuh 48 pt/dp (§15); nilai token, skala angka, glif, ikon aplikasi, dan motif arah C (§19.3 sampai §19.8); hijau dan merah tidak dipakai untuk uang (§19.9); rincian sebutan anggota (§7.4). Kunci aplikasi berdasar kode aplikasi (§12.3) diterima lewat D-107.
 
 ---
 
@@ -1293,12 +1491,23 @@ Keputusan lain yang ditetapkan dokumen ini sebagai **[Usulan]** dan dapat diubah
 
 | Kepada | Permintaan |
 |---|---|
-| Lead (`README.md`, glosarium, 17) | Awalan `LY` ke tabel pengenal. Glosarium: catatan bahwa kata layar final ada di 08 §18.2, dan istilah *jeda urungkan*. Dokumen 17: catat selisih brief §10.2 ("light/dark/auto") dengan saran HIG bila UX-2 dijawab A; tutup butir "Dibawa ke S4" untuk 08: KT-11 (§6.1: angka tampil, ketenangan dari isi tanpa grafik), KT-12 (§9.5), Q-89 (§9.2, §15), Q-120 (§16, bawaan (c)), Q-121 dan Q-119 (§18.1); R-02 tetap terbuka |
-| `architect` (06, 09) | (1) Jeda urungkan 5 detik: perintah tulis pengguna ditahan di antrean perangkat 5 detik sebelum dikirim, dan dapat dibuang tanpa jejak; dampaknya pada 06 S-7 dan pada saat kartu muncul bagi pasangan. (2) Membuka notifikasi ke objek yang tepat lewat pengenal buram yang ditarik sesudah dibuka (SEC-50). (3) Perangkat perlu menyimpan waktu sinkron terakhir untuk "Diperbarui di ponsel ini" dan tanggal pencatatan untuk "dicatat 3 hari kemudian" (AT-6; **dijawab:** tanggal dari server lewat jalur baca, terlihat setiap pembaca catatan, tanggal saja; usulan "hanya pencatat" ditolak 10 indeks §7.2, §9.1 diselaraskan). (4) Kelompok kartu usulan tagihan rutin murni tampilan; server tetap satu kartu per objek (06 §16.2). (5) Bila diperlukan, ADR atau perubahan `ENGINEERING-STANDARDS.md` untuk sasaran ≤ 2 ketukan dari notifikasi dan 48 pt/dp (Q-89). (6) ADR-012 butir 5: pra-rilis terbaru kini 1.5.0-rc01 (4 November 2026), bukan beta02; dan sejak 1.4.0-beta01 semua API Expressive dihapus dari jalur 1.4.0 (§24 [S3]). (7) ADR pengecualian bila, saat bangun, `ModalBottomSheet` atau scaffold Material 3 Adaptive masih beranotasi eksperimental di rilis stabil (§17.4); tanpa ADR, padanan di §17.4 berlaku. (8) Pembulatan "terakhir aktif" menurut UX-5 dikerjakan server sebelum dikirim ke perangkat pasangan (§10.3). **Dijawab revisi ketiga belas dan ADR-023:** (1) lewat 06 S-7 dan P-41 (§9.3 diselaraskan); (2) lewat S-11 (g); (4) lewat 06 §16.2; (7) lewat ADR-023 butir 5 dan ADR-012 butir 5 (b): `ModalBottomSheet` dipakai pada 09-G A maupun B (§17.4 diselaraskan). **Dijawab fase D:** (9) menyembunyikan "sedang mengetik…" dari anggota yang disembunyikan, di perangkat pembaca saja, dikukuhkan 06 §16.12 dan INV-A53 (§10.7) |
+| Lead (`README.md`, glosarium, 17) | Awalan `LY` ke tabel pengenal. Glosarium: catatan bahwa kata layar final ada di 08 §18.2, dan istilah *jeda urungkan*. Dokumen 17: selisih brief §10.2 ("light/dark/auto") dengan saran HIG tercatat sebagai K-32 dan kini berlaku karena UX-2 dijawab A (§22); tutup butir "Dibawa ke S4" untuk 08: KT-11 (§6.1: angka tampil, ketenangan dari isi tanpa grafik), KT-12 (§9.5), Q-89 (§9.2, §15), Q-120 (§16, bawaan (c)), Q-121 dan Q-119 (§18.1); R-02 tetap terbuka |
+| `architect` (06, 09) | (1) Jeda urungkan 5 detik: perintah tulis pengguna ditahan di antrean perangkat 5 detik sebelum dikirim, dan dapat dibuang tanpa jejak; dampaknya pada 06 S-7 dan pada saat kartu muncul bagi pasangan. (2) Membuka notifikasi ke objek yang tepat lewat pengenal buram yang ditarik sesudah dibuka (SEC-50). (3) Perangkat perlu menyimpan waktu sinkron terakhir untuk "Diperbarui di ponsel ini" dan tanggal pencatatan untuk "dicatat 3 hari kemudian" (AT-6; **dijawab:** tanggal dari server lewat jalur baca, terlihat setiap pembaca catatan, tanggal saja; usulan "hanya pencatat" ditolak 10 indeks §7.2, §9.1 diselaraskan). (4) Kelompok kartu usulan tagihan rutin murni tampilan; server tetap satu kartu per objek (06 §16.2). (5) Bila diperlukan, ADR atau perubahan `ENGINEERING-STANDARDS.md` untuk sasaran ≤ 2 ketukan dari notifikasi dan 48 pt/dp (Q-89). (6) ADR-012 butir 5: pra-rilis terbaru kini 1.5.0-rc01 (4 November 2026), bukan beta02; dan sejak 1.4.0-beta01 semua API Expressive dihapus dari jalur 1.4.0 (§24 [S3]). (7) ADR pengecualian bila, saat bangun, `ModalBottomSheet` atau scaffold Material 3 Adaptive masih beranotasi eksperimental di rilis stabil (§17.4); tanpa ADR, padanan di §17.4 berlaku. (8) Pembulatan "terakhir aktif" (**gugur**: S4-5 (ii) A, menit tepat, §10.3). **Dijawab revisi ketiga belas dan ADR-023:** (1) lewat 06 S-7 dan P-41 (§9.3 diselaraskan); (2) lewat S-11 (g); (4) lewat 06 §16.2; (7) lewat ADR-023 butir 5 dan ADR-012 butir 5 (b): `ModalBottomSheet` dipakai lewat ADR-023 (S4-1 (iii) A; §17.4 diselaraskan). **Dijawab fase D:** (9) menyembunyikan "sedang mengetik…" dari anggota yang disembunyikan, di perangkat pembaca saja, dikukuhkan 06 §16.12 dan INV-A53 (§10.7) |
 | Lead, untuk `architect` dan `security-privacy` bersama | **Dijawab fase D:** tanda dibaca atas pesan tersembunyi tetap naik (06 §16.12 baris "Tanda dibaca", INV-A53, SEC-153 (b)); LY-62 memakai satu kalimat dan arti "Dibaca" di §10.2 sudah diubah (§10.7) |
 | `finance-domain` (07) | Kata layar final §18.2: reservasi menjadi "Sudah dijanjikan untuk …" (bukan "Disisihkan untuk …"); baris ringkasan 07 §6.3 "disisihkan ke dana pribadi" menjadi "Ke uang pribadi"; "Terima dari" menggantikan "Ambil dari"; "Diikhlaskan" untuk pelepasan klaim atas pihak luar bila sesuai model; "Uang yang ada saat mulai" untuk saldo awal |
-| `product-analyst` (05) | Kebutuhan yang dirancang di sini tetapi belum punya FR: "Sembunyikan angka" (§12.1); jeda urungkan (§9.3); pintasan Catat dari ikon aplikasi (§9.1); draf yang tersimpan (§9.3); kartu sekali pakai "Sepakati yang pertama" (§7.1); tab Chat tersembunyi pada rumah tangga satu dewasa (§7.1); kelompok kartu usulan tagihan rutin (§10.4). Masing-masing mungkin cukup sebagai AC pada FR yang ada. Dokumen 17: catat UX-1 sampai UX-5 sebagai pertanyaan checkpoint S4, dengan UX-5 berpasangan dengan 10-A dan keterangan bahwa bawaannya mempertahankan keputusan pemilik produk "Semua seperti WhatsApp" |
-| `security-privacy` (10) | Tinjau: setelan "Sembunyikan angka" per perangkat; pintasan ikon aplikasi di bawah kunci aplikasi; jeda urungkan terhadap SEC-151 (daftar yang tidak ditahan kini mengikuti 06 S-7, §9.3); keterangan "dicatat … kemudian" (**dijawab** 10 indeks §7.2: terlihat setiap pembaca, tanggal saja; §9.1 diselaraskan); kata LY-62 dan LY-63 (§10.7) terhadap SEC-153 dan SEC-154. Baru: (a) kunci aplikasi §12.3 (kode 6 angka sebagai dasar, bukan kode perangkat; gugur biometrik saat pendaftaran berubah; 5 kali salah lalu kata sandi akun); (b) SEC-60 mengikuti UX-5 (**dijawab**: 10.2 SEC-60 kini bersyarat UX-5, bawaan A menit tepat); (c) teks SEC-126 R1 dan R2 di §18.3; (d) aturan tampil halaman Bantuan §12.4 terhadap SEC-134 dan SEC-138 |
+| `product-analyst` (05) | Kebutuhan yang dirancang di sini tetapi belum punya FR: "Sembunyikan angka" (§12.1); jeda urungkan (§9.3); pintasan Catat dari ikon aplikasi (§9.1); draf yang tersimpan (§9.3); kartu sekali pakai "Sepakati yang pertama" (§7.1); tab Chat tersembunyi pada rumah tangga satu dewasa (§7.1); kelompok kartu usulan tagihan rutin (§10.4). Masing-masing mungkin cukup sebagai AC pada FR yang ada. Dokumen 17: UX-1 sampai UX-5 sudah diajukan dan dijawab di checkpoint S4 (§22) |
+| `security-privacy` (10) | Tinjau: setelan "Sembunyikan angka" per perangkat; pintasan ikon aplikasi di bawah kunci aplikasi; jeda urungkan terhadap SEC-151 (daftar yang tidak ditahan kini mengikuti 06 S-7, §9.3); keterangan "dicatat … kemudian" (**dijawab** 10 indeks §7.2: terlihat setiap pembaca, tanggal saja; §9.1 diselaraskan); kata LY-62 dan LY-63 (§10.7) terhadap SEC-153 dan SEC-154. Baru: (a) kunci aplikasi §12.3 (kode 6 angka sebagai dasar, bukan kode perangkat; gugur biometrik saat pendaftaran berubah; 5 kali salah lalu kata sandi akun); (b) SEC-60 (**dijawab**, lalu diputuskan S4-5 (ii) A: menit tepat); (c) teks SEC-126 di §18.3 (kini R1 saja, S4-4 (i) A); (d) aturan tampil halaman Bantuan §12.4 terhadap SEC-134 dan SEC-138 |
+
+**Permintaan sesudah checkpoint S4 (12 November 2026).**
+
+| Kepada | Permintaan |
+|---|---|
+| `product-analyst` (04) | F-FAM-021 "Sebutan anggota": Tier 2, Should **[Usulan]**; usaha berulang nol, sekali per anggota dan boleh dilewati; bergantung pada F-FAM-002 dan F-FAM-003; acuan 08 §7.4, SEC-155. F-COM-014, F-FAM-019, F-FAM-020 sudah Tier 1 menurut S4-6 (iii) dan S4-7 |
+| `product-analyst` (05 FAM) | FR baru sesudah FR-FAM-024 dan BR sesudah BR-FAM-028 untuk F-FAM-021, dengan AC dari SEC-155 (a) sampai (i) (10 indeks §7.3) dan bentuk layarnya di 08 §7.4: diatur di LY-07 saat mengundang (menempel pada undangan), ditawarkan sekali kepada anggota baru, dan kapan saja di LY-74/LY-87, semuanya boleh dilewati; layar penentu penerima menampilkan nama akun dengan sebutan di sampingnya; isian 1 sampai 30 karakter teks polos satu baris; kalimat keterbukaan SEC-155 (i). Termasuk larangan sebutan kembar di antara sebutan milik satu pembuat, ketetapan lead yang masuk SEC-155 (h). Aplikasi hanya memeriksa wajib isi dan panjang; karakter, NFC, dan kembar diperiksa server, yang mengembalikan galat per medan (ES §2 (c)). Juga: S4-10 (iii) A untuk F-FIN-027 (pilihan mata diingat per perangkat; tanpa setelan "selalu tersembunyi") di tier-3 bagian 9 |
+| `architect` (09) | Nama dirender di perangkat dari pengenal anggota, jadi pesan, kartu, dan baris peristiwa tidak membawa nama jadi; sebutan dikirim hanya ke sesi pembuat (SEC-155 (b); permintaan model data di 10 indeks §7.3); sebutan yang dibuat di LY-07 menempel pada undangan dan baru dikirim sesudah keanggotaan aktif. Font Plus Jakarta Sans disertakan di kedua aplikasi (aset, OFL). Tidak ada perubahan pada ketelitian waktu kehadiran: menit (S4-5 (ii) A) |
+| `security-privacy` (10) | **Dijawab SEC-155** (10.4 §6.3); 08 §7.4 dan §7.5 diselaraskan. Larangan sebutan kembar ditetapkan lead dan dimasukkan ke SEC-155 (h); uji SEC-155 (d) dengan sebutan kembar tetap berguna untuk data lama atau jalan yang melewati validasi. Untuk ditinjau: (1) kalimat LY-71 di §7.4; (2) bunyi kalimat kesepakatan ambang di §18.3. 10 indeks §6 baris Chat masih menulis "SEC-60 … menurut UX-5"; kini menit tepat |
+| Lead (17) | Tutup Q-121 (S4-10 (i) C), Q-200 (S4-5 (ii) A), Q-203, Q-204, Q-205 dengan jawaban di §22; K-32 tetap terbuka sampai kalimat brief D-111 dipasang; butir 23.3 nomor 3, 3b, 3b2, 4 ditutup (§23.3) |
+| Lead (glosarium) | Istilah baru **Sebutan anggota** (*member label*): nama yang dibuat seorang anggota untuk anggota lain dan hanya tampil di layarnya sendiri; bukan data hubungan dan tidak dibaca aturan mana pun; berbeda dari sapaan aplikasi ("kamu") dan dari "Sapaan pagi". Rujukan ke 08 §19 sebagai tempat token visual |
 
 ### 23.2 Fakta untuk dokumen 18 (`researcher`)
 
@@ -1317,8 +1526,12 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 | 5 | Sasaran sentuh minimum bawaan Compose 48 dp (`minimumInteractiveComponentSize`) | [Terverifikasi] | §24 [S4] |
 | 6 | Android 14 mendukung skala huruf nonlinear sampai 200% | [Terverifikasi] dari ringkasan pencarian | §24 [S5] |
 | 7 | SwiftUI `tabBarMinimizeBehavior` dan `tabViewBottomAccessory` | [Terverifikasi] dari ringkasan pencarian | §24 [S6] |
-| 8 | Manrope: SIL OFL 1.1 dengan Reserved Font Name; fitur angka tabular | Lisensi [Perlu validasi]; tnum [Perlu validasi] | §24 [S8] |
-| 9 | Diminta diperiksa: nama API haptik SwiftUI dan Android; dukungan setelan kontras sistem di Compose; predictive back di Compose; grotesk OFL berwatak untuk arah B | — | — |
+| 8 | Manrope: SIL OFL 1.1 dengan Reserved Font Name; fitur angka tabular | **Ditutup, tidak diperlukan lagi**: arah A tidak dipilih (§19.10) | §24 [S8] |
+| 9 | Diminta diperiksa: nama API haptik SwiftUI dan Android; dukungan setelan kontras sistem di Compose; predictive back di Compose | — | — |
+| 10 | HIG App Icons: lapisan, Icon Composer, varian default, dark, clear, tinted; Liquid Glass hanya pada bentuk besar sederhana; log perubahan 28 Oktober 2026 | [Terverifikasi] | §24 [S10] |
+| 11 | Android adaptive icon 108 dp, zona aman 66 dp, logo minimal 48 dp; lapisan monokrom untuk ikon bertema sejak Android 13; tema otomatis mulai Android 16 QPR 2 | [Terverifikasi] | §24 [S11] |
+| 12 | Plus Jakarta Sans: tiga gaya alternatif (Lancip "Sharp", Lurus "Straight", Lingkar "Swirl") tanpa nomor stylistic set di README; angka tabular "(.tf)"; versi terbaru tidak jelas dari urutan catatan perubahan (v2.7.1 bertanggal 6 Mei 2023 di atas v2.700 bertanggal 19 Mei 2023) | [Terverifikasi] isi README; nomor set dan versi [Perlu validasi] | §24 [S12] |
+| 13 | Diminta diperiksa: spesifikasi ikon Google Play; pemetaan token warna komponen Material 3 1.4.0 (penanda navigation bar dari `secondaryContainer`, wadah FAB bawaan) | — | — |
 
 ### 23.3 Butir terbuka
 
@@ -1326,22 +1539,24 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 |---|---|---|
 | 1 | R-02 (uji langsung aplikasi pesaing) belum dilakukan | Sasaran waktu mencatat §9.1 tetap **[Asumsi]** sampai diukur di pilot |
 | 2 | Perangkat lipat hanya diuji di emulator (Q-120) | Perilaku engsel dan postur **[Perlu validasi]** di perangkat nyata sebelum tahap publik |
-| 3 | 10-A kehadiran dan UX-5 ketelitian belum diputuskan | §10.3 dan SEC-60 mengikuti jawaban pemilik produk; bawaan A |
+| 3 | Kehadiran dan ketelitian "terakhir aktif" | **Ditutup** di checkpoint S4 (S4-5 A, A; §10.3) |
 | 3a | Compose Material 3 1.5.0 belum stabil | Padanan stabil di §17.4 berlaku; padanan Expressive diganti sesudah 1.5.0 stabil, diperiksa live saat bangun |
-| 3b | 10-B jalur `AI` belum diputuskan | Teks SEC-126 di §18.3 dipilih menurut jawabannya |
-| 3b2 | 10-G belum dijawab | §10.7 mengikuti hurufnya; tanda dibaca atas pesan tersembunyi sudah satu aturan (06 §16.12, INV-A53, SEC-153 (b)), jadi kalimat LY-62 tetap |
+| 3b | Jalur `AI` | **Ditutup** (S4-4 (i) A, R1; §18.3) |
+| 3b2 | 10-G | **Ditutup** (S4-7 A; §10.7) |
 | 3c | SAPA 129 belum diverifikasi di situs penyelenggara | Tidak tampil di LY-76 sampai pemilik produk atau operator memverifikasinya (18 §6 butir 9) |
-| 4 | 10-F bentuk pemberitahuan dan teks final 10.1 §11.3 | LY-05 memakai teks final dari dokumen 10 |
-| 5 | Nama API haptik, kontras sistem Compose, angka tabular Manrope | §17.6, §15, §19.2 diperbarui di fase bangun |
-| 6 | Contoh layar ketiga arah belum dibuat | Bila UX-1 dijawab D, contoh layar dibuat sebelum memilih |
-| 7 | Kata "saldo" dan sapaan "kamu" atau "Anda" | Diuji dengan anggota pilot di minggu pertama |
+| 4 | Teks final 10.1 §11.3 | **Ditutup**: disalin ke §7.5 tanpa kalimat janji (S4-6 (ii) A) |
+| 5 | Nama API haptik, kontras sistem Compose | §17.6, §15 diperbarui di fase bangun. Angka tabular Manrope ditutup karena arah A tidak dipilih |
+| 6 | Contoh layar arah C belum dibuat | Dibuat lead untuk gerbang anti-templat §19.8 sebelum token dibekukan |
+| 6a | SEC-155 | **Ditutup**: §7.4 diselaraskan dengan SEC-155 (10.4 §6.3) dan 10 indeks §7.3; larangan sebutan kembar menjadi ketetapan lead dan masuk SEC-155 (h) |
+| 6b | Nilai token, nomor stylistic set, dan versi Plus Jakarta Sans | Diukur dan dipastikan saat token dibuat (§19.11) |
+| 7 | Kata "saldo"; uang masuk tanpa hijau | Diuji dengan anggota pilot di minggu pertama (§18.2; §19.9). Sapaan "kamu" sudah diputuskan (S4-10 (iv) A) |
 | 8 | iPhone lipat tanpa pedoman Apple | Dinilai ulang bila pedoman terbit |
 
 ---
 
 ## 24. Sumber
 
-Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026.
+Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026 ([S10] sampai [S12] sesudah checkpoint S4).
 
 | Kode | Sumber | Isi yang dipakai |
 |---|---|---|
@@ -1353,4 +1568,7 @@ Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan doku
 | [S6] | Apple Developer, WWDC25 sesi 323 dan dokumentasi SwiftUI `TabView`, https://developer.apple.com/videos/play/wwdc2025/323/ | `tabBarMinimizeBehavior`, `tabViewBottomAccessory` |
 | [S7] | Sama dengan [S3], entri per versi 1.5.0-alpha15 sampai alpha29, beta01, beta02, rc01 | Kelulusan komponen Expressive di jalur pra-rilis |
 | [S9] | Android Developers, "Compose Material 3 Adaptive" release notes, https://developer.android.com/jetpack/androidx/releases/compose-material3-adaptive | Versi stabil 1.3.0 dan alpha 1.4.0 |
-| [S8] | Repositori Manrope, https://github.com/sharanda/manrope | Lisensi OFL; fitur angka tabular **[Perlu validasi]** |
+| [S8] | Repositori Manrope, https://github.com/sharanda/manrope | Lisensi OFL; fitur angka tabular **[Perlu validasi]**; tidak dipakai lagi (arah A tidak dipilih) |
+| [S10] | Apple Human Interface Guidelines, "App icons" (log perubahan terakhir 28 Oktober 2026), https://developer.apple.com/design/human-interface-guidelines/app-icons, dibaca lewat berkas data `…/tutorials/data/design/human-interface-guidelines/app-icons.json` | Lapisan dan Icon Composer; Liquid Glass hanya pada bentuk besar sederhana; varian default, dark, clear, tinted; hindari teks, garis sangat tipis, efek buatan, dan tiruan komponen antarmuka |
+| [S11] | Android Developers, "Adaptive icons", https://developer.android.com/develop/ui/views/launch/icon_design_adaptive | Lapisan 108 dp, zona aman 66 dp, logo minimal 48 dp; lapisan monokrom untuk ikon bertema (Android 13); tema otomatis mulai Android 16 QPR 2 |
+| [S12] | Repositori Plus Jakarta Sans, https://github.com/tokotype/PlusJakartaSans | OFL 1.1; tiga gaya alternatif Lancip (Sharp), Lurus (Straight), Lingkar (Swirl); angka tabular "(.tf)"; font variabel sumbu bobot; nomor stylistic set tidak tercantum |

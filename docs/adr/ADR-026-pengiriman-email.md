@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 |
-| Tanggal | 12 November 2026 (S4 fase D) |
+| Status | **Diusulkan** (`architect`, 12 November 2026). **Ditunda pemilik produk sampai menjelang deploy** (S4-2 (ii); kata-katanya: "#S4-2: nanti aja pas mau deploy"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama). Syarat server di Indonesia (keputusan 10) tetap mengikat. K-62 (SES sebagai pengecualian kedua atas layanan berbayar per pemakaian di brief §1) menunggu jawaban ini |
+| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4) |
 | Pengusul | `architect`, atas temuan `critic` CS-A-11 |
 | Mengubah | Menuntaskan butir email yang ditunda di dokumen 09 fase C |
 | Rincian | [09.4 §2, §3, §7](../09-technical-architecture/04-operasi-uji-biaya.md) |

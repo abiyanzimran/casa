@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026; diperbarui S4 fase D); akan diputuskan pemilik produk di checkpoint S4 |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: SSE + tarik berkursor, offline per modul, jeda urungkan 5 detik (D-100, diterima dengan "lanjut"); kehadiran menurut S4-5 (i) A dan (ii) A, "A tetap seperti WhatsApp" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama) |
 | Tanggal | 12 November 2026 (S4 fase C) |
 | Pengusul | `architect` |
 | Mengubah | 06 §16.5 dan §16.6: **[Asumsi]** platform diganti rancangan; batas diam kehadiran ditetapkan (permintaan revisi 06, indeks 09 §8) |
@@ -54,8 +54,8 @@ Riset 18 §5.6 menemukan:
 5. **Kehadiran.**
    - Denyut paling sering setiap 15 detik selama ada interaksi di layar yang memenuhi syarat.
    - Online berakhir 30 detik sesudah denyut terakhir atau seketika saat aplikasi ke latar. Mengetik tampil sampai 6 detik.
-   - Disimpan di memori proses saja. Terakhir aktif satu baris yang ditimpa, dipotong ke ketelitian tampil sebelum disimpan (SEC-60, bersyarat UX-5): bawaan A menit, sesuai keputusan pemilik produk "Semua seperti WhatsApp"; B atau C ke bawah ke 15 menit.
-   - Disebarkan hanya ke layar chat, tidak lebih rinci daripada yang tampil di layar (UX-5). Layar mana yang mengirim denyut mengikuti pilihan 10-A.
+   - Disimpan di memori proses saja. Terakhir aktif satu baris yang ditimpa, dipotong ke **menit** sebelum disimpan (SEC-60; S4-5 (ii) A).
+   - Denyut dikirim dari **setiap layar aplikasi** saat di depan dengan interaksi (S4-5 (i) A); tidak ada setelan `presence_hidden`. Disebarkan hanya ke layar chat, tidak lebih rinci daripada yang tampil di layar (UX-5).
 6. **Tanpa message broker.** Satu transaksi menulis domain, `object_event`, `reader_feed`, `notification`, dan `job`. `NOTIFY` sesudah commit membangunkan hub dan pekerja.
 
 ## Konsekuensi

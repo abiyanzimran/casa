@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect` bersama `security-privacy`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4. Menyelesaikan pertentangan dokumen 10 §8 butir 3, 4, dan 9 menurut rekomendasi `security-privacy` di sana. Butir 5 berlaku hanya bila pemilik produk memilih 10-D A |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: butir 1 sampai 4 dan 6 lewat D-102 ("lanjut"); butir 5 lewat S4-6 (i) A, pilot tanpa E2EE dan status `CARE` yang tidak dibagikan tidak pernah meninggalkan perangkat. Kata-katanya: "oke gausa e2ee" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban ketiga; dikukuhkan dengan "lanjut"). Menyelesaikan pertentangan dokumen 10 §8 butir 3, 4, dan 9 menurut rekomendasi `security-privacy` di sana |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect`, atas SEC-21, SEC-46 sampai SEC-48 (`security-privacy`) |
-| Mengubah | 06 §13.3, §13.5 bila 10-D A (06 revisi ketiga belas) |
+| Mengubah | 06 §13.3, §13.5 (06 revisi ketiga belas; berlaku sejak S4-6 (i) A) |
 | Rincian | [09.3 §2, §3](../09-technical-architecture/03-sinkron-waktu-nyata-notifikasi.md) |
 
 ## Konteks
@@ -37,7 +37,7 @@ Perilaku platform yang diperiksa 12 November 2026:
 | Kelas proteksi iOS (berkas `CARE` lokal, 10-D A) | Class C | **Class A**: tidak pernah disinkron, sehingga tidak ada tulisan latar |
 | Cadangan Android | `allowBackup="false"` saja | **Aturan eksklusi eksplisit untuk cadangan awan, transfer antarperangkat, dan transfer lintas platform**, ditambah `fullBackupContent` untuk Android 11 ke bawah |
 | Hapus jarak jauh | Kirim antrean dulu, baru hapus | **Hapus sebelum layar pertama; antrean yang belum terkirim ikut terhapus** |
-| `CARE` tak dibagikan | Di server (06 §13.5 sekarang) | **Di perangkat saja bila 10-D A** |
+| `CARE` tak dibagikan | Di server | **Di perangkat saja** (S4-6 (i) A) |
 
 ## Keputusan
 
@@ -56,7 +56,7 @@ Perilaku platform yang diperiksa 12 November 2026:
    - Aplikasi menghapus basis data, berkas, antrean, dan notifikasi yang tampil **sebelum** menampilkan layar apa pun.
    - Perintah lama dari perangkat itu ditolak server.
    - Layar cabut di perangkat lain menyatakan bahwa catatan yang belum terkirim di perangkat itu akan hilang (SEC-21). Alasannya: perangkat yang hilang sudah kehilangan catatan itu bagi pemiliknya, dan mengirimnya tanpa pemegang yang sah lebih berbahaya.
-5. **`CARE` tak dibagikan, bila 10-D A:**
+5. **`CARE` tak dibagikan** (S4-6 (i) A):
    - status yang tidak dibagikan disimpan hanya di basis data perangkat pemiliknya;
    - perintah berbagi mengunggah status saat itu kepada penerima yang dipilih;
    - mencabut berbagi menghapusnya dari server dan menghasilkan `purge` bagi penerima.
@@ -68,4 +68,4 @@ Perilaku platform yang diperiksa 12 November 2026:
 - Penemu perangkat yang terkunci sesudah dinyalakan ulang tidak dapat membaca data. Sesudah pembukaan pertama, perlindungannya bergantung pada kunci perangkat dan kunci aplikasi (SEC-19). Status `CARE` lokal tidak terbaca setiap kali perangkat terkunci.
 - Tidak ada salinan data rumah tangga di iCloud atau Google Drive (SEC-145).
 - Dua jalan yang sengaja menghilangkan data yang belum terkirim (hapus jarak jauh dan pindah ponsel) dinyatakan di layar. Keduanya diterima `security-privacy` di dokumen 10 §8.
-- Bila 10-D A, sebagian alur `CARE` (I01 sampai I04 sebelum berbagi) berjalan di perangkat. Itu bukan aturan uang atau persetujuan, sehingga tidak bertentangan dengan ES §2. Yang dibagikan tetap diputus server.
+- Sebagian alur `CARE` (I01 sampai I04 sebelum berbagi) berjalan di perangkat. E2EE chat, foto chat, alasan bebas `CARE`, dan sebutan anggota (F-FAM-021; SEC-155 (j)) dinilai lewat satu ADR baru sebelum tahap publik (S4-6 (i) A; dokumen 10 §8 butir 13). Dasarnya terhadap ES §2 adalah ADR ini sendiri, yang butir 5-nya disetujui pemilik produk (S4-6 (i) A), sesuai syarat ES baris 3 bagi penyimpangan; alur lokal itu satu-satunya implementasinya, karena status yang tidak dibagikan tidak pernah sampai ke server. Yang dibagikan tetap diputus server.

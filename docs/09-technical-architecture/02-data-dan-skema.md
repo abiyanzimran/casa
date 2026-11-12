@@ -19,7 +19,7 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 | Modul | Isi | Tabel milik | Sumber aturan |
 |---|---|---|---|
 | `identity` | Akun, kata sandi, sesi per perangkat, token penyegar, autentikasi ulang, pemulihan email, batas laju | `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `security_event` | Dokumen 10 SEC-11 sampai SEC-27 |
-| `household` | Rumah tangga, keanggotaan, peran, undangan, keluar dan masa tenggang, pihak luar, pemberitahuan operator, `full_adult_members` | `household`, `membership`, `invitation`, `external_party`, `operator_notice`, `operator_notice_ack`, `consent_record` | 06 §3; SEC-10, SEC-28 sampai SEC-34, SEC-109 |
+| `household` | Rumah tangga, keanggotaan, peran, undangan, keluar dan masa tenggang, pihak luar, pemberitahuan operator, `full_adult_members`, sebutan anggota per pembaca (Tier 2, §5.5) | `household`, `membership`, `invitation`, `external_party`, `operator_notice`, `operator_notice_ack`, `consent_record`, `member_label` | 06 §3; SEC-10, SEC-28 sampai SEC-34, SEC-109, SEC-155 |
 | `ledger` | Entri, baris, tautan, rincian, posisi (tempat uang, piutang, kewajiban, aset), rekonsiliasi | `entry`, `line`, `entry_link`, `entry_detail`, `identity_map`, `holding`, `receivable`, `liability`, `asset`, `reconciliation` | 07 §1 sampai §3; ADR-002, ADR-004, ADR-007 |
 | `budget` | Kategori, tujuan, periode, anggaran, otorisasi, reservasi, jatah, tagihan berulang, cicilan, jadwal penyisihan, sumber penghasilan, penilaian tanda; **kecocokan kategori** tautan ke pos rutin dan larangan mengganti kategori entri yang tertaut (satu fungsi; SEC-92; 07 §3.15 butir 7b, INV-37) | `category`, `purpose`, `budget_period_setting`, `budget`, `budget_rule`, `authorization`, `reservation`, `installment`, `recurring_bill`, `set_aside_schedule`, `income_source`, `assessment_lane`, `entry_flag` | 07 §2, §3, §6; 06 S-8 |
 | `request` | Permintaan, versi syarat, tanggapan, kesepakatan rumah tangga, Peristiwa | `request`, `request_terms`, `request_response`, `object_event` | 06 §2, §4 sampai §8 |
@@ -87,7 +87,8 @@ flowchart LR
 | Riwayat audit | `object_event` per objek (06 S-5); entri itu sendiri (append-only); `security_event` untuk sesi dan akses operator, terbaca hanya oleh pemilik akun (SEC-16, SEC-17) | Tidak ada riwayat lintas objek menurut orang (06 AT-3) | — |
 | Pencarian | PostgreSQL: filter berindeks + `ILIKE` per rumah tangga di Tier 1; `tsvector` `indonesian` + `pg_trgm` saat volume menuntut (§11) | Tanpa mesin pencari terpisah | — |
 | Kehadiran | Online dan mengetik: **memori proses saja**. Terakhir aktif: satu baris per (anggota, rumah tangga) yang ditimpa, tanpa riwayat (D-95) | 06 §16.6; INV-A45 | — |
-| Status `CARE` yang tidak dibagikan | **Perangkat pemiliknya saja** bila 10-D A dipilih (ADR-024) | 10-D | Basis data lokal |
+| Status `CARE` yang tidak dibagikan | **Perangkat pemiliknya saja** (10-D A, diterima di S4-6 (i); ADR-024 butir 5) | Tidak pernah meninggalkan perangkat sebelum dibagikan | Basis data lokal, Class A |
+| Sebutan anggota per pembaca (F-FAM-021, Tier 2) | PostgreSQL (`member_label`), setelan akun milik pembuatnya (§5.5) | Berlaku di semua perangkat pembuat (08 §7.4); terbaca hanya oleh pembuat (SEC-155 (b)) | Salinan baca hanya di perangkat pembuat |
 | Log | journald, 14 hari (SEC-44) | — | Tidak ada log isi di perangkat |
 | Cadangan | VPS cadangan di Indonesia, terenkripsi sebelum keluar (ADR-020) | SEC-43 | Basis data lokal dikecualikan dari cadangan OS (SEC-46) |
 
@@ -278,8 +279,7 @@ read_state (household_id, conversation_id, member_id,
             delivered_upto_seq bigint NOT NULL DEFAULT 0,
             read_upto_seq      bigint NOT NULL DEFAULT 0,
             CHECK (read_upto_seq <= delivered_upto_seq))  -- hanya naik: UPDATE … SET x = GREATEST(x, $n)
-presence_last_active (household_id, member_id, last_active_floor timestamptz,  -- dipotong ke ketelitian tampil (SEC-60, UX-5):
-                                                                              -- A (bawaan): menit; B atau C: ke bawah ke 15 menit
+presence_last_active (household_id, member_id, last_active_floor timestamptz,  -- dipotong ke menit (SEC-60; S4-5 (ii) A)
                       PRIMARY KEY (household_id, member_id))
 
 notification (
@@ -295,7 +295,7 @@ notification (
 )
 push_token (session_id uuid PRIMARY KEY, platform text, token text, updated_at timestamptz)
 
--- Hanya bila 10-G memilih mekanisme Apple 1.2 (06 §16.12; SEC-153, SEC-154)
+-- Mekanisme Apple 1.2, Tier 1 (10-G A, S4-7 A; FR-COM-019; 06 §16.12; SEC-153, SEC-154)
 member_mute (household_id, viewer uuid, muted_member uuid, created_at,
              PRIMARY KEY (household_id, viewer, muted_member))   -- milik viewer; tidak terbaca anggota lain
 -- content_report TIDAK dibuat di pilot: "Laporkan" hanya membuka halaman Bantuan (SEC-154 (c)).
@@ -315,6 +315,46 @@ attachment_blob (household_id, attachment_id, variant text CHECK (variant IN ('f
                  data bytea NOT NULL,
                  PRIMARY KEY (household_id, attachment_id, variant))
 ```
+
+### 5.5 Sebutan anggota per pembaca (F-FAM-021, Tier 2; ringkas)
+
+Tambahan pemilik produk di checkpoint S4 ([_progress.md](../_progress.md), "Keputusan checkpoint S4"). Aturan keamanannya kanonis di **SEC-155 (a) sampai (j)** (10.4 §6.3); tempat tampil dan kata-katanya di 08 §7.4; persyaratannya FR-FAM-025. Sketsa ini hanya menunjukkan bahwa SEC-155 dapat ditegakkan dan diuji dengan komponen yang sudah ada. **[Usulan]** `architect`.
+
+```sql
+member_label (
+  household_id uuid, viewer uuid, subject uuid,  -- viewer = pembuat (anggota berakun); subject = anggota lain, termasuk tanggungan
+  label        text NOT NULL,                    -- sesudah dipangkas dan NFC; 1..30 karakter tampak (SEC-155 (h))
+  label_key    text NOT NULL,                    -- label_key(label): NFC lalu case folding Unicode; dihitung satu fungsi Go
+  updated_at   timestamptz NOT NULL DEFAULT now(),  -- ditimpa; tanpa riwayat (SEC-155 (b))
+  PRIMARY KEY (household_id, viewer, subject),
+  UNIQUE (household_id, viewer, label_key),      -- satu pembuat tidak memberi sebutan sama kepada dua anggota
+  CHECK (viewer <> subject),
+  FOREIGN KEY (household_id, viewer)  REFERENCES membership (household_id, member_id),
+  FOREIGN KEY (household_id, subject) REFERENCES membership (household_id, member_id)
+)
+-- Sebutan yang dibuat saat mengundang (SEC-155 (a)) menempel pada undangan, tidak tampil di mana pun
+-- sampai keanggotaan aktif, menjadi baris member_label pada F04, dan dihapus bersama undangan pada F05
+-- atau pembatalan (SEC-155 (g)(3)).
+invitation (..., inviter_label text NULL, inviter_label_key text NULL)
+```
+
+| Hal | Penerapan | SEC-155 |
+|---|---|---|
+| Perintah | `set_member_label` (buat atau ganti) dan `clear_member_label`, oleh pembuat saja, untuk `viewer` = anggota pemanggil. Online-first, seperti pengaturan lain (03 §1); tanpa jeda urungkan, Peristiwa, kartu, atau notifikasi. F04 `confirm_invitee` memindahkan `inviter_label` menjadi baris milik pengundang dalam transaksi yang sama | (a), (b) |
+| Bentuk masukan | Anotasi protovalidate di kontrak, ditegakkan server (ADR-013 butir 1): 1 sampai 30 karakter tampak sesudah dipangkas dan NFC, satu baris, tanpa karakter terlarang SEC-155 (h). Aplikasi hanya memeriksa **wajib diisi dan panjang teks**, yaitu bantuan isian (c) dari pengecualian ES §2 (ADR-013 butir 3), dengan vektor uji emas yang sama. Karakter terlarang, normalisasi NFC, dan duplikat **hanya diperiksa server**, karena daftar pengecualian ES §2 (c) tertutup | (h) |
+| Tanpa duplikat | Dalam satu rumah tangga, satu pembuat tidak boleh memberi `label_key` yang sama kepada dua anggota. `label_key` dihitung **satu fungsi Go** di modul `household` (NFC lalu case folding Unicode), tidak dihitung ulang di basis data atau aplikasi. Penegaknya dua: `UNIQUE (household_id, viewer, label_key)` atas `member_label`, dan di dalam transaksi `SERIALIZABLE` yang sama perintah `set_member_label` serta pembuatan undangan juga menolak kunci yang sudah dipakai `inviter_label_key` undangan terbuka milik pembuat yang sama (satu `UNIQUE` tidak dapat mencakup dua tabel). Penolakannya galat per medan `label_duplicate`, yang hanya pernah dilihat pembuat sendiri, sehingga tidak membuka apa pun kepada orang lain (SEC-155 (b)). Karena kedua pintu masuk diperiksa, pemindahan pada F04 tidak dapat bertabrakan; bila tetap bertabrakan (misalnya data lama), F04 tetap berjalan dan sebutan undangan itu tidak dipindah, karena sebutan tidak pernah boleh menghalangi keanggotaan **[Usulan]** | (h) |
+| Baca | `read.can_read` mengembalikan baris `member_label` hanya bila pembaca = `viewer`. Fan-out `reader_feed` karena itu hanya menulis baris untuk `viewer`; anggota lain tidak menerima `upsert` atau `purge` apa pun, sehingga umpan, potret awal, dan galat mereka sama dengan keadaan tanpa sebutan. Tidak ada kueri di jalur baca orang lain yang menyentuh `member_label`, jadi waktu tanggapan mereka juga tidak bergantung pada ada atau tidaknya sebutan. `viewer` adalah keanggotaan akun pembuat di rumah tangga itu, sehingga sebutan berlaku di semua sesi akun itu dan tidak lintas rumah tangga. Perintah atas baris milik orang lain tidak mungkin, karena kuncinya selalu diisi dari sesi pemanggil, bukan dari isi perintah | (b) |
+| Penerapan di layar | Perangkat pembuat mengganti nama dari pengenal anggota dengan sebutan dari salinan bacanya sendiri, saat menampilkan saja. Server tidak pernah menyisipkan sebutan ke badan pesan, kartu, Peristiwa, teks ringkasan, payload push, atau teks notifikasi (payload push memang tanpa nama, SEC-50) | (c), (d) |
+| `AI` | Modul `ai` tidak membaca `member_label`; aturan dependensi 2 di §1 ditambah daftar tolak untuk tabel ini, diperiksa uji arsitektur | (e) |
+| Ekspor | `lifecycle` memuatnya hanya di ekspor milik `viewer` yang dibuat selama ia aktif, sebagai bagian tersendiri; tidak di ekspor anggota lain dan tidak di jendela ekspor sesudah keluar | (f) |
+| Penghapusan | Dalam transaksi F07 anggota mana pun: `DELETE` semua baris dengan `viewer` **atau** `subject` = anggota itu di rumah tangga itu (dua arah). Hapus akun (FR-FAM-023): semua baris oleh dan tentang akun itu di setiap rumah tangga. Selama F06 baris tetap tersimpan, sehingga F08 memulihkannya; yang keluar tidak membacanya karena sesinya sudah dicabut. Setiap penghapusan menghasilkan `purge` hanya untuk `viewer` (SEC-48); cadangan mengikuti jangka 38 hari (D-104) | (g) |
+| Log dan lintas rumah tangga | Medan `label` tidak ada di daftar izin log (09.4 §3); `household_id` di kunci dan RLS seperti tabel lain | (i) |
+
+**Uji** (masuk rangkaian privasi 09.4 §4): uji SEC-155 (b) dijalankan dengan pola uji INV-A53, yaitu setiap API baca dan `Sync` dipanggil sebagai orang yang disebut dan sebagai anggota ketiga, dengan dan tanpa sebutan, dan hasilnya dibandingkan byte demi byte selain pengenal dan waktu; ditambah uji (c), (f), (g), dan (h) persis seperti kolom "Cara menguji" SEC-155.
+
+Uji tambahan untuk keunikan: "Bunda" dan "bunda", serta bentuk NFC dan NFD dari sebutan yang sama, untuk dua anggota oleh pembuat yang sama ditolak `label_duplicate`; pembuat lain boleh memakai sebutan yang sama; sebutan pada undangan terbuka ikut dihitung; F04 tidak pernah gagal karena sebutan.
+
+**Selisih antardokumen, diselesaikan lead (12 November 2026):** (1) panjang 1 sampai 30 karakter tampak (SEC-155 (h)); (2) tanpa duplikat per pembuat per rumah tangga sesudah NFC dan case folding, dimasukkan `security-privacy` ke SEC-155 (h); (3) ekspor pembuat memuat sebutannya di bagian tersendiri (SEC-155 (f)); (4) sebutan dibuat saat mengundang (SEC-155 (a)) dan baru tampil sesudah keanggotaan aktif. Sketsa di atas sudah mengikuti keempatnya.
 
 ---
 

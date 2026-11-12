@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 (09-C) |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, Xcode Cloud + TestFlight internal + sewa Mac sekali (S4-3 (i) A). Kata-katanya: "#S4-3: A Xcode Cloud + sewa Mac sekali - A iOS 26, Android 10" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama; dikukuhkan dengan "lanjut"). Pemicu naik ke B atau C (butir 4) tetap berlaku |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §12](../09-technical-architecture/01-pilihan-teknologi.md); [09.4 §5](../09-technical-architecture/04-operasi-uji-biaya.md) |

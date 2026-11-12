@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 (09-B) |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Diusulkan** (`architect`, 12 November 2026). **Ditunda pemilik produk sampai menjelang deploy** (S4-2 (i); kata-katanya: "#S4-2: nanti aja pas mau deploy"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama). Syarat server dan cadangan di Indonesia (keputusan 10) tetap mengikat pilihan apa pun. Penyedia, harga, dan pihak kontrak di bawah diperiksa ulang saat S4-2 diajukan lagi |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §10](../09-technical-architecture/01-pilihan-teknologi.md); [09.4 §1, §6, §7](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -43,7 +43,7 @@ Dokumen 10 mengajukan dua syarat:
    |---|---|
    | Pihak kontrak | **PT Biznet Gio Nusantara** |
    | Pusat data | Di Indonesia: NEO Cloud di Cimanggis dan MidPlaza menurut halaman Biznet Gio sendiri. Kota pusat data VPS ini diminta tertulis dari penyedia sebelum data nyata masuk |
-   | Kebijakan privasi | Penyedia diminta menyatakan tertulis bahwa kalimat "di luar wilayah Republik Indonesia" tidak mencakup isi VPS pelanggan. Butir ini juga masuk daftar advokat (10-C; L-01, L-14) |
+   | Kebijakan privasi | Penyedia diminta menyatakan tertulis bahwa kalimat "di luar wilayah Republik Indonesia" tidak mencakup isi VPS pelanggan, sebelum data nyata masuk. Penilaian advokat atasnya (L-01, L-14) dilakukan sebelum tahap publik, karena pemilik produk memilih advokat sebelum tahap publik (S4-4 (iii) A) |
    | Spesifikasi | 2 vCPU, 4 GB RAM, 60 GB SSD |
    | Harga | Rp139.000 per bulan (PPN tidak disebut) |
 
@@ -74,4 +74,5 @@ Dokumen 10 mengajukan dua syarat:
 - Kota pusat data Biznet Gio dan cakupan kalimat "di luar wilayah Republik Indonesia" di kebijakan privasinya belum terbukti tertulis (RISK-04). Keduanya harus selesai sebelum data nyata.
 - Status `repo1-type=sftp` di pgBackRest 2.60.0 dan dukungan "penuh" PG18 belum dikukuhkan **[Perlu validasi]** (RISK-05). WAL-G v3.0.9 menjadi alternatif bila uji pemulihan gagal.
 - Dua penyedia berarti dua tagihan dan dua akun untuk dijaga.
-- L-14 (pendaftaran PSE) dan perjanjian prosesor (18 §5.8 butir tinjauan 2) berlaku untuk kedua penyedia. Butir itu milik advokat (10-C).
+- L-14 (pendaftaran PSE) berlaku untuk kedua penyedia dan milik advokat, sebelum tahap publik (S4-4 (iii) A); risiko pemutusan akses bila pilot ternyata wajib terdaftar (W-32) diterima pemilik produk.
+- Catatan ketentuan prosesor (18 §5.8 butir tinjauan 2) untuk kedua penyedia dibuat saat S4-2 diputuskan, sebelum data nyata, dan hanya tinjauan advokat atas teksnya yang menunggu tahap publik (dokumen 10 §3.1, §4.1 butir 4). Waktu itu, juga untuk DPIA, **[Usulan]** `security-privacy`, **menunggu Q-208**.

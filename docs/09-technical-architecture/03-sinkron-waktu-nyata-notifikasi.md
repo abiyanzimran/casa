@@ -14,7 +14,7 @@ Asasnya:
 
 | Modul dan tindakan | Pola | Yang terjadi tanpa sinyal | Penyelesaian tabrakan |
 |---|---|---|---|
-| `FIN` mencatat belanja, pemasukan, pemindahan, penyisihan, pembayaran cicilan dan tagihan | **Offline-first**: perintah diantrekan dengan `idempotency_key` | Tampil "menunggu terkirim", terpisah. Angka server terakhir tetap tampil dengan waktunya; perangkat tidak menghitung perkiraan (berkas 01 §3; 06 S-9). Bantuan isian (selisih baris, bagi rata, bentuk masukan) berjalan di perangkat bila 09-F A | Tidak ada tabrakan: entri hanya ditambah. Tanda, tautan, dan periode dihitung server saat diterima (06 S-7, S-8) |
+| `FIN` mencatat belanja, pemasukan, pemindahan, penyisihan, pembayaran cicilan dan tagihan | **Offline-first**: perintah diantrekan dengan `idempotency_key` | Tampil "menunggu terkirim", terpisah. Angka server terakhir tetap tampil dengan waktunya; perangkat tidak menghitung perkiraan (berkas 01 §3; 06 S-9). Bantuan isian (selisih baris, bagi rata, bentuk masukan) berjalan di perangkat (09-F A, pengecualian ES §2) | Tidak ada tabrakan: entri hanya ditambah. Tanda, tautan, dan periode dihitung server saat diterima (06 S-7, S-8) |
 | `FIN` rekonsiliasi (hitung uang) | Offline-first | Perangkat menampilkan perkiraan selisih | Server menghitung selisih terhadap baris yang sudah ia terima (07 INV-16). Perangkat penghitung menampilkan selisih server sesudah sinkron (06 S-10) |
 | `FIN` konfirmasi dan keberatan custody | Offline-first, dengan compare-and-set | "Menunggu terkirim" | `state_changed` bila baris sudah dikonfirmasi orang lain (INV-36) |
 | `FIN` membuat atau mengubah tempat uang, anggaran, tagihan berulang, cicilan | **Online-first** | Tombol menyatakan perlu sinyal | — |
@@ -27,7 +27,8 @@ Asasnya:
 | `FAM` undangan, keluar, sesi, kunci, pemulihan | Online-first; sebagian memerlukan autentikasi ulang (SEC-13) | Perlu sinyal | — |
 | `SHP` daftar belanja (Tier 2) | Offline-first per butir: tambah, centang, hapus centang, hapus | Butir dan centang tampil langsung | Per butir: perintah diterapkan dalam urutan server menerima. Centang terakhir yang diterima server berlaku. Butir yang dihapus orang lain mengabaikan centang sesudahnya, tanpa galat |
 | `MNT`, `PLN` (Tier 2) | Online-first; pencatatan masalah boleh diantrekan | — | Compare-and-set |
-| `CARE` status (Tier 2) | Status yang tidak dibagikan: **perangkat saja** bila 10-D A (ADR-024). Berbagi dan mencabut: online-first | — | Satu penulis: pemilik status |
+| `CARE` status (Tier 2) | Status yang tidak dibagikan: **perangkat saja** (10-D A, S4-6 (i) A; ADR-024). Berbagi dan mencabut: online-first | — | Satu penulis: pemilik status |
+| Sebutan anggota (F-FAM-021, Tier 2) | Online-first, seperti pengaturan; tanpa jeda urungkan, Peristiwa, atau notifikasi (02 §5.5; SEC-155 (b)) | Perlu sinyal | Satu penulis: pembuatnya; penggantian menimpa |
 | `AI` (Tier 2) | Online saja; dipilih server dari kumpulan | Tidak ada saran | — |
 | Laporan, ekspor | Online; laporan terakhir disimpan sebagai cache baca | Laporan terakhir tampil dengan waktunya | — |
 
@@ -54,7 +55,7 @@ Asasnya:
 | Mesin | SQLite. Pustaka pembungkusnya (GRDB, Core Data, atau SwiftData) dipilih `ios-dev` saat fase bangun dengan kriteria: dapat diuji di Linux, versi stabil (ES §8), dan migrasi antrean yang eksplisit | SQLite lewat Room (Jetpack, versi stabil) | ES §8 |
 | Isi | Hanya data yang terbaca anggota itu, sebagaimana dikirim jalur baca (SEC-47); antrean perintah; cache foto | Sama | SEC-47 |
 | Waktu milik perangkat (dokumen 08 §23.1 butir 3) | (1) `last_synced_at`: jam perangkat saat `Sync` terakhir berhasil, untuk "Diperbarui di ponsel ini 10.42". Ini **hanya tampilan di perangkat ini**: tidak dikirim ke server, tidak masuk ekspor, dan tidak dibaca aturan. (2) Keterangan "dicatat 3 hari kemudian" **tidak** memakai jam perangkat: proyeksi jalur baca menyertakan **tanggal** pencatatan server (`recorded_on`, tanggal saja, tidak pernah jam) kepada **setiap pembaca entri itu**, sebagai pagar terhadap entri bertanggal mundur (06 AT-6, §6.3; 07 §3.4, §3.11, T-26; dokumen 10 menolak usulan 08 "hanya pencatat"). Nilainya sama di semua perangkat dan bagi semua pembaca | Sama | 06 AT-6, S-6; SEC-03 |
-| Proteksi berkas | Kelas **`NSFileProtectionCompleteUntilFirstUserAuthentication`** (Class C). Kunci kelasnya tetap di memori sesudah perangkat pertama kali dibuka, sehingga sinkron latar tetap mungkin, dan ini kelas bawaan untuk data aplikasi pihak ketiga ([Apple Platform Security, Data Protection classes](https://support.apple.com/guide/security/data-protection-classes-secb010e978a/web), diakses 12 November 2026) **[Terverifikasi]**. Kelas ditetapkan eksplisit pada berkas basis data, WAL, dan direktori foto. Apple menyarankan kelas yang lebih ketat bila sinkron latar tidak diperlukan, dan pilot memang tidak punya jalur latar (§8 butir 2); penyimpangan ini dan alasannya dicatat di ADR-024: dengan Class A, tulisan SQLite dan WAL yang masih berjalan saat perangkat dikunci (misalnya jawaban `Sync` atau penghapusan antrean sesudah perintah diterima) gagal, dan basis data antrean dapat tertinggal dalam keadaan setengah tertulis **[Asumsi]**, diuji `ios-dev` di perangkat. **Berkas `CARE` lokal** (status yang tidak dibagikan, bila 10-D A) memakai **Class A, `NSFileProtectionComplete`**: tidak terbaca selama perangkat terkunci, karena tidak pernah disinkron | Penyimpanan internal aplikasi (*credential encrypted*), yang terbuka sesudah pengguna pertama kali membuka perangkat (Android 10 ke atas memakai *file-based encryption*, **[Perlu validasi]** untuk semua produsen). Tidak memakai *device protected storage* | SEC-46 |
+| Proteksi berkas | Kelas **`NSFileProtectionCompleteUntilFirstUserAuthentication`** (Class C). Kunci kelasnya tetap di memori sesudah perangkat pertama kali dibuka, sehingga sinkron latar tetap mungkin, dan ini kelas bawaan untuk data aplikasi pihak ketiga ([Apple Platform Security, Data Protection classes](https://support.apple.com/guide/security/data-protection-classes-secb010e978a/web), diakses 12 November 2026) **[Terverifikasi]**. Kelas ditetapkan eksplisit pada berkas basis data, WAL, dan direktori foto. Apple menyarankan kelas yang lebih ketat bila sinkron latar tidak diperlukan, dan pilot memang tidak punya jalur latar (§8 butir 2); penyimpangan ini dan alasannya dicatat di ADR-024: dengan Class A, tulisan SQLite dan WAL yang masih berjalan saat perangkat dikunci (misalnya jawaban `Sync` atau penghapusan antrean sesudah perintah diterima) gagal, dan basis data antrean dapat tertinggal dalam keadaan setengah tertulis **[Asumsi]**, diuji `ios-dev` di perangkat. **Berkas `CARE` lokal** (status yang tidak dibagikan; 10-D A) memakai **Class A, `NSFileProtectionComplete`**: tidak terbaca selama perangkat terkunci, karena tidak pernah disinkron | Penyimpanan internal aplikasi (*credential encrypted*), yang terbuka sesudah pengguna pertama kali membuka perangkat (Android 10 ke atas memakai *file-based encryption*, **[Perlu validasi]** untuk semua produsen). Tidak memakai *device protected storage* | SEC-46 |
 | Pengecualian dari cadangan | `URLResourceValues.isExcludedFromBackup = true` pada direktori basis data, antrean, dan foto **[Perlu validasi]**: halaman dokumentasi Apple tidak terbaca alat; perilakunya diuji di perangkat (cadangan iCloud tidak memuat basis data) | `android:dataExtractionRules` (target API 31+) dengan `<exclude>` domain `database`, `file`, dan `sharedpref` pada **`<cloud-backup>`, `<device-transfer>`, dan `<cross-platform-transfer>`** (18 §5, fase D) **[Terverifikasi]**, ditambah `android:fullBackupContent` untuk Android 11 ke bawah. Halaman resmi menyatakan bahwa `allowBackup="false"` pada sebagian produsen **tidak** menghentikan transfer antarperangkat, sehingga aturan eksklusi eksplisit diperlukan ([developer.android.com/identity/data/autobackup](https://developer.android.com/identity/data/autobackup), diakses 12 November 2026) **[Terverifikasi]**. Direktori `getNoBackupFilesDir()` selalu dikecualikan | SEC-46, SEC-145 |
 | Token sesi | Keychain, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` **[Perlu validasi]** nama konstanta | Android Keystore, kunci yang tidak dapat diekspor, membungkus token di penyimpanan internal yang dikecualikan dari cadangan | SEC-15 |
 | SQLCipher | Tidak dipakai di pilot (SEC-46); dinilai ulang sebelum tahap publik | Sama | SEC-46 |
@@ -143,28 +144,19 @@ Dengan rancangan ini, **[Asumsi]** 06 §16.5 (bahwa platform membedakan tarik di
 
 ---
 
-## 6. Kehadiran (D-95; 10-A)
+## 6. Kehadiran (D-95; 10-A A dan UX-5 A, diterima di checkpoint S4, S4-5)
 
 | Hal | Rancangan |
 |---|---|
-| Sumber | Klien mengirim `PresenceBeat` lewat RPC paling sering setiap 15 detik selama ada **interaksi** (sentuhan atau ketikan dalam 15 detik terakhir) di layar yang memenuhi syarat, dan hanya saat aplikasi di depan |
+| Sumber | Klien mengirim `PresenceBeat` lewat RPC paling sering setiap 15 detik selama ada **interaksi** (sentuhan atau ketikan dalam 15 detik terakhir) di **layar aplikasi mana pun** (10-A A), dan hanya saat aplikasi di depan |
 | Online | Server menandai online sampai **30 detik** sesudah denyut terakhir **[Usulan]**, atau segera berakhir saat aplikasi ke latar (sambungan SSE tertutup atau `PresenceEnd`). Ini batas diam yang diserahkan 06 §16.6 ke dokumen 09 |
 | Mengetik | Denyut `typing` paling sering setiap 3 detik saat teks berubah; tampil sampai 6 detik sesudah denyut terakhir **[Usulan]** |
-| Penyimpanan | Online dan mengetik **hanya di memori proses**: tidak di basis data, log, cadangan, atau ekspor (06 §16.6; INV-A45; SEC-61). Terakhir aktif: satu baris per (anggota, rumah tangga) yang ditimpa, berisi waktu akhir sesi online yang **sudah dipotong ke ketelitian tampil** sebelum disimpan (SEC-60; bersyarat UX-5, dijawab bersama 10-A): **bawaan UX-5 A, menit**, sesuai keputusan pemilik produk sendiri ("Semua seperti WhatsApp"; `_progress.md`); **UX-5 B atau C, dibulatkan ke bawah ke 15 menit**, dan tanpa jam untuk kemarin dan sebelumnya (08 §10.3). Proses yang dimulai ulang membuat semua orang "offline", dan itu benar |
+| Penyimpanan | Online dan mengetik **hanya di memori proses**: tidak di basis data, log, cadangan, atau ekspor (06 §16.6; INV-A45; SEC-61). Terakhir aktif: satu baris per (anggota, rumah tangga) yang ditimpa, berisi waktu akhir sesi online yang **sudah dipotong ke menit** sebelum disimpan (SEC-60; UX-5 A), sesuai keputusan pemilik produk sendiri ("Semua seperti WhatsApp"; `_progress.md`). Proses yang dimulai ulang membuat semua orang "offline", dan itu benar |
 | Penyebaran | Peristiwa SSE `presence` hanya kepada peserta percakapan yang sedang membuka **layar chat** (SEC-61). Tidak ada API lain yang mengembalikan kehadiran |
-| Kerincian | Peristiwa membawa **tidak lebih rinci daripada yang tampil di layar** (dokumen 10, UX-5): status `online` / `typing` / `offline` dan "terakhir aktif" pada ketelitian tampil menurut UX-5 (A: menit; B atau C: 15 menit), sehingga aplikasi yang dimodifikasi tidak memperoleh lebih dari layar (SEC-60). Tidak ada cap waktu denyut, layar asal, perangkat, atau hitungan denyut |
+| Kerincian | Peristiwa membawa **tidak lebih rinci daripada yang tampil di layar** (dokumen 10, UX-5): status `online` / `typing` / `offline` dan "terakhir aktif" pada ketelitian menit (UX-5 A), sehingga aplikasi yang dimodifikasi tidak memperoleh lebih dari layar (SEC-60). Tidak ada cap waktu denyut, layar asal, perangkat, atau hitungan denyut |
 | Tidak pernah diantrekan | Denyut yang gagal dikirim dibuang (06 S-11 (d)) |
 
-**Akibat pilihan 10-A** (yang berubah hanya layar mana yang mengirim denyut, dan satu setelan):
-
-| Pilihan | Layar yang mengirim denyut | Setelan |
-|---|---|---|
-| A (P0, bawaan) | Setiap layar aplikasi saat di depan dengan interaksi | — |
-| B (P2, disarankan dokumen 10) | **Layar chat saja** | — |
-| C (P1) | Setiap layar | `presence_hidden` per (anggota, rumah tangga). Bila menyala, denyutnya tidak disebarkan dan ia tidak menerima peristiwa `presence` orang lain |
-| D | Layar chat saja | Seperti C |
-
-Perbedaan biaya bangun antarpilihan kecil, sehingga arsitekturnya tidak memihak. 06 §16.6 (revisi ketiga belas) sudah memuat angka 30 dan 6 detik dan baris bersyarat untuk setiap pilihan.
+**Pilihan 10-A yang diterima: A (P0)**, setiap layar aplikasi saat di depan dengan interaksi, tanpa setelan sembunyi. B (layar chat saja), C (`presence_hidden` timbal balik), dan D tidak dipilih dan tidak dibangun. 06 §16.6 (revisi keempat belas) memuat angka 30 dan 6 detik.
 
 ---
 
@@ -265,9 +257,11 @@ Kartu chat (06 §16) bukan salinan: pesan `card` hanya merujuk objek, dan isinya
 
 ---
 
-## 11. Pendamping `AI` (Tier 2): arsitektur menurut pilihan 10-B
+## 11. Pendamping `AI` (Tier 2): jalur R1
 
-### 11.1 Bawaan: R1, kumpulan kalimat (10-B A)
+Diterima pemilik produk di checkpoint S4: R1 dengan batas USD 10 per bulan dan USD 3 per pembangunan (S4-4 (i) A), penyedia Claude (S4-4 (ii) A); ADR-021. Integrasinya dibangun ("integerasiin aja dulu"); `AI` tetap Tier 2.
+
+### 11.1 R1, kumpulan kalimat (10-B A)
 
 ```mermaid
 flowchart LR
@@ -285,17 +279,20 @@ flowchart LR
 
 - **Tidak ada data rumah tangga yang keluar.** Prompt hanya memuat templat produk, misalnya "kalimat apresiasi untuk pasangan yang menyelesaikan tugas rumah, nada hangat, bahasa Indonesia". Tidak ada nama, judul, jumlah, tanggal, atau status (SEC-120, SEC-121, SEC-123). Foto tidak pernah dikirim (SEC-69).
 - **Saat dipakai tidak ada pemanggilan `AI`.** Pemilih di server memakai kunci kategori dari jalur baca (SEC-06), dan tidak pernah membandingkan orang (SEC-129). "Minta ubah" berarti kalimat lain dari kumpulan (10-B A).
-- **Model:** Claude Sonnet 5.5 untuk membangun kumpulan **[Usulan]**. Satu pembangunan kumpulan, misalnya 40 pemanggilan × (1.500 token masukan + 3.000 token keluaran termasuk thinking) **[Asumsi]**, menghabiskan 0,06 juta token masukan dan 0,12 juta token keluaran. Biayanya 0,06 × 2 + 0,12 × 10 = **USD 1,32** per pembangunan. Bila dibangun bulanan, sekitar USD 1,32 per bulan.
-- **Batas biaya** (SEC-127): spend limit USD 10 per bulan di **workspace khusus**, karena Default Workspace tidak dapat diberi batas (18 §5.9). Server juga memegang penghitung `ai_usage` dengan tiga batas **[Usulan]**:
+- **Model:** Claude Sonnet 5.5 untuk membangun kumpulan (penyedia diterima; model dan harga dicek ulang saat dibangun, ES §8). Satu pembangunan kumpulan, misalnya 40 pemanggilan × (1.500 token masukan + 3.000 token keluaran termasuk thinking) **[Asumsi]**, menghabiskan 0,06 juta token masukan dan 0,12 juta token keluaran. Biayanya 0,06 × 2 + 0,12 × 10 = **USD 1,32** per pembangunan. Bila dibangun bulanan, sekitar USD 1,32 per bulan.
+- **Batas biaya** (SEC-127): spend limit USD 10 per bulan di **workspace khusus**, karena Default Workspace tidak dapat diberi batas (18 §5.9). Server juga memegang penghitung `ai_usage` dengan dua batas (diterima, S4-4 (i) A):
   - **per bulan**: USD 10;
-  - **per pekerjaan pembangunan kumpulan**: USD 3, sekitar dua kali perkiraan satu pembangunan (USD 1,32), sehingga pembangunan bulanan tidak menghentikan dirinya sendiri;
-  - **per hari untuk panggilan langsung**: USD 0,33 (USD 10 ÷ 30), hanya berlaku bila 10-B B menambah jalur `ai.suggest`; tidak berlaku atas pembangunan kumpulan.
+  - **per pekerjaan pembangunan kumpulan**: USD 3, sekitar dua kali perkiraan satu pembangunan (USD 1,32), sehingga pembangunan bulanan tidak menghentikan dirinya sendiri.
+
+  Batas per hari untuk panggilan langsung (USD 0,33) tidak dibangun, karena jalur `ai.suggest` (10-B B) tidak dipilih.
 
   Sebelum setiap panggilan, server menghitung biaya terburuknya (token masuk × harga masuk + `max_tokens` × harga keluar) dan tidak memanggil bila sisa batas mana pun lebih kecil daripada itu. Biaya sebenarnya dari jawaban penyedia ditambahkan ke penghitung. Pembangunan yang berhenti karena batas **tidak menerbitkan kumpulan setengah jadi** (dokumen 10 SEC-127): kumpulan baru ditulis sebagai versi tersendiri dan baru diaktifkan bila seluruh pembangunan selesai dan lolos saringan; bila tidak, kumpulan lama tetap berlaku utuh. Angka USD 3 **[Asumsi]**.
 - **Saklar mati** (SEC-128): setelan server yang dibaca setiap pemanggilan dan setiap pemilihan.
 - **Fallback:** penyedia gagal atau batas tercapai berarti kumpulan lama tetap dipakai. Bila kumpulan kosong, tidak ada saran. Pencatatan, permintaan, dan persetujuan tidak pernah memanggil modul `ai` (LM-02).
 
-### 11.2 Yang berubah di pilihan lain
+### 11.2 Pilihan lain (tidak dipilih; dicatat sebagai riwayat)
+
+B, C, dan D tidak dipilih di checkpoint S4. Jalur R2 kelak memerlukan ADR baru sesudah advokat menjawab (indeks §6).
 
 | Pilihan 10-B | Perubahan arsitektur | Biaya per bulan |
 |---|---|---|

@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 (09-G). Mengusulkan satu kalimat tambahan di `ENGINEERING-STANDARDS.md` §8 (butir 3), yang hanya berlaku bila pemilik produk menyetujuinya secara tegas. Bila 09-G dijawab B, setiap baris daftar butir 2 dan butir 5 menjadi ADR tersendiri dengan isi yang sama |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi C** dengan kalimat ES §8 di butir 3 (pertanyaan S4-1 (iii), huruf A). Kata-katanya: "yang penting kan versi stable, versi stable ga musti dari 1 kan? apalagi yang baru? cek goolge aja" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat). Bacaan lead: rilis 0.x final, bukan pra-rilis, boleh dipakai, sama dengan bunyi butir 3; dikukuhkan dengan "lanjut". Kalimat itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §8 |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect` |
-| Mengubah | Usulan atas `ENGINEERING-STANDARDS.md` §8 |
+| Mengubah | `ENGINEERING-STANDARDS.md` §8 (satu kalimat, butir 3; disetujui pemilik produk) |
 | Rincian | [09.1 §2, §5, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-012](ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 5 |
 
 ## Konteks
@@ -15,8 +15,8 @@ ES §8 menuntut hanya versi stabil terbaru: tidak ada alpha, beta, RC, atau API 
 Banyak pustaka yang matang dan banyak dipakai masih bernomor 0.x menurut semver, artinya API publiknya boleh berubah tanpa naik versi mayor. Yang diperlukan atau disebut dokumen 09 (diperiksa 12 November 2026; 18 §5 fase D) **[Terverifikasi]**:
 
 - `golang.org/x/crypto` v0.59.0 dan `golang.org/x/oauth2` v0.38.0, dari proyek Go sendiri, diperlukan di server Go;
-- connect-kotlin **0.10.0**, diperlukan klien Android;
-- axum 0.8.9 dan sqlx 0.9.0, hanya bila Rust dipilih;
+- connect-kotlin **0.10.0**, diperlukan klien Android (dikukuhkan sebagai rilis terbaru yang bukan pra-rilis di [github.com/connectrpc/connect-kotlin/releases](https://github.com/connectrpc/connect-kotlin/releases), diakses 12 November 2026);
+- axum 0.8.9 dan sqlx 0.9.0, hanya bila Rust dipilih (tidak dipilih; ADR-015);
 - River v0.51.2 (alternatif antrean, tidak dipakai);
 - SwiftLint 0.65.1 dan ktfmt 0.65 (dihindari ADR-025).
 
@@ -48,17 +48,17 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    | `golang.org/x/crypto/acme/autocert` | v0.59.x | Sertifikat TLS | certbot di VPS dan biner membaca berkas sertifikat (09.4 §1). pkg.go.dev menyebut `autocert` mungkin tidak ada di versi modul terbaru; dicek saat dipasang |
    | `golang.org/x/oauth2` (`google`) | v0.38.x | Token akses akun layanan FCM HTTP v1 | JWT akun layanan ditandatangani dengan `crypto/rsa` stdlib dan ditukar ke titik token Google lewat `net/http` |
    | connect-kotlin | 0.10.x | Klien RPC Android | Pesan protobuf hasil generate resmi + klien HTTP biasa (unary Connect = HTTP POST) |
-   | axum, sqlx | 0.8.x, 0.9.x | **Hanya bila 09-A = Rust** | actix-web v4 (stabil); Diesel 2.x (stabil) |
+   | axum, sqlx | 0.8.x, 0.9.x | **Tidak dipakai**: Rust tidak dipilih (ADR-015) | actix-web v4 (stabil); Diesel 2.x (stabil) |
    | River | 0.51.x | **Tidak dipakai**; alternatif antrean | Tabel `job` sendiri (rekomendasi) |
 
    Pustaka 0.x lain memerlukan baris baru di tabel ini lewat revisi ADR ini.
-3. **Usulan kalimat untuk ES §8** (tidak berlaku sebelum disetujui pemilik produk, 09-G): *"A 0.x release that is not a pre-release, or an API marked experimental inside a stable release, counts as stable only if it is listed in ADR-023 with its fallback; anything else needs its own ADR."*
+3. **Kalimat ES §8** (disetujui pemilik produk, S4-1 (iii) A; dipasang lead): *"A 0.x release that is not a pre-release, or an API marked experimental inside a stable release, counts as stable only if it is listed in ADR-023 with its fallback; anything else needs its own ADR."*
 4. **Pra-rilis tetap dilarang** tanpa ADR pengecualian yang menyebut versi, alasan, dan jalan keluarnya, misalnya Compose Material 3 1.5.0-rc01 dengan komponen Expressive (ADR-012 butir 5, yang memilih tidak memakainya).
 5. **API eksperimental di dalam artefak stabil** diperlakukan sama dengan pustaka 0.x: kelima syarat butir 1 berlaku (syarat 4 berarti satu composable pembungkus milik kita), dan setiap API tercatat di sini.
 
    | API | Artefak stabil | Dipakai untuk | Jalan mundur |
    |---|---|---|---|
-   | `ModalBottomSheet`, `rememberModalBottomSheetState` (`@ExperimentalMaterial3Api`) | Compose Material 3 1.4.0 | Lembar Catat di Android pilot (dokumen 08), di 09-G A (di sini) maupun B (ADR tersendiri berisi sama; ADR-012 butir 5 (b)) | Dialog layar penuh dengan `Dialog` dan `Scaffold` stabil, hanya bila API itu rusak atau berubah saat naik versi, atau pemakaiannya ditolak sama sekali. Catatan naik ke 1.5: `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan (18 §5.1.1) |
+   | `ModalBottomSheet`, `rememberModalBottomSheetState` (`@ExperimentalMaterial3Api`) | Compose Material 3 1.4.0 | Lembar Catat di Android pilot (dokumen 08; ADR-012 butir 5 (b)) | Dialog layar penuh dengan `Dialog` dan `Scaffold` stabil, hanya bila API itu rusak atau berubah saat naik versi. Catatan naik ke 1.5: `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan (18 §5.1.1) |
    | `ListDetailPaneScaffold` (`@ExperimentalMaterial3AdaptiveApi`) | Material 3 Adaptive 1.3.0 | **Tidak dipakai di pilot** (tidak ada tablet Android) | Tata letak dua panel dengan kelas ukuran jendela stabil |
 
 ## Konsekuensi

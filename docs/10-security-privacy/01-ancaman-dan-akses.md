@@ -17,7 +17,7 @@ Daftar isi: [1. Aset](#1-aset) · [2. Pelaku](#2-pelaku) · [3. Batas kepercayaa
 | AS-05 | Status suasana hati, laporan sakit, tindak lanjutnya (`CARE`, Tier 2) | Kesehatan (diperlakukan spesifik) | Pemiliknya; penerima pilihannya bila dibagikan | 06 §13.5; brief §5K |
 | AS-06 | Isi chat rumah tangga: teks, foto, kartu | Pesan pribadi; dapat memuat semua kelas lain | Peserta percakapan | 06 §16 |
 | AS-07 | Tanda terkirim dan dibaca, kehadiran (online, terakhir aktif, mengetik) | Metadata perilaku | Peserta chat, hanya di layar chat | 06 §16.5, §16.6 |
-| AS-08 | Setelan pribadi: jam tenang, tunda, setelan `AI`, kunci aplikasi, nuansa religi, corak | Metadata perilaku; nuansa religi peka | Hanya pemiliknya | 06 INV-A42, INV-A33; FR-AI-005 |
+| AS-08 | Setelan pribadi: jam tenang, tunda, setelan `AI`, kunci aplikasi, nuansa religi, corak, sebutan anggota yang dibuatnya (F-FAM-021, Tier 2) | Metadata perilaku; nuansa religi peka | Hanya pemiliknya | 06 INV-A42, INV-A33; FR-AI-005 |
 | AS-09 | Kredensial, token sesi, token perangkat push, kode pemulihan | Rahasia autentikasi | Tidak seorang pun (hash atau penyimpanan aman) | `ENGINEERING-STANDARDS.md` §4 |
 | AS-10 | Data tentang anak di catatan orang dewasa | Data anak (spesifik) | Mengikuti catatan tempatnya | 17 Q-186; 18 §2.9 |
 | AS-11 | Data pihak luar (ibu, ayah, saudara) | Data orang yang bukan pengguna | `adults` | FR-FAM-018; L-03, L-17 |
@@ -88,11 +88,11 @@ Kolom "Kontrol" menunjuk persyaratan dokumen ini atau aturan 06 dan 07. "Sisa" a
 | TM-05 | PL-06 | Salinan cadangan bocor dari penyimpanan | AS-12 | SEC-43 | Kunci cadangan dipegang operator |
 | TM-06 | PL-02 | Membaca data pribadi pasangan lewat API atau aplikasi yang dimodifikasi | AS-03, AS-05, AS-08 | SEC-01, SEC-06; 06 V-4, V-5 | — |
 | TM-07 | PL-02 | Menyimpulkan data pribadi lewat saluran samping: celah kursor sinkron, waktu di pengenal, beda pesan galat, hitungan, jumlah dompet campuran | AS-03, AS-08 | SEC-03, SEC-04, SEC-07; 06 V-9; 07 §5.3 | Kebocoran B1 sampai B6 di 07 §5.3, dinyatakan di layar |
-| TM-08 | PL-02 | Mengawasi perilaku pasangan lewat kehadiran, tanda dibaca, waktu notifikasi | AS-07 | 10.2 §6; 06 INV-A45, INV-A33 | Keputusan pemilik produk "Semua seperti WhatsApp"; keputusan 10-A |
+| TM-08 | PL-02 | Mengawasi perilaku pasangan lewat kehadiran, tanda dibaca, waktu notifikasi | AS-07 | 10.2 §6; 06 INV-A45, INV-A33 | Kehadiran seperti WhatsApp, dipertahankan pemilik produk (10-A A dan UX-5 A); risiko 10.2 §6.2 diterima (W-18) |
 | TM-09 | PL-02 | Menekan pasangan: memaksa menyetujui, berbagi, membuka ponsel, tidak keluar | Semua | 10.3 §2; 06 PG-01 sampai PG-14 | Tekanan di luar aplikasi tidak dapat dicegah aplikasi |
 | TM-10 | PL-02, PL-03 | Memakai ponsel pasangan yang terbuka untuk bertindak atas namanya: keluar, membagikan, mengekspor, menyetujui | Semua | SEC-13, SEC-14, SEC-19 | Persetujuan dan pencatatan dari ponsel yang terbuka tidak dapat dibedakan dari pemiliknya |
 | TM-11 | PL-02 | Mengambil alih akun pasangan lewat email yang ia kuasai | AS-09 | SEC-17, SEC-24, SEC-25 | Pada pilot tanpa kode pemulihan, penguasa email dapat mengatur ulang kata sandi; pemiliknya mengetahuinya (SEC-17) |
-| TM-12 | PL-05 | Operator yang juga anggota membuka data pribadi pasangan dari basis data | AS-03, AS-05, AS-06, AS-08 | §11; SEC-33, SEC-34; keputusan 10-D, 10-F | **Diterima untuk pilot** dengan syarat keputusan 25 |
+| TM-12 | PL-05 | Operator yang juga anggota membuka data pribadi pasangan dari basis data | AS-03, AS-05, AS-06, AS-08 | §11; SEC-33, SEC-34; 10-D A, 10-F A | **Diterima untuk pilot** dengan syarat keputusan 25 |
 | TM-13 | PL-05, PL-02 | Fitur "admin" di aplikasi yang membuka data orang lain | Semua | SEC-33; 06 V-5, PG-03 | — |
 | TM-14 | PL-04 | Membaca basis data lokal atau memakai sesi di perangkat yang hilang | AS-03 sampai AS-08 | SEC-15, SEC-19, SEC-21, SEC-46, SEC-47 | Perangkat yang diambil dalam keadaan terbuka |
 | TM-15 | PL-03 | Anak di ponsel orang tua membaca chat, uang, status pasangan | AS-05, AS-06 | SEC-19, SEC-50 sampai SEC-53 | Tanpa kunci aplikasi, ponsel yang terbuka memperlihatkan semuanya |
@@ -112,6 +112,7 @@ Kolom "Kontrol" menunjuk persyaratan dokumen ini atau aturan 06 dan 07. "Sisa" a
 | TM-28 | PL-02 | Permintaan, pengingat, atau keberatan dipakai untuk melecehkan | AS-04 | 06 §10 (batas pengingat), §8.2 (alasan tertutup) | — |
 | TM-29 | PL-02 | Hitungan oleh bukan pemegang dipakai untuk menuduh "uangmu kurang" | AS-01 | 07 T-33, INV-33 (SP-50); SEC-91 | — |
 | TM-30 | PL-02 | Menautkan entri ke pos rutin yang tidak sejenis agar lolos dari tanda | AS-01 | SEC-92 (SP-44) | — |
+| TM-32 sampai TM-36 | PL-02, PL-03, PL-05 | Sebutan anggota per pembaca (F-FAM-021): terbaca lewat layar pembuat, ditukar untuk menyesatkan pilihan penerima, dibaca operator, dipakai sebagai catatan pengawasan, keberadaannya tersimpulkan | AS-08 | SEC-155; rincian 10.4 §6.2 | Layar pembuat yang terbuka; operator pada pilot |
 
 ---
 
@@ -165,7 +166,7 @@ Anggota dalam `keluar_tenggang` tidak membaca apa pun (06 F06) tetapi masih terh
 | V-9 (isi dompet campuran) | Dikukuhkan; bukan perlindungan terhadap operator, dan layar tidak boleh menyiratkannya | FR-FAM-019/AC-5 |
 | AT-3 (tanpa umpan per orang) | Dikukuhkan | — |
 | AT-4 (tanpa hitungan per orang) | Dikukuhkan, termasuk rincian SP-20, SP-25, SP-31, SP-35, SP-38, SP-43 (b), dan chat | SEC-07; ekspor SEC-104 |
-| AT-5 (tanda dan kehadiran hanya di chat) | Dikukuhkan. Bentuk kehadiran: keputusan 10-A | 10.2 §6 |
+| AT-5 (tanda dan kehadiran hanya di chat) | Dikukuhkan. Bentuk kehadiran: P0 dengan terakhir aktif menit tepat (10-A A, UX-5 A) | 10.2 §6 |
 | AT-6 (tanpa lokasi; jam pencatatan tidak tampil) | Dikukuhkan | SEC-03, SEC-64, SEC-66 |
 | AT-7 (laporan "siapa membayar apa") | **Cukup, dengan dua tambahan**: (a) tidak ada laporan, penyaring, ekspor, atau keluaran `AI` yang mengelompokkan jumlah menurut "sisi keluarga", dan medan hubungan pihak luar hanya label tampilan, tidak pernah kunci pengelompokan (IDEA-07); (b) tabel C 07 §6.3 tidak pernah dikirim ke penyedia `AI` dan narasi bulanan tidak menyebut siapa membayar | SEC-93, SEC-129 |
 
@@ -220,9 +221,9 @@ Brief §8 "the admin losing access". Setiap anggota dewasa penuh adalah pemilik 
 
 ### 11.1 Kedudukan
 
-Pada pilot pemilik produk mengelola VPS dan juga anggota rumah tangga. Ia menerima keadaan itu untuk pilot dengan syarat istrinya diberi tahu dengan terus terang sebelum mulai memakai (keputusan 25, S2-10 "a", **diputuskan pemilik produk sendiri**). Apakah pemberitahuan itu sudah terjadi belum diketahui. Larangan peran (06 V-4, V-5, V-9, PG-03) mengikat aplikasi, bukan akses server (06 §9.4).
+Pada pilot pemilik produk mengelola VPS dan juga anggota rumah tangga. Ia menerima keadaan itu untuk pilot dengan syarat istrinya diberi tahu dengan terus terang sebelum mulai memakai (keputusan 25, S2-10 "a", **diputuskan pemilik produk sendiri**). Di checkpoint S4 ia menulis "masalah istri sudah tahu gdong"; itu pernyataannya, tidak diverifikasi dokumen ini, dan tidak menggantikan pembacaan teks di aplikasi (SEC-34; 10-F A). Larangan peran (06 V-4, V-5, V-9, PG-03) mengikat aplikasi, bukan akses server (06 §9.4).
 
-Dokumen ini tidak mengubah keputusan 25. Yang ditetapkan: bentuk pemberitahuan dan buktinya (keputusan 10-F), dan kontrol yang membuat akses operator di tahap publik dapat dipertanggungjawabkan.
+Dokumen ini tidak mengubah keputusan 25. Yang ditetapkan: bentuk pemberitahuan dan buktinya (10-F A: dibaca sendiri di aplikasi, pengakuan bertanggal dan berversi, tanpa kalimat janji), dan kontrol yang membuat akses operator di tahap publik dapat dipertanggungjawabkan.
 
 ### 11.2 Persyaratan
 
@@ -230,13 +231,13 @@ Dokumen ini tidak mengubah keputusan 25. Yang ditetapkan: bentuk pemberitahuan d
 |---|---|---|---|---|---|
 | SEC-33 | Tidak ada peran, layar, atau API "admin" atau "operator" di aplikasi yang membaca data anggota mana pun. Alat operator hanya akses server, dan tidak pernah bertindak sebagai anggota | 09 | Pilot | 06 V-5, PG-03; **[Usulan]** | Tidak ada titik API di luar otorisasi anggota yang mengembalikan data rumah tangga |
 | SEC-34 | Pemberitahuan pengelola server (FR-FAM-019) berversi; setiap anggota membacanya utuh di aplikasi sebelum keanggotaannya aktif dan sebelum mengisi data apa pun; tanggal dan versi yang ia baca tersimpan sebagai catatan miliknya; versi baru meminta pembacaan ulang. Teksnya mencakup buku pribadi, isi dompet campuran, catatan `CARE`, **isi chat dan foto** (SP-63), setelan pribadi, dan cadangan | 09, 08 | **Pilot, sebelum data nyata** | FR-FAM-019; SP-42, SP-63 **[Usulan]** | FR-FAM-019/AC-1 sampai AC-4 |
-| SEC-35 | Teks pemberitahuan tidak memuat janji yang tidak dapat ditegakkan secara teknis. Kalimat janji operator (§11.3, dalam kurung siku) hanya dipasang bila pemilik produk sendiri memilihnya | 08 | Pilot | SP-42 | Tinjauan teks |
+| SEC-35 | Teks pemberitahuan tidak memuat janji yang tidak dapat ditegakkan secara teknis, dan tidak memuat kalimat janji operator (10-F A). Setiap kalimatnya benar terhadap rancangan yang dibangun; kalimat tentang fitur yang belum dibangun tidak tampil | 08 | Pilot | SP-42; 10-F A | Tinjauan teks terhadap build yang dipasang |
 | SEC-36 | Akses operator ke data produksi di tahap publik: tidak ada akses basis data tetap; akses darurat (break-glass) per kejadian dengan alasan tertulis, waktu terbatas, dan log yang tidak dapat diubah operator yang sama; dukungan pelanggan tidak pernah melihat isi buku, `CARE`, atau chat; ringkasan akses darurat dilaporkan berkala | Ops, 09 | **Publik** | **[Usulan]** | Audit; sesi basis data tanpa tiket ditolak |
 | SEC-37 | Pada pilot, setiap kali operator membuka sesi basis data atau memulihkan cadangan, ia mencatatnya di catatan operasi yang terbaca kedua anggota dewasa. Ini kebiasaan, bukan kontrol teknis: operator dapat tidak mencatat | Ops | Pilot, dianjurkan | **[Usulan]** | — |
 
 ### 11.3 Draf teks pemberitahuan (versi pilot)
 
-Untuk dokumen 08 (kata-kata akhir dan tampilan). Ditampilkan sama kepada setiap anggota. `{pengelola}` adalah nama tampilan yang diisi saat pemasangan, bukan hasil membaca siapa operatornya. Kalimat bertanda **[10-D A]** dan **[10-D B]** dipilih menurut jawaban 10-D; teks yang tampil harus benar terhadap rancangan yang dibangun (SEC-35).
+Untuk dokumen 08 (kata-kata akhir dan tampilan). Ditampilkan sama kepada setiap anggota. `{pengelola}` adalah nama tampilan yang diisi saat pemasangan, bukan hasil membaca siapa operatornya. Bentuknya mengikuti 10-D A dan 10-F A (tanpa kalimat janji). Kalimat bertanda **[Tier 2]** tampil hanya bila fiturnya ada di build yang dipasang (SEC-35).
 
 > **Siapa yang dapat melihat datamu di luar aplikasi**
 >
@@ -246,11 +247,9 @@ Untuk dokumen 08 (kata-kata akhir dan tampilan). Ditampilkan sama kepada setiap 
 >
 > **Di luar aplikasi berbeda.** Pengelola server dapat membuka basis data dan salinan cadangan secara langsung. Dari sana semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Aturan di aplikasi tidak mencegah itu, dan data ini tidak dienkripsi terhadap pengelola server.
 >
-> **[10-D A]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca pengelola server.
+> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca pengelola server.
 >
-> **[10-D B]** Status suasana hati dan kabar sakit juga tersimpan di server, termasuk yang tidak kamu bagikan, dan dapat terbaca pengelola server.
->
-> [Kalimat janji, hanya bila pengelola memilihnya: "{pengelola} berjanji tidak membuka data pribadimu tanpa sepengetahuanmu, dan mencatat setiap kali ia membuka basis data di catatan operasi yang dapat kamu baca."]
+> **[Tier 2]** Sebutan yang kamu berikan untuk anggota lain hanya tampil di aplikasimu, tetapi tersimpan di server dan dapat terbaca pengelola server.
 >
 > Bila keadaan ini tidak cocok untukmu, jangan mengisi data pribadi apa pun. Kamu dapat membaca pemberitahuan ini lagi kapan saja di "Siapa melihat apa".
 >

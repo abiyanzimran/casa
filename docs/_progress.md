@@ -7,8 +7,8 @@ Dicatat lead setelah setiap tahap (brief §0.2). Bila konteks terhapus atau sesi
 | | |
 |---|---|
 | Tahap terakhir yang selesai | S4 — Pengalaman dan arsitektur (12 November 2026): dokumen 08, 09 (indeks dan empat berkas), 10 (indeks dan empat berkas), ADR-012–ADR-027 ditulis; 06 (revisi kedua belas dan ketiga belas), 07, 02, 03, 04, 05, 12, 17, 18, glosarium (bagian 9 baru), README diperbarui; penyisiran andaian khusus pilot (rancang untuk semua rumah tangga). Ditinjau `critic` dua putaran dan satu pemeriksaan akhir; temuan menghalangi terakhir (jalur laporan, FR-COM-020/AC-5, SCN-49) diperbaiki dan dicek lead. Angka dihitung ulang dengan skrip di luar repositori (`chk/s4_costs.py`, `chk/s4_d2.py`) |
-| Status | **Checkpoint S4 disajikan (12 November 2026), menunggu jawaban pemilik produk**: 17 bagian "Checkpoint S4", S4-1–S4-10, bawaan D-98–D-114, peringatan W-28–W-33. Stack mobile sudah diputuskan pemilik (Swift + Kotlin, UI native); backend menunggu S4-1 |
-| Tahap berikutnya | Jawaban checkpoint S4 dicatat (17, _progress), commit revisi; lalu S5 — Rencana dan sintesis (13, 14, 15, 16, lalu 01), **tidak dimulai** sebelum pemilik produk memberi izin |
+| Status | **Checkpoint S4 dijawab dan dikukuhkan (12 November 2026, "lanjut")**; keputusan dicatat di semua dokumen terkait (17 bagian "Keputusan pemilik produk di checkpoint S4"), ditinjau `critic` (A dan B), temuan diperbaiki pemiliknya; commit "Record owner decisions from the S4 checkpoint". Masih untuk ditunjukkan ke pemilik produk: kalimat brief D-111 (draf lead), Q-208 (DPIA sebelum data nyata), Q-209 (pemicu advokat bila ada pengguna di luar rumah tangga pilot), gerbang contoh layar 08 §19.8; S4-2 ditunda sampai menjelang deploy |
+| Tahap berikutnya | S5 — Rencana dan sintesis (13, 14, 15, 16, lalu 01), **tidak dimulai** sebelum pemilik produk memberi izin |
 
 **Pernyataan pemilik produk tentang stack mobile (12 November 2026, sebelum S4 dimulai), kata-katanya:** "bukannya untuk aplikasi sudah di tentukan kmren ya untuk iphone pakai swift dan android pakai apa giut pokoknya yaa di android keliatan android banget di iphone juga, yang di bahas itu backendnya". Disampaikan sesudah lead mengajukan rencana S4 yang memuat perbandingan stack mobile. **Catatan lead:** tidak ada keputusan stack mobile yang tercatat sebelumnya di `_progress.md`, 17, atau ADR (17 Q-34 "Ditunda" ke S4; yang tercatat hanya syarat tampilan native brief §10.1 dan arahan tampilan 11 November 2026). Pernyataan ini dicatat sebagai pernyataannya sendiri hari ini. Bacaan lead **[Usulan]**, ditanyakan kepadanya: UI native penuh per platform, iPhone/iPad dengan Swift (SwiftUI), Android dengan Kotlin (Jetpack Compose, Material 3); S4 tidak lagi memilih framework mobile; yang dibahas S4 adalah backend, data, sinkron, dan di mana logika bersama tinggal (server saja atau inti bersama, brief §9.1). Akibat yang disampaikan lead: Swift memerlukan macOS untuk build, sedangkan pemilik produk tidak punya Mac (brief §1).
 
@@ -412,3 +412,90 @@ Untuk `researcher` (diperluas di S3/S4):
 - R-05: kelayakan penyedia AI yang memproses di Indonesia dan model yang di-host sendiri.
 - Teks resmi PP 33/2026; pendaftaran PSE lingkup privat; label privasi Apple; angka Epstein dkk. dicocokkan dengan PDF.
 - Kategori komunikasi keluarga hanya dua halaman vendor (celah terhadap brief §15).
+
+## Checkpoint S4: jawaban pemilik produk (12 November 2026)
+
+**Jawaban pertama, kata-katanya (disalin utuh):**
+
+```
+#S4-1: A Go
+#S4-2: nanti aja pas mau deploy
+#S4-3: A Xcode Cloud + sewa Mac sekali - A iOS 26, Android 10 (ios 26 iphone berapa ya aja ya?)
+#S4-4: Claude, nanti aja tapi integerasiin aja dulu
+#S4-5: A tetap seperti WhatsApp
+#S4-6: jelasin lagi tolong
+#S4-7: apasi pilihannya B/C/D isinya apa coba?
+#S4-8: a
+#S4-9: maksudnya?
+#S4-10: yang profesional aja
+```
+
+**Bacaan lead (belum dikukuhkan pemilik produk; dicatat ke 17 sesudah jawabannya lengkap):** S4-1 (i) A dijawab; (ii) 09-F dan (iii) 09-G tidak disebut, jadi menurut aturan checkpoint jatuh ke B kecuali ia menyebut A — ditanyakan. S4-2 ditunda sampai menjelang deploy (syarat server di Indonesia, keputusan 10, tetap). S4-3 (i) A, (ii) A; pertanyaannya tentang iPhone yang didukung iOS 26 dijawab lead (iPhone 11 ke atas dan SE generasi 2 ke atas, sumber sekunder; iPhone 13 pilot termasuk). S4-4: (ii) A Claude; "nanti aja tapi integerasiin aja dulu" dibaca lead sebagai: integrasi Claude dirancang dan dibangun, jalurnya R1 (tanpa data rumah tangga keluar), waktu advokat ditunda — bacaan ini dan akibatnya (W-31, W-32) ditanyakan. S4-5: (i) A dan (ii) A dibaca dari "A tetap seperti WhatsApp" — dikonfirmasi. S4-6, S4-7, S4-9: ia meminta penjelasan; belum dijawab. S4-8: A untuk (i) sampai (v). S4-10: "yang profesional aja" bukan huruf; ditanyakan arah dan sapaan mana yang ia maksud.
+
+**Jawaban kedua, kata-katanya (disalin utuh; dua pesan berurutan):**
+
+```
+S4-6: mending e2ee? masalah istri sudah tahu gdong. gas
+S4-7: A
+S4-9: Ambang itu batas yang di tentukan/disepakati 2 orang
+```
+
+```
+masalah sapaan bisa di atur yaa
+```
+
+**Bacaan lead atas jawaban kedua (belum dikukuhkan):** S4-7 A dijawab. S4-6: "mending e2ee?" dibaca sebagai pertanyaan; lead menjawab bahwa di pilot E2EE chat tidak menutup apa pun dari pasangan yang menjadi lawan bicaranya, dan buku tidak dapat dienkripsi karena aturannya dihitung server; "gas" dibaca sebagai (i) A, (iii) A; "istri sudah tahu" dapat berarti (ii) C — ditanyakan A atau C. S4-9: kalimatnya dibaca sebagai (i) A (berakhir juga hanya bila keduanya setuju) — dikonfirmasi bersama pilihan tengah C; (iii) tidak disebut, jatuh ke default A. S4-10 (iv): "bisa di atur" dibaca sebagai sapaan yang dapat dipilih tiap orang di pengaturan — permintaan fitur baru; tier dan bawaannya ditanyakan.
+
+**Jawaban ketiga, kata-katanya (disalin utuh):**
+
+```
+oke gausa e2ee
+istri saya juga programer dia yang nyruh ini kocak
+maksdnya di akhiri itu apa di ambang itu?
+sapaan di atur pas nambah keluarga. suami boleh atur sapaan ke semua anggotanya begitupun yang lain
+S4-1 maksdunya gmn ya?
+```
+
+**Bacaan lead atas jawaban ketiga (belum dikukuhkan):** S4-6 (i) A ("gausa e2ee"). S4-6 (ii) tidak disebut dengan huruf; tetap default A. S4-9: meminta penjelasan "mengakhiri". Sapaan: dibaca ulang sebagai sebutan per pembaca untuk anggota lain (misalnya suami menyebut istrinya "Bunda" di layarnya), diatur saat menambah anggota, setiap orang untuk semua anggota lain — bukan "kamu"/"Anda"; siapa yang melihat sebutan itu dan tiernya ditanyakan. S4-1 (ii), (iii): meminta penjelasan.
+
+**Jawaban keempat, kata-katanya (disalin utuh):**
+
+```
+ambang di akhiri berdua juga
+kamu aja
+hp boleh ikut, validasi di app dan server wajib jadi a
+
+yang penting kan versi stable, versi stable ga musti dari 1 kan? apalagi yang baru? cek goolge aja
+```
+
+**Bacaan lead atas jawaban keempat (belum dikukuhkan):** S4-9 (i) A; (ii) gugur; (iii) default A. "kamu aja": sapaan aplikasi "kamu" (S4-10 (iv) A); untuk sebutan per pembaca dibaca sebagai menyerahkan ke usulan lead (hanya pembuatnya yang melihat; Tier 2). S4-1 (ii) A. S4-1 (iii): lead mencari di web — SemVer 2.0.0 dan dokumentasi modul Go menyatakan 0.x tanpa janji kompatibilitas; connect-kotlin disebut lead "v0.7.0" dari ringkasan pencarian yang usang — **salah**; 18 §5 mencatat v0.10.0, dan koreksinya disampaikan ke pemilik; maksud pemilik (rilis 0.x final, bukan pra-rilis, boleh dipakai) sama dengan bunyi kalimat ADR-023, jadi dibaca A. Masih menunggu: S4-4 (iii) dan S4-10 (i).
+
+**Jawaban kelima, kata-katanya (disalin utuh):**
+
+```
+#S4-4 (iii): nanti aja kan butuh beberaapa bulan lagi inimah
+#S4-10 (i): standar dan bagus nya di zaman sekarang gimana? coba research orang orang suka gimnaa? bagusnya gmna? cleannya gmna? profesionalnya gmna?
+3 ya
+```
+
+**Bacaan lead atas jawaban kelima (belum dikukuhkan):** S4-4 (iii) A (advokat sebelum tahap publik; W-32 sudah dibacakan). Butir 3: sebutan per pembaca diatur saat menambah anggota, hanya terlihat pembuatnya, Tier 2. S4-10 (i): pemilik meminta riset selera tampilan aplikasi keuangan masa kini; diserahkan ke `researcher` (18), hasilnya disajikan sebelum ia memilih.
+
+**Riset tampilan (18 §4.10, `researcher`, 12 November 2026; belum ditinjau `critic`).** Disajikan lead: terang lebih terbaca (NN/g; Gazit dkk. 2025; Atsani dkk. 2025), preferensi terbelah sepertiga, 10 dari 11 aplikasi keuangan tampil terang di tangkapan App Store (semua enam aplikasi Indonesia) — **diralat sesudah tinjauan `critic` (CRB-10): 9 dari 11**, karena YNAB berlatar gradasi berwarna dan tidak dihitung terang maupun gelap; ralat disampaikan ke pemilik produk —, satu warna merek dipakai hemat; data selera Indonesia lemah. Saran lead: arah C, dengan syarat identitas (glif, ikon aplikasi, nada) dikerjakan sungguh-sungguh agar tidak terasa templat — mengingat tanggapan pemilik 11 November ("standar app … gak ada seni tersendiri").
+
+**Jawaban keenam, kata-katanya (disalin utuh):**
+
+```
+oke saya ikut saran kamu aja
+```
+
+**Bacaan lead:** S4-10 (i) C. (ii), (iii) tidak disebut: default A; (iv) A ("kamu", jawaban keempat). Belum dijawab: D-98 sampai D-114 ("lanjut"); ditanyakan.
+
+**Jawaban ketujuh, kata-katanya (disalin utuh), sesudah lead menyajikan rekap semua jawaban S4 dan ringkasan D-98 sampai D-114:**
+
+```
+lanjut
+```
+
+**Keputusan checkpoint S4 (dikukuhkan 12 November 2026):** S4-1 A, A, A; S4-2 ditunda sampai menjelang deploy (syarat server di Indonesia tetap; ADR-020 dan ADR-026 tetap diusulkan); S4-3 A, A; S4-4 A (R1, USD 10 per bulan), A (Claude), A (advokat sebelum tahap publik; W-31, W-32 dibacakan); S4-5 A, A; S4-6 A, A, A; S4-7 A; S4-8 A untuk (i) sampai (v); S4-9 (i) A, (ii) gugur, (iii) A; S4-10 (i) C, (ii) A, (iii) A, (iv) A; D-98 sampai D-114 diterima. Tambahan pemilik: sebutan per pembaca untuk anggota lain (F-FAM-021), diatur saat menambah anggota, hanya terlihat pembuatnya, Tier 2. D-111: kalimat brief yang mengikuti disusun lead dan ditunjukkan dulu; butir SES (§1) menunggu S4-2. Lead menerapkan dua perubahan `ENGINEERING-STANDARDS.md` yang disetujui (§2 pengecualian ADR-013; §8 kalimat ADR-023).
+
+**Putaran pencatatan sesudah "lanjut" (12 November 2026).** Pemilik dokumen mencatat keputusan: `product-analyst` (17, 04, 05, 12), `architect` (06 revisi keempat belas, 09 dan empat berkasnya, ADR: ADR-012 sampai ADR-019, ADR-021 sampai ADR-025, ADR-027 diterima; ADR-020 dan ADR-026 tetap diusulkan karena S4-2 ditunda), `security-privacy` (10 dan empat berkasnya; SEC-155 baru), `finance-domain` (07: T-43 sampai T-48 ditutup, INV-40 berisi baru), `ux-designer` (08 §19 menjadi arah C dengan bagian anti-templat, §7.4 sebutan anggota, §7.5 teks pemberitahuan pengelola server), `researcher` (18 §4.10, riset selera tampilan). Lead: `ENGINEERING-STANDARDS.md` §2 (pengecualian ADR-013 untuk tiga bantuan isian) dan §8 (kalimat ADR-023), glosarium (*Sebutan anggota*; baris yang menunggu S4 diperbarui). Hitungan: 05 218 FR, Must 198, Should 20, BR 206; 04 131 fitur (55/18/58). **Ketetapan lead** atas selisih antardokumen: sebutan anggota 1 sampai 30 karakter tampak; satu pembuat tidak memberi sebutan sama (sesudah NFC dan case folding) kepada dua anggota di satu rumah tangga; sebutan termuat di ekspor pembuatnya sendiri; diatur saat undangan dibuat, tampil sesudah keanggotaan aktif; aplikasi hanya memeriksa wajib-isi dan panjang (ES §2 (c)), sisanya server; K-64: S4-6 (i) dan S4-7 keputusan pemilik sendiri. Baris baru 17: Q-207 (K01 "tanpa ambang", dijawab 06), Q-208, Q-209 (usulan `security-privacy`, belum dijawab), K-63, K-64 (ditutup), W-34 (risiko sisa ambang yang dipertahankan satu pihak), L-39. **Dihitung lead dengan skrip** (`chk/contrast.py`, `chk/s4_inv40.py`): kontras token 08 §19.3 (empat nilai teal terang semula terlalu tinggi; teal terang diganti `#0C524E`, semua pasangan lolos 7:1), dan SCN-48, FR-REQ-029/AC-6, 07 INV-40 cocok. Ralat lead di chat: versi connect-kotlin terbaru v0.10.0 (bukan v0.7.0). Tinjauan `critic` A (1 menghalangi, 9 perlu diperbaiki, 10 minor) dan B (0 menghalangi, 7 perlu diperbaiki, 13 minor); semua diserahkan ke pemiliknya.

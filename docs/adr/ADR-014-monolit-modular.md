@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 |
-| Tanggal | 12 November 2026 (S4 fase C) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, monolit modular satu proses (D-99, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
+| Tanggal | 12 November 2026 (S4 fase C; status checkpoint S4) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §6](../09-technical-architecture/01-pilihan-teknologi.md); [09.2 §1](../09-technical-architecture/02-data-dan-skema.md) |

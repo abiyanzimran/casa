@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 |
-| Tanggal | 12 November 2026 (S4 fase D) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: alat per bahasa seperti butir 1 sampai 7 (D-103, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk"). Gerbang kerentanan Swift dikukuhkan di minggu pertama `ios-dev` (butir 2) |
+| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4) |
 | Pengusul | `architect`, atas temuan `critic` CS-A-07 |
 | Mengubah | — |
 | Rincian | [09.4 §4, §5](../09-technical-architecture/04-operasi-uji-biaya.md) |

@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Butir 1: Diputuskan pemilik produk** (12 November 2026): "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). **Butir 2 sampai 6: Diusulkan** (`architect`); akan diputuskan pemilik produk di checkpoint S4 (09-E untuk butir 2 dan 3; 09-G untuk butir 5) |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Butir 1: Diputuskan pemilik produk** (12 November 2026): "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). **Butir 2 sampai 6: Diterima** pemilik produk di checkpoint S4, 12 November 2026: butir 2 dan 3 lewat S4-3 (ii) A (iOS dan iPadOS 26; Android 10); butir 5 lewat S4-1 (iii) A (kalimat ADR-023 masuk ES §8); butir 4 dan 6 lewat "lanjut" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | Butir 1: matriks `researcher` (18 §5.1), diputuskan pemilik produk. Butir 2 sampai 6: `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §2, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-013](ADR-013-logika-bersama-hanya-di-server.md); [ADR-023](ADR-023-kebijakan-versi-0x.md) butir 5 |
@@ -58,16 +58,16 @@ Untuk API eksperimental di dalam artefak stabil (lembar Catat di Android memakai
 ## Keputusan
 
 1. **UI native penuh** (diputuskan pemilik produk): **SwiftUI** di iPhone dan iPad, dan **Jetpack Compose dengan Material 3** di Android. Dua aplikasi berbagi warna merek, ikon, kata, dan arsitektur informasi, tetapi tidak berbagi kode UI. Tim build terdiri dari `ios-dev` dan `android-dev` yang terpisah (`CLAUDE.md` "Build team").
-2. **Versi minimum iOS dan iPadOS: 26** **[Usulan]**. Satu bahasa desain diuji, dan perangkat pilot didukung.
-3. **Versi minimum Android: 10 (API 29)**, dengan target API sesuai syarat Google Play yang berlaku (36 sejak 31 Agustus 2026) bila Play dipakai **[Usulan]**.
+2. **Versi minimum iOS dan iPadOS: 26** (diterima, S4-3 (ii) A). Satu bahasa desain diuji, dan perangkat pilot didukung.
+3. **Versi minimum Android: 10 (API 29)** (diterima, S4-3 (ii) A), dengan target API sesuai syarat Google Play yang berlaku (36 sejak 31 Agustus 2026) bila Play dipakai.
 4. **SDK build:** Xcode dan SDK iOS stabil terbaru saat bangun (Xcode 27.1 sudah terlihat di citra build, 18 §5.2; minimal 26 untuk unggahan); Android SDK dan Compose BOM stabil terbaru. Keduanya diperiksa live saat bangun (ES §8).
-5. **Compose Material 3** **[Usulan]**:
+5. **Compose Material 3**:
    - (a) **Versi:** 1.4.0, atau 1.5.0 bila sudah stabil saat fase bangun dimulai. 1.5.0-rc01 tidak dipakai. Selama 1.4.0, komponen Expressive tidak tersedia; `ux-designer` menyebut padanan 1.4.0 untuk setiap komponen Expressive di dokumen 08.
-   - (b) **Lembar Catat di Android pilot memakai `ModalBottomSheet`, apa pun jawaban 09-G.** Bila 09-G dijawab A, pemakaiannya tercatat di ADR-023 butir 5; bila B, ADR tersendiri dengan isi yang sama ditulis dan diajukan di checkpoint yang sama. Jawaban 09-G hanya menentukan **di mana** izin API eksperimental itu dicatat, bukan komponennya. Dialog layar penuh (`Dialog` dan `Scaffold` stabil) **bukan** pilihan 09-G; ia hanya jalan mundur bila `ModalBottomSheet` rusak atau berubah saat naik versi, atau bila pemilik produk menolak pemakaian API eksperimental itu sama sekali.
+   - (b) **Lembar Catat di Android pilot memakai `ModalBottomSheet`**, tercatat di ADR-023 butir 5 (S4-1 (iii) A). Dialog layar penuh (`Dialog` dan `Scaffold` stabil) hanya jalan mundur bila `ModalBottomSheet` rusak atau berubah saat naik versi.
    - (c) **`ListDetailPaneScaffold`** tidak dipakai di pilot, karena perangkat Android pilot adalah ponsel (Galaxy A55). Navigasi memakai `NavigationSuiteScaffold`, yang stabil di 1.4.0.
    - (d) **`SwipeToDismissBox`** stabil di 1.4.0 dan boleh dipakai tanpa butir ADR-023.
    - (e) Setiap API eksperimental lain memerlukan butir ADR-023 baru sebelum dipakai.
-6. **Yang tetap terbuka** (tidak diputuskan ADR ini): letak logika bersama (ADR-013) dan platform mana yang dibangun lebih dulu, yang menjadi keputusan pemilik produk saat fase bangun dimulai (`CLAUDE.md`).
+6. **Yang tetap terbuka** (tidak diputuskan ADR ini): platform mana yang dibangun lebih dulu, yang menjadi keputusan pemilik produk saat fase bangun dimulai (`CLAUDE.md`). Letak logika bersama sudah diputuskan di ADR-013 (diterima di checkpoint S4, S4-1 (ii) A).
 
 ## Konsekuensi
 

@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026); akan diputuskan pemilik produk di checkpoint S4 (09-A). Kedudukannya: "Tunggu dokumen 09 (Saran)", diterima atas saran lead ([_progress.md](../_progress.md); dokumen 17 Q-34) |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A, Go** (S4-1 (i) A). Kata-katanya: "#S4-1: A Go" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama; dikukuhkan dengan "lanjut"). Sebelumnya: "Tunggu dokumen 09 (Saran)", diterima atas saran lead (dokumen 17 Q-34) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §5, §13](../09-technical-architecture/01-pilihan-teknologi.md) |
@@ -35,13 +35,13 @@ Riset 18 §5.3, §5.4, dan §5 fase D (diakses 12 November 2026) menemukan:
 
 ## Keputusan
 
-1. **Go**, versi stabil terbaru saat bangun (sekarang 1.27.4), **[Usulan]**.
+1. **Go**, versi stabil terbaru saat bangun (sekarang 1.27.4), dicek live saat dipasang (ES §8).
 2. **HTTP:** stdlib `net/http` (routing bawaan), dengan connect-go untuk RPC dan handler SSE biasa. Tanpa framework web tambahan. Validasi kontrak dengan `buf.build/go/protovalidate` v1.x (ADR-013).
 3. **Basis data:** pgx v5, dengan kueri SQL eksplisit yang di-generate sqlc. Tanpa ORM. Migrasi dengan goose.
 4. **Pekerjaan latar:** tabel `job` sendiri dengan `FOR UPDATE SKIP LOCKED` dan `LISTEN/NOTIFY` (09.3 §9), diambil peran `job_runner` (09.2 §3). River (v0.51.2, 0.x) adalah alternatifnya bila kebutuhan antrean tumbuh, dan memerlukan butir ADR-023.
-5. **Kripto dan protokol:** `golang.org/x/crypto/argon2`, `golang.org/x/crypto/acme/autocert`, dan `golang.org/x/oauth2` (FCM), ketiganya 0.x dan tercatat di ADR-023 dengan jalan mundurnya. JWT APNs ES256 dibentuk dengan `crypto/ecdsa` dari stdlib. Email lewat AWS SDK for Go v2 (`sesv2`, ADR-026).
+5. **Kripto dan protokol:** `golang.org/x/crypto/argon2`, `golang.org/x/crypto/acme/autocert`, dan `golang.org/x/oauth2` (FCM), ketiganya 0.x dan tercatat di ADR-023 dengan jalan mundurnya. JWT APNs ES256 dibentuk dengan `crypto/ecdsa` dari stdlib. Pustaka email mengikuti ADR-026, yang masih diusulkan sampai S4-2 dijawab menjelang deploy (AWS SDK for Go v2 `sesv2` bila SES dipilih).
 6. **Uang:** tipe `Money{Amount int64; Currency string}` di satu paket. Tidak ada `float32` atau `float64` di jalur uang; linter atau uji arsitektur menolaknya (ADR-025).
-7. **Bila pemilik produk memilih Rust (09-A = B):** axum, sqlx, dan tokio, dengan apalis atau tabel `job` yang sama. axum dan sqlx dicatat menurut ADR-023. Semua keputusan lain di dokumen 09 tetap berlaku, karena tidak bergantung pada bahasa.
+7. **Rust (opsi B) tidak dipilih.** axum dan sqlx karena itu tidak masuk daftar ADR-023.
 
 ## Konsekuensi
 

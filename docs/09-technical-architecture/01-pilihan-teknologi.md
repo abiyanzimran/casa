@@ -1,6 +1,6 @@
 # 09.1 — Pilihan teknologi: matriks perbandingan
 
-Bagian dari [dokumen 09](../09-technical-architecture.md). Berkas ini membandingkan opsi untuk setiap keputusan teknologi dan merekomendasikan satu. Keputusannya dicatat sebagai ADR-012 sampai ADR-026. Fakta riset dikutip dari [dokumen 18](../18-market-research.md) §5 (diakses 12 November 2026). Fakta yang tidak ada di 18 diperiksa langsung pada 12 November 2026 dan dicantumkan di [indeks §9](../09-technical-architecture.md#9-fakta-yang-diperiksa-untuk-dokumen-ini).
+Bagian dari [dokumen 09](../09-technical-architecture.md). Berkas ini membandingkan opsi untuk setiap keputusan teknologi dan merekomendasikan satu. Keputusannya dicatat sebagai ADR-012 sampai ADR-026. **Checkpoint S4 (12 November 2026):** rekomendasi di §2 sampai §9 dan §11 sampai §13 diterima pemilik produk; §10 (hosting dan cadangan) tetap usulan karena S4-2 ditunda sampai menjelang deploy (indeks §1, §7). Matriks dipertahankan sebagai dasar keputusan; opsi selain yang diterima tidak dipilih. Fakta riset dikutip dari [dokumen 18](../18-market-research.md) §5 (diakses 12 November 2026). Fakta yang tidak ada di 18 diperiksa langsung pada 12 November 2026 dan dicantumkan di [indeks §9](../09-technical-architecture.md#9-fakta-yang-diperiksa-untuk-dokumen-ini).
 
 ---
 
@@ -15,7 +15,7 @@ Batasannya berasal dari brief §1, dan setiap pilihan di berkas ini harus lolos 
 | BT-3 | Pengembangan di Linux, tanpa Mac | Brief §1 | Setiap jalur iOS harus menyebut cara build, uji di iPhone, dan distribusi, beserta biayanya |
 | BT-4 | Pilot memerlukan iOS dan Android (iPhone 13, Galaxy A55, iPad mini 7) | Brief §1 tabel | Kedua platform siap sebelum pilot |
 | BT-5 | "No usage-priced managed services unless clearly justified"; penyedia `AI` adalah pengecualian yang diterima, di bawah batas biaya keras | Brief §1 tabel | Tidak ada BaaS, antrean terkelola, atau object storage per GB bila ada alternatif berharga tetap; layanan per pemakaian hanya dengan alasan yang dinyatakan (email, ADR-026) |
-| BT-6 | Server aplikasi di-host di Indonesia; `AI` diinginkan Claude atau ChatGPT | Keputusan 10 (dokumen 17 bagian keputusan S1), "Ia menginginkan AI-nya Claude atau ChatGPT, dan server aplikasi di-host di Indonesia" | Hosting dan cadangan di Indonesia; jalur `AI` mengikuti 10-B |
+| BT-6 | Server aplikasi di-host di Indonesia; `AI` diinginkan Claude atau ChatGPT | Keputusan 10 (dokumen 17 bagian keputusan S1), "Ia menginginkan AI-nya Claude atau ChatGPT, dan server aplikasi di-host di Indonesia" | Hosting dan cadangan di Indonesia; jalur `AI` R1 (10-B A) |
 | BT-7 | Tampilan dan rasa native mengalahkan berbagi kode | Brief §9.1, §10.1 | Framework yang menggambar widget sendiri ditolak kecuali terbukti |
 | BT-8 | Satu implementasi aturan yang berwenang, dan server sebagai otoritas akhir | `ENGINEERING-STANDARDS.md` §2 | Tidak ada salinan kedua aturan uang atau persetujuan yang ditulis tangan; setiap penyimpangan memerlukan ADR yang disetujui pemilik produk (ES baris 3) |
 | BT-9 | Hanya versi stabil terbaru; alpha, beta, RC, atau API eksperimental memerlukan ADR | `ENGINEERING-STANDARDS.md` §8 | Pustaka 0.x dan API eksperimental dinilai menurut [ADR-023](../adr/ADR-023-kebijakan-versi-0x.md) |
@@ -37,9 +37,9 @@ Matriks lengkap ada di 18 §5.1. Tabel ini hanya merangkum baris yang menentukan
 | Native penuh dengan modul logika KMP | Ya | Ya | Swift export masih alpha; contoh Room KMP memakai 3.1.0-alpha03 |
 | Native penuh dengan inti Rust lewat UniFFI | Ya | Ya | UniFFI pra-1.0; Element X memakai pola ini, tetapi FFI Android-nya berlabel eksperimental |
 
-**Keputusan pemilik produk (12 November 2026):** "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). Artinya UI native penuh: SwiftUI di iPhone dan iPad, dan Jetpack Compose dengan Material 3 di Android. Keputusan ini dicatat di [ADR-012](../adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) dan tidak dibuka ulang. Yang masih terbuka adalah letak logika bersama (§3).
+**Keputusan pemilik produk (12 November 2026):** "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). Artinya UI native penuh: SwiftUI di iPhone dan iPad, dan Jetpack Compose dengan Material 3 di Android. Keputusan ini dicatat di [ADR-012](../adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) dan tidak dibuka ulang. Letak logika bersama (§3) diputuskan di checkpoint S4 (09-F A).
 
-**Akibat bagi ES §8 (Android).** Compose Material 3 stabil adalah **1.4.0**; **1.5.0-rc01** (4 November 2026) masih release candidate, tanpa beta atau alpha yang lebih baru ([developer.android.com/jetpack/androidx/releases/compose-material3](https://developer.android.com/jetpack/androidx/releases/compose-material3), diakses 12 November 2026) **[Terverifikasi]**. RC adalah pra-rilis menurut ES §8, dan komponen Expressive tidak ada di 1.4.0. Di dalam artefak stabil pun ada API yang masih bertanda eksperimental: `ModalBottomSheet` (`@ExperimentalMaterial3Api`, Material 3 1.4.0) dan `ListDetailPaneScaffold` (`@ExperimentalMaterial3AdaptiveApi`, Adaptive stabil 1.3.0, 12 Agustus 2026) **[Terverifikasi]** di kode stabil (18 §5.1.1, §5.1.3). `SwipeToDismissBox` dan `NavigationSuiteScaffold` **tidak** eksperimental di sumber 1.4.0 **[Terverifikasi]**. `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan, jadi perlu diganti saat naik ke 1.5. Cara menanganinya: ADR-012 butir 5 dan ADR-023 butir 5, ditanyakan di 09-G.
+**Akibat bagi ES §8 (Android).** Compose Material 3 stabil adalah **1.4.0**; **1.5.0-rc01** (4 November 2026) masih release candidate, tanpa beta atau alpha yang lebih baru ([developer.android.com/jetpack/androidx/releases/compose-material3](https://developer.android.com/jetpack/androidx/releases/compose-material3), diakses 12 November 2026) **[Terverifikasi]**. RC adalah pra-rilis menurut ES §8, dan komponen Expressive tidak ada di 1.4.0. Di dalam artefak stabil pun ada API yang masih bertanda eksperimental: `ModalBottomSheet` (`@ExperimentalMaterial3Api`, Material 3 1.4.0) dan `ListDetailPaneScaffold` (`@ExperimentalMaterial3AdaptiveApi`, Adaptive stabil 1.3.0, 12 Agustus 2026) **[Terverifikasi]** di kode stabil (18 §5.1.1, §5.1.3). `SwipeToDismissBox` dan `NavigationSuiteScaffold` **tidak** eksperimental di sumber 1.4.0 **[Terverifikasi]**. `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan, jadi perlu diganti saat naik ke 1.5. Cara menanganinya: ADR-012 butir 5 dan ADR-023 butir 5; kalimat ES §8 yang mengizinkannya disetujui pemilik produk (09-G A, S4-1 (iii)).
 
 ---
 
@@ -62,7 +62,7 @@ Pertanyaannya: aturan apa yang perlu berjalan di perangkat saat offline, dan di 
 
 **Bentuk masukan tidak dapat di-generate dari kontrak untuk kedua klien.** protovalidate (aturan validasi sebagai anotasi di berkas `.proto`) punya pustaka resmi untuk Go, Java, Python, C++, dan TypeScript/JavaScript, tanpa Swift dan tanpa Kotlin ([protovalidate.com](https://protovalidate.com), diakses 12 November 2026) **[Terverifikasi]**. Usulannya **[Usulan]**: aturan bentuk ditulis **satu kali** sebagai anotasi protovalidate di kontrak, dan server menegakkannya dengan `buf.build/go/protovalidate` (v1.4.0 terlihat di pkg.go.dev, 31 Agustus 2026; versi terbaru dicek saat dipasang). Klien tidak dapat membaca anotasi itu lewat pustaka resmi, sehingga butir (a) sampai (c) di perangkat **ditulis tangan per platform**.
 
-Jadi ada satu pertanyaan yang hanya dapat dijawab pemilik produk: tiga bantuan isian kecil itu ditulis tangan di Swift dan Kotlin. Menurut bunyi ES §2 ("never a hand-written copy") hal itu **pengecualian ES §2**, walaupun butir (b) tidak punya pasangan di server dan butir (a) serta (c) diperiksa ulang server. ES baris 3 menuntut ADR yang disetujui pemilik produk. Pengecualian itu diajukan di ADR-013 dan ditanyakan terang di 09-F.
+Jadi ada satu pertanyaan yang hanya dapat dijawab pemilik produk: tiga bantuan isian kecil itu ditulis tangan di Swift dan Kotlin. Menurut bunyi ES §2 ("never a hand-written copy") hal itu **pengecualian ES §2**, walaupun butir (b) tidak punya pasangan di server dan butir (a) serta (c) diperiksa ulang server. ES baris 3 menuntut ADR yang disetujui pemilik produk. Pengecualian itu diajukan di ADR-013, ditanyakan terang di 09-F, dan **disetujui tegas pemilik produk** di checkpoint S4 ("hp boleh ikut, validasi di app dan server wajib jadi a"; [_progress.md](../_progress.md), jawaban keempat; dikukuhkan dengan "lanjut"). Lead memasangnya di ES §2.
 
 | Kriteria | **A. Server saja + tiga bantuan isian berpagar (pengecualian ES §2)** | B. Server saja, tanpa bantuan isian di perangkat | C. Modul KMP bersama | D. Inti Rust lewat UniFFI |
 |---|---|---|---|---|
@@ -73,7 +73,7 @@ Jadi ada satu pertanyaan yang hanya dapat dijawab pemilik produk: tiga bantuan i
 | Kematangan (BT-9) | Tidak ada pustaka tambahan | Sama | Swift export alpha (18 §5.1) | UniFFI pra-1.0 (18 §5.1) |
 | Kecocokan dengan tim (BT-1) | Tinggi | Tinggi | Sedang | Tinggi untuk Rust, tetapi menambah lapisan FFI |
 
-**Rekomendasi: A** **[Usulan]**, bila pemilik produk menyetujui pengecualiannya; bila tidak, B. Alasannya:
+**Rekomendasi: A**, diterima (09-F A). B, C, dan D tidak dipilih. Alasannya:
 
 1. Tidak ada aturan uang atau persetujuan di perangkat. Yang tersisa adalah tiga bantuan isian yang masing-masing beberapa baris, diperiksa ulang server, atau (butir b) tidak punya akibat di server.
 2. C dan D menambah satu bahasa dan satu langkah yang hanya dapat dikompilasi di macOS demi kode yang hampir kosong, dan C tetap tidak memenuhi "same implementation" karena server Go.
@@ -81,7 +81,7 @@ Jadi ada satu pertanyaan yang hanya dapat dijawab pemilik produk: tiga bantuan i
 
 Keputusannya dicatat di [ADR-013](../adr/ADR-013-logika-bersama-hanya-di-server.md).
 
-**Perkiraan offline kelak.** Bila pilot menunjukkan perkiraan diperlukan, ADR baru menambahkannya sebagai deskriptor yang dikirim server (perintah mana mengubah angka mana, dengan tanda) dan satu penafsir per platform. Itu menambah satu butir pada daftar pengecualian ES §2 dan karena itu juga memerlukan persetujuan pemilik produk.
+**Perkiraan offline kelak.** Bila pilot menunjukkan perkiraan diperlukan, ADR baru menambahkannya sebagai deskriptor yang dikirim server (perintah mana mengubah angka mana, dengan tanda) dan satu penafsir per platform. Itu menambah satu butir pada daftar pengecualian ES §2 dan karena itu memerlukan persetujuan pemilik produk tersendiri; persetujuan 09-F hanya mencakup tiga bantuan isian.
 
 ---
 
@@ -98,10 +98,10 @@ ES §2 mewajibkan kontrak API didefinisikan satu kali dan tipe klien di-generate
 | Aturan validasi dan kode galat sekali (ES §2) | JSON Schema; generator klien beragam | Anotasi protovalidate (penegakan server); kode galat sebagai `enum` di kontrak, ter-generate untuk ketiga bahasa | Bergantung | — |
 | Server Go | Generator pihak ketiga | connect-go v2.0.2 (18 §5.3) **[Terverifikasi]** | Pustaka pihak ketiga | — |
 | Klien Swift | swift-openapi-generator (Apple) **[Perlu validasi]** versi | connect-swift **1.2.3** (18 §5, fase D) **[Terverifikasi]** | Apollo iOS (pihak ketiga) | — |
-| Klien Kotlin | openapi-generator (komunitas) | connect-kotlin **0.10.0**, 0.x (18 §5, fase D) **[Terverifikasi]** | Apollo Kotlin (pihak ketiga) | — |
+| Klien Kotlin | openapi-generator (komunitas) | connect-kotlin **0.10.x** (terlihat 0.10.0, rilis terbaru yang bukan pra-rilis; 18 §5, fase D; dicek ulang di [github.com/connectrpc/connect-kotlin/releases](https://github.com/connectrpc/connect-kotlin/releases), diakses 12 November 2026) **[Terverifikasi]** | Apollo Kotlin (pihak ketiga) | — |
 | Dapat dicoba dengan `curl` | Ya | Ya: unary Connect adalah HTTP POST dengan JSON atau protobuf | Ya | Ya |
 
-**Rekomendasi: Protobuf + Connect** **[Usulan]**, dikelola dengan `buf`: lint, `buf breaking` terhadap cabang utama, dan generate untuk Go, Swift, dan Kotlin. Kode galat domain (misalnya `state_changed`, `terms_superseded`, `currency_locked`, galat per medan) adalah satu `enum` di kontrak, sehingga ketiga bahasa memakai daftar yang sama (ES §2).
+**Rekomendasi: Protobuf + Connect** (diterima, D-100), dikelola dengan `buf`: lint, `buf breaking` terhadap cabang utama, dan generate untuk Go, Swift, dan Kotlin. Kode galat domain (misalnya `state_changed`, `terms_superseded`, `currency_locked`, galat per medan) adalah satu `enum` di kontrak, sehingga ketiga bahasa memakai daftar yang sama (ES §2).
 
 connect-kotlin masih 0.x, sehingga ADR-023 berlaku. Jalan mundurnya murah: unary Connect hanyalah HTTP POST ke `/<paket>.<Layanan>/<Metode>` dengan isi protobuf. Aplikasi Android dapat memakai pesan protobuf hasil generate resmi bersama klien HTTP biasa tanpa connect-kotlin, dan kontraknya tidak berubah. Rinciannya di ADR-013 butir 4.
 
@@ -124,7 +124,7 @@ Fakta dari 18 §5.3 dan §5.4 **[Terverifikasi]**, kecuali yang diberi label lai
 | Biaya (BT-5) | Termasuk VPS | Termasuk VPS | Termasuk VPS, tetapi butuh VPS lebih besar | **Per operasi** (gagal BT-5) | — |
 | Pustaka 0.x yang dibutuhkan | **`golang.org/x/crypto` v0.59.0** (Argon2id, ACME) dan **`golang.org/x/oauth2` v0.38.0** (token FCM), keduanya dari proyek Go sendiri, di tepi sistem (hash kata sandi, sertifikat, token push) **[Terverifikasi]** (18 §5, fase D; indeks §9) | **axum** dan **sqlx** di inti (setiap permintaan HTTP dan setiap kueri) | — | — | — |
 
-**Rekomendasi: Go** **[Usulan]**. Pembandingnya adalah Rust, dan keduanya layak dipakai. Keduanya memerlukan pustaka 0.x menurut ADR-023; yang berbeda adalah letak dan jenisnya.
+**Rekomendasi: Go**, diterima pemilik produk ("#S4-1: A Go"; 09-A A). Rust tidak dipilih. Pembandingnya adalah Rust, dan keduanya layak dipakai. Keduanya memerlukan pustaka 0.x menurut ADR-023; yang berbeda adalah letak dan jenisnya.
 
 - **Kelebihan Go di sini:**
   - Pustaka di jalur setiap permintaan (`net/http` stdlib, connect-go, pgx, sqlc, goose) semuanya ≥ 1.0. Pustaka 0.x yang dibutuhkan (`golang.org/x/crypto`, `golang.org/x/oauth2`) dipelihara proyek Go sendiri dan hanya dipakai di tepi sistem; mengganti salah satunya menyentuh satu paket.
@@ -137,7 +137,7 @@ Fakta dari 18 §5.3 dan §5.4 **[Terverifikasi]**, kecuali yang diberi label lai
 
 **BaaS tidak disarankan.** Supabase hosted tidak punya wilayah Indonesia, dan versi self-hosted terlalu berat untuk VPS 4 GB. Firebase gagal integritas transaksi offline dan BT-5. PocketBase sudah diarsipkan (18 §5.4).
 
-Keputusannya dicatat di [ADR-015](../adr/ADR-015-bahasa-dan-framework-backend.md), dan akan diputuskan pemilik produk di checkpoint S4 (pertanyaan 09-A).
+Keputusannya dicatat di [ADR-015](../adr/ADR-015-bahasa-dan-framework-backend.md) (diterima).
 
 ---
 
@@ -151,7 +151,7 @@ Keputusannya dicatat di [ADR-015](../adr/ADR-015-bahasa-dan-framework-backend.md
 | Skala tahap publik | Proses dapat digandakan di belakang penyeimbang beban; PostgreSQL dipisah ke server sendiri | Skala per layanan |
 | Tim (BT-1) | Cocok | Tidak sebanding dengan bebannya |
 
-**Rekomendasi: monolit modular** **[Usulan]**. Batas modul dijaga paket `internal/` Go dan satu uji arsitektur di CI yang menolak impor lintas modul di luar daftar yang diizinkan. Rinciannya di [ADR-014](../adr/ADR-014-monolit-modular.md) dan berkas 02 §1.
+**Rekomendasi: monolit modular** (diterima, D-99). Batas modul dijaga paket `internal/` Go dan satu uji arsitektur di CI yang menolak impor lintas modul di luar daftar yang diizinkan. Rinciannya di [ADR-014](../adr/ADR-014-monolit-modular.md) dan berkas 02 §1.
 
 ---
 
@@ -166,7 +166,7 @@ Keputusannya dicatat di [ADR-015](../adr/ADR-015-bahasa-dan-framework-backend.md
 | Pencarian bahasa Indonesia | Konfigurasi `indonesian` (Snowball, sejak PG12; mutu terbatas) | FTS5 tanpa stemmer Indonesia **[Asumsi]** | Terbatas | Tidak |
 | Jalur ke tahap publik | Server sendiri dan replika | Batas satu penulis | — | Per operasi (BT-5) |
 
-**Rekomendasi: PostgreSQL 18** **[Usulan]**. Rinciannya di [ADR-016](../adr/ADR-016-postgresql-tenancy-dan-transaksi.md) dan berkas 02.
+**Rekomendasi: PostgreSQL 18** (diterima, D-99). Rinciannya di [ADR-016](../adr/ADR-016-postgresql-tenancy-dan-transaksi.md) dan berkas 02.
 
 ---
 
@@ -184,7 +184,7 @@ Arah dari 18 §5.6: kanal waktu nyata saat aplikasi di depan, ditambah tarik ber
 | Klien | `URLSessionWebSocketTask`; OkHttp | Pembacaan aliran `URLSession`; OkHttp; pengurainya pendek | Biasa | Biasa |
 | Latensi pesan chat | Satu perjalanan | Satu dorongan + satu tarik | Satu tarik | Detik, tidak dijamin |
 
-**Rekomendasi: SSE + tarik berkursor saat aplikasi di depan; push langsung saat tidak** **[Usulan]**. Kanal SSE hanya membawa (a) tanda bahwa umpan pembaca bergerak, dan (b) kehadiran yang bersifat sesaat. Isi selalu ditarik lewat satu jalur baca (SEC-06), sehingga hanya ada satu jalan data. Rinciannya di berkas 03 dan [ADR-018](../adr/ADR-018-model-sinkron-dan-waktu-nyata.md).
+**Rekomendasi: SSE + tarik berkursor saat aplikasi di depan; push langsung saat tidak** (diterima, D-100 dan D-101). Kanal SSE hanya membawa (a) tanda bahwa umpan pembaca bergerak, dan (b) kehadiran yang bersifat sesaat. Isi selalu ditarik lewat satu jalur baca (SEC-06), sehingga hanya ada satu jalan data. Rinciannya di berkas 03 dan [ADR-018](../adr/ADR-018-model-sinkron-dan-waktu-nyata.md).
 
 ---
 
@@ -197,7 +197,7 @@ Arah dari 18 §5.6: kanal waktu nyata saat aplikasi di depan, ditambah tarik ber
 | Kendali collapse id, kanal, lencana (SEC-52, SEC-53, SEC-57) | Penuh | Sebagian lewat pemetaan FCM | Bergantung penyedia |
 | Dependensi server | HTTP/2 stdlib, JWT ES256 (APNs); OAuth2 akun layanan (`golang.org/x/oauth2`, 0.x, ADR-023) untuk FCM HTTP v1 | Satu API | Satu API |
 
-**Rekomendasi: langsung ke APNs dan FCM** **[Usulan]**; dicatat di [ADR-019](../adr/ADR-019-push-langsung-apns-fcm.md).
+**Rekomendasi: langsung ke APNs dan FCM** (diterima, D-101); dicatat di [ADR-019](../adr/ADR-019-push-langsung-apns-fcm.md).
 
 ---
 
@@ -214,11 +214,11 @@ Syarat: server di Indonesia (BT-6); harga tetap per bulan (BT-5); ADR mencatat b
 | PPN | Tidak disebut di halaman | Tidak disebut | — | — | — |
 | Harga tetap (BT-5) | Ya | Ya | Ya | Ya | Ya |
 
-**Rekomendasi** **[Usulan]**:
+**Rekomendasi** **[Usulan]**, **belum diputuskan**: pemilik produk menunda S4-2 sampai menjelang deploy ("#S4-2: nanti aja pas mau deploy"). Syarat di Indonesia (BT-6, keputusan 10) tetap mengikat. Harga, paket, dan pihak kontrak di tabel atas diperiksa ulang saat S4-2 diajukan lagi (ES §8 berlaku juga atas harga yang dikutip).
 
 - **VPS utama:** Biznet Gio NEO Lite MS 4.2, dengan meminta penyedia menyatakan secara tertulis kota pusat data VPS itu, dan bahwa kalimat "di luar wilayah Republik Indonesia" di kebijakan privasinya tidak mencakup isi VPS pelanggan, sebelum data nyata masuk.
 - **Tujuan cadangan:** satu VPS kecil di **penyedia lain di Indonesia**, yaitu IDCloudHost di lokasi Indonesia. Dengan begitu kegagalan atau penangguhan akun di satu penyedia tidak menghapus server dan cadangannya sekaligus.
-- **Alternatif yang lebih sederhana:** VPS NEO Lite XS 1.1 kedua di Biznet Gio, Rp59.000 per bulan. Pihak kontraknya sama, sehingga risiko akun tidak terpisah. Pilihan ini muncul di checkpoint (09-B).
+- **Alternatif yang lebih sederhana:** VPS NEO Lite XS 1.1 kedua di Biznet Gio, Rp59.000 per bulan. Pihak kontraknya sama, sehingga risiko akun tidak terpisah. Pilihan ini tetap terbuka di 09-B sampai S4-2 dijawab.
 
 Rinciannya di [ADR-020](../adr/ADR-020-hosting-dan-cadangan-di-indonesia.md).
 
@@ -230,21 +230,21 @@ Rinciannya di [ADR-020](../adr/ADR-020-hosting-dan-cadangan-di-indonesia.md).
 |---|---|---|---|
 | Mutu bahasa Indonesia | Global-MMLU Indonesia 97,1% (Haiku 5.5) sampai 98,6% (Sonnet 5.5) dari skor Inggris, klaim vendor (18 §5.9) | Tolok ukur primer tidak ditemukan (18 §5.9) | Belum terbukti; SEA-HELM tidak terbaca (18 §5.9) |
 | Lokasi pemrosesan | `global` atau `us` saja | Indonesia tidak tercantum | **Di Indonesia** (VPS sendiri) |
-| Kesesuaian dengan R1 (kumpulan kalimat tanpa data rumah tangga; 10-B A) | Ya: tidak ada data rumah tangga yang dikirim | Ya | Ya |
+| Kesesuaian dengan R1 (kumpulan kalimat tanpa data rumah tangga; 10-B A, diterima) | Ya: tidak ada data rumah tangga yang dikirim | Ya | Ya |
 | Harga | Haiku 5.5 USD 0,10/0,50, Sonnet 5.5 USD 2/10 per juta token | gpt-6.1-terra USD 1/5 | VPS 8 sampai 16 GB: Rp269.000 sampai Rp459.000 per bulan, sebaiknya VPS terpisah |
 | Satu pembangunan kumpulan (0,06 juta token masuk, 0,12 juta keluar **[Asumsi]**; berkas 03 §11.1) | Sonnet 5.5: 0,06 × 2 + 0,12 × 10 = **USD 1,32** | gpt-6.1-terra: 0,06 × 1 + 0,12 × 5 = **USD 0,66** | Sewa VPS beberapa jam **[Perlu validasi]** tagihan per jam |
 | Kecepatan | Detik | Detik | 3 sampai 10 token per detik (sumber sekunder) **[Perlu validasi]** |
 | Beban operasi | Kunci API, batas belanja | Sama | Model, runtime, pembaruan, pemantauan mutu |
 | Batas belanja di penyedia | Spend limit per workspace, tidak untuk Default Workspace | Tidak diteliti | Tidak relevan |
 
-**Rekomendasi** **[Usulan]**: **hosted, Claude lewat API Anthropic**, di jalur **R1** (bawaan dan saran 10-B A).
+**Rekomendasi: hosted, Claude lewat API Anthropic**, di jalur **R1**, diterima pemilik produk (S4-4 (i) A, (ii) A: "#S4-4: Claude, nanti aja tapi integerasiin aja dulu"). ChatGPT dan self-hosted tidak dipilih.
 
 - Kumpulan kalimat dibangun oleh pekerjaan terjadwal yang tidak membawa data rumah tangga. Server di Indonesia memilih kalimat untuk tiap orang.
 - **Model:** Sonnet 5.5 untuk membangun kumpulan, karena dipanggil jarang dan mutu kalimatnya yang terlihat pengguna. ChatGPT separuh biayanya per pembangunan (USD 0,66 lawan 1,32), tetapi mutu bahasa Indonesianya tanpa tolok ukur primer; pada satu pembangunan per bulan selisihnya USD 0,66.
 - **Batas biaya:** USD 10 per bulan, dipasang di dua tempat (SEC-127): spend limit di workspace khusus, dan penghitung di server per pekerjaan pembangunan kumpulan dan per bulan (berkas 03 §11.1).
 - **Fallback:** kumpulan yang sudah tersimpan tetap dipakai, sehingga penyedia mati tidak menghentikan saran apa pun. Bila kumpulan kosong, tidak ada saran. Pencatatan, permintaan, dan persetujuan tidak pernah tersentuh (brief §5O).
 
-ChatGPT tetap pilihan bagi pemilik produk (09-D). Akibat pilihan 10-B B, C, dan D ada di berkas 03 §11 dan [ADR-021](../adr/ADR-021-jalur-ai-kumpulan-kalimat.md).
+Rinciannya di berkas 03 §11 dan [ADR-021](../adr/ADR-021-jalur-ai-kumpulan-kalimat.md).
 
 ---
 
@@ -261,12 +261,12 @@ Fakta dari 18 §5.2 **[Terverifikasi]**, kecuali yang diberi label lain.
 | Mac mini sendiri | Lokal | Kabel, debugger | Sama | Mac mini M4 di iBox Rp12.749.000 **[Perlu validasi]** | Menyalahi "tanpa Mac" di brief §1 |
 | xtool di Linux | Linux, memakai isi Xcode `.xip` | Langsung | — | Gratis | **Tidak dijadikan jalur resmi**: lisensi EA2002 hanya mengizinkan perangkat lunak Apple di perangkat keras Apple yang menjalankan macOS (17 L-31) |
 
-**Rekomendasi** **[Usulan]**:
+**Rekomendasi**, diterima pemilik produk (09-C A; S4-3 (i) A):
 
 1. **Jalur utama:** Xcode Cloud untuk build, uji unit di simulator, arsip, dan TestFlight. Mac disewa satu kali untuk menyiapkan alur kerja pertama.
 2. **Uji di perangkat:** iPhone 13 dan iPad mini 7 lewat TestFlight internal.
 3. **Kode non-UI yang diuji di Linux:** jaringan, sinkron, antrean, dan bantuan isian ditulis sebagai paket Swift tanpa SwiftUI, agar dapat dibangun dan diuji di Linux CI **[Perlu validasi]** per dependensi.
-4. **Bila pekerjaan UI iOS menjadi harian:** pengembangan SwiftUI tanpa pratinjau, simulator, dan debugger itu lambat (18 §5.2). Pemicu untuk menyewa Mac bulanan atau membeli Mac mini adalah fase UI iOS. Pilihannya ada di checkpoint (09-C).
+4. **Bila pekerjaan UI iOS menjadi harian:** pengembangan SwiftUI tanpa pratinjau, simulator, dan debugger itu lambat (18 §5.2). Pemicu untuk menyewa Mac bulanan atau membeli Mac mini adalah fase UI iOS (ADR-022 butir 4).
 
 Rinciannya di [ADR-022](../adr/ADR-022-jalur-build-ios-tanpa-mac.md).
 
@@ -292,8 +292,8 @@ Semua versi diperiksa ulang secara langsung saat fase bangun dimulai (ES §8). T
 | Compose Material 3 Adaptive | 1.3.0 stabil (12 Agustus 2026); 1.4.0-alpha03 (7 Oktober 2026) | [developer.android.com](https://developer.android.com/jetpack/androidx/releases/compose-material3-adaptive), diakses 12 November 2026 | 1.3.0 stabil; `ListDetailPaneScaffold` eksperimental (ADR-023 butir 5) |
 | Xcode / SDK iOS | Stabil terbaru saat bangun; Xcode 27.1 sudah dipakai citra build EAS (18 §5.2). Unggahan wajib minimal Xcode 26 / SDK iOS 26 sejak 28 April 2026 (18 §5.1) | 18 §5.1, §5.2 | Stabil; membangun dengan SDK 27 membuat `UIDesignRequiresCompatibility` diabaikan, yang tidak berpengaruh karena Liquid Glass memang dipakai |
 | connect-swift | 1.2.3 | 18 §5 (fase D) | Stabil |
-| connect-kotlin | 0.10.0 | 18 §5 (fase D) | **0.x**: ADR-023 |
-| Rust (alternatif) | 1.99.1; axum 0.8.9; sqlx 0.9.0 | 18 §5.3 | axum dan sqlx **0.x**: ADR-023 bila 09-A memilih Rust |
+| connect-kotlin | 0.10.x (terlihat 0.10.0) | 18 §5 (fase D); [github.com/connectrpc/connect-kotlin/releases](https://github.com/connectrpc/connect-kotlin/releases), diakses 12 November 2026 | **0.x**: ADR-023 |
+| Rust (tidak dipilih) | 1.99.1; axum 0.8.9; sqlx 0.9.0 | 18 §5.3 | Tidak dipakai (09-A A) |
 | River (alternatif antrean) | v0.51.2 | 18 §5.7 | **0.x**: tidak dipakai di rekomendasi |
 | Target API Android | 36 (wajib untuk aplikasi baru dan pembaruan sejak 31 Agustus 2026) | 18 §5 (fase D); [developer.android.com/google/play/requirements/target-sdk](https://developer.android.com/google/play/requirements/target-sdk) | Hanya berlaku bila Play dipakai; dicatat di ADR-012 |
 | Alat kualitas per bahasa | Lihat ADR-025 | ADR-025 | Dicek saat dipasang |
