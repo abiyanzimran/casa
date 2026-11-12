@@ -19,12 +19,20 @@ type Requirement struct {
 
 // Checker numbers: what the documents are known to hold, so a reader that
 // silently stops matching after a format change fails instead of passing.
+// When a document changes, the constant is updated in the same change.
 const (
-	tier1FRCount           = 190 // 05 §6 "Hitungan yang berlaku"; 14 §3.3
-	invariantCount         = 41  // 07 §6 INV-01 to INV-41; 14 §4.2
-	approvalInvariantCount = 53  // 06 INV-A01 to INV-A53; 14 §4.2
-	guardrailCount         = 15  // 06 §10 PG-01 to PG-15
-	requiredGuardrailCount = 14  // PG-15 only from FS-3 (14 §4.2, §8)
+	tier1FRCount                   = 190  // 05 §6 "Hitungan yang berlaku"; 14 §3.3
+	acceptanceCriterionCount       = 1246 // 05 module files; lead verified 13 Nov 2026 (1.1c)
+	requiredAcceptanceCriterionCnt = 1116 // ACs of the 190 Tier 1 FR; lead verified 13 Nov 2026 (1.1c)
+	invariantCount                 = 41   // 07 §6 INV-01 to INV-41; 14 §4.2
+	approvalInvariantCount         = 53   // 06 INV-A01 to INV-A53; 14 §4.2
+	guardrailCount                 = 15   // 06 §10 PG-01 to PG-15
+	requiredGuardrailCount         = 14   // PG-15 only from FS-3 (14 §4.2, §8)
+	workedExampleCount             = 53   // 07 §7, all required; lead verified 13 Nov 2026 (1.1c)
+	scenarioCount                  = 49   // 12 §2; lead verified 13 Nov 2026 (1.1c)
+	requiredScenarioCount          = 42   // 38 Tier 1 plus 4 "(+1)" (14 §4.4); lead verified (1.1c)
+	securityCount                  = 160  // 10 SEC tables; lead verified 13 Nov 2026 (1.1c)
+	requiredSecurityCount          = 131  // lead rulings 13 Nov 2026 (1.1c); lead verified
 )
 
 // ID shapes, one per kind (14 §4.1 item 3). CTH has letter variants such as
@@ -64,9 +72,12 @@ var untukAppliesToServerOrWeb = map[string]bool{
 }
 
 var (
-	frHeading      = regexp.MustCompile(`^### (` + frPattern + `) — `)
-	tierRow        = regexp.MustCompile(`^\| Tier / MoSCoW \| ([12]) / `)
-	acBullet       = regexp.MustCompile(`^- \*\*(AC-\d+)\*\*`)
+	frHeading = regexp.MustCompile(`^### (` + frPattern + `) — `)
+	tierRow   = regexp.MustCompile(`^\| Tier / MoSCoW \| ([12]) / `)
+	acBullet  = regexp.MustCompile(`^- \*\*(AC-\d+)\*\*(?: |$)`)
+	// acLikeBullet catches a bullet that means to be an AC but has drifted
+	// from the AC shape, so it fails instead of being dropped.
+	acLikeBullet   = regexp.MustCompile(`^- (?:\*\*AC|AC-)`)
 	sectionHeading = regexp.MustCompile(`^#{1,3} `)
 	// 07 §7 writes most examples as "#### CTH-01 — …" and some as numbered
 	// sections, "### 7.10 CTH-37 — …"; workedExampleLine catches both so a
@@ -80,6 +91,7 @@ var (
 	storeHeader       = regexp.MustCompile(`^\| ID \| Persyaratan \| Toko \| Tahap \|`)
 	scenarioTier      = regexp.MustCompile(`^([123])(?: \(\+[123](?:, [123])*\))?$`)
 	untukSeparator    = regexp.MustCompile(`[,;]`)
+	fenceLine         = regexp.MustCompile("^ {0,3}(`{3,}|~{3,})(.*)$")
 	idCellInvariant   = regexp.MustCompile(`^` + invariantPattern + `$`)
 	idCellApprovalInv = regexp.MustCompile(`^` + approvalInvariantPattern + `$`)
 	idCellGuardrail   = regexp.MustCompile(`^` + guardrailPattern + `$`)
@@ -160,10 +172,17 @@ func checkCounts(tier1FRs int, counts map[string]kindCount) error {
 		got, want int
 	}{
 		{"Tier 1 FR", tier1FRs, tier1FRCount},
+		{"FR/AC known", counts["FR"].known, acceptanceCriterionCount},
+		{"FR/AC required", counts["FR"].required, requiredAcceptanceCriterionCnt},
 		{"INV", counts["INV"].known, invariantCount},
 		{"INV-A", counts["INV-A"].known, approvalInvariantCount},
 		{"PG known", counts["PG"].known, guardrailCount},
 		{"PG required", counts["PG"].required, requiredGuardrailCount},
+		{"CTH", counts["CTH"].known, workedExampleCount},
+		{"SCN known", counts["SCN"].known, scenarioCount},
+		{"SCN required", counts["SCN"].required, requiredScenarioCount},
+		{"SEC known", counts["SEC"].known, securityCount},
+		{"SEC required", counts["SEC"].required, requiredSecurityCount},
 	}
 	var diffs []string
 	for _, c := range checks {
@@ -172,7 +191,8 @@ func checkCounts(tier1FRs int, counts map[string]kindCount) error {
 		}
 	}
 	if diffs != nil {
-		return errors.New("documents disagree with the checker numbers: " + strings.Join(diffs, "; "))
+		return errors.New("documents disagree with the checker numbers: " + strings.Join(diffs, "; ") +
+			"; update the constant in server/cmd/idcheck/docs.go after checking the document")
 	}
 	return nil
 }
@@ -230,7 +250,11 @@ func readFunctionalRequirements(dir string, reqs requirementSet) (int, error) {
 				current = nil
 				continue
 			}
-			if m := acBullet.FindStringSubmatch(line); m != nil {
+			if acLikeBullet.MatchString(line) {
+				m := acBullet.FindStringSubmatch(line)
+				if m == nil {
+					return 0, fmt.Errorf("%s:%d: AC bullet is not \"- **AC-n** …\"", path, n)
+				}
 				if current == nil {
 					return 0, fmt.Errorf("%s:%d: %s is not under an FR heading", path, n, m[1])
 				}
@@ -252,6 +276,9 @@ func readFunctionalRequirements(dir string, reqs requirementSet) (int, error) {
 		f := frs[id]
 		if f.tier == "" {
 			return 0, fmt.Errorf("%s:%d: %s has no \"Tier / MoSCoW\" row", f.path, f.line, id)
+		}
+		if len(f.acs) == 0 {
+			return 0, fmt.Errorf("%s:%d: %s has no AC bullet", f.path, f.line, id)
 		}
 		if f.tier == "1" {
 			tier1++
@@ -480,23 +507,27 @@ func splitCells(line string) []string {
 
 // readDocumentLines returns the lines of a markdown file with every line of a
 // fenced code block, fences included, blanked, so line numbers stay true and
-// nothing inside a fence counts as a definition.
+// nothing inside a fence counts as a definition. Fences follow CommonMark: a
+// run of at least three backticks or tildes opens one, and only a run of the
+// same character, at least as long, with nothing after it, closes it.
 func readDocumentLines(path string) ([]string, error) {
 	content, err := os.ReadFile(path) //nolint:gosec // G304: the path is a planning document under the -docs flag of a CI tool, not user input
 	if err != nil {
 		return nil, err
 	}
 	lines := strings.Split(string(content), "\n")
-	inFence := false
+	fence := ""
 	for i, line := range lines {
-		if strings.HasPrefix(strings.TrimSpace(line), "```") {
-			inFence = !inFence
-			lines[i] = ""
+		m := fenceLine.FindStringSubmatch(line)
+		switch {
+		case fence == "" && m != nil:
+			fence = m[1]
+		case fence != "" && m != nil && m[1][0] == fence[0] && len(m[1]) >= len(fence) && strings.TrimSpace(m[2]) == "":
+			fence = ""
+		case fence == "":
 			continue
 		}
-		if inFence {
-			lines[i] = ""
-		}
+		lines[i] = ""
 	}
 	return lines, nil
 }

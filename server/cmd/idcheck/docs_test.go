@@ -87,9 +87,35 @@ func TestReadRequirementsFailsOnAnUnmappedUntukValue(t *testing.T) {
 
 func TestReadRequirementsChecksCountsOnlyWhenAsked(t *testing.T) {
 	_, err := readRequirements("testdata/docs", true)
-	want := "documents disagree with the checker numbers: Tier 1 FR 2, want 190; INV 3, want 41; " +
-		"INV-A 1, want 53; PG known 2, want 15; PG required 1, want 14"
+	want := "documents disagree with the checker numbers: Tier 1 FR 2, want 190; " +
+		"FR/AC known 22, want 1246; FR/AC required 13, want 1116; INV 3, want 41; " +
+		"INV-A 1, want 53; PG known 2, want 15; PG required 1, want 14; CTH 3, want 53; " +
+		"SCN known 5, want 49; SCN required 3, want 42; SEC known 11, want 160; SEC required 5, want 131; " +
+		"update the constant in server/cmd/idcheck/docs.go after checking the document"
 	if got := errString(err); got != want {
+		t.Fatalf("error = %q, want %q", got, want)
+	}
+}
+
+func TestReadRequirementsFailsOnADriftedACBullet(t *testing.T) {
+	for _, bullet := range []string{"- **AC-2:** criterion", "- AC-2 — criterion", "- **AC 2** — criterion"} {
+		dir := copyDocs(t, "testdata/docs")
+		path := filepath.Join(dir, "05-functional-requirements", "tier-2.md")
+		writeFile(t, path, "### FR-CAL-002 — x\n\n| Tier / MoSCoW | 1 / Must |\n\n- **AC-1** — criterion\n"+bullet+"\n")
+		_, err := readRequirements(dir, false)
+		want := path + `:6: AC bullet is not "- **AC-n** …"`
+		if got := errString(err); got != want {
+			t.Fatalf("bullet %q: error = %q, want %q", bullet, got, want)
+		}
+	}
+}
+
+func TestReadRequirementsFailsOnAnFRWithoutACs(t *testing.T) {
+	dir := copyDocs(t, "testdata/docs")
+	path := filepath.Join(dir, "05-functional-requirements", "tier-2.md")
+	writeFile(t, path, "### FR-CAL-002 — x\n\n| Tier / MoSCoW | 1 / Must |\n")
+	_, err := readRequirements(dir, false)
+	if got, want := errString(err), path+":1: FR-CAL-002 has no AC bullet"; got != want {
 		t.Fatalf("error = %q, want %q", got, want)
 	}
 }

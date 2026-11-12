@@ -28,3 +28,21 @@ Not a definition: a fenced block in a document is never read as one.
 |---|---|---|
 | INV-99 | Fenced invariant | none |
 ```
+
+Not definitions: a tilde fence, and a longer backtick fence that holds a
+shorter one (CommonMark: the closing fence uses the opener's character, at
+least as long).
+
+~~~
+| ID | Invarian | Cara menguji |
+|---|---|---|
+| INV-98 | Fenced invariant | none |
+~~~
+
+````markdown
+```
+| ID | Invarian | Cara menguji |
+|---|---|---|
+| INV-97 | Fenced invariant | none |
+```
+````
