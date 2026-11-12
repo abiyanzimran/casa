@@ -1,5 +1,5 @@
 # Build output
-/server/familyos
+/server/casa
 /bin/
 
 # Test coverage report (uploaded by CI as an artifact, never committed)
