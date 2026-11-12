@@ -180,7 +180,7 @@ Gelembung paling lebar 80% dan 480 px, sudut 20, sudut di sisi pengirim 8, paddi
 | 3 | Pesan Sari | Kiri | Nama "Sari" kecil di atasnya; "Kulkasnya makin berisik, tadi pagi bocor lagi." · 19.32 | `kartu`, teks `tinta` |
 | 4 | Pesan Sari | Kiri | "Aku sudah lihat yang dua pintu di toko dekat pasar." · 19.33 | Sama, tanpa nama |
 | 5 | **Kartu permintaan** | Selebar utas | §3.3 kartu A | — |
-| 6 | Pesan sendiri | Kanan | "Aku lihat dulu, besok pagi kita bahas ya." · 21.05 · tanda dibaca (dua `check` berdampingan) dengan kata "Dibaca" bagi pembaca layar | `aksen-muda`, teks `tinta`; ikon `aksen-tinta` |
+| 6 | Pesan sendiri | Kanan | "Aku lihat dulu, besok pagi kita bahas ya." · 21.05 · tanda dibaca `checks` dengan kata "Dibaca" bagi pembaca layar | `aksen-muda`, teks `tinta`; ikon `aksen-tinta` |
 | 7 | Pemisah hari | Tengah | "Hari ini" | Sama dengan 1 |
 | 8 | Pesan Sari | Kiri | Nama "Sari"; "Uang belanja minggu ini aku taruh di laci dapur." · 08.02 | Sama dengan 3 |
 | 9 | **Kartu serah terima** | Selebar utas | §3.3 kartu B | — |
