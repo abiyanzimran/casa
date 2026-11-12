@@ -252,7 +252,7 @@ a {
   border-radius: 0.7em;
   background: var(--tinta);
   color: var(--kertas);
-  font-size: max(12px, 0.9em);
+  font-size: var(--ukuran-terkecil);
   font-weight: 700;
   line-height: 1.3;
   text-align: center;
