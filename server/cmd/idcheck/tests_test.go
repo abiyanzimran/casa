@@ -67,6 +67,10 @@ test('Plain title, test(\'INV-11\') inside it', () => {});
 const re = /'/; test('SEC-02 after a regex with a quote', () => {});
 const tpl = ` + "`${s ? 'a' : `b${'c'}`}`" + `; test('SEC-03 after a nested template', () => {});
 it.todo('inv-02 lower case later');
+const half = 1 / 2 // test('INV-15 after a division')
+test(` + "`INV-16 ${half}`" + `, () => {});
+test.each([[1]])('INV-17 %s', () => {});
+it.concurrent('INV-18 parallel', () => {});
 `
 
 func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
@@ -81,6 +85,8 @@ func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
 		"web/tests/e2e/shell.spec.ts":         "test('SEC-175: title', async () => {});\n",
 		"web/tests/e2e/skipped.spec.ts":       "test.describe.skip('group', () => {\n\ttest('PG-06 in a skipped group', async () => {});\n});\n",
 		"web/tests/e2e/fixme.spec.ts":         "describe.fixme('group', () => {\n\tit('PG-07 in a fixme group', () => {});\n});\n",
+		"web/tests/e2e/serial.spec.ts":        "test.describe.serial.skip('group', () => {\n\ttest('PG-08 in a skipped serial group', async () => {});\n});\n",
+		"web/src/lib/skipif.test.ts":          "describe.skipIf(true)('group', () => {\n\tit('PG-09 in a skipIf group', () => {});\n});\n",
 		"web/node_modules/pkg/a.test.ts":      tsTestFixture,
 		"web/.svelte-kit/output/b.test.ts":    tsTestFixture,
 		"web/build/c.spec.ts":                 tsTestFixture,
@@ -110,7 +116,9 @@ func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
 		{ID: "INV-10", File: money, Line: 17, Skipped: true},
 		{ID: "SEC-02", File: money, Line: 20},
 		{ID: "SEC-03", File: money, Line: 21},
+		{ID: "PG-09", File: "web/src/lib/skipif.test.ts", Line: 2, Skipped: true},
 		{ID: "PG-07", File: "web/tests/e2e/fixme.spec.ts", Line: 2, Skipped: true},
+		{ID: "PG-08", File: "web/tests/e2e/serial.spec.ts", Line: 2, Skipped: true},
 		{ID: "SEC-175", File: "web/tests/e2e/shell.spec.ts", Line: 1},
 		{ID: "PG-06", File: "web/tests/e2e/skipped.spec.ts", Line: 2, Skipped: true},
 	}
@@ -127,6 +135,9 @@ func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
 		{ID: "SEC-01", File: money, Line: 15, Reason: lookAlikeReason},
 		{ID: "inv-01", File: money, Line: 18, Reason: lookAlikeReason},
 		{ID: "inv-02", File: money, Line: 22, Reason: lookAlikeReason},
+		{ID: "INV-16", File: money, Line: 24, Reason: lookAlikeReason},
+		{ID: "INV-17", File: money, Line: 25, Reason: lookAlikeReason},
+		{ID: "INV-18", File: money, Line: 26, Reason: lookAlikeReason},
 	}
 	if !slices.Equal(malformed, wantMalformed) {
 		t.Fatalf("malformed =\n%v\nwant\n%v", malformed, wantMalformed)

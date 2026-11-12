@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -15,7 +16,8 @@ const (
 	identToken    tokenKind = iota // identifier or keyword
 	stringToken                    // '…' or "…"; text is the value
 	templateToken                  // `…`; text is the raw literal text
-	otherToken                     // number, regular expression, or one punctuation character
+	valueToken                     // number or regular expression literal
+	otherToken                     // one punctuation character
 )
 
 type tsToken struct {
@@ -89,7 +91,7 @@ func (l *tsLexer) code(inSubstitution bool) error {
 			for l.pos < len(l.src) && (isIdentPart(l.src[l.pos]) || l.src[l.pos] == '.') {
 				l.pos++
 			}
-			l.tokens = append(l.tokens, tsToken{otherToken, l.src[start:l.pos], l.line})
+			l.tokens = append(l.tokens, tsToken{valueToken, l.src[start:l.pos], l.line})
 		default:
 			if c == '{' {
 				depth++
@@ -145,6 +147,10 @@ func (l *tsLexer) quoted(quote byte) error {
 // template lexes a template literal; the code of each ${…} substitution is
 // lexed too, so a nested string or template does not end the literal.
 func (l *tsLexer) template() error {
+	// The token goes in before the tokens of its substitutions, so a call
+	// sees the template as its first argument; its text is set at the end.
+	index := len(l.tokens)
+	l.tokens = append(l.tokens, tsToken{templateToken, "", l.line})
 	line := l.line
 	l.pos++
 	var raw strings.Builder
@@ -153,7 +159,7 @@ func (l *tsLexer) template() error {
 		switch {
 		case c == '`':
 			l.pos++
-			l.tokens = append(l.tokens, tsToken{templateToken, raw.String(), line})
+			l.tokens[index].text = raw.String()
 			return nil
 		case c == '\\' && l.pos+1 < len(l.src):
 			raw.WriteString(l.src[l.pos : l.pos+2])
@@ -173,7 +179,8 @@ func (l *tsLexer) template() error {
 }
 
 // regexAllowed reports whether "/" here starts a regular expression: not
-// after a value (identifier, number, string, or closing bracket).
+// after a value (identifier other than a keyword, number, string, template,
+// regular expression, or a ")", "]" or "}" closing an expression).
 func (l *tsLexer) regexAllowed() bool {
 	if len(l.tokens) == 0 {
 		return true
@@ -182,11 +189,10 @@ func (l *tsLexer) regexAllowed() bool {
 	switch prev.kind {
 	case identToken:
 		return regexAfterKeyword[prev.text]
-	case stringToken, templateToken:
+	case stringToken, templateToken, valueToken:
 		return false
 	}
-	// Longer other tokens are numbers and regular expressions: values.
-	return len(prev.text) == 1 && prev.text != ")" && prev.text != "]" && prev.text != "}"
+	return prev.text != ")" && prev.text != "]" && prev.text != "}"
 }
 
 // regex skips a regular expression literal and its flags. One that reaches
@@ -210,7 +216,7 @@ func (l *tsLexer) regex() {
 			for i < len(l.src) && isIdentPart(l.src[i]) {
 				i++
 			}
-			l.tokens = append(l.tokens, tsToken{otherToken, l.src[l.pos:i], l.line})
+			l.tokens = append(l.tokens, tsToken{valueToken, l.src[l.pos:i], l.line})
 			l.pos = i
 			return
 		}
@@ -236,11 +242,13 @@ type testName struct {
 	plain   bool
 }
 
-// readTypeScriptTestNames finds every test(…) and it(…) call, with .only,
-// .skip, .fixme or .todo, and every describe title, outside comments and
-// literals, taking the first argument when it is a string or template
-// literal. A file with describe.skip or describe.fixme (also under test.)
-// has every test skipped.
+// readTypeScriptTestNames finds every test(…), it(…) and describe(…) call
+// chain outside comments and literals, taking the title from the first
+// argument when it is a string or template literal; for a chain with .each,
+// from the call that follows the table. Only test or it, plain or with
+// .only, .skip, .fixme or .todo, and a plain-string title, can carry an ID.
+// A file with a describe chain that is skipped or conditional has every test
+// skipped.
 func readTypeScriptTestNames(src string) ([]testName, error) {
 	tokens, err := lexTypeScript(src)
 	if err != nil {
@@ -252,34 +260,28 @@ func readTypeScriptTestNames(src string) ([]testName, error) {
 		if tok.kind != identToken || (tok.text != "test" && tok.text != "it" && tok.text != "describe") {
 			continue
 		}
-		if i > 0 && tokens[i-1].text == "." && tokens[i-1].kind == otherToken {
+		if i > 0 && tokens[i-1].kind == otherToken && tokens[i-1].text == "." {
 			continue // a method such as /re/.test(…)
 		}
 		chain := []string{tok.text}
 		j := i + 1
-		for j+1 < len(tokens) && tokens[j].kind == otherToken && tokens[j].text == "." && tokens[j+1].kind == identToken {
+		for j+1 < len(tokens) && isPunct(tokens[j], ".") && tokens[j+1].kind == identToken {
 			chain = append(chain, tokens[j+1].text)
 			j += 2
 		}
-		describe, skipped, ok := classifyChain(chain)
-		if !ok {
-			continue
-		}
-		if describe && skipped {
+		kind := classifyChain(chain)
+		if kind.describe && kind.skipped {
 			fileSkipped = true
 		}
-		if j+1 >= len(tokens) || tokens[j].text != "(" || tokens[j].kind != otherToken {
-			continue
-		}
-		title := tokens[j+1]
-		if title.kind != stringToken && title.kind != templateToken {
+		title, ok := callTitle(tokens, j, slices.Contains(chain, "each"))
+		if !ok {
 			continue
 		}
 		names = append(names, testName{
 			name:    title.text,
 			line:    tok.line,
-			skipped: skipped,
-			plain:   !describe && title.kind == stringToken,
+			skipped: kind.skipped,
+			plain:   kind.plainTest && title.kind == stringToken,
 		})
 	}
 	if fileSkipped {
@@ -290,28 +292,59 @@ func readTypeScriptTestNames(src string) ([]testName, error) {
 	return names, nil
 }
 
-// classifyChain reads a call chain such as test.describe.skip: whether it
-// is a describe block, whether it is skipped, and whether it is a test or
-// describe call at all (test.step, test.use and the like are not).
-func classifyChain(chain []string) (describe, skipped, ok bool) {
+type chainKind struct {
+	describe  bool // a describe block, at any depth of modifiers
+	plainTest bool // test or it, plain or with one of .only .skip .fixme .todo
+	skipped   bool
+}
+
+// describeSkips are the modifiers that skip a describe block, or run it
+// only on a condition (code-reviewer, 1.1c fix round 2).
+var describeSkips = []string{"skip", "fixme", "todo", "skipIf", "runIf"}
+
+func classifyChain(chain []string) chainKind {
+	if slices.Contains(chain, "describe") {
+		skipped := slices.ContainsFunc(chain, func(m string) bool { return slices.Contains(describeSkips, m) })
+		return chainKind{describe: true, skipped: skipped}
+	}
 	rest := chain[1:]
-	if chain[0] == "describe" {
-		describe = true
-	} else if len(rest) > 0 && rest[0] == "describe" {
-		describe = true
-		rest = rest[1:]
-	}
 	switch {
-	case len(rest) == 0:
-		return describe, false, true
-	case len(rest) > 1:
-		return false, false, false
+	case len(rest) == 0 || (len(rest) == 1 && rest[0] == "only"):
+		return chainKind{plainTest: true}
+	case len(rest) == 1 && (rest[0] == "skip" || rest[0] == "fixme" || rest[0] == "todo"):
+		return chainKind{plainTest: true, skipped: true}
 	}
-	switch rest[0] {
-	case "only":
-		return describe, false, true
-	case "skip", "fixme", "todo":
-		return describe, true, true
+	return chainKind{} // test.each, it.concurrent, test.step and the like
+}
+
+// callTitle returns the string or template literal that opens the call at
+// tokens[open]. With each, a call whose first argument is a table is
+// followed by a second call, which holds the title.
+func callTitle(tokens []tsToken, open int, each bool) (tsToken, bool) {
+	if open+1 >= len(tokens) || !isPunct(tokens[open], "(") {
+		return tsToken{}, false
 	}
-	return false, false, false
+	if first := tokens[open+1]; first.kind == stringToken || first.kind == templateToken {
+		return first, true
+	}
+	if !each {
+		return tsToken{}, false
+	}
+	depth := 0
+	for k := open; k < len(tokens); k++ {
+		switch {
+		case isPunct(tokens[k], "("):
+			depth++
+		case isPunct(tokens[k], ")"):
+			depth--
+			if depth == 0 {
+				return callTitle(tokens, k+1, false)
+			}
+		}
+	}
+	return tsToken{}, false
+}
+
+func isPunct(tok tsToken, text string) bool {
+	return tok.kind == otherToken && tok.text == text
 }
