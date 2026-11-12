@@ -16,32 +16,36 @@
 </head>
 <body>
   <main class="halaman-indeks">
-    <div>
+    <div class="kepala-isi">
       <h1 class="judul-layar">Contoh layar Casa</h1>
-      <p class="kecil">Semua nama dan angka di contoh ini rekaan. Tema dan kontras dapat dipilih di bawah tanpa mengubah setelan perangkat.</p>
     </div>
+    <p class="kecil">Semua nama dan angka di contoh ini rekaan. Tema dan kontras dapat dipilih tanpa mengubah setelan perangkat; Otomatis mengikuti setelan perangkat.</p>
 
-    <form action="index.html" method="get">
-      <fieldset>
+    <form class="kartu" action="index.html" method="get">
+      <fieldset class="segmen">
         <legend>Tema</legend>
-        <label class="pilihan"><input type="radio" name="tema" value="" checked>Ikuti perangkat</label>
-        <label class="pilihan"><input type="radio" name="tema" value="terang">Terang</label>
-        <label class="pilihan"><input type="radio" name="tema" value="gelap">Gelap</label>
+        <div class="jalur">
+            <label class="segmen-item"><input type="radio" name="tema" value="" checked><span class="ikon ikon-check" aria-hidden="true"></span>Otomatis</label>
+            <label class="segmen-item"><input type="radio" name="tema" value="terang"><span class="ikon ikon-check" aria-hidden="true"></span>Terang</label>
+            <label class="segmen-item"><input type="radio" name="tema" value="gelap"><span class="ikon ikon-check" aria-hidden="true"></span>Gelap</label>
+        </div>
       </fieldset>
-      <fieldset>
+      <fieldset class="segmen">
         <legend>Kontras</legend>
-        <label class="pilihan"><input type="radio" name="kontras" value="" checked>Ikuti perangkat</label>
-        <label class="pilihan"><input type="radio" name="kontras" value="tinggi">Tinggi</label>
+        <div class="jalur">
+            <label class="segmen-item"><input type="radio" name="kontras" value="" checked><span class="ikon ikon-check" aria-hidden="true"></span>Otomatis</label>
+            <label class="segmen-item"><input type="radio" name="kontras" value="tinggi"><span class="ikon ikon-check" aria-hidden="true"></span>Tinggi</label>
+        </div>
       </fieldset>
-      <button type="submit" class="tombol tombol-utama">Pakai pilihan ini</button>
+      <button type="submit" class="tombol tombol-biru">Pakai pilihan ini</button>
     </form>
 
-    <section aria-labelledby="judul-layar-contoh">
+    <section class="kartu" aria-labelledby="judul-layar-contoh">
       <h2 class="judul-bagian" id="judul-layar-contoh">Buka layar</h2>
-      <ul class="daftar-layar">
-        <li><a class="tombol tombol-garis" href="beranda.html">Beranda<span class="ikon ikon-lanjut" aria-hidden="true"></span></a></li>
-        <li><a class="tombol tombol-garis" href="catat.html">Catat<span class="ikon ikon-lanjut" aria-hidden="true"></span></a></li>
-        <li><a class="tombol tombol-garis" href="chat.html">Chat<span class="ikon ikon-lanjut" aria-hidden="true"></span></a></li>
+      <ul>
+          <li><a class="baris baris-tautan" href="beranda.html"><span class="lingkaran" aria-hidden="true"><span class="ikon ikon-house" aria-hidden="true"></span></span><span class="kata">Beranda</span><span class="ujung"><span class="ikon ikon-caret-right" aria-hidden="true"></span></span></a></li>
+          <li><a class="baris baris-tautan" href="catat.html"><span class="lingkaran" aria-hidden="true"><span class="ikon ikon-plus" aria-hidden="true"></span></span><span class="kata">Catat</span><span class="ujung"><span class="ikon ikon-caret-right" aria-hidden="true"></span></span></a></li>
+          <li><a class="baris baris-tautan" href="chat.html"><span class="lingkaran" aria-hidden="true"><span class="ikon ikon-chat-circle" aria-hidden="true"></span></span><span class="kata">Chat</span><span class="ujung"><span class="ikon ikon-caret-right" aria-hidden="true"></span></span></a></li>
       </ul>
     </section>
   </main>

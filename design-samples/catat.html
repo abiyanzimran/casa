@@ -14,69 +14,72 @@
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="samples.css">
 </head>
-<body>
+<body class="halaman-catat">
   <iframe class="latar-beranda" data-src="beranda.html" title="Beranda" tabindex="-1" aria-hidden="true" inert></iframe>
   <div class="selubung"></div>
 
   <dialog class="lembar" open aria-label="Catat">
-    <div>
+    <div class="seret">
+      <span class="pegangan" aria-hidden="true"></span>
       <div class="kepala-lembar">
-        <button type="button" class="tombol-ikon"><span class="ikon ikon-tutup" aria-hidden="true"></span><span class="sr">Tutup</span></button>
+        <button type="button" class="tombol-ikon" data-tutup><span class="ikon ikon-x" aria-hidden="true"></span><span class="sr">Tutup</span></button>
         <label class="sr" for="jenis-catat">Jenis catatan</label>
-        <select id="jenis-catat">
-          <option selected>Belanja</option>
-          <option>Uang masuk</option>
-          <option>Kasih ke</option>
-          <option>Terima dari</option>
-          <option>Pindah</option>
-          <option>Minta anggaran</option>
-          <option>Jalan-jalan</option>
-        </select>
-        <button type="button" class="tombol tombol-utama">Simpan</button>
-      </div>
-
-      <div class="isian-lembar">
-        <div>
-          <label class="label" for="jumlah">Jumlah<span class="sr"> dalam rupiah</span></label>
-          <div class="isian-jumlah">
-            <div class="kotak-jumlah angka-besar">
-              <span class="rp" aria-hidden="true">Rp</span>
-              <input class="angka-besar" id="jumlah" name="jumlah" type="text" inputmode="numeric" autocomplete="off" value="87.000" autofocus>
-            </div>
-            <button type="button" class="tombol tombol-garis tombol-nol">000<span class="sr">, tambah tiga nol</span></button>
-          </div>
-        </div>
-
-        <fieldset>
-          <legend>Tempat uang</legend>
-          <label class="pilihan"><input type="radio" name="tempat" checked><span class="glif glif-tunai" aria-hidden="true"></span>Dompet Andi</label>
-          <label class="pilihan"><input type="radio" name="tempat"><span class="glif glif-rekening" aria-hidden="true"></span>Rekening Andi</label>
-          <label class="pilihan"><input type="radio" name="tempat"><span class="glif glif-rekening" aria-hidden="true"></span>Rekening bersama</label>
-        </fieldset>
-
-        <button type="button" class="baris baris-tombol">
-          <span class="kata dua-baris"><span class="kecil">Kategori</span><span>Dapur</span></span>
-          <span class="ujung"><span class="kecil">sisa</span><span class="angka-baris"><span class="rp" aria-hidden="true">Rp</span>620.000<span class="sr"> rupiah</span></span><span class="ikon ikon-lanjut" aria-hidden="true"></span></span>
-        </button>
-
-        <fieldset>
-          <legend>Tanggal</legend>
-          <div class="deret-tanggal">
-            <label class="tombol-pilihan"><input type="radio" name="tanggal" checked>Hari ini</label>
-            <label class="tombol-pilihan"><input type="radio" name="tanggal">Kemarin</label>
-            <label class="tombol-pilihan">Pilih tanggal<input type="date" name="tanggal-lain"></label>
-          </div>
-        </fieldset>
-
-        <details>
-          <summary><span class="ikon ikon-lanjut" aria-hidden="true"></span>Tambah rincian</summary>
-          <label class="label" for="catatan">Catatan</label>
-          <input class="isian-teks" id="catatan" type="text" autocomplete="off">
-        </details>
-
-        <button type="button" class="tombol tombol-tonal simpan-akhir">Simpan</button>
+        <span class="pemilih">
+          <select id="jenis-catat">
+            <option selected>Belanja</option>
+            <option>Uang masuk</option>
+            <option>Kasih ke</option>
+            <option>Terima dari</option>
+            <option>Pindah</option>
+            <option>Minta anggaran</option>
+            <option>Jalan-jalan</option>
+          </select>
+          <span class="ikon ikon-caret-down" aria-hidden="true"></span>
+        </span>
+        <button type="button" class="tombol tombol-biru">Simpan</button>
       </div>
     </div>
+
+    <div class="isi-lembar">
+      <div>
+        <label class="label" for="jumlah">Jumlah<span class="sr"> dalam rupiah</span></label>
+        <div class="isian-jumlah">
+          <div class="kotak-jumlah angka-besar">
+            <span class="rp" aria-hidden="true">Rp</span>
+            <input class="angka-besar" id="jumlah" name="jumlah" type="text" inputmode="numeric" autocomplete="off" value="87.000" autofocus>
+          </div>
+          <button type="button" class="tombol tombol-abu tombol-nol">000<span class="sr">, tambah tiga nol</span></button>
+        </div>
+      </div>
+
+      <fieldset class="deret-chip">
+        <legend class="label">Tempat uang</legend>
+          <label class="chip"><input type="radio" name="tempat" checked><span class="ikon ikon-check" aria-hidden="true"></span><span class="ikon glif ikon-money" aria-hidden="true"></span>Dompet Andi</label>
+          <label class="chip"><input type="radio" name="tempat"><span class="ikon ikon-check" aria-hidden="true"></span><span class="ikon glif ikon-bank" aria-hidden="true"></span>Rekening Andi</label>
+          <label class="chip"><input type="radio" name="tempat"><span class="ikon ikon-check" aria-hidden="true"></span><span class="ikon glif ikon-bank" aria-hidden="true"></span>Rekening bersama</label>
+      </fieldset>
+
+      <button type="button" class="baris dua baris-tautan kategori">
+        <span class="kata"><span>Kategori</span><span>Dapur</span></span>
+        <span class="ujung"><span class="kecil">sisa</span><span class="angka-baris"><span class="rp" aria-hidden="true">Rp</span>620.000<span class="sr"> rupiah</span></span><span class="ikon ikon-caret-right" aria-hidden="true"></span></span>
+      </button>
+
+      <fieldset class="deret-chip">
+        <legend class="label">Tanggal</legend>
+          <label class="chip"><input type="radio" name="tanggal" checked><span class="ikon ikon-check" aria-hidden="true"></span>Hari ini</label>
+          <label class="chip"><input type="radio" name="tanggal"><span class="ikon ikon-check" aria-hidden="true"></span>Kemarin</label>
+          <label class="chip"><span class="ikon ikon-calendar" aria-hidden="true"></span>Pilih tanggal<input type="date" name="tanggal-lain"></label>
+      </fieldset>
+
+      <details>
+        <summary><span class="ikon ikon-caret-right" aria-hidden="true"></span>Tambah rincian</summary>
+        <label class="label" for="catatan">Catatan</label>
+        <input class="isian" id="catatan" type="text" autocomplete="off">
+      </details>
+
+      <button type="button" class="tombol tombol-hitam simpan-akhir">Simpan</button>
+    </div>
   </dialog>
+  <script src="lembar.js"></script>
 </body>
 </html>

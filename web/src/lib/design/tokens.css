@@ -2,11 +2,9 @@
  * Casa web design tokens. The single source of web tokens (08 §25.4); screens import this file,
  * they never copy its values.
  *
- * One visual direction: the owner's reference images (08 §19.13). Colour: §19.13.2 (neutrals,
- * accents, navigation), §19.12.4 (meaning). Light and dark come from light-dark(), so each value is
- * written once and follows the colour scheme; high contrast is prefers-contrast: more. Type: §19.4,
- * §19.13.4. Shape, grid and motion keep their interim values until the component and layout specs
- * that follow the owner's research request (13 November 2026); see the note at those tokens.
+ * One visual direction (08 §19.13). Colour: §19.13.2, meaning colours §19.12.4. Light and dark
+ * come from light-dark(), so each value is written once; high contrast is prefers-contrast: more.
+ * Type: §19.4, §19.13.4. Scale and component sizes: §19.13.5. Grid: §19.13.6. Motion: §19.13.7.
  */
 
 @font-face {
@@ -31,11 +29,11 @@
 	--tinta: light-dark(#141414, #f0f0f0);
 	--tinta-2: light-dark(#595959, #adadad);
 	--selubung: light-dark(rgb(20 20 20 / 0.4), rgb(0 0 0 / 0.6)); /* tinta 40%; black 60% */
-	/* light theme only (§19.13.2) */
+	/* only the dock, the round Catat button and sheets, light theme only (§19.13.2) */
 	--bayangan: 0 2px 12px light-dark(rgb(20 20 20 / 0.16), transparent);
 	--permukaan-mengambang: var(--kartu);
 
-	/* 08 §19.13.2: blue to act and to select, lime as fill only, a dark floating navigation */
+	/* 08 §19.13.2: blue to act and to select, lime as fill only, a dark floating dock */
 	--aksen: light-dark(#1757f0, #1a5cff);
 	--di-atas-aksen: #ffffff;
 	--aksen-tinta: light-dark(#1757f0, #8dbbff);
@@ -63,64 +61,97 @@
 	--ukuran-isi: 1rem;
 	--ukuran-terkecil: 0.8125rem;
 
-	/* 08 §17.7: spacing in multiples of 4 px */
+	/* 08 §19.13.5 "Skala": spacing (no 20), corners, touch target */
 	--jarak-1: 4px;
 	--jarak-2: 8px;
 	--jarak-3: 12px;
 	--jarak-4: 16px;
-	--jarak-5: 20px;
 	--jarak-6: 24px;
 	--jarak-8: 32px;
-	/* 08 §15, §25.5: touch targets */
-	--sasaran-sentuh: 44px;
-	--sasaran-utama: 48px;
-	--penuh: 999px; /* pill */
+	--jarak-10: 40px;
+	--jarak-12: 48px;
+	--jarak-16: 64px;
+	--sudut-kecil: 8px; /* bubble tail */
+	--sudut-sedang: 12px; /* fields, panels inside cards, selected rows, tooltips, chart columns */
+	--sudut-besar: 20px; /* cards, bubbles */
+	--sudut-lembar: 28px; /* sheets, dialogs */
+	--penuh: 999px; /* buttons, chips, segments, dock, indicator, circles, bars, badges, status pills */
+	--sasaran: 48px;
 
-	/* Interim shape values (the earlier Koral Hangat shapes, the closest to §19.13.5), kept until the
-	   component specs that follow the owner's research request; §19.13.9 item 1 replaces them. */
-	--sudut-kartu: 24px;
-	--sudut-kelompok: 18px;
-	--sudut-tombol-utama: var(--penuh);
-	--sudut-tombol: var(--penuh);
-	--sudut-tanda: var(--penuh);
-	--sudut-lembar: 28px;
-	--tebal-batang: 10px;
-	--sudut-batang: var(--penuh);
-	--isi-batang: var(--tinta);
-
-	/* Interim grid (08 §17.8), Ringkas (< 600); the wider states below. §19.13.6 replaces it with
-	   the component and layout specs. */
-	--margin: 16px;
-	--padding-kartu: 16px;
-	--jarak-bagian: 24px;
-	--jarak-panel: 24px;
-	--lebar-rail: 80px;
-	--lebar-sidebar: 240px;
-	--lebar-satu-kolom: 640px;
-	--lebar-isi-maks: 1200px;
+	/* 08 §19.13.5 "Ukuran per komponen" */
+	--tinggi-tombol: 48px;
+	--tinggi-tombol-kartu: 40px;
+	--tombol-ikon: 40px;
+	--catat-bulat: 56px;
+	--tinggi-isian: 48px;
+	--tinggi-chip: 32px;
+	--tinggi-segmen: 40px;
+	--tinggi-baris: 56px;
+	--tinggi-baris-2: 72px;
+	--lingkaran: 40px;
+	--tinggi-bilah: 64px;
+	--tinggi-dok: 64px;
+	--indikator-lebar: 56px;
+	--indikator-tinggi: 32px;
 	--lebar-lembar: 560px;
+	--lencana-titik: 6px;
+	--lencana: 16px;
+	--ikon-nav: 24px;
+	--ikon: 20px;
+	--ikon-chip: 18px;
+	/* dock and stacked tab labels stop growing here: "Beranda" (3.71 em, Figtree 600) fits a 64 tab (§25.4) */
+	--batas-label-tab: 15px;
+	--tebal-batang: 12px;
+	--celah-segmen: 4px;
+	--tinggi-pil-status: 24px;
+	--tinggi-kotak-tulis: 56px; /* [Usulan] in 08: button 40 + 8 above and below */
+	--arsir-garis: 1.5px; /* 45° hatch on the unconfirmed segment: 1.5 px line, 5 px apart */
+	--arsir-jarak: 5px;
+
+	/* 08 §19.13.6 grid, Ringkas (< 600); the wider states below */
+	--margin: 16px;
+	--jarak-kartu: 12px;
+	--padding-kartu: 16px;
+	--padding-kartu-samping: 16px; /* side column in Lebar */
+	--lebar-satu-kolom: 640px;
+	--lebar-utama-min: 360px; /* Lebar main column minmax(360px, 1fr) */
+	--lebar-gelembung: 480px; /* bubbles and object cards, 08 §10.4 */
+	--lebar-isi-maks: 1200px;
 	--panel-samping: clamp(320px, 33.333%, 400px);
 
-	/* Interim motion (08 §25.4); §19.13.7 replaces it */
-	--gerak: 200ms ease-out;
+	/* 08 §19.13.7: Material 3 durations and curves, nothing longer than 300 ms, no bounce */
+	--gerak-tekan: 100ms; /* Short2 */
+	--gerak-warna: 150ms; /* Short3 */
+	--gerak: 200ms; /* Short4: state change, press release, sheet exit */
+	--gerak-lembar: 300ms; /* Medium2: sheet and dialog enter */
+	--gerak-pudar: 150ms; /* sheets and dialogs under reduced motion */
+	--lengkung: cubic-bezier(0.2, 0, 0, 1); /* Standard */
+	--lengkung-masuk: cubic-bezier(0.05, 0.7, 0.1, 1); /* Emphasized decelerate */
+	--lengkung-keluar: cubic-bezier(0.3, 0, 0.8, 0.15); /* Emphasized accelerate */
 }
 
 @media (min-width: 600px) {
 	:root {
-		/* Sedang: "at least 24"; one column of at most 640 */
+		/* Sedang: one column of at most 640 */
 		--margin: 24px;
-		--padding-kartu: 20px;
+		--jarak-kartu: 16px;
+		--padding-kartu: 24px;
+		--ukuran-angka-utama: 3rem; /* §19.13.4 */
+	}
+}
+
+@media (min-width: 840px) {
+	:root {
+		/* Lebar: main and side column */
+		--jarak-kartu: 24px;
 	}
 }
 
 @media (min-width: 1200px) {
 	:root {
-		/* Sangat lebar */
+		/* Sangat lebar: three equal columns, content at most 1200 */
 		--margin: 32px;
-		--padding-kartu: 24px;
-		--jarak-bagian: 32px;
-		/* the companion pane keeps at least 336 here so a row fits beside its amount (Lebar keeps 320) */
-		--panel-samping: clamp(336px, 33.333%, 400px);
+		--padding-kartu-samping: 24px;
 	}
 }
 
@@ -187,14 +218,16 @@
 		--navigasi: Canvas;
 		--di-atas-navigasi: CanvasText;
 		--pil-navigasi: Highlight;
-		--isi-batang: CanvasText;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 	:root {
-		/* 08 §25.4: everything fades or is instant */
+		/* 08 §19.13.7 token paragraph: everything 0 ms except --gerak-pudar for sheets and dialogs */
+		--gerak-tekan: 0ms;
+		--gerak-warna: 0ms;
 		--gerak: 0ms;
+		--gerak-lembar: 0ms;
 	}
 }
 
@@ -236,14 +269,14 @@ html {
 	font-weight: 600;
 	font-size: max(40px, min(var(--ukuran-angka-utama), var(--batas-lebar-jumlah)));
 	line-height: 1.15;
-	letter-spacing: -0.02em;
+	letter-spacing: -0.03em;
 }
 
 .angka-besar {
 	font-weight: 600;
 	font-size: max(28px, min(var(--ukuran-angka-besar), var(--batas-lebar-jumlah)));
 	line-height: 1.25;
-	letter-spacing: -0.01em;
+	letter-spacing: -0.02em;
 }
 
 .angka-baris {

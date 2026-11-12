@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <rect width="1024" height="1024" fill="#1757F0"/>
-  <g transform="translate(128 128) scale(32)" fill="none" stroke="#C6F432" stroke-width="2.8" stroke-linecap="butt" stroke-linejoin="round">
-    <path d="M2 19.5C6 19.5 8.8 19.2 10.2 17.8L13.8 14.2C15.2 12.8 16.5 10.9 16.5 8.7C16.5 6.3 14.5 4.5 12 4.5"/>
-    <path d="M22 19.5C18 19.5 15.2 19.2 13.8 17.8L13.63 17.63M10.37 14.37L10.2 14.2C8.8 12.8 7.5 10.9 7.5 8.7C7.5 6.3 9.5 4.5 12 4.5"/>
+  <!-- Simpul (08 §19.5): round caps and joins; the rope that passes under is cut by a strip of the
+       background drawn along the rope over it, 0.6 units clear on each side -->
+  <g transform="translate(128 128) scale(32)" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 19.5C18 19.5 15.2 19.2 13.8 17.8L10.2 14.2C8.8 12.8 7.5 10.9 7.5 8.7C7.5 6.3 9.5 4.5 12 4.5" stroke="#C6F432"/>
+    <path d="M10.9 17.1L13.1 14.9" stroke="#1757F0" stroke-width="4" stroke-linecap="butt"/>
+    <path d="M2 19.5C6 19.5 8.8 19.2 10.2 17.8L13.8 14.2C15.2 12.8 16.5 10.9 16.5 8.7C16.5 6.3 14.5 4.5 12 4.5" stroke="#C6F432"/>
   </g>
 </svg>
