@@ -41,7 +41,7 @@
 
 **Berkas:**
 - Buat: `server/go.mod`, `server/cmd/familyos/main.go`, `server/cmd/familyos/main_test.go`
-- Buat: `.gitignore` (biner, `coverage.out`, `node_modules/`, `.env*`)
+- Buat: `.gitignore` (biner, `coverage.out`, `node_modules/`, `.env*`, `.cache/`, `.superpowers/`)
 
 **Antarmuka:**
 - Menghasilkan: `func run(args []string, stdout, stderr io.Writer) int` di `package main`. `main` hanya memanggil `os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))`. Tugas 1.2 menambah subperintah `migrate`, tugas 1.3 `serve`, lewat `switch` di `run`.
@@ -95,7 +95,7 @@ Target (nama tetap; dipakai 1.1b, 1.1c, 1.2, 1.3):
 | `check-server` | semua target di atas berurutan |
 
 - [ ] **Langkah 1: `.golangci.yml` versi 2.** Linter: himpunan `standard` ditambah `gosec`, `errorlint`, `misspell`. Formatter `gofmt`. Tanpa `nolint` tanpa alasan: aktifkan `nolintlint` dengan `require-explanation: true` (ES §1 "A suppression needs a comment giving the reason"). Versi golangci-lint dicek live, v2.x stabil.
-- [ ] **Langkah 2: `scripts/cpd.sh <language> <dir>`.** Mengunduh distribusi PMD versi stabil terbaru (dicek live) ke `.cache/pmd/` bila belum ada, **memverifikasi SHA-256** terhadap nilai yang ditulis di skrip (diambil dari halaman rilis resmi), lalu menjalankan `pmd cpd --language <language> --minimum-tokens <ambang> --dir <dir> --fail-on-violation true`. `.cache/` masuk `.gitignore`. **Ambang token**: lead meminta nilainya ke `code-reviewer` sebelum tugas ini dimulai (ADR-025 butir 4) dan menuliskannya di sini: `__________`. Pelaksana tidak memilih sendiri.
+- [ ] **Langkah 2: `scripts/cpd.sh <language> <dir>`.** Mengunduh distribusi PMD versi stabil terbaru (dicek live) ke `.cache/pmd/` bila belum ada, **memverifikasi SHA-256** terhadap nilai yang ditulis di skrip (diambil dari halaman rilis resmi), lalu menjalankan `pmd cpd --language <language> --minimum-tokens <ambang> --dir <dir> --fail-on-violation true`. `.cache/` masuk `.gitignore`. **Ambang token**: lead meminta nilainya ke `code-reviewer` sebelum tugas ini dimulai (ADR-025 butir 4) dan menuliskannya di sini: **Go 100, TypeScript 70** (`code-reviewer`, 13 November 2026). Dikecualikan: `**/gen/**`, keluaran sqlc, `*.pb.go`, berkas berkepala `// Code generated ... DO NOT EDIT.`, tipe kontrak TS hasil generate, fixture vektor emas hasil generate, `vendor/`, `node_modules/`, `.svelte-kit/`, keluaran build. `*_test.go` tetap dipindai; `--ignore-literals` mati. Pelaksana tidak memilih sendiri.
 - [ ] **Langkah 3:** `make check-server` lokal → LULUS.
 
 ### Tugas 3: Pemeriksa rahasia (14 §2.2 baris "Rahasia di repositori")
