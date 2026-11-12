@@ -1,0 +1,193 @@
+/*
+ * Casa web design tokens, direction C. The single source of web tokens
+ * (08 §25.4); screens import this file, they never copy its values.
+ *
+ * Colour: 08 §19.3 (light, dark, high contrast) and §25.4 (forced colours, selubung).
+ * Type and numbers: 08 §19.4 and §25.4 "Huruf". Spacing, corners, motion: 08 §17.7, §25.4.
+ */
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  /* Official release 2.7.1, variable wght axis, converted to WOFF2 unchanged; served from our origin (SEC-160 (d)). */
+  src: url("/fonts/PlusJakartaSans-Variable.woff2") format("woff2");
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* 08 §19.3, light */
+  --kertas: #fafaf7;
+  --kertas-1: #f4f4f0;
+  --kertas-2: #eeeee9;
+  --kertas-3: #e8e8e2;
+  --tinta: #1c2321;
+  --tinta-2: #4f5a57;
+  --garis-tegas: #737d7a;
+  --garis: #c9cec9;
+  --teal: #0c524e;
+  --di-atas-teal: #ffffff;
+  --teal-muda: #dcedea;
+  --pasir: #efe6d6;
+  --selubung: rgb(28 35 33 / 0.4); /* tinta at 40% */
+  /* 08 §25.4: one soft shadow, only on the sheet and the floating Catat button, light theme only */
+  --bayangan: 0 2px 12px rgb(28 35 33 / 0.16);
+  /* 08 §25.4: floating surfaces are kertas with a shadow in light, kertas-3 without one in dark */
+  --permukaan-mengambang: var(--kertas);
+
+  /* 08 §19.4, §25.4 "Huruf" */
+  --huruf-isi: system-ui, sans-serif;
+  --huruf-angka: "Plus Jakarta Sans", system-ui, sans-serif;
+  --ukuran-angka-utama: 2.5rem;
+  --ukuran-angka-besar: 1.75rem;
+  --ukuran-angka-baris: 1.0625rem;
+  --ukuran-judul-bagian: 1.25rem;
+  --ukuran-isi: 1rem;
+  --ukuran-terkecil: 0.8125rem;
+
+  /* 08 §17.7, §25.4: spacing in multiples of 4 px */
+  --jarak-1: 4px;
+  --jarak-2: 8px;
+  --jarak-3: 12px;
+  --jarak-4: 16px;
+  --jarak-6: 24px;
+  --jarak-8: 32px;
+  --sudut-kartu: 12px;
+  --sudut-tanda: 8px;
+  --sudut-tombol: 12px;
+  --sudut-lembar: 16px;
+  /* 08 §15, §25.5: touch targets */
+  --sasaran-sentuh: 44px;
+  --sasaran-utama: 48px;
+
+  /* 08 §25.4 "Gerak": at most 200 ms, no bounce */
+  --gerak: 200ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 08 §19.3, dark */
+    --kertas: #121716;
+    --kertas-1: #181e1d;
+    --kertas-2: #1e2523;
+    --kertas-3: #2c3532;
+    --tinta: #ecefec;
+    --tinta-2: #a9b4b1;
+    --garis-tegas: #8a9592;
+    --garis: #3a4441;
+    --teal: #5cc2b6;
+    --di-atas-teal: #0b2a27;
+    --teal-muda: #173a36;
+    --pasir: #3a3326;
+    --selubung: rgb(0 0 0 / 0.6);
+    --bayangan: none;
+    --permukaan-mengambang: var(--kertas-3);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    /* 08 §19.3 "Kontras tinggi": tinta-2 rises to tinta, garis becomes garis-tegas, teal darkens.
+       References keep the dark theme correct without repeating values. Candidate teal values
+       computed for 7:1 on every surface and on teal-muda; the lead verifies, ux-designer decides. */
+    --tinta-2: var(--tinta);
+    --garis: var(--garis-tegas);
+    --teal: #084440;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root {
+    /* 08 §19.3 "Kontras tinggi", dark: teal lightens */
+    --teal: #84d8cd;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    /* 08 §25.4: system colours; borders, card lines and focus rings stay visible.
+       Matters where an element opts out with forced-color-adjust: none (glyphs, icons, bars). */
+    --kertas: Canvas;
+    --kertas-1: Canvas;
+    --kertas-2: Canvas;
+    --kertas-3: Canvas;
+    --tinta: CanvasText;
+    --tinta-2: CanvasText;
+    --garis-tegas: CanvasText;
+    --garis: CanvasText;
+    --teal: Highlight;
+    --di-atas-teal: HighlightText;
+    --teal-muda: Canvas;
+    --pasir: Canvas;
+    --selubung: Canvas;
+    --bayangan: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* 08 §25.4: everything fades or is instant */
+    --gerak: 0ms;
+  }
+}
+
+/* iOS text size (08 §25.4 "Dynamic Type iOS" [Perlu validasi]). Guarded to touch WebKit:
+   on macOS Safari -apple-system-body is 13 px and would shrink every rem. */
+@supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
+html {
+  font-family: var(--huruf-isi);
+  background: var(--kertas);
+  color: var(--tinta);
+}
+
+/* 08 §19.4 number tokens: Plus Jakarta Sans, tabular figures. "Rp" is its own element (.rp). */
+.angka-utama,
+.angka-besar,
+.angka-baris {
+  font-family: var(--huruf-angka);
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta);
+  white-space: nowrap;
+}
+
+.angka-utama {
+  font-weight: 600;
+  line-height: 1.2;
+  /* Grows with text size, stops when the amount fills its column (container query units), never
+     below the 40 px base (08 §19.4 "Teks besar", §25.4). ponytail: 14cqi fits an 8-digit amount
+     ("Rp88.888.888"); longer amounts need a per-length factor when 1.10 renders real numbers. */
+  font-size: max(40px, min(var(--ukuran-angka-utama), 14cqi));
+}
+
+.angka-besar {
+  font-weight: 600;
+  font-size: var(--ukuran-angka-besar);
+  line-height: 1.3;
+}
+
+.angka-baris {
+  font-weight: 500;
+  font-size: var(--ukuran-angka-baris);
+  line-height: 1.4;
+}
+
+/* 08 §19.4 "Rp kecil": 60% and tinta-2 on angka-utama and angka-besar; same as the digits on angka-baris */
+.angka-utama .rp,
+.angka-besar .rp {
+  font-size: 0.6em;
+  color: var(--tinta-2);
+}
+
+.judul-bagian {
+  font-family: var(--huruf-angka);
+  font-weight: 700;
+  font-size: var(--ukuran-judul-bagian);
+  line-height: 1.3;
+}
