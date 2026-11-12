@@ -19,11 +19,14 @@ func main() {
 // code: 2 for a usage error, as is conventional for command-line tools.
 // stdout stays in the signature for the subcommands that write results;
 // none does yet.
+//
+// Write errors on stderr are discarded on purpose: stderr is the last place
+// to report a problem, and the exit code still carries the failure.
 func run(args []string, _, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprint(stderr, usage)
+		_, _ = fmt.Fprint(stderr, usage)
 		return 2
 	}
-	fmt.Fprintf(stderr, "familyos: unknown command %q\n%s", args[0], usage)
+	_, _ = fmt.Fprintf(stderr, "familyos: unknown command %q\n%s", args[0], usage)
 	return 2
 }
