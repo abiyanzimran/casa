@@ -414,6 +414,14 @@ main:focus {
   min-width: 0;
 }
 
+.bagian-uang .baris > .kata,
+.kartu .baris > .kata {
+  /* holder rows (08 §19.8 item 5): the amount drops only when glyphs, the longest word and the
+     amount cannot share one row (08 §15) */
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
 .baris > .angka-baris,
 .baris > .ujung {
   margin-left: auto;
