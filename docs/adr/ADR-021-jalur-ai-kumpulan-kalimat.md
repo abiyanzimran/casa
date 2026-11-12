@@ -50,6 +50,6 @@ R1 dari dokumen 10 memenuhi kedua keinginan itu: `AI` menulis kumpulan kalimat t
 ## Konsekuensi
 
 - Tidak ada data rumah tangga yang keluar ke penyedia `AI`. Pertanyaan transfer lintas batas untuk `AI` gugur di pilot selama R1 dipakai.
-- Saran bersifat umum menurut kategori. Brief §5O "asks the AI to revise it" dipenuhi sebagai "saran lain dari kumpulan", dan selisihnya dicatat lead (dokumen 10 §8 butir 5).
+- Saran bersifat umum menurut kategori. "Minta ubah" berarti saran lain dari kumpulan. Brief §5O kini berbunyi "asks for another suggestion" dan menyatakan tidak ada teks, status, atau judul yang dikirim ke penyedia `AI` selama pilot (D-111, dipasang lead 12 November 2026 sesudah pemilik produk menjawab "pasang semua"; K-56 selesai).
 - Biaya `AI` tidak tumbuh dengan jumlah rumah tangga, karena satu kumpulan dipakai semua.
 - Mutu kalimat perlu diuji buta dengan pasangan pilot sebelum memilih model (18 §5.9 butir 4). Templat dan kumpulan dapat diganti tanpa rilis aplikasi.

@@ -157,11 +157,11 @@ Daftar kanonisnya dokumen 10 §4.1 (sembilan butir, dicentang bertanggal di runb
 | 10 §4.1 | Butir | Di dokumen ini |
 |---|---|---|
 | 1 | Persyaratan berkolom "Pilot" dibangun dan lulus uji | §4, §8 |
-| 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. Waktu ini **[Usulan]** `security-privacy` (10 §3.1), **menunggu Q-208** | ADR-020; ADR-026 |
+| 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. DPIA dan catatan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai: usulan `security-privacy` (10 §3.1), **diterima atas saran lead** (Q-208, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4") | ADR-020; ADR-026 |
 | 7 | Penyedia hosting dan cadangan dipilih (S4-2), dengan pihak kontrak dan lokasi pusat data tercatat dan pernyataan tertulis bahwa isi VPS dan cadangan tetap di Indonesia | ADR-020 butir 1; RISK-04 |
 | 8 | Pemulihan cadangan diuji sekali; uji SEC-96 dan SEC-97 lulus | §6 "Uji pemulihan", "Umur data paling tua", "Jurnal penghapusan" |
 
-**Bukan syarat sebelum data nyata** (10-C A, S4-4 (iii) A): jawaban advokat atas L-01, L-14, L-24. Risiko PSE (W-32) diterima pemilik produk. Pemicu dokumen 10 §4.1 (pengguna di luar rumah tangga pilot sebelum tahap publik berarti advokat dijawab lebih dulu) masih **[Usulan]** `security-privacy`, **menunggu Q-209**, belum berlaku.
+**Bukan syarat sebelum data nyata** (10-C A, S4-4 (iii) A): jawaban advokat atas L-01, L-14, L-24. Risiko PSE (W-32) diterima pemilik produk. Pemicu dokumen 10 §4.1 (pengguna di luar rumah tangga pilot sebelum tahap publik berarti advokat dijawab lebih dulu) **berlaku**: usulan `security-privacy`, diterima atas saran lead (Q-209, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4").
 
 | Skenario | Akibat | Pemulihan |
 |---|---|---|
