@@ -121,14 +121,8 @@ p {
 .ikon-device-mobile { mask-image: url("symbols/device-mobile.svg"); }
 .ikon-simpul { mask-image: url("glyphs/simpul.svg"); }
 
-/* the done_all equivalent: two checks, built from the one check glyph */
-.ikon-dibaca {
-  width: calc(var(--ikon-chip) * 1.4);
-  height: var(--ikon-chip);
-  mask-image: url("symbols/check.svg"), url("symbols/check.svg");
-  mask-position: left center, right center;
-  mask-size: contain;
-}
+.ikon-receipt { mask-image: url("symbols/receipt.svg"); }
+.ikon-checks { mask-image: url("symbols/checks.svg"); }
 
 /* Selected destination: the Fill weight (08 §17.5, §19.13.5) */
 [aria-current="page"] .ikon-house { mask-image: url("symbols/house-fill.svg"); }
@@ -159,11 +153,20 @@ p {
 }
 
 /* Hover: an 8% layer of the content colour (Material state layer), no colour value of its own */
+:root {
+  --lapisan-hover: inset 0 0 0 100vmax color-mix(in srgb, currentColor 8%, transparent);
+}
+
 @media (hover: hover) {
-  :is(.tombol, .tombol-ikon, .chip, .catat, .baris-tautan, .segmen-item):hover,
+  :is(.tombol, .tombol-ikon, .chip, .baris-tautan, .segmen-item):hover,
   .pemilih:hover::before,
   .tab:hover .indikator {
-    box-shadow: inset 0 0 0 100vmax color-mix(in srgb, currentColor 8%, transparent);
+    box-shadow: var(--lapisan-hover);
+  }
+
+  /* the round Catat keeps its shadow under the layer */
+  .catat:hover {
+    box-shadow: var(--bayangan), var(--lapisan-hover);
   }
 }
 
@@ -513,7 +516,8 @@ p {
   border-radius: var(--penuh);
   background-color: var(--sorot);
   color: var(--di-atas-sorot);
-  font-size: var(--ukuran-terkecil);
+  /* at least 13 px, never larger than the tab label it belongs to (08 §25.4) */
+  font-size: min(var(--ukuran-label, 1em), max(var(--lencana-huruf-min), 0.8 * var(--ukuran-label, 1em)));
   font-weight: 700;
   display: inline-grid;
   place-items: center;
@@ -586,12 +590,26 @@ p {
   min-height: var(--tinggi-dok);
   padding: var(--jarak-1) 0;
   color: var(--di-atas-navigasi);
-  /* the label stops growing at the tab width: "Beranda" is 3.71 em in Figtree 600 */
-  font-size: min(var(--ukuran-terkecil), var(--batas-label-tab));
+  /* each tab is a container so its label can stop growing at the tab's width (08 §25.4) */
+  container-type: inline-size;
   font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
   forced-color-adjust: none;
+}
+
+.label-tab,
+.tab .lencana {
+  --ukuran-label: min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em));
+}
+
+.label-tab {
+  font-size: var(--ukuran-label);
+}
+
+/* a ring in the dock colour keeps the badge apart from the icon (QG-09 M1) */
+.tab .lencana {
+  box-shadow: 0 0 0 2px var(--navigasi);
 }
 
 .tab:focus-visible {
@@ -725,7 +743,23 @@ p {
     padding: 0 var(--jarak-4);
     border-radius: var(--penuh);
     color: var(--tinta);
-    font-size: var(--ukuran-judul-subbagian);
+    container-type: normal;
+  }
+
+  .label-tab,
+  .tab .lencana {
+    --ukuran-label: var(--ukuran-judul-subbagian);
+  }
+
+  .tab .lencana {
+    box-shadow: 0 0 0 2px var(--kartu);
+  }
+
+  /* Catat in the bar has no shadow of its own */
+  @media (hover: hover) {
+    .catat:hover {
+      box-shadow: var(--lapisan-hover);
+    }
   }
 
   .tab:focus-visible {
@@ -805,7 +839,12 @@ p {
       gap: var(--jarak-1);
       min-width: var(--tinggi-dok);
       padding: var(--jarak-1) var(--jarak-2);
-      font-size: min(var(--ukuran-terkecil), var(--batas-label-tab));
+      container-type: inline-size;
+    }
+
+    .label-tab,
+    .tab .lencana {
+      --ukuran-label: min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em));
     }
 
     .lencana {
@@ -1044,7 +1083,9 @@ button.baris-tautan {
   border-top: 1px solid var(--garis);
 }
 
-.baris-pemegang {
+.baris-pemegang,
+.ringkas {
+  /* summary rows that are not links: 48 (08 §19.13.5) */
   min-height: var(--sasaran);
 }
 
@@ -1315,6 +1356,8 @@ button.baris-tautan {
 }
 
 .waktu .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
   color: var(--aksen-tinta);
 }
 
@@ -1492,11 +1535,13 @@ button.baris-tautan {
   position: fixed;
   inset: 0;
   background-color: var(--selubung);
-  transition: opacity var(--gerak) var(--lengkung-keluar);
+  /* enters with the sheet (300 ms decelerate), leaves with it (200 ms accelerate) */
+  transition: opacity var(--gerak-lembar) var(--lengkung-masuk);
 }
 
 body:not(:has(.lembar[open])) .selubung {
   opacity: 0;
+  transition: opacity var(--gerak) var(--lengkung-keluar);
 }
 
 @starting-style {
@@ -1755,7 +1800,8 @@ details > :not(summary) {
     }
   }
 
-  .selubung {
+  .selubung,
+  body:not(:has(.lembar[open])) .selubung {
     transition-duration: var(--gerak-pudar);
   }
 

@@ -1,6 +1,7 @@
 # Interface icons (web)
 
-Phosphor Icons, Regular and Fill weights, for the names in 08 §19.13.5 "Ikon web". Static assets
+Phosphor Icons for the names in 08 §19.13.5 "Ikon web": Regular for all of them, Fill only for the
+five tab glyphs (`house`, `wallet`, `chat-circle`, `list-checks`, `user`; §19.13.9 item 7). Static assets
 served from our own origin, not a bundle dependency (SEC-168 (d)); `LICENSE` is Phosphor's MIT
 licence, copied unchanged from the package.
 

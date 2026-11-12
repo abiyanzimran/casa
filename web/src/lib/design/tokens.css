@@ -99,8 +99,10 @@
 	--ikon-nav: 24px;
 	--ikon: 20px;
 	--ikon-chip: 18px;
-	/* dock and stacked tab labels stop growing here: "Beranda" (3.71 em, Figtree 600) fits a 64 tab (§25.4) */
-	--batas-label-tab: 15px;
+	/* 08 §25.4 "Navigasi": a tab label stops growing at its tab's width. "Beranda", the longest
+	   label, is 3.71 em in Figtree 600; +2% gives the divisor of the tab's inline size (cqi) */
+	--lebar-label-tab-em: 3.8;
+	--lencana-huruf-min: 13px; /* badge digits never below 13 px, never above the tab label */
 	--tebal-batang: 12px;
 	--celah-segmen: 4px;
 	--tinggi-pil-status: 24px;
@@ -223,9 +225,9 @@
 
 @media (prefers-reduced-motion: reduce) {
 	:root {
-		/* 08 §19.13.7 token paragraph: everything 0 ms except --gerak-pudar for sheets and dialogs */
+		/* 08 §19.13.7: no movement; sheets and dialogs fade (--gerak-pudar). Colour changes are not
+		   movement and keep --gerak-warna 150 ms. */
 		--gerak-tekan: 0ms;
-		--gerak-warna: 0ms;
 		--gerak: 0ms;
 		--gerak-lembar: 0ms;
 	}
