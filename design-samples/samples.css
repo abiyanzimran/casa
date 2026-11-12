@@ -205,6 +205,10 @@ a {
   display: none;
 }
 
+.navigasi li {
+  container-type: inline-size;
+}
+
 .tujuan {
   display: flex;
   flex-direction: column;
@@ -214,11 +218,17 @@ a {
   min-height: 4rem;
   padding: var(--jarak-1);
   color: var(--tinta-2);
-  font-size: var(--ukuran-terkecil);
+  /* 08 §25.4 "Navigasi tingkat atas": the label stops growing at its cell width, never below 13 px;
+     static factor: "Beranda" bold is 4.2 em, +2% */
+  font-size: max(13px, min(var(--ukuran-terkecil), calc((100cqi - 8px) / 4.28)));
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
-  overflow-wrap: anywhere;
+}
+
+.tujuan .ikon {
+  width: max(24px, 1.5em);
+  height: max(24px, 1.5em);
 }
 
 .tujuan[aria-current="page"] {
@@ -231,20 +241,20 @@ a {
   display: inline-flex;
 }
 
-/* Count badge: neutral, never the accent (08 §4.1; §19.2 item 2) */
+/* Count badge: neutral, never the accent (08 §4.1; §19.2 item 2); placed and sized with the icon */
 .lencana {
   position: absolute;
-  top: -6px;
-  left: 16px;
-  min-width: 18px;
-  padding: 0 5px;
+  top: -25%;
+  left: 62%;
+  min-width: 1.4em;
+  padding: 0 0.35em;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 0.7em;
   background: var(--tinta);
   color: var(--kertas);
-  font-size: 0.75rem;
+  font-size: max(12px, 0.9em);
   font-weight: 700;
-  line-height: 16px;
+  line-height: 1.3;
   text-align: center;
 }
 
