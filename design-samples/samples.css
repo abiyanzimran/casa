@@ -765,10 +765,12 @@ dialog::backdrop {
 }
 
 .kepala-lembar {
+  container: kepala-lembar / inline-size;
   position: sticky;
   top: 0;
   z-index: 1;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--jarak-2);
   margin-inline: calc(-1 * var(--jarak-2));
@@ -780,14 +782,26 @@ dialog::backdrop {
   flex: 1 1 auto;
   min-width: 0;
   min-height: var(--sasaran-sentuh);
-  padding-inline: var(--jarak-3);
+  padding-inline: var(--jarak-2);
   border: 1px solid var(--garis-tegas);
   border-radius: var(--sudut-tombol);
   background: var(--permukaan-mengambang);
   color: var(--tinta);
   font: inherit;
   font-size: max(1rem, 16px);
-  font-weight: 600;
+}
+
+/* Row 1: Tutup and Simpan (Simpan stays in the head, 08 §25.3); row 2: the type select at full
+   width. 21em = Tutup + the select showing "Minta anggaran" + Simpan, measured. */
+@container kepala-lembar (width < 21em) {
+  .kepala-lembar select {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .kepala-lembar .tombol-utama {
+    margin-left: auto;
+  }
 }
 
 .isian-lembar {
