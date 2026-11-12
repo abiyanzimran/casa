@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Casa · Catat</title>
+  <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121716" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+  <link rel="preload" href="fonts/PlusJakartaSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="samples.css">
+</head>
+<body>
+  <iframe class="latar-beranda" src="beranda.html" title="Beranda" tabindex="-1" aria-hidden="true" inert></iframe>
+  <div class="selubung"></div>
+
+  <dialog class="lembar" open aria-label="Catat">
+    <div>
+      <div class="kepala-lembar">
+        <button type="button" class="tombol-ikon"><span class="ikon ikon-tutup" aria-hidden="true"></span><span class="sr">Tutup</span></button>
+        <label class="sr" for="jenis-catat">Jenis catatan</label>
+        <select id="jenis-catat">
+          <option selected>Belanja</option>
+          <option>Uang masuk</option>
+          <option>Kasih ke</option>
+          <option>Terima dari</option>
+          <option>Pindah</option>
+          <option>Minta anggaran</option>
+          <option>Jalan-jalan</option>
+        </select>
+        <button type="button" class="tombol tombol-utama">Simpan</button>
+      </div>
+
+      <div class="isian-lembar">
+        <div>
+          <label class="label" for="jumlah">Jumlah<span class="sr"> dalam rupiah</span></label>
+          <div class="isian-jumlah">
+            <div class="kotak-jumlah angka-besar">
+              <span class="rp" aria-hidden="true">Rp</span>
+              <input class="angka-besar" id="jumlah" name="jumlah" type="text" inputmode="numeric" autocomplete="off" value="87.000" autofocus>
+            </div>
+            <button type="button" class="tombol tombol-garis tombol-nol" aria-label="Tambah tiga nol">000</button>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Tempat uang</legend>
+          <label class="pilihan"><input type="radio" name="tempat" checked><span class="glif glif-tunai" aria-hidden="true"></span>Dompet Andi</label>
+          <label class="pilihan"><input type="radio" name="tempat"><span class="glif glif-rekening" aria-hidden="true"></span>Rekening Andi</label>
+          <label class="pilihan"><input type="radio" name="tempat"><span class="glif glif-rekening" aria-hidden="true"></span>Rekening bersama</label>
+        </fieldset>
+
+        <button type="button" class="baris baris-tombol">
+          <span class="kata dua-baris"><span class="kecil">Kategori</span><span>Dapur</span></span>
+          <span class="ujung"><span class="kecil">sisa</span><span class="angka-baris"><span class="rp" aria-hidden="true">Rp</span>620.000<span class="sr"> rupiah</span></span><span class="ikon ikon-lanjut" aria-hidden="true"></span></span>
+        </button>
+
+        <fieldset>
+          <legend>Tanggal</legend>
+          <div class="deret-tanggal">
+            <label class="tombol-pilihan"><input type="radio" name="tanggal" checked>Hari ini</label>
+            <label class="tombol-pilihan"><input type="radio" name="tanggal">Kemarin</label>
+            <label class="tombol-pilihan">Pilih tanggal<input type="date" name="tanggal-lain"></label>
+          </div>
+        </fieldset>
+
+        <details>
+          <summary>Tambah rincian</summary>
+          <label class="label" for="catatan">Catatan</label>
+          <input class="isian-teks" id="catatan" type="text" autocomplete="off">
+        </details>
+
+        <button type="button" class="tombol tombol-utama simpan-akhir">Simpan</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

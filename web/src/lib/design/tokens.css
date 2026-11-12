@@ -185,6 +185,15 @@ html {
   color: var(--tinta-2);
 }
 
+/* 08 §19.4 "Jumlah di baris dan di kalimat": an amount inside a sentence keeps the sentence's
+   size and colour, in Plus Jakarta Sans Medium with tabular figures */
+.angka-kalimat {
+  font-family: var(--huruf-angka);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .judul-bagian {
   font-family: var(--huruf-angka);
   font-weight: 700;
