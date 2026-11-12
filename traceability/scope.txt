@@ -1,0 +1,5 @@
+# IDs in the scope of finished steps of docs/14-engineering-roadmap.md §3.3.
+# Every ID listed here must be a required ID and must have a test whose name
+# starts with it; otherwise the ID checker fails (QG-06; 14 §4.13 item 2).
+# The list is updated at the end of every step of 14 §3.3.
+# Format: one ID per line; "#" starts a comment.

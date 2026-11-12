@@ -1,0 +1,3 @@
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-57 | **Lipat N-28 (P-31, Q-177)**: untuk pasangan (pemilik status, penerima), paling banyak satu N-28 yang berbunyi per 60 menit **[Asumsi]**. Perubahan berikutnya dalam jendela itu memperbarui notifikasi yang sama (collapse id) tanpa bunyi; yang tampil saat dibuka adalah status saat itu. Peleburan per objek selama jam tenang (06 §11.1) tetap | 09 | Pilot (bila Tier 2 dibangun) | **[Usulan]** `security-privacy`; alasan di bawah tabel | Pemilik mengganti status tiga kali dalam 20 menit: penerima mendengar satu bunyi; membuka notifikasi menampilkan status ketiga |
