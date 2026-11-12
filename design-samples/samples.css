@@ -446,7 +446,7 @@ main:focus {
 
 .glif-grup {
   display: inline-flex;
-  gap: 2px;
+  gap: var(--jarak-1);
   color: var(--tinta-2);
 }
 
