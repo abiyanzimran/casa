@@ -17,6 +17,9 @@ Casa is a household app for a husband and wife: they know the state of their hou
 
 - Go: the version in `server/go.mod` (an older `go` downloads it automatically).
 - Java (any current LTS) to run PMD CPD for the duplication check.
+- Node.js: the version in `web/.nvmrc` (`nvm install` in `web/`).
+- pnpm: the version in `"packageManager"` of `web/package.json` (a newer `pnpm` switches to it automatically).
+- Playwright's Chromium and WebKit, once: `cd web && pnpm exec playwright install --with-deps chromium webkit`.
 - Docker, for PostgreSQL in tests from task 1.2.
 - `make`, `curl`, `unzip`, `sha256sum` (linux-amd64).
 
@@ -24,6 +27,7 @@ Casa is a household app for a husband and wife: they know the state of their hou
 
 ```sh
 make check-server
+make check-web
 ```
 
-runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history.
+`check-server` runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, and the Playwright tests in Chromium and WebKit. `make check` runs both.

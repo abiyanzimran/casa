@@ -16,7 +16,18 @@ GOLANGCI_LINT := $(CURDIR)/.cache/golangci-lint-$(GOLANGCI_LINT_VERSION)/golangc
 GOVULNCHECK_VERSION := v1.9.0
 BETTERLEAKS_VERSION := v1.10.1
 
-.PHONY: check-server server-fmt server-lint server-vuln server-test cpd-go secrets
+OSV_SCANNER_VERSION := 2.7.1
+# SHA-256 of osv-scanner_linux_amd64 from
+# https://github.com/google/osv-scanner/releases/tag/v2.7.1
+OSV_SCANNER_SHA256 := fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8
+OSV_SCANNER := $(CURDIR)/.cache/osv-scanner-$(OSV_SCANNER_VERSION)/osv-scanner
+# Overridable on the command line to prove the gate red on a throwaway lockfile.
+WEB_LOCKFILE := web/pnpm-lock.yaml
+
+.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go secrets
+.PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
+
+check: check-server check-web
 
 check-server: server-fmt server-lint server-vuln server-test cpd-go secrets
 
@@ -56,3 +67,40 @@ $(GOLANGCI_LINT):
 		$(GOLANGCI_LINT_SHA256) $@.tar.gz
 	tar -xzf $@.tar.gz -C $(@D) --strip-components=1 golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64/golangci-lint
 	rm $@.tar.gz
+
+# Web client gates (ADR-030 items 8 and 18). web-install comes first; the
+# others assume web/node_modules is in place.
+check-web: web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
+
+web-install:
+	cd web && pnpm install --frozen-lockfile
+
+web-fmt:
+	cd web && pnpm exec prettier --check .
+
+# svelte-kit sync writes the generated tsconfig and route types that the
+# type-aware lint rules and svelte-check read.
+web-lint:
+	cd web && pnpm exec svelte-kit sync && pnpm exec eslint --max-warnings 0 .
+
+web-check:
+	cd web && pnpm exec svelte-kit sync && pnpm exec svelte-check --fail-on-warnings
+
+web-vuln: $(OSV_SCANNER)
+	$(OSV_SCANNER) scan source --lockfile $(WEB_LOCKFILE)
+
+cpd-ts:
+	scripts/cpd.sh typescript web
+
+web-bundle:
+	cd web && node scripts/check-bundle.mjs
+
+web-e2e:
+	cd web && pnpm exec playwright test
+
+# ponytail: linux-amd64 only, like golangci-lint above.
+$(OSV_SCANNER):
+	scripts/fetch-verified.sh \
+		https://github.com/google/osv-scanner/releases/download/v$(OSV_SCANNER_VERSION)/osv-scanner_linux_amd64 \
+		$(OSV_SCANNER_SHA256) $@
+	chmod +x $@
