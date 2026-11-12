@@ -972,10 +972,25 @@ legend {
 details summary {
   display: flex;
   align-items: center;
+  gap: var(--jarak-1);
   min-height: var(--sasaran-sentuh);
   color: var(--teal);
   font-weight: 600;
+  list-style: none;
   cursor: pointer;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 08 §25.4 "Rincian terlipat": the chevron turns down when open */
+details summary .ikon {
+  transition: transform var(--gerak);
+}
+
+details[open] summary .ikon {
+  transform: rotate(90deg);
 }
 
 .isian-teks {
