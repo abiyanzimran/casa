@@ -243,7 +243,9 @@ a {
   display: inline-flex;
 }
 
-/* Count badge: neutral, never the accent (08 §4.1; §19.2 item 2); placed and sized with the icon */
+/* Count badge: neutral, never the accent (08 §4.1; §19.2 item 2). 08 §25.4 "Navigasi tingkat atas":
+   sized from the label (0.8em, never under the 13 px smallest size) so it never outgrows the label,
+   anchored at the icon's top-right and covering at most that quarter of the icon. */
 .lencana {
   position: absolute;
   top: -25%;
@@ -251,12 +253,12 @@ a {
   min-width: 1.4em;
   padding: 0 0.35em;
   border: 1px solid transparent;
-  border-radius: 0.7em;
+  border-radius: 0.6em;
   background: var(--tinta);
   color: var(--kertas);
-  font-size: var(--ukuran-terkecil);
+  font-size: max(13px, 0.8em);
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
   text-align: center;
 }
 
