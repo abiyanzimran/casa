@@ -372,6 +372,8 @@ main:focus {
 
 .bagian-uang {
   container-type: inline-size;
+  /* static factor: "Rp88.888.888" is 6.29 em in Plus Jakarta Sans 600, +2% (08 §25.4 "Batas lebar jumlah") */
+  --lebar-em: 6.42;
   padding: var(--jarak-4);
   border: 1px solid transparent;
   border-radius: var(--sudut-kartu);
@@ -624,8 +626,11 @@ main:focus {
 /* Object card: full thread width up to 480 px, on no one's side (08 §10.4 "Letak kartu di utas") */
 .kartu {
   container: kartu / inline-size;
+  /* static factor: longest card amount "Rp7.850.000" is 5.69 em, +2% (08 §25.4 "Batas lebar jumlah") */
+  --lebar-em: 5.8;
   align-self: center;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--jarak-1);
   width: 100%;
   max-width: 480px;
@@ -809,6 +814,11 @@ legend {
 }
 
 .isian-jumlah {
+  /* the amount row is the container; the box's padding and border are --sisi-wadah.
+     Static factor: "Rp87.000" is 4.14 em, +2% and room for the caret (08 §25.4 "Batas lebar jumlah") */
+  container-type: inline-size;
+  --lebar-em: 4.3;
+  --sisi-wadah: 26px;
   display: flex;
   flex-wrap: wrap;
   gap: var(--jarak-2);
@@ -817,8 +827,8 @@ legend {
 .kotak-jumlah {
   display: flex;
   align-items: baseline;
-  /* "000" sits beside the amount; with large text it moves below rather than clip the amount */
-  flex: 1 1 6.5em;
+  /* "000" sits beside the amount while the amount fits; otherwise "000" moves below first */
+  flex: 1 1 calc(var(--lebar-em) * 1em + var(--sisi-wadah));
   min-width: 0;
   padding: var(--jarak-2) var(--jarak-3);
   border: 1px solid var(--garis-tegas);

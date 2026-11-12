@@ -90,8 +90,8 @@
 @media (prefers-contrast: more) {
   :root {
     /* 08 §19.3 "Kontras tinggi": tinta-2 rises to tinta, garis becomes garis-tegas, teal darkens.
-       References keep the dark theme correct without repeating values. Candidate teal values
-       computed for 7:1 on every surface and on teal-muda; the lead verifies, ux-designer decides. */
+       References keep the dark theme correct without repeating values. Teal values give 7:1 on
+       every surface and on teal-muda (decision D, 1.8 gate review). */
     --tinta-2: var(--tinta);
     --garis: var(--garis-tegas);
     --teal: #084440;
@@ -149,6 +149,15 @@ html {
 
 /* 08 §19.4 number tokens: Plus Jakarta Sans, tabular figures. "Rp" is its own element (.rp). */
 .angka-utama,
+.angka-besar {
+  /* 08 §25.4 "Batas lebar jumlah" (decision A): grow with text, stop when the amount fills its
+     container (container-type: inline-size), never below the base px size; never cut or wrapped.
+     The container sets --lebar-em (amount width in em, +2%) and --sisi-wadah (inner padding and
+     border between the container and the amount). Without --lebar-em there is no cap. */
+  --batas-lebar-jumlah: calc((100cqi - var(--sisi-wadah, 0px)) / var(--lebar-em, 1));
+}
+
+.angka-utama,
 .angka-besar,
 .angka-baris {
   font-family: var(--huruf-angka);
@@ -160,15 +169,12 @@ html {
 .angka-utama {
   font-weight: 600;
   line-height: 1.2;
-  /* Grows with text size, stops when the amount fills its column (container query units), never
-     below the 40 px base (08 §19.4 "Teks besar", §25.4). ponytail: 14cqi fits an 8-digit amount
-     ("Rp88.888.888"); longer amounts need a per-length factor when 1.10 renders real numbers. */
-  font-size: max(40px, min(var(--ukuran-angka-utama), 14cqi));
+  font-size: max(40px, min(var(--ukuran-angka-utama), var(--batas-lebar-jumlah)));
 }
 
 .angka-besar {
   font-weight: 600;
-  font-size: var(--ukuran-angka-besar);
+  font-size: max(28px, min(var(--ukuran-angka-besar), var(--batas-lebar-jumlah)));
   line-height: 1.3;
 }
 
