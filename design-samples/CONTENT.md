@@ -42,7 +42,7 @@ Semua angka ketiga contoh berasal dari keadaan rekaan yang sama, supaya Beranda 
 | Serah terima Sari ke Andi | Rp200.000 | Dompet Sari ke Dompet Andi; menunggu Andi |
 | Minta anggaran Sari | Rp7.850.000, "Kulkas baru" | Menunggu Andi sejak Kam 19.40 |
 | Minta anggaran Andi | Rp650.000, "Servis motor" | Menunggu Sari sejak Rab 08.15 |
-| Anggaran Dapur | Batas Rp2.500.000, terpakai Rp1.880.000, sisa Rp620.000 | Batang 75% |
+| Anggaran Dapur | Batas Rp2.500.000, terpakai Rp1.880.000, sisa Rp620.000 | Batang 75,2% (1.880.000 / 2.500.000) |
 | Anggaran Transportasi | Batas Rp800.000, terpakai Rp460.000, sisa Rp340.000 | Batang 57,5% |
 
 **Jumlah terpanjang:** Rp88.888.888 pada `angka-utama` (Beranda) untuk menguji lebar pada 320 CSS px dan teks 200% (§25.11 pemeriksaan 17). Angka 8 adalah angka terlebar bila fitur tabular gagal, sehingga angka ini juga memperlihatkan kegagalan `tnum` di Safari (fokus tinjauan 3). Uji pasangan "Rp1.111.111" dan "Rp8.888.888" (§19.4) dijalankan `web-dev` di halaman uji sendiri, bukan di contoh yang ditunjukkan.
@@ -86,13 +86,13 @@ Urutan dari atas. Kolom "Tampil sebagai" menyebut token; huruf isi lain adalah h
 | 23 | 7 Minggu ini | Baris cicilan | "Cicilan motor" · di bawahnya "Rab, 18 Nov" · Rp1.275.000 | Jumlah `angka-baris` | §6.1 bagian 7 |
 | 24 | 7 Minggu ini | Baris persetujuan terbuka | "Makan malam" · di bawahnya "sisa" · Rp25.000 · tombol bergaris "Selesaikan" | Jumlah `angka-baris` | §6.1 bagian 7 (kata contohnya dipecah menjadi kata dan jumlah, lihat §0 "Token angka") |
 | 25 | 8 Anggaran | Judul | "Anggaran" | `judul-bagian` | §19.4 |
-| 26 | 8 Anggaran | Baris 1 | "Dapur" · "sisa" Rp620.000 rata kanan · di bawahnya batang selebar baris, isi 75% · "dari Rp2.500.000" `tinta-2` | Batang isi `tinta-2` di atas lintasan `kertas-3`, `aria-hidden`; jumlah `angka-baris` | §6.1 bagian 8; §19.9; §25.4 "Batang" |
+| 26 | 8 Anggaran | Baris 1 | "Dapur" · "sisa" Rp620.000 rata kanan · di bawahnya batang selebar baris, isi 75,2% · "dari Rp2.500.000" `tinta-2` | Batang isi `tinta-2` di atas lintasan `kertas-3`, `aria-hidden`; jumlah `angka-baris` | §6.1 bagian 8; §19.9; §25.4 "Batang" |
 | 27 | 8 Anggaran | Baris 2 | "Transportasi" · "sisa" Rp340.000 · batang isi 57,5% · "dari Rp800.000" | Sama | Sama |
 | 28 | 8 Anggaran | Tautan | "Semua anggaran" | Teks `teal` | §6.1 bagian 8 |
 | 29 | — | Tombol Catat mengambang | "Catat" dengan ikon `add`, kanan bawah di atas bilah navigasi; wadah `teal`, isi `di-atas-teal` | `teal`, `di-atas-teal` | §25.2 baris Ringkas |
 | 30 | — | Bilah navigasi bawah | Beranda (`home`, terpilih, lencana "2"), Uang (`account_balance_wallet`), Chat (`chat_bubble`, lencana "2"), Saya (`person`). Label kata selalu tampil. Tujuan terpilih: ikon dan kata `teal`, `aria-current="page"` | `teal` hanya pada yang terpilih | §4.1; §25.2; §25.4 "Navigasi" |
 
-**Batang anggaran.** Isinya adalah bagian yang **terpakai** (1.880.000 dari 2.500.000), dan warnanya tidak berubah dekat atau lewat batas (§19.9; §20 D-7). Angka "sisa" selalu tertulis, jadi batang hanya penegas.
+**Batang anggaran.** Isinya adalah bagian yang **terpakai** (1.880.000 dari 2.500.000, 75,2%; §19.9), dan warnanya tidak berubah dekat atau lewat batas (§19.9; §20 D-7). Angka "sisa" selalu tertulis, jadi batang hanya penegas.
 
 **Pembaca layar.** Angka utama dibacakan "Uang kita, delapan puluh delapan juta delapan ratus delapan puluh delapan ribu delapan ratus delapan puluh delapan rupiah" (§15 "Pembaca layar"). Lencana Beranda dibacakan "2 menunggu", lencana Chat "2 belum dibaca" (§25.4 "Navigasi"). Batang dibacakan lewat kata di sampingnya saja.
 
@@ -145,7 +145,7 @@ Lembar terbuka di atas Beranda contoh §1 (bagian di belakangnya diredupkan oleh
 
 **Isian jumlah.** `inputmode="numeric"`, tanpa isian otomatis (`autocomplete="off"`; SEC-175 (d)), ukuran huruf isian tidak di bawah 1 rem (§25.4 "Isian"). Di contoh statis angka 87.000 sudah tertulis sebagai nilai isian.
 
-**Selubung.** Latar redup di belakang lembar belum punya token di §19.3 atau §25.4. Untuk contoh, `web-dev` menambahkannya di `tokens.css` sebagai token sementara `--selubung` (terang: `tinta` 40%; gelap: hitam 60%) dan menandainya sementara sampai 08 menetapkannya (lihat laporan tugas A, permintaan 5).
+**Selubung.** Latar redup di belakang lembar memakai token `--selubung` (terang: `tinta` 40%; gelap: hitam 60%), ditetapkan di §19.3 dan §25.4 pada 13 November 2026. `web-dev` menuliskannya di `tokens.css` bersama token lain.
 
 **Informasi peka (Catat).** Isian jumlah tetap terlihat saat angka disamarkan, sisa anggaran tersamar (§12.1 "Mencatat saat tersamar"; fitur Tier 3, tidak tampil di contoh). Judul halaman tanpa jenis atau jumlah selain "Catat".
 
