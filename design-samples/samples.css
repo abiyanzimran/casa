@@ -172,7 +172,7 @@ a {
 .bilah-atas :is(h1, h2) {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.125rem;
+  font-size: var(--ukuran-judul-bagian);
   font-weight: 700;
   line-height: 1.3;
 }
