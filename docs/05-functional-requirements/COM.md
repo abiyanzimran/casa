@@ -1,11 +1,11 @@
 # 05 — Kebutuhan fungsional: `COM` (chat rumah tangga dan kartu objek)
 
-Bagian dari dokumen 05. Indeks, aturan umum, kebutuhan lintas modul (`LM`), dan tabel keterlacakan ada di [../05-functional-requirements.md](../05-functional-requirements.md). Pemilik: `product-analyst`. Tahap S3, putaran penyelarasan sesudah fase B, 12 November 2026; putaran perbaikan fase D (12 November 2026) atas tinjauan `critic` A (CA-05, CA-06), pemeriksaan `security-privacy` (SP-45, SP-49, SP-55, SP-57, SP-60), dan 06 revisi kesepuluh. Perbaikan fase D belum ditinjau ulang. **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; P-21, P-22, P-24, P-25, P-32 (S3-7, S3-8 (vii), D-71, D-72) dan SP-48, SP-49 (S3-4 (c), D-90) kini "diterima lewat "lanjut"", dengan penulis aturannya tetap disebut; cabang alternatif (b) layar kunci tidak berlaku; angka **[Asumsi]** tidak berubah.
+Bagian dari dokumen 05. Indeks, aturan umum, kebutuhan lintas modul (`LM`), dan tabel keterlacakan ada di [../05-functional-requirements.md](../05-functional-requirements.md). Pemilik: `product-analyst`. Tahap S3, putaran penyelarasan sesudah fase B, 12 November 2026; putaran perbaikan fase D (12 November 2026) atas tinjauan `critic` A (CA-05, CA-06), pemeriksaan `security-privacy` (SP-45, SP-49, SP-55, SP-57, SP-60), dan 06 revisi kesepuluh. Perbaikan fase D belum ditinjau ulang. **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; P-21, P-22, P-24, P-25, P-32 (S3-7, S3-8 (vii), D-71, D-72) dan SP-48, SP-49 (S3-4 (c), D-90) kini "diterima lewat "lanjut"", dengan penulis aturannya tetap disebut; cabang alternatif (b) layar kunci tidak berlaku; angka **[Asumsi]** tidak berubah. **S4 fase D (12 November 2026, belum ditinjau `critic`):** FR-COM-019 (sembunyikan untuk saya) dan FR-COM-020 (laporkan) baru di bawah F-COM-014, bersyarat pada keputusan 10-G; BR-COM-019, BR-COM-020; FR-COM-013/AC-9, AC-10 bersyarat pada 10-A dan UX-5; FR-COM-006/AC-6 kelompok kartu tagihan rutin (08 §10.4); FR-COM-001/AC-2 menunjuk FR-FAM-002/AC-6; isi chat dalam ekspor kini 10.3 SEC-102 (f).
 
 | Hal | Isi |
 |---|---|
-| Lingkup | F-COM-001, F-COM-008 sampai F-COM-012 (Tier 1, kebutuhan lengkap dengan kriteria penerimaan); sisi chat dari F-CARE-003 (Tier 2, Must bersyarat, FR-COM-016) |
-| Rentang ID | `FR-COM-001` sampai `FR-COM-018`; `BR-COM-001` sampai `BR-COM-018` |
+| Lingkup | F-COM-001, F-COM-008 sampai F-COM-012, F-COM-014 (Tier 1, kebutuhan lengkap dengan kriteria penerimaan); sisi chat dari F-CARE-003 (Tier 2, Must bersyarat, FR-COM-016) |
+| Rentang ID | `FR-COM-001` sampai `FR-COM-020`; `BR-COM-001` sampai `BR-COM-020` |
 | Sumber aturan | Alur, invarian, dan pagar: [06](../06-activity-approval-architecture.md) §16 (chat), §13.5 dan §13.6 (kepedulian dan pendamping `AI`), §9.4 AT-4 dan AT-5, §10 PG-04, PG-07, INV-A33, §11 (N-23, N-28), §12 S-11; [ADR-011](../adr/ADR-011-chat-rumah-tangga-dan-kartu-objek.md). Uang: tidak ada aturan uang di berkas ini; setiap angka pada kartu adalah angka objeknya menurut [07](../07-financial-domain.md) |
 | Bukan isi dokumen ini | Tata letak, bentuk kartu, kelompok kartu, kata layar, dan desain visual (dokumen 08, S4); transport waktu nyata, penyimpanan pesan dan foto, mekanisme pengakuan penerimaan (dokumen 09, S4); ekspor, retensi, hak hapus isi chat, dan penilaian kehadiran sebagai risiko pengawasan (dokumen 10, S4) |
 
@@ -56,6 +56,8 @@ Dikutip dari [_progress.md](../_progress.md), alinea "Pernyataan pemilik produk 
 | FR-COM-016 | Kartu status kepedulian dan catatan dukungan | F-CARE-003 | 2 / **Must bila F-CARE-001 atau F-CARE-002 dibangun** |
 | FR-COM-017 | Notifikasi chat (N-23) | F-COM-001 | 1 / Must |
 | FR-COM-018 | Offline dan urutan pesan | F-COM-001, F-COM-009 | 1 / Must |
+| FR-COM-019 | Sembunyikan untuk saya | F-COM-014 | 1 / Must bila 10-G A atau C (bawaan A); tidak dibangun bila B atau D |
+| FR-COM-020 | Laporkan | F-COM-014 | 1 / Must bila 10-G A, B, atau C (bawaan A); bila D, tidak ada |
 
 ## Business rule
 
@@ -81,6 +83,8 @@ Setiap baris adalah penunjuk ke aturan kanonis (`LM` indeks bagian 4). Bila buny
 | BR-COM-016 | Pesan adalah perintah `send_message` ber-`idempotency_key` dengan antrean kirim lokal; urutan tampil menurut `seq` server per percakapan yang naik tanpa celah, kecuali `seq` kartu status yang sudah hilang (BR-COM-014); tindakan dari kartu tunduk pada S-1 sampai S-4; tanda air dikirim saat tersambung tanpa waktu jam perangkat; kehadiran tidak pernah diantrekan; aturan harus benar juga bila transportnya hanya push disusul tarik | 06 §12 S-11; S-1, S-2, S-5, S-6; INV-A47 (d) | **[Usulan]** `architect`; transport milik dokumen 09 |
 | BR-COM-017 | Kartu yang dibaca dan tidak ditanggapi tetap menunggu dengan batas objeknya sendiri (kedaluwarsa, pengingat §10). Membaca tidak pernah menjadi tanggapan; diam tidak pernah menjadi keputusan | 06 §16.5 "Diam"; PG-04; INV-A10 | Keputusan pemilik nomor 6 (diam bukan jawaban); rumusan untuk chat **[Usulan]** `architect` |
 | BR-COM-018 | Teks pesan, nama berkas foto, dan kehadiran tidak pernah ditulis ke log | 06 §16.7 "Log"; `ENGINEERING-STANDARDS.md` §4 | Standar teknik |
+| BR-COM-019 | Menyembunyikan pesan bebas, foto, indikator mengetik, dan N-23 satu anggota hanya mengubah tampilan pembacanya; kartu objek, baris peristiwa, balasan yang menempel, dan notifikasi §11.2 tidak pernah tersembunyi; tanda dibaca tetap mengikuti tanda air; tanpa Peristiwa yang terbaca orang lain, tanpa notifikasi; setelannya privat dan tidak masuk ekspor orang lain | 06 §16.12, INV-A53; 10.4 SEC-153 | **[Usulan]** `security-privacy` dan `architect` S4; bersyarat pada 10-G |
+| BR-COM-020 | Laporan dikirim hanya bila pengelola bukan anggota rumah tangga pelapor; bila pengelola anggota rumah tangga itu, server menolak menyerahkannya dan aplikasi membuka Bantuan; laporan tidak pernah dialirkan kepada orang yang dilaporkan. Laporan berisi hanya yang dipilih dan ditulis pelapor; disimpan untuk operator lewat perintah operasi; yang dilaporkan tidak diberi tahu; operator tidak mendapat akses baca chat karena laporan; tidak ada pemindaian isi | 06 §16.12; 10.4 SEC-135, SEC-154 | **[Usulan]** `security-privacy` dan `architect` S4; bersyarat pada 10-G |
 
 ---
 
@@ -96,13 +100,13 @@ Setiap baris adalah penunjuk ke aturan kanonis (`LM` indeks bagian 4). Bila buny
 | Aktor dan izin | Peserta = anggota dewasa aktif (06 §3.1). Orang yang undangannya belum dikukuhkan pengundang tidak membaca apa pun (INV-A48 c) |
 | Aturan acuan | 06 §16.2 "Peserta"; §3.5; §3.6 F04, F06 sampai F08; INV-A47 (f); ADR-011 butir 1, 11 |
 | Business rule | BR-COM-001 |
-| Kedudukan | Lihat "Kedudukan keputusan chat" baris 1 sampai 3. Masa tenggang dan percakapan baru bagi anggota yang bergabung kemudian: usulan `security-privacy` SP-48, SP-49, diterapkan 06 revisi kesepuluh; diterima lewat "lanjut" di checkpoint S3 (S3-4 (c), D-90). Isi chat dalam ekspor orang yang keluar dan hak hapusnya **[Dok. 10]** |
+| Kedudukan | Lihat "Kedudukan keputusan chat" baris 1 sampai 3. Masa tenggang dan percakapan baru bagi anggota yang bergabung kemudian: usulan `security-privacy` SP-48, SP-49, diterapkan 06 revisi kesepuluh; diterima lewat "lanjut" di checkpoint S3 (S3-4 (c), D-90). Isi chat dalam ekspor orang yang keluar: pesan dan foto kedua peserta sampai F06, tanpa kartu status (10.3 SEC-102 (f); FR-FAM-013/AC-7), **[Usulan]** `security-privacy`, L-33 **[Perlu validasi]** |
 
 Satu garis waktu per rumah tangga yang memuat pesan bebas, pesan yang menempel pada objek, kartu objek, dan baris peristiwa. Tidak ada percakapan kedua, grup, atau percakapan pribadi di Tier 1 (F-COM-013, Tier 3).
 
 **Kriteria penerimaan**
 - **AC-1** — *Given* rumah tangga berisi A dan B yang aktif, *When* masing-masing membuka chat, *Then* keduanya melihat satu chat rumah tangga yang sama, dengan pesan dan kartu yang sama dalam urutan yang sama.
-- **AC-2** — *Given* rumah tangga satu anggota dewasa, *When* A membuka aplikasi, *Then* tidak ada chat yang tampil, dan mencatat, anggaran, serta laporan berjalan penuh (06 §3.5).
+- **AC-2** — *Given* rumah tangga satu anggota dewasa, *When* A membuka aplikasi, *Then* tidak ada chat yang tampil, dan mencatat, anggaran, serta laporan berjalan penuh (06 §3.5). Tab Chat dan catatan penggantinya di Beranda: FR-FAM-002/AC-6.
 - **AC-3** — *Given* A sudah mencatat dan membuat objek sebelum B bergabung, *When* B menjadi aktif lewat F04, *Then* chat mulai kosong bagi keduanya, tanpa kartu surut atas objek lama; objek itu tetap di layarnya sendiri dan di daftar "yang menunggu" (FR-REQ-043).
 - **AC-4** — *Given* B diundang dan sudah menerima undangan tetapi A belum mengukuhkannya (F02, belum F04), *When* B mencoba membaca chat, *Then* tidak ada isi chat yang terbaca (INV-A48 c).
 - **AC-5** — *Given* B keluar (F06, dengan autentikasi ulang), *When* A membuka chat selama masa tenggang, *Then* A dapat membaca pesan lama tetapi tidak dapat mengirim apa pun; perintah `send_message` yang tetap terkirim ditolak; B tidak lagi membaca chat dan tidak terlihat di sana (kehadiran, kartu statusnya) sejak F06.
@@ -294,6 +298,7 @@ Dari chat, peserta dapat memulai permintaan anggaran, permintaan jalan-jalan ("r
 - **AC-3** — *Given* kartu atas objek yang kemudian tidak lagi terlihat oleh B (V-7), *When* B membuka chat, *Then* kartu itu tampil "tidak lagi tersedia" tanpa isi bagi B.
 - **AC-4** — *Given* kartu yang memuat jumlah, *When* A dan B membandingkannya dengan layar objek, *Then* angkanya sama persis dengan layar objek bagi masing-masing; kartu tidak punya angka sendiri.
 - **AC-5** — *Given* kartu atau baris peristiwa, *When* siapa pun mengirim perintah menghapusnya, *Then* server menolak (FR-COM-015/AC-4).
+- **AC-6** — *Given* A mengusulkan empat kesepakatan pos rutin pada hari yang sama, *When* B membuka chat, *Then* keempatnya tampil sebagai satu kelompok kartu ("4 usulan tagihan rutin dari A"); membuka kelompok menampilkan keempat kartu, masing-masing dengan tombolnya sendiri; tidak ada tombol "Setujui semua" di kelompok itu; di server tetap satu kartu per objek dan setiap tanggapan tetap perintah K02 atau K03 atas satu usulan (**[Usulan]** `ux-designer`, 08 §10.4; BR-COM-002, BR-COM-004). Persetujuan banyak sekaligus dengan syarat yang dibaca satu per satu tetap hanya di layar pos rutin (FR-FIN-102). Usaha: mengurangi gulir, tidak menambah ketukan.
 
 **Dua arah.** Simetris.
 
@@ -482,6 +487,8 @@ Pemetaan tombol mengikuti 06 §16.4 tanpa diubah; kriterianya diuji di FR objekn
 - **AC-6** — *Given* B aktif beberapa kali sehari, *When* A atau siapa pun meminta riwayatnya, *Then* yang ada hanya satu nilai "terakhir aktif" saat ini; nilai sebelumnya tidak dapat diambil.
 - **AC-7** — *Given* aplikasi B tidak dipakai di depan, *When* sinkron latar berjalan, push atau ekstensi notifikasi diproses, widget diperbarui, atau aplikasi B terbuka di depan tanpa disentuh, *Then* "sedang online" dan "terakhir aktif" B tidak bergerak; yang dilihat A identik dengan bila tidak satu pun dari itu terjadi (06 §16.6; SP-60).
 - **AC-8** — *Given* B anggota dua rumah tangga, *When* B memakai aplikasi di rumah tangga lain, *Then* kehadiran B di rumah tangga ini tidak bergerak (06 §16.2 `presence` per anggota per rumah tangga; `LM-09`).
+- **AC-9** — Bersyarat pada keputusan 10-A. **Bawaan A (keputusan pemilik produk yang berlaku, "Semua seperti WhatsApp"):** *Given* B mencatat belanja di layar Uang dengan aplikasi di depan, *When* A membuka chat, *Then* A melihat B sedang online, seperti AC-1. **B (P2, disarankan dokumen 10):** *Given* hal yang sama, *When* A membuka chat, *Then* B tidak tampil online; online dan terakhir aktif hanya digerakkan pemakaian di layar chat. **C (P1):** *Given* B menyalakan "sembunyikan kehadiranku", *When* A membuka chat, *Then* A tidak melihat kehadiran B, dan B juga tidak melihat kehadiran A; setelan itu hanya milik B dan tidak terbaca A sebagai setelan. **D:** B dan C sekaligus. Tanda dibaca tidak berubah pada huruf mana pun (10 §3 10-A). Pilihan B, C, dan D mengubah keputusan pemilik produk dan berlaku hanya dengan jawabannya.
+- **AC-10** — Bersyarat pada UX-5 (08 §22), dijawab bersama 10-A. **Bawaan A:** *Given* sesi B berakhir pukul 21.07, *When* A membuka chat pukul 21.30, *Then* "terakhir aktif" B berketelitian menit (21.07). **B atau C:** dibulatkan ke bawah ke 15 menit (21.00) dan untuk kemarin dan sebelumnya tanpa jam; server mengirim nilai dengan ketelitian yang ditampilkan, bukan nilai yang lebih teliti (10.2 SEC-60). Pembulatan mengubah keputusan pemilik produk dan berlaku hanya dengan jawabannya.
 
 **Dua arah.** Simetris: keduanya melihat kehadiran yang lain dengan cara dan batas yang sama.
 
@@ -530,6 +537,62 @@ Pemetaan tombol mengikuti 06 §16.4 tanpa diubah; kriterianya diuji di FR objekn
 - **AC-6** — *Given* status A yang tidak dibagikan, *When* B atau siapa pun mencoba membalas atau membuat kartunya, *Then* ditolak (FR-COM-010/AC-1).
 - **AC-7** — *Given* kartu status, *When* tampil, *Then* tidak memuat alasan bebas kecuali A membagikan alasan itu (FR-CARE-002).
 - **AC-8** — *Given* catatan dukungan, *When* jam dimajukan berapa pun, *Then* tidak ada hitungan catatan, rentetan, atau ajakan "belum mengirim dukungan" kepada siapa pun (PRN-14).
+
+**Dua arah.** Simetris.
+
+---
+
+## F-COM-014 — Sembunyikan untuk saya dan laporkan
+
+Diminta dokumen 10 (SEC-153, SEC-154) sebagai padanan Apple Guideline 1.2 tanpa pemindaian dan tanpa mengeluarkan orang dewasa, dan dirancang di 06 §16.12. Keduanya bersyarat pada keputusan 10-G; bawaan A ditulis lebih dulu. Tier 1 Must karena 10 §4 baris "Kehadiran, chat, foto" menandai SEC-153 (a) sampai (c), (e) dan SEC-154 (c) "wajib sebelum pilot memproses data nyata"; bagian lain (pengaburan foto SEC-153 (d), pengiriman laporan ke operator, kontak publik, tanggapan 3 × 24 jam, catatan App Review) harus siap sebelum build pertama ke TestFlight eksternal atau App Store, bukan sebelum pilot. Itu jadwal pembangunan, bukan syarat kirim: laporan dikirim hanya bila pengelola bukan anggota rumah tangga pelapor, apa pun jenis build-nya (FR-COM-020/AC-5).
+
+**Pagar pemantauan dan kendali.** Kedua fitur ini tidak memberi siapa pun kendali atas orang lain: menyembunyikan hanya mengubah layar pembacanya, dan laporan tidak menghalangi atau menghukum yang dilaporkan. Huruf C dari 10-G (anggota dewasa dapat mengeluarkan anggota dewasa lain) **akan** menjadi kebutuhan yang memungkinkan satu orang dewasa mengendalikan yang lain; berkas ini tidak menulisnya dan menandainya untuk lead (bertentangan dengan FR-FAM-016, 06 INV-A48, PG-13, dan brief §4.2 "member exit").
+
+**Usaha berulang.** Nol; dipakai hanya bila dibutuhkan.
+
+### FR-COM-019 — Sembunyikan untuk saya
+
+| | |
+|---|---|
+| Fitur | F-COM-014 |
+| Tier / MoSCoW | 1 / Must bila 10-G A (bawaan) atau C; tidak dibangun bila B atau D |
+| Masalah (brief §1.1) | `PAGAR` (brief §8 abuse prevention: pesan yang menyakitkan tanpa jalan selain keluar); syarat toko (10.4 §2.1) |
+| Aktor dan izin | Setiap peserta chat, atas tampilannya sendiri; perintah `mute_member(muted_member)` dan `unmute_member` |
+| Aturan acuan | 06 §16.12 (bersyarat pada 10-G), INV-A53, §16.5; 10.4 SEC-153 |
+| Business rule | BR-COM-019 |
+| Kedudukan | **[Usulan]** `security-privacy` S4 (SEC-153), dirancang `architect` (06 §16.12). Bergantung pada 10-G |
+
+**Kriteria penerimaan**
+- **AC-1** — *Given* 10-G A, *When* A memilih "Sembunyikan pesan dari B" dan mengukuhkannya, *Then* di layar chat A setiap pesan bebas dan foto dari B, yang lama maupun yang baru, diganti satu baris "Pesan disembunyikan" yang dapat A buka satu per satu; indikator mengetik B tidak tampil bagi A; N-23 dari B tidak dikirim kepada A; *When* A membatalkannya, *Then* semuanya tampil lagi seperti biasa.
+- **AC-2** — *Given* AC-1, *When* B mengajukan permintaan, mengusulkan kesepakatan, mencatat belanja di atas ambang, atau membalas pada kartu, *Then* kartu objek, baris peristiwa, balasan yang menempel, dan notifikasi §11.2 (N-01 sampai N-22, N-24 sampai N-32) tetap tampil dan terkirim kepada A; A tetap dapat menanggapi semuanya (06 PG-10).
+- **AC-3** — *Given* AC-1, *When* B memakai aplikasi dan membuka chat, *Then* tidak ada yang berubah bagi B: tidak ada Peristiwa, notifikasi, atau tanda yang memberi tahu B; kehadiran A tetap terkirim kepada B seperti biasa; uji 06 INV-A53 lulus (keluaran bagi B identik byte demi byte dengan dan tanpa `mute_member`).
+- **AC-4** — *Given* AC-1 dan A menggulir chat melewati baris "Pesan disembunyikan", *When* B melihat pesannya, *Then* tanda dibacanya mengikuti tanda air A seperti biasa, jadi pesan tersembunyi di bawah tanda air tampil "dibaca" bagi B; sebelum mengukuhkan, layar menyembunyikan menyatakan hal ini kepada A ("dibaca" berarti sudah dilewati, bukan sudah dilihat) (06 §16.12 baris "Tanda dibaca"; SEC-153 (b)).
+- **AC-5** — *Given* setelan sembunyikan milik A, *When* B membuat ekspor, membaca API, atau keluar dengan ekspornya, *Then* setelan itu tidak ada di mana pun; ia tidak dibaca aturan alur, tanda, ringkasan, laporan, atau `AI` (SEC-153 (e); INV-A53).
+- **AC-6** — *Given* build untuk TestFlight eksternal atau App Store, *When* peringatan konten sensitif sistem di ponsel A menyala, *Then* foto dari B dikaburkan di perangkat A sampai A membukanya; hasil pemeriksaan tidak meninggalkan perangkat (SEC-153 (d); tidak wajib di pilot).
+- **AC-7** — *Given* 10-G B atau D, *When* aplikasi diperiksa, *Then* tidak ada perintah atau pilihan sembunyikan; perintah `mute_member` yang tetap dikirim ditolak.
+
+**Dua arah.** Simetris; siapa pun dapat menyembunyikan pesan pasangannya dari layarnya sendiri, dan tidak ada yang dapat menyembunyikan pesan seseorang dari orang lain.
+
+### FR-COM-020 — Laporkan
+
+| | |
+|---|---|
+| Fitur | F-COM-014 |
+| Tier / MoSCoW | 1 / Must bila 10-G A (bawaan), B, atau C; bila D, hanya kontak di halaman Bantuan (FR-FAM-024) |
+| Masalah (brief §1.1) | `PAGAR`; syarat toko (10.4 §2.1) |
+| Aktor dan izin | Setiap peserta chat; perintah `report_content(subject, attached_excerpt?)` |
+| Aturan acuan | 06 §16.12; 10.4 SEC-135, SEC-154; FR-FAM-024 |
+| Business rule | BR-COM-020 |
+| Kedudukan | **[Usulan]** `security-privacy` S4 (SEC-154), dirancang `architect` (06 §16.12). Penentu jalurnya adalah apakah pengelola anggota rumah tangga pelapor, **bukan** jenis build: selama pengelola anggota rumah tangga pelapor (seluruh pilot, keputusan 25), tombol membuka Bantuan (SEC-154 (c)); laporan dikirim hanya bila pengelola bukan anggota rumah tangga pelapor. Kesiapan jalur kirim itu sebelum build pertama ke TestFlight eksternal adalah jadwal (SEC-154 kolom tahap), bukan syarat kirim |
+
+Di pilot pengelola server adalah anggota rumah tangga, sehingga "lapor ke pengelola" berarti lapor kepada pasangan (10 §3 10-G; 06 §16.12 baris "Pilot"). Karena itu di pilot tombol "Laporkan" membuka halaman Bantuan dan jalan keluar, bukan mengirim laporan.
+
+**Kriteria penerimaan**
+- **AC-1** — *Given* 10-G A, B, atau C dan pengelola server adalah anggota rumah tangga A (seluruh pilot), *When* A menekan "Laporkan" pada pesan B, *Then* aplikasi membuka halaman Bantuan (FR-FAM-024) dengan keterangan bahwa laporan tidak dikirim karena pengelola juga anggota rumah tangganya (08 §10.7), beserta jalan keluar dari rumah tangga; tidak ada laporan yang terkirim, tidak ada perintah server, baris, Peristiwa, notifikasi, atau log berpengenal akun.
+- **AC-2** — *Given* pengelola bukan anggota rumah tangga pelapor, *When* A memilih satu pesan dan menekan "Laporkan" lalu menulis keterangannya, *Then* yang tersimpan di `content_report` hanya pesan yang dipilih A dan teks A; server tidak menambah isi chat lain; A melihat tanda terima di layar; B tidak diberi tahu dan keluaran bagi B tidak berubah (SEC-154 (a), (b); 06 §16.12).
+- **AC-3** — *Given* AC-2, *When* operator membaca laporan, *Then* ia membacanya lewat perintah operasi di server (`familyos ops report`), tanpa API admin, dan tidak memperoleh akses baca ke chat karena laporan itu; kontak operator dipublikasikan dan tanggapan mengikuti runbook paling lambat 3 × 24 jam **[Asumsi]** (SEC-154 (d), (e); SEC-33).
+- **AC-4** — *Given* isi chat apa pun, *When* server dan perangkat diperiksa, *Then* tidak ada pemindaian isi otomatis (SEC-135); laporan hanya lahir dari tindakan pelapor.
+- **AC-5** — **Laporan tidak pernah sampai kepada orang yang dilaporkan.** *Given* akun pengelola adalah anggota rumah tangga A, dengan build apa pun (internal, TestFlight eksternal, atau App Store) dan dengan klien yang dimodifikasi, *When* perintah `report_content` dari A tiba di server, *Then* server menolaknya tanpa menyimpan baris `content_report`, tanpa Peristiwa, notifikasi, atau email kepada siapa pun, dan aplikasi membuka Bantuan seperti AC-1; `familyos ops report` yang dijalankan pengelola itu tidak menampilkan laporan apa pun dari rumah tangganya; *When* keanggotaan pengelola dinilai, *Then* yang dibaca adalah keanggotaan aktif saat perintah tiba, bukan setelan build (06 §16.12 baris "Laporkan"; 10.4 SEC-154 (c); 08 §10.7).
 
 **Dua arah.** Simetris.
 

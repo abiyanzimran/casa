@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `product-analyst` |
 | Tahap | S3, fase B (12 November 2026); putaran penyelarasan dengan revisi kesembilan dokumen 06 (§11.1, §11.2 N-28 sampai N-31, §13.2, §13.4 sampai §13.6, §16) dan arah pemilik produk tentang pendamping `AI`, 12 November 2026 |
-| Status | **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; FR-CAL-002 menjadi Must Tier 1 tanpa syarat (S3-1 (d)); Q-32 pilihan C dan rinciannya S3-8 (0) sampai (vii), D-61, D-62, D-88, D-91, D-92 diterima lewat "lanjut"; gagasan dokumen 11 di bagian 9 yang diterima S3-2 dicatat. **Sebelumnya:** ditinjau `critic` A dan diperiksa `security-privacy` (fase D). **Putaran perbaikan fase D (12 November 2026):** atribusi saran harian (CA-02) dan layar kunci N-28 (aturan 1); kartu status hilang dari chat (SP-45); FR-CAL-002 menjadi penunjuk ke N-32 Tier 1 (CA-08); SP-47, SP-53, SP-54, SP-56, SP-66, SP-68 (a) sebagai **[Usulan]**; PA-5 menjadi PA-FIN-5 |
+| Status | **S4 fase D, 12 November 2026 (belum ditinjau `critic`):** `AI` ditulis bersyarat pada keputusan 10-B, bawaan A (R1, kumpulan kalimat; 10.4 §1.2) lebih dulu: FR-AI-002 (uraian, AC-3 berubah, AC-8 "minta ubah" baru), FR-AI-003 (AC-1 berubah; P-T2-4 ditutup), FR-AI-004 (AC-4 baru; P-T2-5 ditutup), FR-AI-006 (AC-4 baru, SEC-123, SEC-124), FR-AI-007 (AC-1 berubah, AC-3 baru, SEC-127), FR-AI-009 (AC-1 berubah, AC-3, AC-4 baru, SEC-133 sampai SEC-136); FR-CARE-003/AC-4 baru (pelipatan N-28, SEC-57). Tier dan MoSCoW tidak berubah. Selisih R1 dengan brief §5O ("asks the AI to revise it") diajukan ke lead (10 §8 butir 5). **Penyisiran andaian khusus pilot S4, 12 November 2026 (M2, M3, M4; belum ditinjau `critic`):** FR-CARE-002 memakai himpunan penerima per jenis (bawaan kosong; pilihan awal P-39; dicabut per penerima); status "hari ini" berakhir menurut zona waktu pemiliknya (FR-CARE-001, P-T2-6); `spouses` dibaca `adults`. Tier dan perilaku pilot tidak berubah. **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; FR-CAL-002 menjadi Must Tier 1 tanpa syarat (S3-1 (d)); Q-32 pilihan C dan rinciannya S3-8 (0) sampai (vii), D-61, D-62, D-88, D-91, D-92 diterima lewat "lanjut"; gagasan dokumen 11 di bagian 9 yang diterima S3-2 dicatat. **Sebelumnya:** ditinjau `critic` A dan diperiksa `security-privacy` (fase D). **Putaran perbaikan fase D (12 November 2026):** atribusi saran harian (CA-02) dan layar kunci N-28 (aturan 1); kartu status hilang dari chat (SP-45); FR-CAL-002 menjadi penunjuk ke N-32 Tier 1 (CA-08); SP-47, SP-53, SP-54, SP-56, SP-66, SP-68 (a) sebagai **[Usulan]**; PA-5 menjadi PA-FIN-5 |
 | Bagian dari | [05-functional-requirements.md](../05-functional-requirements.md) (indeks, format blok FR, kebutuhan lintas modul `LM-nn`) |
 | Fitur yang dicakup | Tier 2 `SHP`, `PLN`, `MNT`, `CARE`, `CAL`, `AI` di [04-feature-map.md](../04-feature-map.md). Permintaan tindakan F-REQ-013 ada di [REQ.md](REQ.md); jam tenang, ringkasan, dan peristiwa N-28 sampai N-31 di [NTF.md](NTF.md) (FR-NTF-004); kartu status dan balasan di chat di [COM.md](COM.md) (FR-COM-016) |
 | Kedalaman | Ringkas (brief §1.1): satu sampai tiga kriteria penerimaan utama per kebutuhan |
@@ -76,7 +76,7 @@
 | Fitur | F-SHP-001 |
 | Tier / MoSCoW | 2 / Should |
 | Masalah (brief §1.1) | `MSL-4` (anggaran dapur rutin terlampaui); `KB-19` |
-| Aturan acuan | 07 §6.2 (sisa anggaran); PRN-17 (daftar bukan uang); 06 §9.2 (bawaan `spouses`); `LM-01` |
+| Aturan acuan | 07 §6.2 (sisa anggaran); PRN-17 (daftar bukan uang); 06 §9.2 (bawaan `adults`, dahulu `spouses`); `LM-01` |
 | Kedudukan | **[Usulan]** `product-analyst`; satu daftar per rumah tangga dan kategori bawaannya **[Asumsi]** |
 | Usaha berulang | Menambah barang saat teringat; mencentang saat belanja. Tidak wajib dipakai |
 
@@ -205,7 +205,7 @@ Asas yang mengikat semua kebutuhan di bagian ini: pribadi secara bawaan; berbagi
 | Kedudukan | Isi pilihan siap pakai, kelompok "berat", dan berakhirnya pilihan "hari ini": **[Usulan]** `product-analyst`; alur berakhir sendiri: 06 §13.5 (**[Usulan]** `architect`); kata-katanya dokumen 08 |
 | Usaha berulang | Sukarela; nol bila tidak dipakai |
 
-Anggota memilih apa yang ia rasakan dan, bila mau, menulis alasannya. Selain perasaan, ada pilihan siap pakai untuk meminta ruang atau bantuan **tanpa rincian**, misalnya "butuh istirahat hari ini", "butuh ditemani", "butuh dibantu urusan rumah hari ini", "butuh tenang dulu". Pilihan itu bukan pernyataan kesehatan dan tidak pernah memerlukan alasan. Yang disimpan hanya status saat ini beserta tanggal dibuatnya; status lama tergantikan, tidak menjadi riwayat (Q-136). Status yang dipilih dari pilihan bertanda "hari ini" berakhir sendiri pada akhir hari menurut zona waktu rumah tangga, tanpa notifikasi (06 §13.5), agar "butuh istirahat" kemarin tidak terbaca sebagai hari ini.
+Anggota memilih apa yang ia rasakan dan, bila mau, menulis alasannya. Selain perasaan, ada pilihan siap pakai untuk meminta ruang atau bantuan **tanpa rincian**, misalnya "butuh istirahat hari ini", "butuh ditemani", "butuh dibantu urusan rumah hari ini", "butuh tenang dulu". Pilihan itu bukan pernyataan kesehatan dan tidak pernah memerlukan alasan. Yang disimpan hanya status saat ini beserta tanggal dibuatnya; status lama tergantikan, tidak menjadi riwayat (Q-136). Status yang dipilih dari pilihan bertanda "hari ini" berakhir sendiri pada akhir hari menurut zona waktu pemiliknya (zona akun, cadangan zona rumah tangga; di pilot sama dengan zona rumah tangga), tanpa notifikasi (06 §13.5, §11.1; penyisiran S4, M3), agar "butuh istirahat" kemarin tidak terbaca sebagai hari ini.
 
 **Kelompok "berat"** (diminta 06 §13.6 "Pemicu"; **[Usulan]** `product-analyst`). Daftar tertutup pada pilihan status yang, bila dibagikan, memicu kata-kata menenangkan dan saran pesan bagi pasangan (FR-AI-002): sedih, cemas atau khawatir, lelah sekali, kesal, sedang tidak baik, "butuh ditemani", dan "butuh tenang dulu". Pilihan bernada netral atau senang ("biasa saja", "senang", "bersemangat") dan permintaan bantuan praktis ("butuh dibantu urusan rumah hari ini") tidak termasuk. Server tidak pernah menebak kelompok dari alasan bebas, chat, atau perilaku. Pemilik status tidak melihat label "berat"; ia hanya memilih perasaannya.
 
@@ -226,17 +226,17 @@ Anggota memilih apa yang ia rasakan dan, bila mau, menulis alasannya. Selain per
 | Fitur | F-CARE-001, F-CARE-002 |
 | Tier / MoSCoW | 2 / **Must bila F-CARE-001 atau F-CARE-002 dibangun** |
 | Masalah (brief §1.1) | `PAGAR` (status tidak boleh menjadi alat memantau) |
-| Aturan acuan | 06 V-4, V-6, V-7, INV-A36, N-22, §13.5; D-40 (lewat "lanjut", Pagar); FR-FAM-009 di [FAM.md](FAM.md) |
+| Aturan acuan | 06 V-4, V-6, V-7, INV-A36, INV-A50, N-22, §13.5; D-40 (lewat "lanjut", Pagar); FR-FAM-009 di [FAM.md](FAM.md) |
 | Kedudukan | Brief §1.1 Tier 2 dan §5K. **Dua saklar terpisah** (suasana hati; sakit), keduanya mati secara bawaan: **[Usulan]** `security-privacy` SP-53, menggantikan bawaan semula `product-analyst` (satu saklar untuk keduanya); diterapkan di 06 §13.5, V-6 (revisi kesepuluh) |
 | Usaha berulang | Sekali per saklar (memilih berbagi); mencabut satu ketukan |
 
-Dua persetujuan berbagi yang terpisah: "bagikan suasana hatiku kepada pasangan" dan "bagikan kabar sakitku kepada pasangan", keduanya mati sampai pemiliknya sendiri menyalakan. Bawaan semula, satu saklar untuk keduanya, dicabut (SP-53): kabar sakit dan suasana hati punya tingkat kepekaan yang berbeda, dan orang yang mau pasangannya tahu ia demam belum tentu mau perasaannya terbaca. Biayanya satu keputusan tambahan, sekali. Alasan bebas ikut terbagi bersama statusnya, dan layar menyatakannya sebelum menyimpan (FR-FAM-010).
+Dua persetujuan berbagi yang terpisah, suasana hati dan kabar sakit. Masing-masing adalah **himpunan penerima**, bawaan kosong (mati) sampai pemiliknya sendiri menyalakan; saat dinyalakan pilihan awalnya semua anggota dewasa penuh lain (P-39, checkpoint S4); dicabut per penerima; anggota yang bergabung kemudian tidak pernah masuk sendiri (06 §13.5, INV-A50; penyisiran S4, M4, **[Usulan]** `architect`). Di rumah tangga pilot penerimanya hanya pasangan, jadi layarnya terbaca "bagikan suasana hatiku kepada pasangan" dan "bagikan kabar sakitku kepada pasangan". Bawaan semula, satu saklar untuk keduanya, dicabut (SP-53): kabar sakit dan suasana hati punya tingkat kepekaan yang berbeda, dan orang yang mau pasangannya tahu ia demam belum tentu mau perasaannya terbaca. Biayanya satu keputusan tambahan, sekali. Alasan bebas ikut terbagi bersama statusnya, dan layar menyatakannya sebelum menyimpan (FR-FAM-010).
 
 **Kriteria penerimaan**
 
 - **AC-1** — *Given* anggota yang belum pernah memilih berbagi, *When* ia mengisi status atau melapor sakit, *Then* tidak seorang pun selain dirinya dapat melihatnya, dan tidak ada ajakan berbagi yang muncul berulang (paling banyak sekali saat pertama mengisi).
-- **AC-2** — *Given* anggota memilih berbagi, *When* ia mengukuhkannya, *Then* pasangan dapat melihat status saat ini sejak saat itu, tidak ada yang berlaku surut, dan N-22 dikirim (06 V-6); pasangan tidak dapat memulai, mengubah, atau mencabut persetujuan itu (06 V-4).
-- **AC-3** — *Given* persetujuan berbagi yang berlaku, *When* pemiliknya mencabut, *Then* berlaku seketika, pasangan tidak lagi menemukan status, laporan sakit, maupun alur tindak lanjutnya, kartu statusnya hilang dari chat bagi keduanya tanpa penanda, kartu kosong, atau baris peristiwa, tidak ada notifikasi kepada siapa pun, dan tidak ada notifikasi yang masih tertahan untuk status itu yang tetap dikirim (06 V-7; §13.3, §13.5, INV-A47 (e); SP-45). Catatan dukungan yang sudah dikirim pasangan kehilangan tautannya ke status dan tetap sebagai pesan bebas milik pasangan, tanpa kutipan kartu (06 §13.5; P-21).
+- **AC-2** — *Given* anggota memilih berbagi, *When* ia mengukuhkannya, *Then* setiap penerima dalam himpunannya (pilihan awal semua anggota dewasa penuh lain; di pilot: pasangan) dapat melihat status saat ini sejak saat itu, tidak ada yang berlaku surut, dan N-22 dikirim (06 V-6); tidak ada anggota lain yang dapat memulai, mengubah, atau mencabut persetujuan itu (06 V-4).
+- **AC-3** — *Given* persetujuan berbagi yang berlaku, *When* pemiliknya mencabut seluruhnya atau mencabut satu penerima, *Then* berlaku seketika bagi penerima yang dicabut (penerima lain tidak terpengaruh): ia tidak lagi menemukan status, laporan sakit, maupun alur tindak lanjutnya, kartu statusnya hilang dari chat bagi keduanya tanpa penanda, kartu kosong, atau baris peristiwa, tidak ada notifikasi kepada siapa pun, dan tidak ada notifikasi yang masih tertahan untuk status itu yang tetap dikirim (06 V-7; §13.3, §13.5, INV-A47 (e); SP-45). Catatan dukungan yang sudah dikirim pasangan kehilangan tautannya ke status dan tetap sebagai pesan bebas milik pasangan, tanpa kutipan kartu (06 §13.5; P-21).
 - **AC-4** — *Given* anggota baru, *When* ia membuka setelan berbagi, *Then* ada dua saklar, suasana hati dan sakit, keduanya mati; *When* A hanya menyalakan saklar sakit, *Then* B menerima N-28 untuk laporan sakit dan jawaban tindak lanjut A, tetapi tidak menemukan status suasana hati A dan tidak menerima kabar apa pun saat A mengubahnya; mencabut satu saklar tidak menyentuh yang lain (SP-53) **[Usulan]**.
 
 ### FR-CARE-003 — Pasangan diberi tahu setiap perubahan
@@ -257,6 +257,7 @@ Dua persetujuan berbagi yang terpisah: "bagikan suasana hatiku kepada pasangan" 
 - **AC-1** — *Given* persetujuan berbagi berlaku, *When* pemiliknya menyimpan status baru, laporan sakit, atau jawaban tindak lanjut, *Then* pasangan menerima satu N-28 `kabar` yang di layar kunci memakai teks umum kelas `kabar` ("Ada kabar baru" menurut bawaan (a); FR-NTF-005/AC-5 untuk (b)), tanpa jenis peristiwa, perasaan, atau kata kesehatan, ditahan bila jatuh di jam tenang pasangan, dan tidak ada N-23 tambahan atas kartunya (06 INV-A46).
 - **AC-2** — *Given* pemilik mengubah status tiga kali selama jam tenang pasangan, *When* jam tenang berakhir, *Then* pasangan menerima satu N-28 yang menampilkan status saat dilepas; *When* status sudah dicabut atau dihapus sebelum dilepas, *Then* kabar itu gugur tanpa jejak (06 §11.1 "Penggabungan `kabar`", V-7).
 - **AC-3** — *Given* notifikasi perubahan, *When* pasangan membukanya atau membuka status di layarnya sendiri, *Then* pemilik status tidak mendapat tanda apa pun bahwa pasangannya sudah membaca. Kartu status di chat memakai tanda dibaca chat seperti pesan lain, jadi bila pasangan membuka chat, pemilik status melihat kartunya terbaca, tanpa waktu baca (06 §13.5 "Tanda dibaca", §16.5); batas ini disebut di "siapa melihat apa" (FR-FAM-010/AC-4) dan dinilai dokumen 10.
+- **AC-4** — **Pelipatan bunyi** (06 N-28 revisi ketiga belas; 10.2 SEC-57, **[Usulan]** `security-privacy`; 60 menit **[Asumsi]**). *Given* A mengubah status tiga kali dalam 20 menit di luar jam tenang B, *When* kabarnya dilepas, *Then* hanya yang pertama berbunyi; dua sesudahnya menggantikannya diam-diam dengan pengenal lipat yang sama, dan saat B membukanya ia melihat status ketiga. Paling banyak satu N-28 berbunyi per 60 menit per pasangan (pemilik, penerima). Ini menafsirkan brief §1.1 "notified on every change" sebagai "setiap perubahan sampai", bukan "setiap perubahan berbunyi"; selisihnya diajukan ke lead (10 §8 butir 6).
 
 ### FR-CARE-004 — Menghapus catatan kepedulian
 
@@ -384,10 +385,12 @@ flowchart LR
     Q -- tidak --> K
     P -- ya --> C[Data minimum, tanpa nama FR-AI-006]
     Q -- ya --> C
-    C --> D{Batas biaya dan batas dua per hari tersisa? FR-AI-007}
+    C --> D{Batas dua per hari tersisa? FR-AI-007}
     D -- tidak --> K
-    D -- ya --> E[Penyedia AI]
-    E -- gagal atau lambat --> K
+    D -- ya, 10-B bawaan A: R1 --> R[Server memilih dari kumpulan kalimat per kunci tertutup; tidak ada panggilan ke penyedia]
+    D -- ya, 10-B B atau C --> E[Penyedia AI, data minimum; batas biaya]
+    R --> G
+    E -- gagal, lambat, atau batas biaya habis --> K
     E -- berhasil --> G[Kata menenangkan dan draf pesan di perangkat penerima]
     G --> H[Penerima membaca, mengubah, dan mengirim sendiri sebagai pesan chat FR-AI-008]
 ```
@@ -427,17 +430,20 @@ flowchart LR
 
 Saat pasangan menyimpan status dari kelompok "berat" atau laporan sakit dan membagikannya, kabar N-28 yang memang sudah dikirim kepada penerima membawa dua hal yang tampil sesudah ponsel dibuka: kata-kata yang menenangkan penerima sendiri, dan satu saran pesan untuk dikirim kepada pasangannya. Untuk sakit, saran bernada perhatian praktis (contoh pemilik produk: menanyakan perlu berobat atau tidak). Kata-kata itu menenangkan, bukan ajakan menginterogasi ("bukan untuk di tanya jawab"). Tidak ada pemberitahuan tambahan; tanpa dua persetujuan, N-28 tetap terkirim tanpa saran. Persetujuan pemilik status dipisah per jenis (FR-AI-005 butir e1 suasana hati, e2 sakit; SP-53): status suasana hati memerlukan e1, laporan sakit memerlukan e2. Untuk "butuh tenang dulu" tidak ada saran pesan, hanya kata-kata yang menenangkan penerima (FR-CARE-001/AC-5; SP-47).
 
+**Jalur `AI`, bersyarat pada keputusan 10-B** (10 §3; 10.4 §1.2; **[Usulan]** `security-privacy` S4). **Bawaan A (R1):** penyedia hanya menulis kumpulan kalimat per kunci tertutup (kategori status, jenis suasana hati atau sakit) tanpa data rumah tangga mana pun; server di Indonesia memilih kalimat bagi B menurut kategori status A yang dibagikan, dengan izin e1 atau e2 A dan butir (b) B; tidak ada data rumah tangga yang keluar ke penyedia. **B:** panggilan langsung berdata minimum per saran, dengan persetujuan, sampai PP 33/2026 berlaku, lalu turun ke A (bergantung pada L-26). **C:** seperti B, hanya ke model yang diproses di Indonesia. **D:** fitur ini tidak dibangun sampai advokat menjawab. Kriteria di bawah ditulis untuk A; yang berbeda pada B dan C disebut di kriterianya.
+
 **Kata-kata kepada pasangan tidak menafsirkan dan tidak menyuruh mengawasi** (**[Usulan]** `security-privacy` SP-66; untuk dinilai lengkap di dokumen 10). Kata-kata `AI` kepada penerima tidak pernah menafsirkan atau membesarkan keadaan pemilik status (misalnya "mungkin depresi", "awasi dia", "pastikan ia tidak sendirian"), dan tidak pernah meminta penerima memantau, memeriksa lokasi, atau menghubungi orang lain.
 
 **Kriteria penerimaan**
 
 - **AC-1** — *Given* A mengizinkan status suasana hatinya dipakai `AI` (e1) dan B menyalakan saran untuk dirinya, *When* A membagikan status "sedih", *Then* B menerima satu N-28 yang di layar kunci hanya memakai teks umum kelas `kabar` (FR-CARE-003/AC-1); sesudah dibuka tampil kata-kata yang menenangkan dan satu saran pesan yang bervariasi; tidak ada tombol kirim pada notifikasi (06 §13.6).
 - **AC-2** — *Given* saran tampil, *When* B memilih memakainya, *Then* saran masuk ke kolom tulis balasan pada kartu status A di chat sebagai teks yang dapat diubah, dan baru terkirim saat B sendiri menekan kirim; B juga dapat menulis sendiri atau mengabaikannya tanpa akibat apa pun (06 §13.6 "Mengirim"; keputusan 2).
-- **AC-3** — *Given* saran dibuat, *When* data ke penyedia diperiksa, *Then* hanya memuat perasaan atau keadaan yang dinyatakan dari pilihan siap pakai; tanpa nama siapa pun; tanpa isi chat, tanda dibaca, atau kehadiran (keputusan 3; FR-AI-006; 06 INV-A45). Alasan bebas A sementara tidak dikirim ke penyedia sampai dokumen 10 menetapkan penanganan FR-AI-009; sesudahnya hanya bila A sendiri mengizinkannya (brief §5O keputusan 3; 06 §13.6, **[Usulan]** `architect`; FR-AI-009/AC-1).
+- **AC-3** — **Bawaan 10-B A:** *Given* saran dibuat bagi B, *When* lalu lintas ke penyedia diperiksa uji otomatis, *Then* tidak ada panggilan apa pun yang membawa data A, B, atau rumah tangga; kalimat berasal dari kumpulan yang dibangun pekerjaan terpisah dengan prompt tanpa data rumah tangga (10.4 SEC-120, SEC-121); yang dibaca server hanya kategori status A dari daftar tertutup (keputusan 3; FR-AI-006; 06 INV-A45). **10-B B atau C:** *When* data ke penyedia diperiksa, *Then* hanya memuat kategori status dari pilihan siap pakai; tanpa nama siapa pun; tanpa isi chat, tanda dibaca, atau kehadiran. Pada huruf mana pun alasan bebas A tidak dikirim di pilot (10.4 SEC-136; FR-AI-009/AC-1).
 - **AC-4** — *Given* pesan yang berasal dari saran terkirim, *When* model dan tampilan diperiksa, *Then* tidak ada penanda `AI` dan tidak ada kolom tersimpan yang mencatat bahwa pesan itu berasal dari saran, atau apakah saran dipakai (keputusan 2; 06 §13.6 "Yang tidak dibaca").
 - **AC-5** — *Given* A tidak mengizinkan jenis statusnya dipakai `AI` (e1 untuk suasana hati, e2 untuk sakit), atau B mematikan saran, atau status A di luar kelompok "berat" dan bukan laporan sakit, *When* A membagikan status, *Then* B menerima N-28 tanpa kata-kata `AI` dan tanpa saran; tidak ada yang memberi tahu A atau B mengapa. *Given* A mengizinkan e2 tetapi tidak e1, *When* A melaporkan sakit, *Then* B menerima saran; *When* A membagikan "sedih", *Then* tidak (SP-53).
 - **AC-6** — *Given* A melaporkan sakit pukul 23.00 saat jam tenang B, *When* jam tenang B berakhir, *Then* N-28 beserta sarannya dilepas saat itu, dengan saran yang dibuat dari state saat dilepas; sakit tidak menembus jam tenang (06 §13.6 "Jam tenang").
 - **AC-7** — *Given* kata-kata dan saran pesan `AI` bagi B atas status atau laporan sakit A, *When* diperiksa terhadap daftar uji kalimat terlarang dokumen 10, *Then* tidak ada yang menafsirkan atau membesarkan keadaan A (contoh terlarang: "mungkin depresi", "awasi dia", "pastikan ia tidak sendirian"), dan tidak ada yang meminta B memantau A, memeriksa lokasinya, atau menghubungi orang lain (SP-66) **[Usulan]**.
+- **AC-8** — **"Minta ubah", bersyarat pada 10-B.** **Bawaan A:** *Given* saran tampil bagi B, *When* B mengetuk "minta ubah", *Then* tampil saran lain dari kumpulan yang sama; teks yang sudah B sunting tidak pernah dikirim ke penyedia, karena dapat memuat nama dan keadaan A (10.4 §1.2 "Satu selisih dengan brief §5O"). **B atau C:** revisi langsung atas teks B dinilai sebelum tahap publik, bersama R2. Ini selisih dengan brief §5O "asks the AI to revise it"; dicatat untuk lead (10 §8 butir 5).
 
 ### FR-AI-003 — Pengingat hangat
 
@@ -447,12 +453,12 @@ Saat pasangan menyimpan status dari kelompok "berat" atau laporan sakit dan memb
 | Tier / MoSCoW | 2 / Should |
 | Masalah (brief §1.1) | `MSL-7`; pernyataan arah kedua pemilik produk, 11 November 2026 (`_progress.md`, kata-katanya, dikutip sebagian): "tujuan bukan dipakai untuk menyuruh nyuruh, bukan untuk membebankan, tapi mengingat dan mencatat" |
 | Aturan acuan | 06 PG-12, §11.1, §11.2; keputusan 3 (judul dan tanggal, tanpa jumlah) |
-| Kedudukan | Brief §5O. Persetujuan atas judul yang ditulis orang lain: **[Perlu aturan]** P-T2-4 |
+| Kedudukan | Brief §5O. Persetujuan atas judul yang ditulis orang lain (dulu **[Perlu aturan]** P-T2-4): **ditutup** oleh 10.4 SEC-123 di bawah 10-B A, karena judul objek tidak pernah dikirim ke penyedia (pengetatan "never names" brief §5O keputusan 3) |
 | Usaha berulang | Nol |
 
 **Kriteria penerimaan**
 
-- **AC-1** — *Given* notifikasi yang memang dikirim aturan 06 §11.2 kepada anggota yang ikut serta, *When* kata-katanya dibuat AI, *Then* datanya hanya judul dan tanggal objek, tanpa jumlah dan nama; kata-kata itu hanya tampil di dalam aplikasi atau di rincian yang dipilih penerima, tidak pernah di teks baku layar kunci.
+- **AC-1** — **Bawaan 10-B A:** *Given* notifikasi yang memang dikirim aturan 06 §11.2 kepada anggota yang ikut serta, *When* kata-kata hangatnya dipilih, *Then* kalimat berasal dari templat per jenis objek dan jarak hari ke tenggat; judul objek ditampilkan aplikasi di sebelahnya dan tidak pernah masuk kalimat yang dibuat `AI` atau dikirim ke penyedia; tanpa jumlah, nama, atau tanggal persis (10.4 §1.2, SEC-123). **10-B B atau C:** datanya jenis objek dan jarak hari, tetap tanpa judul. Pada huruf mana pun kata-kata itu hanya tampil di dalam aplikasi atau di rincian yang dipilih penerima, tidak pernah di teks baku layar kunci.
 - **AC-2** — *Given* AI gagal, lambat, atau batas biaya habis, *When* notifikasi harus dikirim, *Then* notifikasi terkirim tepat waktu dengan kalimat baku; AI tidak pernah menambah, menunda, atau membatalkan notifikasi.
 
 ### FR-AI-004 — Narasi bulanan
@@ -463,7 +469,7 @@ Saat pasangan menyimpan status dari kelompok "berat" atau laporan sakit dan memb
 | Tier / MoSCoW | 2 / Should; **Pantau** |
 | Masalah (brief §1.1) | `MSL-7`; `MSL-1` |
 | Aturan acuan | Keputusan 3 dan 4 (angka agregat saja; hitungan dan judul yang selesai); 07 §6.3 (tanpa angka kumulatif, lintas periode, atau bersih per anggota dalam narasi; D-43); 06 AT-4, AT-7 |
-| Kedudukan | Larangan membandingkan orang: diturunkan dari AT-4 dan 07 §6.3; aturan kanonisnya untuk `AI` diminta dari `security-privacy` (dokumen 04 bagian 10.4) **[Perlu aturan]** P-T2-5 |
+| Kedudukan | Larangan membandingkan orang: diturunkan dari AT-4 dan 07 §6.3; aturan kanonisnya untuk `AI` (dulu **[Perlu aturan]** P-T2-5) **ditutup** oleh 10.4 SEC-129 (tanpa perbandingan antar-orang di keluaran apa pun) dan SEC-123 (tanpa angka per anggota dan tabel C), **[Usulan]** `security-privacy` S4 |
 | Usaha berulang | Nol; dibaca sekali sebulan |
 
 **Kriteria penerimaan**
@@ -471,6 +477,7 @@ Saat pasangan menyimpan status dari kelompok "berat" atau laporan sakit dan memb
 - **AC-1** — *Given* akhir periode anggaran, *When* narasi dibuat, *Then* data uangnya hanya angka agregat rumah tangga dari ringkasan bulanan (07 §6.3), tanpa transaksi satu per satu.
 - **AC-2** — *Given* narasi, *When* diperiksa, *Then* tidak menyebut, membandingkan, atau memeringkat anggota (siapa belanja paling banyak, siapa paling sering menyelesaikan), dan tidak memuat angka per anggota selain yang 07 §6.3 izinkan per periode.
 - **AC-3** — *Given* kedua anggota ikut serta, *When* masing-masing membuka narasi, *Then* isi faktanya sama; yang berbeda hanya kata-kata.
+- **AC-4** — **Bawaan 10-B A:** *Given* narasi dibuat, *When* lalu lintas ke penyedia diperiksa, *Then* tidak ada panggilan; narasi adalah templat bercelah per jenis kalimat (anggaran tercapai, terlampaui, tabungan, urusan selesai) dan angkanya diisi server dari angka agregat rumah tangga 07 §6.3 dan hitungan urusan selesai, tanpa angka per anggota dan tanpa tabel C (10.4 §1.2, SEC-123, SEC-129). **10-B B atau C:** angka agregat yang sama dikirim, tetap tanpa angka per anggota.
 
 ### FR-AI-005 — Ikut serta per anggota
 
@@ -502,7 +509,7 @@ Setelan `AI` milik tiap orang, terpisah per fitur, semuanya mati secara bawaan: 
 | Tier / MoSCoW | 2 / **Must bila F-AI-001 sampai F-AI-004 atau F-AI-008 dibangun** |
 | Masalah (brief §1.1) | `PAGAR` |
 | Aturan acuan | Brief §5O "uses only what the member it is helping is already allowed to see"; keputusan 3 dan 4; 06 PG-12; FR-FAM-020 AC-2 (tanpa konteks lintas rumah tangga) |
-| Kedudukan | Brief §5O. Daftar kolom yang boleh keluar per fitur: dokumen 10 **[Dok. 10]** |
+| Kedudukan | Brief §5O. Daftar yang tidak pernah keluar: 10.4 SEC-123; uji kebocoran: SEC-124 (**[Usulan]** `security-privacy` S4) |
 | Usaha berulang | Nol |
 
 **Kriteria penerimaan**
@@ -510,6 +517,7 @@ Setelan `AI` milik tiap orang, terpisah per fitur, semuanya mati secara bawaan: 
 - **AC-1** — *Given* setiap panggilan ke penyedia, *When* muatannya diperiksa uji otomatis, *Then* hanya berisi kolom yang diizinkan untuk fitur itu oleh keputusan 3 dan 4, tanpa nama, nomor, nama rumah tangga, atau pengenal yang dapat dipetakan kembali.
 - **AC-2** — *Given* data yang dibagikan pasangan kepada anggota yang dibantu, *When* data itu tentang pasangan, *Then* ia hanya dikirim bila pasangan itu sendiri ikut serta dan mengizinkannya untuk jenis data itu (keputusan 3 "only with the consent of the member the data is about"; FR-AI-005 butir e1, e2); keluaran AI tidak pernah menyebut, menyiratkan, atau memparafrasakan apa pun yang tidak boleh dilihat anggota yang dibantu.
 - **AC-3** — *Given* setiap panggilan ke penyedia untuk fitur apa pun, *When* muatannya diperiksa, *Then* tidak memuat isi chat, tanda terkirim atau dibaca, kehadiran (online, terakhir aktif, mengetik), atau apakah saran sebelumnya dipakai (06 INV-A45, §13.6 "Yang tidak dibaca").
+- **AC-4** — *Given* huruf 10-B mana pun, *When* prompt dan muatan ke penyedia diperiksa, *Then* tidak pernah memuat: nama, nama rumah tangga, email, atau pengenal yang dapat dipetakan; judul objek; nama kategori buatan sendiri (diganti "lainnya"); alasan bebas `CARE`; isi chat, foto, tanda dibaca, kehadiran; apakah saran sebelumnya dipakai; tanggal dan jam persis atau zona waktu; corak dan nuansa religi; angka per anggota, tabel C, atau data buku pribadi apa pun (10.4 SEC-123). *Given* rumah tangga X dan Y, *When* data pribadi Y diacak, *Then* keluaran bagi X identik (10.4 SEC-124). Di bawah bawaan A daftar ini berlaku atas prompt pembangunan kumpulan.
 
 ### FR-AI-007 — Batas biaya keras
 
@@ -519,13 +527,14 @@ Setelan `AI` milik tiap orang, terpisah per fitur, semuanya mati secara bawaan: 
 | Tier / MoSCoW | 2 / **Must bila F-AI-001 sampai F-AI-004 atau F-AI-008 dibangun** |
 | Masalah (brief §1.1) | `PAGAR` (biaya tidak boleh bocor tanpa batas) |
 | Aturan acuan | Brief §5O "Usage cost has a hard cap"; glosarium *batas biaya AI* |
-| Kedudukan | Angka batas ditetapkan pemilik produk di S4 bersama pilihan penyedia (Q-10) **[Usulan]** |
+| Kedudukan | Angka batas: 10.4 SEC-127, **[Usulan]** `security-privacy` S4, menunggu keputusan 10-B (pemilik produk boleh menyebut angka lain bersama hurufnya); USD 3 per pembangunan **[Asumsi]**. Pemutus di server: SEC-128 |
 | Usaha berulang | Nol |
 
 **Kriteria penerimaan**
 
-- **AC-1** — *Given* batas biaya per rumah tangga per bulan, *When* panggilan berikutnya akan melewati batas, *Then* server tidak memanggil penyedia, dan semua fitur AI memakai kalimat baku atau tidak tampil sampai periode berikutnya.
-- **AC-2** — *Given* batas habis, *When* anggota membuka setelan AI, *Then* ia membaca bahwa AI berhenti sementara dan kapan menyala lagi; tidak ada notifikasi tentang itu, dan tidak ada fungsi lain yang terpengaruh.
+- **AC-1** — **Bawaan 10-B A:** *Given* batas USD 3 per pembangunan kumpulan dan USD 10 per bulan, tanpa batas harian, *When* pembangunan kumpulan akan melewati salah satunya, *Then* pekerjaan berhenti, tidak ada kumpulan setengah jadi yang diterbitkan, dan kumpulan lama tetap dipakai; pembangunan seharga USD 1,32 (perkiraan 09-D) selesai. **10-B B atau C:** batas USD 10 per bulan per rumah tangga dan batas harian 1/30 darinya; *When* panggilan berikutnya akan melewati batas, *Then* server tidak memanggil penyedia, dan fitur `AI` memakai kalimat baku atau tidak tampil sampai periode berikutnya (10.4 SEC-127).
+- **AC-2** — *Given* batas habis, *When* anggota membuka setelan AI, *Then* ia membaca bahwa AI berhenti sementara dan kapan menyala lagi; tidak ada notifikasi tentang itu, dan tidak ada fungsi lain yang terpengaruh. Di bawah bawaan A kalimat dari kumpulan lama tetap tampil, jadi yang berhenti hanya pembaruan kumpulan.
+- **AC-3** — *Given* pemutus di server dinyalakan operator, *When* fitur `AI` apa pun berjalan, *Then* tidak ada panggilan ke penyedia dan seluruh uji penerimaan Tier 1 tetap lulus (10.4 SEC-128; FR-AI-008/AC-1).
 
 ### FR-AI-008 — Gagal aman; AI bukan pelaku
 
@@ -550,16 +559,17 @@ Setelan `AI` milik tiap orang, terpisah per fitur, semuanya mati secara bawaan: 
 | Fitur | F-AI-005 |
 | Tier / MoSCoW | 2 / **Must bila F-AI-001 sampai F-AI-004 atau F-AI-008 dibangun** |
 | Masalah (brief §1.1) | `PAGAR` |
-| Aturan acuan | Brief §5O "not a psychologist", "`security-privacy` defines, in document 10, what it does on signs of serious distress"; dokumen 10 **[Dok. 10]** |
-| Kedudukan | **[Usulan]** `product-analyst` untuk urutan pembangunan |
+| Aturan acuan | Brief §5O "not a psychologist", "`security-privacy` defines, in document 10, what it does on signs of serious distress"; 10.4 SEC-130 sampai SEC-136; FR-FAM-024 (halaman Bantuan, Tier 1) |
+| Kedudukan | Urutan pembangunan: **[Usulan]** `product-analyst`. Penanganan: **[Usulan]** `security-privacy` S4 (SEC-133 sampai SEC-136); sekali sehari **[Asumsi]** |
 
-Sampai dokumen 10 menetapkan penanganan tanda tekanan berat, tidak ada fitur AI yang menerima teks bebas: izin mengirim alasan bebas (FR-AI-002/AC-3) belum ditawarkan. Dengan begitu AI pilot tidak pernah membaca kalimat yang dapat memuat tanda menyakiti diri atau kekerasan tanpa ada penanganannya. Pemicu saran aktif (FR-AI-002) hanya pilihan dari daftar tertutup kelompok "berat" (FR-CARE-001), tidak pernah teks. Karena saran kini ditawarkan aktif saat pasangan sedang berat, dokumen 10 juga diminta menilai apakah kelompok "berat" memerlukan arahan bantuan di luar aplikasi bagi pemilik status sendiri **[Dok. 10]**.
+Sampai dokumen 10 menetapkan penanganan tanda tekanan berat, tidak ada fitur AI yang menerima teks bebas: izin mengirim alasan bebas (FR-AI-002/AC-3) belum ditawarkan. Dengan begitu AI pilot tidak pernah membaca kalimat yang dapat memuat tanda menyakiti diri atau kekerasan tanpa ada penanganannya. Pemicu saran aktif (FR-AI-002) hanya pilihan dari daftar tertutup kelompok "berat" (FR-CARE-001), tidak pernah teks. Karena saran kini ditawarkan aktif saat pasangan sedang berat, dokumen 10 diminta menilai apakah kelompok "berat" memerlukan arahan bantuan di luar aplikasi bagi pemilik status sendiri; jawabannya SEC-133 (AC-3).
 
 **Kriteria penerimaan**
 
-- **AC-1** — *Given* dokumen 10 belum menetapkan penanganan, *When* aplikasi dibangun, *Then* pilihan mengizinkan alasan bebas dikirim ke AI tidak tersedia.
-- **AC-2** — *Given* keluaran AI apa pun, *When* diperiksa, *Then* tidak memuat diagnosis, saran medis, atau klaim terapi (brief §5O); saran pesan saat sakit hanya bernada perhatian (misalnya menanyakan perlu berobat atau tidak), tidak menyebut obat, dosis, atau penyakit; dan tidak pernah mengutip atau memparafrasakan alasan bebas pemilik status, juga bila alasan itu kelak diizinkan dikirim ke `AI`, karena kata-kata itu dapat tersalin ke chat sebagai saran dan bertahan sesudah statusnya dihapus (SP-56 (b)) **[Usulan]**.
-
+- **AC-1** — *Given* pilot, *When* aplikasi dibangun, *Then* pilihan mengizinkan alasan bebas dikirim ke `AI` tidak tersedia (10.4 SEC-136), dan tidak ada pemindaian isi apa pun, termasuk alasan bebas dan chat (SEC-135).
+- **AC-2** — *Given* keluaran AI apa pun, *When* diperiksa, *Then* tidak memuat diagnosis, saran medis, atau klaim terapi (brief §5O; 10.4 SEC-132); saran pesan saat sakit hanya bernada perhatian (misalnya menanyakan perlu berobat atau tidak), tidak menyebut obat, dosis, atau penyakit; dan tidak pernah mengutip atau memparafrasakan alasan bebas pemilik status, juga bila alasan itu kelak diizinkan dikirim ke `AI`, karena kata-kata itu dapat tersalin ke chat sebagai saran dan bertahan sesudah statusnya dihapus (SP-56 (b)) **[Usulan]**.
+- **AC-3** — *Given* A memilih status dari kelompok "berat", *When* status tersimpan, *Then* di layar A sendiri tampil satu baris yang dapat ditutup: "Kalau terasa berat sekali, kamu bisa bicara dengan konselor. Lihat Bantuan.", yang membuka halaman Bantuan (FR-FAM-024); baris itu paling banyak sekali sehari, hanya terlihat A, tanpa notifikasi, Peristiwa, atau log; B tidak mengetahui bahwa baris itu tampil, apa pun setelan berbaginya (10.4 SEC-133). Baris ini tidak bergantung pada `AI` dan tetap tampil bila `AI` mati atau 10-B D.
+- **AC-4** — *Given* kumpulan kalimat baru (10-B A) atau keluaran per panggilan (B, C), *When* diperiksa sebelum ada yang membaca, *Then* setiap kalimat lulus daftar kalimat terlarang T1 sampai T11 dan sampel operator (10.4 SEC-130, SEC-131); kalimat yang gagal tidak diterbitkan.
 ### FR-AI-010 — Saran apresiasi atau dukungan harian
 
 | | |
@@ -659,15 +669,15 @@ Bukan kebutuhan; dicatat agar tidak hilang. **Hasil checkpoint S3 (12 November 2
 | P-T2-1 | 06 §13.5 (alur status, kartu status, catatan dukungan sebagai balasan chat), §11.1 (penggabungan `kabar`), §11.2 N-28 | **[Usulan]** `architect`, sama dengan bawaan; pilihan "Umum di layar kunci" dan catatan di chat diterima pemilik produk atas saran lead; teks layar kunci yang pasti "Ada kabar baru" (06 P-32; S3-8 (vii), diterima lewat "lanjut"); kartu status hilang dari chat (06 revisi kesepuluh, SP-45; S3-7 (ii), diterima lewat "lanjut") | Bagian 5, FR-CARE-003, FR-CARE-004, FR-CARE-006 |
 | P-T2-2 | 06 §13.4: jam opsional; N-31 `kabar` pada jam itu, satu per kemunculan; dalam jam tenang dilepas saat berakhir, gugur bila sudah selesai | **[Usulan]** `architect`. Berbeda dari bawaan dalam satu hal: N-31 tidak disebut tunduk pada batas harian (ia bukan `perlu_tanggapan`) | FR-CAL-001/AC-4 |
 | P-T2-3 | 06 §13.2: M05 hanya oleh pelapor, selama `dilaporkan`; sesudah `dikerjakan` jalannya M03 lalu M05 | **[Usulan]** `architect`, sama dengan bawaan | FR-MNT-002/AC-4 |
-| P-T2-6 | 06 §13.5 "Berakhir sendiri": akhir hari menurut zona waktu rumah tangga, berpelaku `system`, tanpa notifikasi | Usulan `architect`; diterima lewat "lanjut" di checkpoint S3 bersama Q-136 (D-61) | FR-CARE-001 |
+| P-T2-4 | 10.4 SEC-123 dan §1.2 (R1, 10-B A): judul objek tidak pernah dikirim ke penyedia; aplikasi menampilkannya di sebelah kalimat templat, jadi persetujuan penulis judul tidak diperlukan | **[Usulan]** `security-privacy` S4, menunggu 10-B | FR-AI-003/AC-1 |
+| P-T2-5 | 10.4 SEC-129: tanpa perbandingan antar-orang di keluaran apa pun; SEC-123: tanpa angka per anggota dan tabel C | **[Usulan]** `security-privacy` S4 | FR-AI-004/AC-2, AC-4 |
+| P-T2-9 | 10.4 SEC-133: baris arahan konselor di layar pemilik status "berat", sekali sehari, tanpa notifikasi atau log; SEC-134 halaman Bantuan | **[Usulan]** `security-privacy` S4 | FR-AI-009/AC-3; FR-FAM-024 |
+| P-T2-6 | 06 §13.5 "Berakhir sendiri": akhir hari menurut zona waktu pemiliknya (sejak revisi kedua belas, M3; semula zona waktu rumah tangga; di pilot sama), berpelaku `system`, tanpa notifikasi | Usulan `architect`; diterima lewat "lanjut" di checkpoint S3 bersama Q-136 (D-61) | FR-CARE-001 |
 
 **Masih terbuka:**
 
 | # | Yang belum diatur | Bawaan yang diusulkan **[Usulan]** | Pemutus |
 |---|---|---|---|
-| P-T2-4 | Persetujuan atas judul objek yang ditulis orang lain, bila judul itu dikirim ke AI untuk pengingat hangat atau narasi bulanan bagi anggota yang ikut serta | Judul hanya dikirim bila penulis judul juga ikut serta AI; selain itu kalimat baku | `security-privacy` (dokumen 10) |
-| P-T2-5 | Larangan membandingkan, menyebut, atau memeringkat anggota dalam keluaran AI | Seperti FR-AI-004 AC-2, berlaku untuk semua keluaran AI | `security-privacy` (dokumen 10) |
 | P-T2-7 | Balasan pada kartu status sesudah status diganti, berakhir, dicabut, atau dihapus (menyimpang dari FR-CARE-004/AC-1 semula) | Tautan hilang bersama status; pesan tetap milik penulisnya sebagai pesan bebas, yang hanya ia dapat hapus | **Diterima lewat "lanjut"** di checkpoint S3 (S3-7 (ii); 06 P-21); penilaian privasi tetap dokumen 10 (S4) |
 | P-T2-8 | Rincian pendamping `AI`: batas dua kabar bersaran, saran harian satu sampai dua dan waktunya, kelompok "berat", corak peran, mematikan tanpa diketahui pasangan | Bagian 8.3 | **Diterima lewat "lanjut"** di checkpoint S3 (S3-8; 06 P-27); angka **[Asumsi]** |
-| P-T2-9 | Apakah kelompok "berat" memerlukan arahan bantuan di luar aplikasi bagi pemilik status sendiri, sekarang saran ditawarkan aktif | Belum ada bawaan; jangan ditambahkan tanpa penilaian | `security-privacy` (dokumen 10) |
 | P-T2-10 | **Tertutup** (06 §15.12 "Tindak lanjut": diterapkan di 06 §13.5 baris "Persetujuan berbagi", §13.6, V-6, revisi kesepuluh, sebagai **[Usulan]** `security-privacy`). Semula: temuan `security-privacy` fase D yang ditulis di berkas ini tetapi belum ada di 06 §13.5, §13.6, V-6: SP-47 ("butuh tenang dulu" tanpa draf), SP-53 (dua saklar berbagi; izin e1 dan e2), SP-54 (tanpa data pribadi ke penyedia untuk FR-AI-001 dan FR-AI-010), SP-56 (b) (`AI` tidak mengutip alasan bebas), SP-66 (tanpa tafsir dan tanpa ajakan mengawasi), SP-68 (a) (teks izin) | Seperti FR-CARE-001/AC-5, FR-CARE-002/AC-4, FR-AI-001/AC-2, FR-AI-002/AC-7, FR-AI-005/AC-6, FR-AI-009/AC-2, FR-AI-010/AC-6 | `architect` (06 §13.5, §13.6, V-6); SP-47 diterima lewat "lanjut" (S3-8 (v)); SP-53, SP-54 lewat D-91, D-92 |

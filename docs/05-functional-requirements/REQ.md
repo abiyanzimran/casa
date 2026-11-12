@@ -1,11 +1,11 @@
 # 05 — Kebutuhan fungsional: `REQ` (permintaan, persetujuan, kesepakatan)
 
-Bagian dari dokumen 05. Indeks, tabel keterlacakan, dan aturan umum ada di [../05-functional-requirements.md](../05-functional-requirements.md). Pemilik: `product-analyst`. Tahap S3 fase B, 12 November 2026; diselaraskan dengan revisi kesembilan dokumen 06 (chat rumah tangga dan kartu objek, §16) pada putaran penyelarasan S3, 12 November 2026. **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; butir yang dahulu "pertanyaan checkpoint S3" (S3-4 (c), S3-5 (i), S3-6, S3-7 (i), D-71) kini "diterima lewat "lanjut"", dengan penulis aturannya tetap disebut; angka **[Asumsi]** tidak berubah.
+Bagian dari dokumen 05. Indeks, tabel keterlacakan, dan aturan umum ada di [../05-functional-requirements.md](../05-functional-requirements.md). Pemilik: `product-analyst`. Tahap S3 fase B, 12 November 2026; diselaraskan dengan revisi kesembilan dokumen 06 (chat rumah tangga dan kartu objek, §16) pada putaran penyelarasan S3, 12 November 2026. **Sesudah checkpoint S3 (12 November 2026):** jawaban "lanjut" dicatat; butir yang dahulu "pertanyaan checkpoint S3" (S3-4 (c), S3-5 (i), S3-6, S3-7 (i), D-71) kini "diterima lewat "lanjut"", dengan penulis aturannya tetap disebut; angka **[Asumsi]** tidak berubah. **Penyisiran andaian khusus pilot S4 (12 November 2026, M1; belum ditinjau `critic`):** BR-REQ-019 dan FR-REQ-027 menyatakan kesepakatan oleh semua pihak yang disyaratkan (06 §6.3, bawaan `all`, alternatif P-37). Perilaku pilot sama. **S4 fase D (12 November 2026, belum ditinjau `critic`):** FR-REQ-029/AC-5 diperjelas dan AC-6 baru (mengakhiri ambang sendirian, bersyarat pada 10-E, bawaan C lebih dulu; angka dari uji 07 INV-40); BR-REQ-038 baru; FR-REQ-001/AC-6 draf permintaan (08 §9.3).
 
 | Hal | Isi |
 |---|---|
 | Lingkup | F-REQ-001 sampai F-REQ-012 (Tier 1, kebutuhan lengkap dengan kriteria penerimaan); F-REQ-013 (Tier 2, ringkas) |
-| Rentang ID | `FR-REQ-001` sampai `FR-REQ-045`; `BR-REQ-001` sampai `BR-REQ-037` |
+| Rentang ID | `FR-REQ-001` sampai `FR-REQ-045`; `BR-REQ-001` sampai `BR-REQ-038` |
 | Sumber aturan | Alur dan pagar: [06](../06-activity-approval-architecture.md). Chat, kartu, tanda terkirim dan dibaca: 06 §16. Uang: [07](../07-financial-domain.md) §3.8, §6.1. Dokumen ini tidak mendefinisikan ulang aturan; ia menyatakan apa yang harus dapat dilakukan dan dilihat pengguna, lalu menunjuk sumbernya |
 | Chat | Kebutuhan chat itu sendiri (pesan, foto, tanda, kehadiran, hapus) ada di [COM.md](COM.md). Dokumen ini hanya memuat akibat chat atas permintaan dan kesepakatan: kartu, tanggapan dari kartu, dan diskusi yang tampil di chat |
 | Bukan isi dokumen ini | Tata letak, kata-kata layar, dan desain visual (dokumen 08, S4); mekanisme teknis (dokumen 09, 10) |
@@ -94,7 +94,7 @@ Setiap baris adalah pernyataan tingkat produk yang menunjuk sumber kanonisnya. B
 | BR-REQ-016 | Pengingat ulang: paling banyak satu per 6 jam per pengirim per rantai; paling banyak tiga per pengirim per objek seumur objek; satu atas konfirmasi susulan. Isinya kalimat baku tanpa jumlah | 06 §10 tabel batas, INV-A32 | 6 jam: keputusan pemilik nomor 13 (sendiri). Tiga: diterima atas saran lead (S2-5), **[Asumsi]**. Isi: D-29 |
 | BR-REQ-017 | Pengingat otomatis paling banyak dua per rantai permintaan; tidak ada atas konfirmasi susulan | 06 §10 tabel batas | D-20 (lewat "lanjut"); konfirmasi susulan diterima atas saran lead, 12 November 2026 |
 | BR-REQ-018 | Tunda senyap 24 jam tidak terbaca pihak yang menunggu; kabar "nanti aku jawab" adalah perintah terpisah yang bawaannya tidak dikirim. Batas yang dinyatakan terus terang: di chat, kartu yang sudah dibaca memperlihatkan bahwa penunda sudah melihatnya; yang tetap tertutup adalah apakah ia menunda dan sampai kapan | 06 §4.4, INV-A33, AT-5 (c)(d), §16.9 | Diterima atas saran lead (S2-5); 24 jam **[Asumsi]**. Batas di chat: akibat "Ikut tanda dibaca" (diterima atas saran lead, 12 November 2026), dirumuskan 06 AT-5 (d) |
-| BR-REQ-019 | Kesepakatan hanya berlaku lewat pernyataan setuju anggota dewasa yang bukan pengusulnya; usulan tidak kedaluwarsa; yang lama berlaku sampai penggantinya disetujui | 06 §6.3 K01 sampai K06, INV-A18, INV-A19, PG-04 | Dirancang 06 |
+| BR-REQ-019 | Kesepakatan hanya berlaku lewat pernyataan setuju semua pihak yang disyaratkan (bawaan semua anggota dewasa penuh selain pengusul, dibekukan saat K01; satu "belum sepakat" cukup untuk menolak; pemilik jatah selalu wajib; alternatif mayoritas P-37; pada dua anggota dewasa: pasangan pengusul; penyisiran S4, M1); usulan tidak kedaluwarsa; yang lama berlaku sampai penggantinya disetujui | 06 §6.3 K01 sampai K06, INV-A18, INV-A19, PG-04 | Dirancang 06 |
 | BR-REQ-020 | Ambang permintaan selalu > 0 dan hanya berubah bila kedua anggota dewasa setuju | 06 §6.3 | Keputusan pemilik nomor 5 (satu ambang bersama). Bagian "hanya berdua": S2-4, **tidak disebut pemilik produk; diterapkan lead** |
 | BR-REQ-021 | Hari mulai periode anggaran 1 sampai 28; penggantiannya kesepakatan berdua dan berlaku mulai periode berikutnya lewat satu periode peralihan | 07 §6.1; 06 §6.3 | D-49, D-50 (lewat "lanjut"); bahwa penggantian berdua adalah putusan lead |
 | BR-REQ-022 | Jatah pribadi yang tidak di atas ambang, termasuk 0, hanya dapat diusulkan pemiliknya; jatah hanya dapat diakhiri pemiliknya; jatah di atas ambang yang diakhiri tetap menjadi dasar penilaian sampai akhir periode itu | 06 §6.3 K01, K06 | D-52 (lewat "lanjut"); masa penilaian: penegasan 1; batas "tidak di atas ambang" **[Usulan]** `security-privacy` SP-32 sampai SP-34, disampaikan dan tidak dibantah; batas "sama dengan" pengetatan lead **[Usulan]** |
@@ -112,6 +112,7 @@ Setiap baris adalah pernyataan tingkat produk yang menunjuk sumber kanonisnya. B
 | BR-REQ-034 | Server satu-satunya yang memutuskan transisi; setiap perintah membawa `idempotency_key` dan state yang diharapkannya; waktu server yang menentukan | 06 S-1, S-2, S-4, S-6; `ENGINEERING-STANDARDS.md` §2 | Dirancang 06 |
 | BR-REQ-035 | Keluar dari rumah tangga tidak menunggu objek alur apa pun; objek yang satu-satunya pelaku berwenangnya sudah keluar keluar dari daftar terbuka | 06 §3.5, INV-A35 | D-42 (lewat "lanjut") |
 | BR-REQ-036 | Permintaan tindakan mengikuti T01 sampai T06: hanya penerima tugas yang menerima, menolak, menandai selesai, atau melepas; tanpa kedaluwarsa dan tanpa transisi `system` | 06 §13.1 | D-27 (lewat "lanjut"); T06 **[Usulan]** `architect` |
+| BR-REQ-038 | Bersyarat pada 10-E. Bila berlaku (B sejak pilot; C sebelum tahap publik): setiap anggota dewasa penuh dapat mengakhiri ambang sendirian (K07 `end_threshold`), diberitahukan sebagai `kabar`; ambang tetap dinilai atas entri yang disimpan sampai akhir periode anggaran yang memuat pengakhiran; sesudahnya tidak ada ambang sampai ada kesepakatan baru; tidak ada entri atau saldo yang berubah. Bila A, atau di pilot pada C: K07 ditolak | 07 §3.8 "Ambang yang diakhiri sendirian", INV-40, T-48; 06 §6.3 K07; 10 §3 10-E, 10.3 §2.4 | **[Usulan]** `security-privacy`, `finance-domain`, `architect` S4; menunggu checkpoint S4 (10-E) |
 | BR-REQ-037 | Permintaan, kesepakatan, konfirmasi susulan, serah terima yang menunggu, dan permintaan tindakan mendapat kartu di chat saat dibuat. Isi kartu dibaca dari state objek saat ini. Tombol kartu adalah perintah objek yang sama dengan layar objek, dengan versi syarat dan state yang diharapkan; ketidakcocokan ditolak `terms_superseded` atau `state_changed` dan kartu menampilkan state terbaru. Pesan apa pun, termasuk "setuju", tidak mengubah state. Kartu tidak memicu notifikasi sendiri dan tidak dapat dihapus | 06 §16.2, §16.4, S-3, S-4, INV-A44, INV-A46, INV-A47 (b) | Dari chat dapat dikirim tugas, pengeluaran, dan rencana: pernyataan pemilik produk sendiri ("chat itu ada/diskusi di chat bisa kirim task/pengeluaran/rencana"). Permintaan muncul sebagai kartu yang ditanggapi dari chat: diterima atas saran lead ("Chat umum + kartu", "Chat naik Tier 1"). Daftar kartu otomatis dan rinciannya **[Usulan]** `architect` |
 
 ---
@@ -144,6 +145,7 @@ Setiap baris adalah pernyataan tingkat produk yang menunjuk sumber kanonisnya. B
 - **AC-3** — *Given* rumah tangga baru berisi satu anggota dewasa, *When* A membuka pengajuan permintaan, *Then* formulir pengajuan tidak ditawarkan dan alasannya disebut; perintah `submit` yang tetap dikirim ditolak `no_approver`; mencatat, anggaran, dan laporan tetap berjalan penuh (06 §3.5).
 - **AC-4** — *Given* A memilih tempat uang pribadinya sebagai sumber, *When* A mengirim permintaan, *Then* server menolak karena permintaan hanya atas dana bersama (BR-REQ-001).
 - **AC-5** — *Given* A ingin tambahan Rp300.000 ke dana pribadinya untuk satu periode saja, *When* A mengajukannya dengan jenis penyisihan ke dana pribadi dan B menyetujuinya, lalu penyisihan itu dicatat dan ditautkan, *Then* penyisihan itu tidak terhitung terhadap jatah pribadi A (D-48: yang sudah disetujui lewat permintaan tidak terhitung) dan tidak bertanda dasar jatah.
+- **AC-6** — *Given* A mengisi permintaan Rp100.000 lalu menutup lembar tanpa mengajukan, *When* A membukanya lagi, *Then* aplikasi menawarkan "Lanjutkan yang tadi"; draf hanya di perangkat A, tidak terbaca B, tidak menghasilkan Peristiwa, N-01, atau *terikat*, dan dibuang saat diajukan atau saat A memilih mulai baru (**[Usulan]** `ux-designer`, 08 §9.3; sama dengan FR-FIN-040/AC-16). Pengajuan tetap tunduk pada jeda urungkan 5 detik (LM-12).
 
 **Dua arah.** Simetris. Guard B01 tidak membaca peran, penghasilan, atau pemegang uang; menukar A dan B pada setiap AC menghasilkan keadaan yang tertukar (INV-A13).
 
@@ -752,8 +754,8 @@ Jenis `rule`: ambang > 0, hari mulai 1 sampai 28, zona waktu dari daftar zona wa
 | Fitur | F-REQ-008 |
 | Tier / MoSCoW | 1 / Must |
 | Masalah (brief §1.1) | `MSL-4`; `PAGAR` |
-| Aktor dan izin | K02 dan K03: anggota dewasa yang bukan pengusul. K04: pengusul |
-| Aturan acuan | 06 §6.3 K02 sampai K04, "Pos rutin" (menyetujui sekaligus), INV-A18; N-12; §16.4 baris "Usulan kesepakatan" |
+| Aktor dan izin | K02 dan K03: setiap pihak yang disyaratkan, yaitu anggota dewasa penuh yang bukan pengusul menurut `required_parties` (pada dua anggota dewasa: pasangan pengusul). K04: pengusul |
+| Aturan acuan | 06 §6.3 K02 sampai K04, "Pihak yang disyaratkan" (revisi kedua belas; P-37), "Pos rutin" (menyetujui sekaligus), INV-A18; N-12; §16.4 baris "Usulan kesepakatan" |
 | Business rule | BR-REQ-019, BR-REQ-037 |
 | Kedudukan | Dirancang 06. Menyetujui sekaligus: **[Usulan]** SP-36. Tanggapan dari kartu, termasuk "usul lain" yang K01-nya ditolak guard: 06 §16.4 (**[Usulan]** `architect`, revisi kesepuluh, CA-05) |
 
@@ -797,8 +799,8 @@ Jenis `rule`: ambang > 0, hari mulai 1 sampai 28, zona waktu dari daftar zona wa
 | Tier / MoSCoW | 1 / Must |
 | Masalah (brief §1.1) | `MSL-4`; `PAGAR` (asas pengawasan, 06 PG-14) |
 | Aktor dan izin | Pos rutin: salah satu anggota dewasa. Jatah: hanya pemiliknya. `rule` tidak dapat diakhiri |
-| Aturan acuan | 06 §6.3 K06, INV-A38, kasus uji §12 baris K06 |
-| Business rule | BR-REQ-022, BR-REQ-023 |
+| Aturan acuan | 06 §6.3 K06, K07 (bersyarat), INV-A38, kasus uji §12 baris K06; 07 §3.8 "Ambang yang diakhiri sendirian", INV-40, T-48 |
+| Business rule | BR-REQ-022, BR-REQ-023, BR-REQ-038 |
 | Kedudukan | D-52 (lewat "lanjut"); masa penilaian: penegasan 1; jatah tidak di atas ambang dilepas seketika: **[Usulan]** SP-33. Mengakhiri pos rutin sendirian: usulan `architect` (06 P-26, menggantikan P-20; dokumen 03 §7 butir 9), diterima lewat "lanjut" di checkpoint S3 (12 November 2026), S3-5 (i); harganya W-25; asas dokumen 10 (K-34) dinilai di S4 |
 
 **Kriteria penerimaan**
@@ -806,9 +808,10 @@ Jenis `rule`: ambang > 0, hari mulai 1 sampai 28, zona waktu dari daftar zona wa
 - **AC-2** — *Given* jatah A Rp1.000.000 berlaku, *When* B mengirim `end` atasnya, *Then* ditolak; B dapat mengusulkan jumlah lain yang hanya berlaku bila A menyetujuinya.
 - **AC-3** — *Given* ambang Rp500.000 dan jatah A Rp1.000.000 dalam periode 1 sampai 30 November, *When* A mengakhirinya pada 15 November, *Then* penyisihan yang disimpan sampai 30 November masih dinilai terhadap Rp1.000.000; sejak 1 Desember dinilai terhadap ambang per entri.
 - **AC-4** — *Given* jatah A Rp300.000 (tidak di atas ambang), *When* A mengakhirinya, *Then* berlaku seketika juga atas penilaian, tanpa masa penilaian.
-- **AC-5** — *Given* kesepakatan `rule`, *When* siapa pun mengirim `end`, *Then* ditolak.
+- **AC-5** — *Given* kesepakatan `rule`, *When* siapa pun mengirim `end` (K06), *Then* ditolak. Satu-satunya pengecualian adalah pengakhiran ambang lewat K07 pada AC-6, bila 10-E membolehkannya; hari mulai periode dan zona waktu tidak pernah dapat diakhiri.
+- **AC-6** — **Mengakhiri ambang sendirian, bersyarat pada keputusan 10-E** (BR-REQ-038; 07 INV-40, T-48; 06 K07). **Bawaan C, di pilot:** *Given* ambang Rp500.000 berlaku, *When* A mengirim `end_threshold`, *Then* ditolak tanpa akibat, seperti huruf A; layar ambang menyatakan bahwa ambang hanya berubah atau berakhir bila keduanya setuju. **C sebelum tahap publik, dan B sejak pilot:** *Given* ambang Rp500.000 berlaku dalam periode 1 sampai 30 November, *When* A mengakhirinya sendirian pada 10 November, *Then* B menerima pemberitahuan `kabar`, tidak ada entri atau saldo yang berubah, dan belanja Rp600.000 yang disimpan 20 November tetap ditandai dasar ambang; *When* belanja Rp600.000 disimpan 1 Desember, *Then* tidak ditandai, karena tidak ada ambang yang berlaku; *When* entri bertanggal kejadian 25 November disimpan sesudah 30 November, *Then* tidak ditandai, karena yang dibaca waktu simpan; *Given* ambang baru Rp300.000 disepakati keduanya pada 15 Desember, *When* belanja Rp400.000 disimpan 16 Desember, *Then* ditandai. Akibat gabungan dengan jatah (T-48): selama tidak ada ambang, setiap jatah terhitung tidak di atas ambang, jadi pemiliknya dapat mengakhirinya seketika (AC-4). **A:** seperti cabang pilot pada C, untuk seterusnya.
 
-**Dua arah.** Simetris per peran. Pos rutin: siapa pun dari keduanya. Jatah: pemiliknya, siapa pun dia.
+**Dua arah.** Simetris per peran. Pos rutin: siapa pun dari keduanya. Jatah: pemiliknya, siapa pun dia. Ambang (bila 10-E membolehkan): siapa pun dari keduanya, dan tidak seorang pun dapat menahan ambang atas pasangannya tanpa batas.
 
 ### FR-REQ-030 — Ambang saat mulai memakai dan rumah tangga satu dewasa
 
@@ -825,7 +828,7 @@ Jenis `rule`: ambang > 0, hari mulai 1 sampai 28, zona waktu dari daftar zona wa
 **Kriteria penerimaan**
 - **AC-1** — *Given* A sendirian mengusulkan ambang Rp500.000, *When* A mencatat belanja Rp2.000.000, *Then* usulan tetap `diusulkan` dan belanja tidak bertanda.
 - **AC-2** — *Given* AC-1, *When* B bergabung dan menyetujui ambang pada 12 November pukul 10.00, *Then* hanya entri yang disimpan sesudahnya yang dapat bertanda; belanja Rp2.000.000 tetap tidak bertanda dan B dapat mengajukan keberatan atas entri mana pun sebelumnya.
-- **AC-3** — *Given* B menerima undangan, *When* B bergabung, *Then* menerima undangan tidak sama dengan menyetujui ambang: ambang disetujui lewat langkah tersendiri yang menyatakan bahwa ambang tidak dapat diubah atau dihapus sendirian **[Usulan]**.
+- **AC-3** — *Given* B menerima undangan, *When* B bergabung, *Then* menerima undangan tidak sama dengan menyetujui ambang: ambang disetujui lewat langkah tersendiri yang menyatakan apa yang tidak dapat dilakukan sendirian **[Usulan]**; kalimatnya bersyarat pada 10-E dan ditetapkan di FR-FAM-004/AC-6 (bawaan C: di pilot "tidak dapat diubah atau diakhiri sendirian").
 - **AC-4** — *Given* B keluar dari rumah tangga, *When* A mencatat belanja Rp2.000.000, *Then* tidak bertanda selama hanya ada satu anggota dewasa.
 
 **Dua arah.** Simetris; siapa pun anggota pertamanya.

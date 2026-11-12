@@ -1,0 +1,174 @@
+# 10.2 — Kelas data, enkripsi, notifikasi, kehadiran, dan chat
+
+Bagian dari [10-security-privacy.md](../10-security-privacy.md). Persyaratan di berkas ini bernomor SEC-40 sampai SEC-69.
+
+Daftar isi: [1. Kelas data sensitif](#1-kelas-data-sensitif) · [2. Log dan telemetri](#2-log-telemetri-dan-sdk-pihak-ketiga) · [3. Enkripsi](#3-enkripsi-saat-transit-dan-saat-tersimpan) · [4. End-to-end encryption (Q-57)](#4-end-to-end-encryption-q-57) · [5. Notifikasi](#5-privasi-notifikasi) · [6. Kehadiran dan tanda dibaca](#6-kehadiran-dan-tanda-dibaca-sebagai-risiko-pengawasan) · [7. Chat dan foto](#7-chat-dan-foto)
+
+---
+
+## 1. Kelas data sensitif
+
+Kolom "UU PDP" mengikuti 18 §2.1: data pribadi spesifik menurut Pasal 4 ayat (2) adalah data kesehatan, biometrik, genetika, catatan kejahatan, data anak, data keuangan pribadi, dan data lain menurut peraturan (**[Terverifikasi]** primer, dikutip 18 §2.1). Apakah status suasana hati termasuk data kesehatan adalah L-02; dokumen ini memperlakukannya sebagai spesifik (sama dengan usulan peneliti).
+
+| Kelas | Contoh di Family OS | UU PDP | Bawaan visibilitas | Ke penyedia `AI` | Di notifikasi | Di log | Retensi |
+|---|---|---|---|---|---|---|---|
+| Uang rumah tangga | Inti moneter, anggaran, tagihan, piutang | Keuangan pribadi (spesifik) | `adults` (06 §9.2) | Hanya angka agregat narasi (brief §5O keputusan 4); pilot: tidak (10.4 §1) | Tidak pernah jumlah | Tidak pernah jumlah | Selama rumah tangga ada (10.3 §3) |
+| Uang pribadi | Buku pribadi, tempat uang pribadi, isi dompet campuran | Keuangan pribadi (spesifik) | `private`; `C` tidak pernah terbaca selain pemegang (V-9) | Tidak pernah | Tidak pernah | Tidak pernah | Ditutup F07, dihapus 90 hari kemudian (SEC-94) |
+| Custody | Siapa memegang uang, serah terima, rekonsiliasi | Keuangan pribadi | Mengikuti buku rumah tangga | Tidak pernah | Tidak pernah jumlah | Tidak pernah | Seperti uang rumah tangga |
+| Suasana hati dan sakit (`CARE`) | Status, laporan sakit, tindak lanjut, alasan bebas | Kesehatan (diperlakukan spesifik; L-02) | `private`; himpunan penerima per jenis, bawaan kosong (06 V-6) | Hanya kategori, hanya dengan e1/e2; pilot: tidak (10.4 §1) | Tidak pernah, juga tidak jenisnya (06 §11.1) | Tidak pernah | Tanpa riwayat (D-61); dihapus pemiliknya kapan saja; F07 |
+| Kesehatan reproduksi | Pelacakan siklus | Kesehatan (spesifik) | **Tidak dikumpulkan** (D-63, Q-139; dikukuhkan §1.1) | — | — | — | — |
+| Pesan | Chat, diskusi objek, foto di chat | Data pribadi; dapat memuat semua kelas lain | Peserta | Tidak pernah (06 INV-A45; FR-AI-006/AC-3) | Tidak pernah isi atau pengirim (P-32) | Tidak pernah teks atau nama berkas (06 §16.7) | 10.3 §3.4 |
+| Metadata perilaku | Tanda dibaca, kehadiran, jam tenang, tunda, setelan `AI`, kunci aplikasi | Data pribadi | Tanda dan kehadiran: peserta chat (06 AT-5); setelan: pemiliknya | Tidak pernah | — | Tidak pernah kehadiran | Kehadiran tanpa riwayat; setelan selama akun ada |
+| Data anak | "Les anak", SPP, foto, nama anak di catatan atau chat | Data anak (spesifik) | Mengikuti catatannya | Tidak pernah (judul dan nama kategori bebas tidak dikirim: SEC-123) | — | — | Mengikuti catatannya |
+| Pihak luar | Nama panggilan dan hubungan (ibu, adik) | Data orang yang bukan pengguna (L-03, L-17) | `adults` | Tidak pernah | — | Tidak pernah nama | Selama rumah tangga ada; diarsipkan, bukan dihapus (keputusan 9) |
+| Lokasi | — | Data pribadi | **Tidak dikumpulkan**: tidak ada lokasi perangkat (06 AT-6); metadata foto dibuang (SEC-66); alamat jaringan hanya di log server (SEC-44) | — | — | Alamat jaringan, 14 hari | — |
+| Keyakinan | Nuansa religi, kategori bertema agama | Tidak disebut Pasal 4 ayat (2) sebagaimana dikutip 18 §2.1; tetap peka | Nuansa: pemiliknya; kategori: `adults` | Tidak pernah (FR-AI-001, SP-54; SEC-123) | — | — | — |
+| Autentikasi | Kata sandi, token, kode pemulihan | — | Tidak seorang pun | Tidak pernah | — | Tidak pernah | Selama akun ada |
+
+### 1.1 Yang dikukuhkan dari S3
+
+- **Riwayat suasana hati** (Q-136, D-61): tidak ada. Status lama tergantikan dan tidak menjadi Peristiwa yang terbaca orang lain; kartu statusnya hilang dari chat (SP-45). Dikukuhkan: riwayat perasaan seseorang yang terbaca pasangannya adalah bahan pengawasan, dan brief §1.1 tidak memintanya.
+- **Pelacakan siklus** (Q-139, D-63): tidak dibangun. Dikukuhkan. Alasannya: data kesehatan reproduksi paling peka di antara yang mungkin, risiko paksaan reproduksi di dalam pasangan, dan tidak ada masalah `MSL` yang memerlukannya. Bila kelak diangkat, syarat minimumnya: hanya di perangkat, tanpa berbagi bawaan, tanpa `AI`, dengan persetujuan tersendiri dan penilaian dokumen ini lebih dulu.
+
+## 2. Log, telemetri, dan SDK pihak ketiga
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-44 | Log server dan klien tidak memuat: jumlah uang, isi atau kategori `CARE`, teks pesan, nama berkas foto, nama orang atau pihak luar, email, judul objek, token, atau kehadiran (`ENGINEERING-STANDARDS.md` §4; 06 §16.7). Yang boleh: pengenal permintaan acak, kode galat, durasi, pengenal internal yang tidak dapat dipetakan tanpa basis data. Log server disimpan 14 hari **[Usulan]**, alamat jaringan termasuk | 09 | Pilot | `ENGINEERING-STANDARDS.md` §4; **[Usulan]** | Jalankan rangkaian uji penerimaan; pindai log untuk angka berformat uang, kata status `CARE`, teks pesan uji, email uji: tidak ditemukan |
+| SEC-49 | Tidak ada SDK pihak ketiga untuk iklan, analitik perilaku, atau perekam sesi di aplikasi. Laporan galat (crash) hanya memuat jejak tumpukan dan versi, tanpa isi layar, teks, atau tangkapan layar, dan dikirim hanya bila pemiliknya mengizinkan. **Pengecualian di pilot iOS:** penguji TestFlight mengirim laporan crash secara otomatis, "regardless of the device settings for sharing diagnostic and use data" (**[Terverifikasi]**, 18 §5.1.8; 09 berkas 04 baris "Laporan crash aplikasi"); karena itu pasangan pilot diberi tahu lebih dulu lewat catatan persetujuan uji (SEC-109 (b)). Bahwa laporan itu hanya berisi jejak tumpukan **[Perlu validasi]**. Android pilot (APK tanpa Play) tidak menghasilkan Android vitals | 09 | Pilot | **[Usulan]**; mempermudah label privasi (10.4 §2) | Daftar dependensi ditinjau; lalu lintas aplikasi ke domain selain server, APNs, dan FCM: tidak ada |
+
+## 3. Enkripsi saat transit dan saat tersimpan
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-40 | Semua lalu lintas aplikasi ke server memakai TLS 1.2 atau lebih baru (1.3 diutamakan); tidak ada pengecualian teks polos di konfigurasi jaringan platform. Certificate pinning tidak diwajibkan **[Usulan]**: risikonya mengunci aplikasi saat sertifikat diganti, sedangkan ancaman yang dijawabnya (CA palsu) bukan ancaman utama di sini | 09 | Pilot | `ENGINEERING-STANDARDS.md` §4 | Pindai server: tidak menerima TLS di bawah 1.2; aplikasi menolak HTTP polos |
+| SEC-41 | VPS: hanya porta yang dibutuhkan terbuka; SSH dengan kunci, tanpa kata sandi dan tanpa root langsung; pemutakhiran keamanan otomatis; PostgreSQL tidak terbuka ke internet | Ops, 09 | Pilot | **[Usulan]** | Pindai porta dari luar |
+| SEC-42 | Rahasia (kunci APNs `.p8`, akun layanan FCM, kunci API `AI`, kunci cadangan, kunci penandatangan token) tidak ada di repositori, image, atau log; disimpan di penyimpanan rahasia server dengan izin berkas minimum; dapat diputar tanpa rilis aplikasi | 09, Ops | Pilot | `ENGINEERING-STANDARDS.md` §4 | Pemindaian rahasia di repositori; putar satu kunci di lingkungan uji |
+| SEC-43 | **Cadangan**: base backup fisik dan arsip WAL (pgBackRest atau WAL-G; 18 §5.5 butir 5) beserta berkas foto, **dienkripsi sebelum meninggalkan VPS**, disimpan di luar VPS di penyimpanan yang lokasi dan pihak kontraknya di Indonesia (18 §2.8 baris (b), §5.8 butir 3). **Jendela pemulihan 30 hari; umur set cadangan, termasuk salinan pelindungnya, paling lama 38 hari** (SEC-96) **[Usulan]**; kunci cadangan disimpan terpisah dari tujuan cadangan. Pemulihan diuji paling sedikit sekali sebelum pilot memakai data nyata dan sesudahnya berkala | Ops, 09 | Pilot | **[Usulan]** | Unduh berkas cadangan langsung dari tujuan: tidak terbaca tanpa kunci; pemulihan ke titik 30 hari lalu berhasil; set tertua tidak lebih tua dari 38 hari |
+| SEC-45 | Enkripsi disk pada volume server (dari penyedia atau LUKS). Pada pilot dipakai bila penyedia menawarkannya; bila tidak, dicatat sebagai risiko yang diterima | Ops, 09 | **Publik**; pilot bila tersedia | **[Usulan]** | Konfirmasi konfigurasi penyedia |
+| SEC-46 | **Basis data lokal di perangkat**: (a) basis data utama, WAL, antrean, dan cache foto pada kelas proteksi berkas yang tetap dapat ditulis sesudah perangkat dikunci, asalkan sudah pernah dibuka sejak dinyalakan: iOS `CompleteUntilFirstUserAuthentication` (Class C; kelas bawaan, ditetapkan eksplisit), Android *credential encrypted storage* (bawaan; bukan *device encrypted*) (**[Terverifikasi]** 18 §2.12.2; 09 berkas 03 §2). Ini **menyimpang dari anjuran Apple** agar berkas data pengguna diberi kelas `Complete`; alasannya dicatat di ADR-024 dan 09 berkas 03 §2 (penyimpangan Class C yang disadari; Class A untuk berkas `CARE` lokal): pilot tidak punya jalur kode latar (09 berkas 03 §8), tetapi dengan Class A tulisan SQLite dan WAL yang masih berjalan saat perangkat dikunci (jawaban `Sync`, penghapusan antrean sesudah perintah diterima) gagal dan dapat meninggalkan antrean setengah tertulis (**[Asumsi]** ADR-024, diuji `ios-dev` di perangkat), yang bertentangan dengan larangan kehilangan data (`ENGINEERING-STANDARDS.md`). Dokumen ini menerima penyimpangan itu: perlindungan terhadap penemu perangkat yang mati atau baru dinyalakan ulang tetap ada. (b) Bila 10-D dijawab A, status `CARE` yang tidak dibagikan disimpan di berkas tersendiri berkelas iOS `Complete`, yang hanya dibaca saat aplikasi di depan; di Android di penyimpanan CE yang sama, karena padanan per berkas tidak ditemukan (18 §2.12.2 butir 3). (c) **Dikecualikan dari cadangan perangkat, awan, dan transfer antarperangkat** (iCloud, cadangan Google, `<device-transfer>`) bersama berkas foto dan antrean (09 berkas 03 §2). (d) SQLCipher tidak diwajibkan di pilot **[Usulan]**: dengan kunci di Keychain atau Keystore yang terbuka sesudah perangkat dibuka, perlindungannya terhadap penemu perangkat hampir sama dengan proteksi berkas, dengan biaya tambahan dependensi. Dinilai ulang untuk tahap publik | 09 | Pilot | **[Usulan]**; 18 §2.12.2 | Buat cadangan perangkat dan transfer antarperangkat: basis data aplikasi tidak ada di dalamnya; periksa atribut proteksi berkas di iOS: berkas utama Class C, berkas status `CARE` lokal Class A |
+| SEC-47 | Perangkat hanya menyimpan data yang terbaca anggota itu; tidak pernah salinan data yang "disembunyikan di layar". Keluar dari akun menghapus basis data lokal, cache foto, dan antrean sesudah peringatan jumlah catatan yang belum terkirim | 09 | Pilot | **[Usulan]**; SEC-01 | Periksa basis data lokal B: tidak ada baris buku pribadi A |
+| SEC-48 | Saat visibilitas menyempit (pencabutan berbagi, V-7; status kepedulian dihapus; keluarnya anggota), sinkron berikutnya perangkat yang kehilangan akses menghapus salinan lokalnya, termasuk notifikasi yang sudah tampil di pusat notifikasi bila platform mengizinkan. Sampai sinkron itu, perangkat luring masih menampilkan salinan lama; batas ini dinyatakan di "siapa melihat apa" | 09, 08 | Pilot | **[Usulan]** | A mencabut berbagi saat B luring; B tersambung: salinan lokal hilang sebelum layar status dibuka |
+
+## 4. End-to-end encryption (Q-57)
+
+### 4.1 Pertanyaan
+
+06 §9.4 meminta dokumen ini menilai apakah isi diskusi, syarat permintaan, atau data lain memerlukan enkripsi end-to-end (E2EE), dan akibatnya bagi notifikasi dan pengingat hangat. Q-99 (SP-17) bertanya apakah enkripsi yang menutup data dari pengelola server menjadi syarat sebelum pilot; pemilik produk menjawab sisi pilotnya dengan keputusan 25 (pemberitahuan terus terang, S2-10 "a").
+
+### 4.2 Siapa yang dilindungi E2EE, di pilot
+
+E2EE menutup data dari server dan operatornya, tidak dari penerima yang sah. Di pilot operator adalah pasangan, dan pasangan adalah penerima sah sebagian besar data:
+
+| Data | Penerima sah | Apakah server perlu membaca isinya | Yang ditutup E2EE di pilot |
+|---|---|---|---|
+| Chat dan diskusi objek | Kedua pasangan | Tidak untuk aturan (pesan tidak pernah mengubah state, 06 INV-A44); ya untuk notifikasi? Tidak (isi notifikasi umum) | Hampir tidak ada: operator adalah lawan bicaranya. Yang tertutup hanya terhadap pihak yang menguasai VPS |
+| Syarat permintaan (jumlah, tanggal) | Pihak permintaan | **Ya**: jumlah syarat menjadi batas otorisasi (07 §3.8) | Tidak dapat dienkripsi tanpa memindahkan aturan uang ke klien (06 S-1) |
+| Buku rumah tangga | `adults` | **Ya**: invarian uang dihitung server (07 INV-01 dan seterusnya) | Tidak dapat |
+| Buku pribadi | Pemiliknya | **Ya**: entri dua buku, klaim antar-pemilik, `exit_closure` (07 §3.6, §8.2) | Tidak dapat tanpa rancang ulang 07 |
+| Status `CARE` yang dibagikan | Pemiliknya dan penerimanya | Ya untuk pemicu N-28, kelompok "berat", izin e1/e2 (06 §13.5, §13.6) | Penerimanya (sering operator sendiri) tetap membaca |
+| **Status `CARE` yang tidak dibagikan** | **Pemiliknya saja** | **Tidak**, kecuali tindak lanjut sakit (I02) yang dijadwalkan server | **Ini satu-satunya data yang benar-benar terlindung dari operator-pasangan** bila tidak pernah sampai ke server |
+| Alasan bebas `CARE` | Pemiliknya dan penerimanya | Tidak | Seperti chat |
+
+### 4.3 Biaya E2EE bila diterapkan pada chat dan teks `CARE`
+
+| Fungsi | Akibat |
+|---|---|
+| Pencarian chat (Tier 3) | Hanya di perangkat; tidak ada pencarian server |
+| Pemulihan akun | Kehilangan semua perangkat berarti kehilangan isi, kecuali ada cadangan kunci berkata sandi; kata sandi itu sendiri lupa = isi hilang |
+| Perangkat baru dan multi-perangkat | Perlu pemindahan kunci antarperangkat |
+| Ekspor orang yang keluar (SEC-101) | Server tidak dapat membuat ekspor isi chat; ekspor harus dibuat perangkat sebelum akses berakhir, padahal F06 mengakhiri akses seketika |
+| Anggota yang bergabung kemudian | Tidak terpengaruh (ia memang tidak membaca chat lama, SP-49) |
+| Penghapusan | Lebih mudah: menghapus kunci membuat semua salinan, termasuk cadangan, tidak terbaca (crypto-shredding) |
+| `AI` | Server tidak dapat menyusun muatan dari isinya; pada jalur kumpulan kalimat (10.4 §1) tidak berpengaruh, karena isi chat memang tidak pernah dikirim (FR-AI-006/AC-3) |
+| Notifikasi | Tidak berpengaruh: isi notifikasi sudah umum (P-32) |
+| Pengingat hangat | Tidak berpengaruh bila judul tidak dikirim (SEC-123); bila syarat permintaan dienkripsi, server tidak dapat menulis judul di pengingat |
+| Akses aparat | Hubungannya dengan kewajiban Permenkominfo 5/2020 atas layanan "percakapan dalam jaringan" belum diketahui. Naskah 2020 Pasal 36 ayat (3) sampai (5) mensyaratkan penetapan ketua pengadilan negeri untuk akses aparat atas Konten Komunikasi dan Data Pribadi Spesifik, dan tidak menyebut enkripsi di halaman yang dibaca (10.4 §3.4); L-14, L-38 |
+| Kerumitan bangun | Protokol E2EE yang diaudit (misalnya kelas protokol Signal) dan manajemen kunci di dua aplikasi native; tidak diteliti di 18 |
+
+### 4.4 Rekomendasi (untuk keputusan 10-D)
+
+**[Usulan]** `security-privacy`:
+
+1. **Pilot: tanpa E2EE.** Perlindungannya terhadap operator-pasangan hampir nol untuk chat, dan aturan uang memerlukan server membaca data uang. Pemberitahuan terus terang (keputusan 25; §10.1 §11) tetap kontrol utamanya, ditambah enkripsi cadangan (SEC-43).
+2. **Pilot: status `CARE` yang tidak dibagikan tidak pernah meninggalkan perangkat pemiliknya.** Ia disimpan di basis data lokal saja; tindak lanjut sakit yang tidak dibagikan memakai pengingat lokal di perangkat; begitu pemiliknya menambah penerima, status saat itu dikirim ke server dan alurnya mengikuti 06 §13.5 seperti biasa; pencabutan menghapusnya dari server. Ini menjadikan "pribadi sampai pemiliknya memilih penerima" (brief §5K) benar juga terhadap operator, dengan biaya: status yang tidak dibagikan hilang bila perangkat hilang (diterima, karena tidak ada riwayat), tidak ikut ke perangkat kedua, dan alur I01 sampai I04 berjalan di perangkat sebelum dibagikan. Ini mengubah 06 §13.3 dan §13.5; ADR oleh `architect` bila diterima. Tier 2, jadi tidak menyentuh urutan bangun Tier 1.
+3. **Sebelum tahap publik: nilai E2EE untuk isi chat, foto chat, dan alasan bebas `CARE`** dalam satu ADR (`architect`), setelah L-14 dan L-38 dijawab. Inti moneter, inti alur, dan syarat permintaan tetap terbaca server; perlindungannya terhadap operator adalah SEC-36.
+4. **Tidak pernah E2EE untuk syarat permintaan dan buku**: memindahkan aturan uang ke klien melanggar 06 S-1 dan `ENGINEERING-STANDARDS.md` §4 (otorisasi di server).
+
+Ini menjawab juga pertanyaan 06 §9.4 tentang notifikasi dan pengingat hangat: keduanya tidak terpengaruh.
+
+## 5. Privasi notifikasi
+
+Aturan isi dan prioritas kanonis di 06 §11. Di checkpoint S3 bentuk layar kunci (a) diterima lewat "lanjut" (S3-8 (vii); P-32), di atas pilihan "Umum di layar kunci" yang diterima pemilik produk atas saran lead.
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-50 | Payload push hanya memuat kelas prioritas dan satu pengenal opak yang tidak bermakna tanpa sesi; tidak ada nama, jumlah, judul, jenis peristiwa, status, atau pengenal objek yang dapat dipetakan. Isi sebenarnya ditarik aplikasi dari server sesudah dibuka (18 §2.8 baris (c), §5.6 butir 3) | 09 | Pilot | P-32; 06 §11.1 | Tangkap payload APNs dan FCM untuk setiap N-NN: hanya dua medan itu dan teks umum |
+| SEC-51 | Teks layar kunci per kelas prioritas: "Ada yang menunggu jawabanmu" (`perlu_tanggapan`), "Ada kabar baru" (`kabar`, termasuk N-23 dan N-28), dan teks umum `ringkasan`. **Tidak pernah** jumlah, nama, jenis peristiwa, atau kata kepedulian, juga bila penerima memilih tampilan rincian di setelan sistem; rincian, bila ada, hanya tampil di dalam aplikasi sesudah dibuka. Kata `AI` tidak pernah di teks layar kunci (FR-AI-003/AC-1) | 09, 08 | Pilot | `ENGINEERING-STANDARDS.md` §4; 06 §11.1; P-32 | Untuk setiap N-NN dengan setelan pratinjau "selalu": teks yang tampil hanya teks kelas |
+| SEC-52 | Kanal notifikasi Android dan kategori iOS dibuat **per kelas prioritas**, tidak per jenis peristiwa (SP-46); namanya umum ("Perlu tanggapan", "Kabar", "Ringkasan"), karena daftar kanal terbaca di setelan sistem siapa pun yang memegang ponsel. Pengelompokan notifikasi (thread) per kelas, tidak per pengirim atau objek | 09, 08 | Pilot | SP-46; **[Usulan]** | Buka setelan notifikasi sistem: tidak ada kanal bernama kepedulian, suasana hati, chat, atau uang |
+| SEC-53 | Lencana ikon aplikasi, bila dipakai, hanya menghitung hal `perlu_tanggapan` milik pemilik ponsel; tidak menghitung `kabar`, termasuk N-28 dan N-23 | 09, 08 | Pilot | **[Usulan]** | Pasangan membagikan status tiga kali: lencana tidak berubah |
+| SEC-54 | **Layar luar perangkat lipat dan permukaan di luar aplikasi** (SP-69): notifikasi di layar luar memakai teks yang sama dengan layar kunci; Tier 1 tidak punya widget, komplikasi, Live Activity, atau tampilan layar luar yang menampilkan data rumah tangga; membuka aplikasi dari layar luar mengikuti kunci perangkat dan kunci aplikasi (SEC-19). **Pintasan ikon aplikasi** (iOS quick actions, Android app shortcuts; 08 §9.1) hanya **statis** dengan label tetap tanpa data ("Catat belanja", "Uang masuk"); tidak ada pintasan dinamis yang menyebut kategori, nama, tempat uang, atau objek terakhir; bila kunci aplikasi menyala, kunci diminta sebelum lembar apa pun tampil, termasuk sisa anggaran di lembar Belanja. Uji di emulator lipat sesuai bawaan Q-120 | 09, 08 | Pilot | SP-69; **[Usulan]** | Emulator lipat dalam keadaan tertutup: notifikasi N-28 dan N-23 hanya teks kelas. Tekan lama ikon aplikasi: hanya dua label tetap; kunci aplikasi menyala, ketuk "Catat belanja": layar kunci tampil sebelum angka apa pun |
+| SEC-55 | **Sisa SP-39**: semua yang tertahan selama jam tenang seseorang dilepas sebagai **satu** notifikasi saat jam tenang berakhir; butir yang objeknya tidak lagi menunggu atau statusnya sudah dicabut gugur tanpa jejak (06 §11.1; FR-CARE-003/AC-2). Push senyap tidak dilarang (larangan itu ditarik bersama SP-55), tetapi tidak ada yang menggerakkan tanda terkirim atau kehadiran (06 INV-A33) | 09 | Pilot | SP-39, SP-55; dikukuhkan | Lima kejadian selama jam tenang: tepat satu notifikasi pukul 06.00 menurut zona penerima |
+| SEC-56 | **N-26 (P-29, Q-175)**: keluarnya anggota diberitahukan kepada anggota yang tersisa sebagai `ringkasan` di ringkasan terjadwal pertama sesudah F06, **bukan** pemberitahuan langsung. Tidak ada notifikasi atas F07 dan atas F08. Di aplikasi, layar keanggotaan anggota yang tersisa tetap menampilkan "sudah keluar" sejak F06 (FR-FAM-012/AC-7), tanpa menyebut masa tenggang atau kemungkinan kembali | 09, 08, 05 | Pilot | **[Usulan]** `security-privacy`; alasan di bawah tabel | F06 pukul 10.00: tidak ada push; ringkasan pukul 19.00 memuat satu baris; F08 pukul 15.00 hari berikutnya: tidak ada notifikasi apa pun |
+| SEC-57 | **Lipat N-28 (P-31, Q-177)**: untuk pasangan (pemilik status, penerima), paling banyak satu N-28 yang berbunyi per 60 menit **[Asumsi]**. Perubahan berikutnya dalam jendela itu memperbarui notifikasi yang sama (collapse id) tanpa bunyi; yang tampil saat dibuka adalah status saat itu. Peleburan per objek selama jam tenang (06 §11.1) tetap | 09 | Pilot (bila Tier 2 dibangun) | **[Usulan]** `security-privacy`; alasan di bawah tabel | Pemilik mengganti status tiga kali dalam 20 menit: penerima mendengar satu bunyi; membuka notifikasi menampilkan status ketiga |
+| SEC-58 | Token perangkat push dihapus dari server saat keluar akun, sesi dicabut, atau F06 untuk rumah tangga itu; Firebase installation ID dihapus lewat API-nya saat keluar akun (18 §2.8 baris FCM) | 09 | Pilot | **[Usulan]** | Sesudah keluar akun: tidak ada token di tabel; uji kirim ditolak penyedia |
+
+**Alasan SEC-56.** Pemberitahuan seketika saat seseorang keluar memberi tahu pasangannya pada saat yang dipilih orang yang keluar, misalnya saat ia baru meninggalkan rumah. Menunda sampai ringkasan memberi beberapa jam tanpa menyembunyikan apa pun: anggota yang tersisa tetap melihatnya di aplikasi begitu membuka layar keanggotaan atau mencoba mengajukan permintaan (`no_approver`). Menunda sampai F07 tidak mungkin tanpa menyembunyikan sesuatu yang sudah terlihat, jadi tidak dipilih. F08 tidak diberitahukan karena kembalinya orang itu adalah pilihannya sendiri dan tidak meminta tindakan siapa pun; keanggotaannya tampil aktif lagi. Ini berbeda dari bawaan 06 (N-26 `kabar` di F06); perubahan ke 06 §11.2 diajukan ke `architect`.
+
+**Alasan SEC-57.** Brief §1.1 Tier 2: "the partner is notified on every change". Yang dilipat adalah bunyinya, bukan kabarnya: penerima tetap membaca keadaan terakhir setiap kali membuka. Tanpa lipat, status yang berganti beberapa kali dalam satu jam membuat ponsel pasangan berbunyi berulang, yang terbaca sebagai gejolak perasaan pemiliknya dan menekan penerimanya. Bila lead menilai ini menyimpang dari kalimat brief, selisihnya dicatat di dokumen 17.
+
+## 6. Kehadiran dan tanda dibaca sebagai risiko pengawasan
+
+### 6.1 Kedudukan
+
+Chat rumah tangga dengan tanda terkirim dan dibaca serta kehadiran adalah **keputusan pemilik produk sendiri** ("Semua seperti WhatsApp", 12 November 2026), berlawanan dengan saran lead. 06 §16.6 menetapkan cara menyimpannya: kehadiran hanya digerakkan pemakaian di depan dengan interaksi (SP-60), tanpa riwayat, tidak dibaca aturan atau `AI` (INV-A45), kunci per (anggota, rumah tangga). Dokumen ini diminta menilainya sebagai risiko pengawasan dan menyajikan P1 dan P2, **tanpa** menerapkannya tanpa persetujuan pemilik produk (06 P-28; Q-174).
+
+### 6.2 Yang dibuka kehadiran kepada pasangan
+
+| Keadaan | Yang terbaca dari kehadiran sekarang (P0) | Mengapa berarti |
+|---|---|---|
+| Jam tenang | "Online" pukul 23.00 memperlihatkan bahwa ia memegang aplikasi walau notifikasinya ditahan | Jam tenang bertujuan memberi ruang; kehadiran mengubahnya menjadi "ia bangun dan tidak menjawab" |
+| Tunda | Online dan kartu permintaan sudah dibaca, tetapi tidak ditanggapi | 06 AT-5 (d) sudah menyatakannya; kehadiran menambah waktu persisnya |
+| Status "butuh tenang dulu" dibagikan | Online sesudah meminta tenang | Membuka tekanan "kok sempat online" |
+| Pola tidur dan kerja | Terakhir aktif yang dipantau setiap hari | Server tidak menyimpan riwayat, tetapi **pasangan dapat mencatatnya sendiri** (PL-02); di rumah tangga dua orang tidak ada keramaian yang menyamarkan |
+| Pencatatan di malam hari | Online saat mencatat belanja pukul 23.30 | Membuka jam pencatatan yang AT-6 sembunyikan pada entri |
+
+### 6.3 Pilihan
+
+| | P0 — sekarang | P1 — setelan timbal balik per orang | P2 — hanya di layar chat | P1 + P2 |
+|---|---|---|---|---|
+| Yang menggerakkan "online" dan "terakhir aktif" | Interaksi di depan di bagian mana pun aplikasi (06 §16.6) | Sama dengan P0 | **Hanya interaksi di layar chat yang sedang dibuka**; mencatat, membaca buku, atau membuka layar objek tidak menggerakkannya | P2 |
+| Siapa yang dapat menyembunyikan | Tidak ada | Setiap orang untuk dirinya; yang menyembunyikan juga tidak melihat kehadiran pasangannya | Tidak ada | Setiap orang, timbal balik |
+| Pencatatan malam terbaca | Ya | Ya, kecuali disembunyikan | **Tidak** | Tidak |
+| Online di jam tenang terbaca | Ya | Kecuali disembunyikan | Hanya bila ia membuka chat | Hanya bila membuka chat dan tidak menyembunyikan |
+| Tanda dibaca | Tetap | Tetap (tanda bukan kehadiran) | Tetap | Tetap |
+| Sisa risiko | Semua baris 6.2 | Menyembunyikan terlihat sebagai "tidak ada kehadiran", yang dapat dipersoalkan; orang yang ditekan dapat dipaksa menyalakannya | Online di chat tetap terbaca | Gabungan |
+| Mendekati "seperti WhatsApp" | Ya | Ya (WhatsApp punya setelan timbal balik serupa **[Asumsi]**, tidak diteliti di 18) | Sebagian | Sebagian |
+| Biaya | — | Satu setelan, satu aturan baca | Satu aturan klien; tidak ada setelan | Keduanya |
+
+**Rekomendasi [Usulan] `security-privacy`: P2**, sama dengan SP-61. Ia menutup kebocoran yang paling tidak berkaitan dengan chat (jam pencatatan, pemakaian aplikasi di luar chat) tanpa setelan baru dan tanpa sinyal "ia menyembunyikan". P1 ditambahkan sebelum tahap publik bila riset pengguna menunjukkan kebutuhannya. Disajikan di checkpoint S4 sebagai keputusan 10-A; **bawaan bila tidak dijawab adalah P0, keputusan pemilik produk yang berlaku**, karena perubahan atas keputusannya sendiri memerlukan jawabannya. Ketelitian "terakhir aktif" adalah pertanyaan terpisah, UX-5 di dokumen 08, yang dijawab bersama 10-A dengan bawaan yang sama: keputusan yang berlaku (ketelitian menit), sedangkan pembulatan 15 menit adalah rekomendasi yang mengubah keputusannya (SEC-60).
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-60 | **Ketelitian "terakhir aktif" mengikuti jawaban UX-5 (08), yang dijawab bersama 10-A.** Bawaan UX-5 A: ketelitian menit, karena itulah keputusan pemilik produk sendiri yang berlaku ("Semua seperti WhatsApp"; `_progress.md`, **diputuskan pemilik produk sendiri**). Rekomendasi dokumen ini **[Usulan]**: UX-5 B atau C, dibulatkan ke bawah ke 15 menit, dan tanpa jam untuk kemarin dan sebelumnya (08 §10.3); ini **mengubah** keputusannya dan hanya berlaku dengan jawabannya. Apa pun jawabannya: server tidak mengirim kehadiran dengan ketelitian lebih halus daripada yang ditampilkan, sehingga aplikasi yang dimodifikasi tidak memperoleh lebih dari layar | 08, 09 | Pilot | **[Usulan]**; UX-5 | UX-5 B atau C: aktif pukul 23.07 tampil "23.00", dan muatan kehadiran dari server berisi 23.00. UX-5 A: tampil "23.07" |
+| SEC-61 | Kehadiran tidak pernah keluar dari layar chat: tidak di daftar anggota, notifikasi, widget, ringkasan, ekspor, atau API selain kanal chat (06 AT-5, INV-A45). Sesuai pilihan 10-A bila diterima | 09, 08 | Pilot | 06 INV-A45 | Uji INV-A45 |
+
+### 6.4 Tanda dibaca pada kartu status kepedulian
+
+Pemilik status melihat bahwa pasangannya sudah membaca kartu statusnya (06 §13.5 "Tanda dibaca"; FR-CARE-003/AC-3). **Dinilai: dipertahankan, dengan pernyataan terus terang.** Tanda dibaca adalah tanda air (`read_upto_seq`); pesan apa pun sesudah kartu itu yang sudah terbaca memperlihatkan bahwa kartunya juga terbaca (06 §16.5). Mengecualikan kartu status saja tidak mungkin tanpa memecah arti tanda dibaca bagi semua pesan, jadi pengecualian akan menjanjikan ketertutupan yang tidak benar. Yang tetap dijaga: tidak ada tanda baca di luar chat atas status (06 AT-5 (b)); membuka notifikasi N-28 atau layar status tidak menggerakkannya; "siapa melihat apa" menyebutnya sebelum berbagi pertama kali (FR-FAM-010/AC-4 (d)).
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-62 | Layar persetujuan berbagi `CARE` menyatakan, sebelum penerima pertama ditambahkan, bahwa penerima akan melihat statusnya di chat dan pemilik akan melihat kapan kartunya terbaca, tanpa waktu baca | 08 | Pilot (bila Tier 2 dibangun) | **[Usulan]** | Tinjauan kata layar |
+
+## 7. Chat dan foto
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-63 | Isi chat diperlakukan sebagai kelas yang dapat memuat semua kelas lain (uang, kesehatan, data anak): tidak pernah di notifikasi, log, muatan `AI`, atau analitik; disimpan dan dicadangkan dengan perlindungan yang sama dengan buku pribadi | 09 | Pilot | 06 §16; **[Usulan]** | SEC-44, SEC-50, FR-AI-006/AC-3 |
+| SEC-64 | **Jam di chat (P-30, Q-176)**: setiap pesan, kartu, dan baris peristiwa di chat menampilkan waktu **server menerima** pesan atau transisi itu, tidak pernah waktu perangkat atau jam pencatatan entri (`recorded_at`). Dengan itu bawaan 06 (baris peristiwa memakai waktu tampil chat seperti pesan lain) dikukuhkan: kartu entri yang dikirim ke chat memperlihatkan kapan ia dikirim ke chat, yaitu tindakan pesan yang dipilih pengirimnya, bukan kapan entri dicatat. Entri yang dicatat luring pukul 23.40 dan disinkron pukul 07.00 tampil pukul 07.00 | 09, 08 | Pilot | **[Usulan]** `security-privacy`; 06 AT-6 tetap | Catat entri luring dari chat dengan jam perangkat dimajukan dua jam: waktu tampil sama dengan waktu server menerima |
+| SEC-65 | Foto (chat, struk, lampiran) disimpan di luar direktori web dengan nama berkas acak, dilayani hanya lewat server yang memeriksa otorisasi per permintaan (18 §5.7 butir 2); tautan unduh, bila ada, berumur pendek dan terikat sesi. Menghapus pesan atau rincian menghapus berkas aslinya dan semua turunannya (thumbnail) | 09 | Pilot | **[Usulan]** | Ambil URL foto dari sesi A, buka dari sesi B yang tidak berhak dan tanpa sesi: ditolak; sesudah dihapus, berkas dan thumbnail tidak ada di disk |
+| SEC-66 | **Seluruh metadata foto dibuang** (SP-57, D-94): di-encode ulang di perangkat sebelum dikirim, lalu didekode dan di-encode ulang lagi di server, termasuk EXIF, XMP, IPTC, profil ICC, komentar, thumbnail tertanam, dan lokasi. **Alat di server: encoder standar Go (`image/jpeg`) disetujui dokumen ini sebagai pengganti libvips (ADR-016 butir 12), dengan empat syarat. Server menerima dan mengeluarkan **JPEG saja**, karena perangkat sudah meng-encode ulang setiap foto ke JPEG (keputusan `architect`, CR-A-07)**: (a) klaim "tanpa segmen metadata" tidak dipakai sebagai dasar sampai **terbukti oleh uji otomatis** atas korpus berkas uji yang memuat EXIF berlokasi, XMP, IPTC, ICC, komentar JPEG, dan thumbnail tertanam; **keluaran JPEG tanpa penanda APPn (APP0 sampai APP15) maupun COM; masukan PNG ditolak**; sampai uji itu lulus, label klaim di 09 tetap **[Perlu validasi]** (CS-A-12); (b) dimensi gambar diperiksa dari kepala berkas sebelum didekode, dan gambar di atas batas piksel ditolak (perlindungan dari bom dekompresi); (c) format yang tidak dapat didekode dan di-encode ulang di server ditolak, **tidak pernah disimpan dalam bentuk asli**; (d) bila salah satu syarat tidak dapat dipenuhi, kembali ke libvips tanpa metadata (keep NONE; 18 §5.7 butir 3) | 09 | Pilot | SP-57; 18 §5.7; **[Usulan]** syaratnya | Unggah setiap berkas korpus: berkas yang tersimpan dan yang diterima pasangan tidak memuat penanda di atas; PNG (termasuk yang memuat `tEXt`, `iTXt`, `zTXt`, `eXIf`): ditolak, tidak tersimpan; berkas yang kepalanya menyatakan 50.000 × 50.000 piksel: ditolak sebelum didekode; HEIC yang tidak di-encode ulang perangkat: ditolak |
+| SEC-67 | Memilih foto memakai pemilih foto sistem (PHPicker di iOS, Photo Picker di Android) yang hanya memberi akses ke foto yang dipilih, tanpa izin baca galeri penuh; kamera hanya saat dipakai. Tidak ada izin lokasi, kontak, atau mikrofon di Tier 1 | 09 | Pilot | **[Usulan]** | Daftar izin di manifest dan Info.plist |
+| SEC-68 | **Balasan sesudah status dihapus (Q-153; P-21)**: bawaan yang diterima lewat "lanjut" (S3-7 (ii)) dikukuhkan: balasan tetap sebagai pesan bebas penulisnya tanpa tautan dan tanpa kutipan, dan pemilik status diberi tahu sebelum menghapus (FR-CARE-004/AC-4). Batasnya: kalimat pasangan dapat menyebut keadaan pemilik status ("semoga demamnya cepat turun") dan tetap ada; hak pemilik status atas data tentang dirinya di dalam pesan orang lain adalah L-37 | 08, 05 | Pilot (bila Tier 2 dibangun) | Q-153 dikukuhkan; L-37 **[Perlu validasi]** | FR-CARE-004/AC-1, AC-4 |
+| SEC-69 | Foto tidak pernah dikirim ke penyedia `AI` atau layanan pengenalan wajah atau teks pihak ketiga. Fitur pembacaan struk (IDEA-21, Tier 3) dinilai dokumen ini sebelum dibangun | 09 | Pilot | **[Usulan]** | Lalu lintas ke penyedia `AI` tidak memuat berkas gambar |

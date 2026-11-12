@@ -115,6 +115,12 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Aturan yang belum ada, ditemukan saat menulis kebutuhan atau skenario (dokumen 05, 12) | `PA-<MOD>-N`, dengan `<MOD>` kode modul atau `SCN`; nomor tidak dipakai ulang | `PA-FIN-11`, `PA-COM-4`, `PA-SCN-2` |
 | Celah yang ditemukan saat menyelaraskan dokumen 06 | `G-NN` | `G-08` |
 | Temuan pemeriksaan `security-privacy` | `SP-NN` | `SP-01` |
+| Aset, pelaku, ancaman (dokumen 10) | `AS-NN`, `PL-NN`, `TM-NN` | `AS-08`, `PL-03`, `TM-15` |
+| Persyaratan keamanan dan privasi (dokumen 10) | `SEC-NN`, dikelompokkan per berkas; celah antarkelompok disengaja | `SEC-19` |
+| Keputusan checkpoint yang diajukan dokumen 10 | `10-X` (huruf); nomor `S4-N` dan `Q-NN` diberikan dokumen 17 | `10-A` |
+| Layar (dokumen 08) | `LY-NN` | `LY-01` |
+| Batasan pemilihan teknologi (dokumen 09) | `BT-N` | `BT-1` |
+| Keputusan checkpoint yang diajukan dokumen 08 dan 09 | `UX-N`, `09-X`; nomor `S4-N` dan `Q-NN` diberikan dokumen 17 | `UX-1`, `09-A` |
 | Larangan visibilitas dan aturan tampilan (dokumen 06) | `V-N`, `AT-N` | `V-8`, `AT-4` |
 | Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I`, `F` | `K06`, `C05`, `F04` |
 | Kriteria penerimaan (dokumen 05) | `AC-N`, lokal per kebutuhan; dikutip `FR-<MOD>-NNN/AC-N` | `FR-FIN-012/AC-3` |

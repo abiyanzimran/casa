@@ -1,0 +1,374 @@
+# 10.4 — Aliran data `AI`, kepatuhan toko, regulasi, dan sembilan perilaku brief §8
+
+Bagian dari [10-security-privacy.md](../10-security-privacy.md). Persyaratan di berkas ini bernomor SEC-120 sampai SEC-154. Tidak ada yang di sini nasihat hukum; setiap butir hukum berakhir pada pertanyaan advokat.
+
+Daftar isi: [1. `AI`](#1-aliran-data-ai) · [2. Toko aplikasi](#2-kepatuhan-toko-aplikasi) · [3. Regulasi dan advokat](#3-ringkasan-regulasi-dan-pertanyaan-advokat) · [4. Sembilan perilaku](#4-sembilan-perilaku-brief-8) · [5. Bahan DPIA](#5-bahan-dpia)
+
+---
+
+## 1. Aliran data `AI`
+
+### 1.1 Kedudukan
+
+Pendamping `AI` versi ringan adalah Tier 2 dan bagian dari pilot (brief §5O keputusan 1). Aturan brief §5O: `AI` tidak pernah bertindak atas nama siapa pun; hanya memakai apa yang boleh dilihat anggota yang dibantunya dan tidak pernah membuka, menyiratkan, atau memparafrasakan apa yang ditutup orang lain; bukan psikolog; tiap anggota ikut serta sendiri; data yang keluar dinyatakan dan minimum; aplikasi utuh tanpa `AI`; batas biaya keras.
+
+Pemilik produk ingin memakai Claude atau ChatGPT dan server di Indonesia, dan bingung ketika diberi tahu data `AI` akan keluar Indonesia (17 keputusan 10; Q-10 bagian (1) ditunda ke checkpoint S4). Temuan peneliti: Claude dan ChatGPT tidak dapat dipastikan diproses di Indonesia lewat jalur mana pun yang ditemukan, sehingga pemakaiannya kemungkinan besar transfer lintas batas (18 §5.9 butir 1); sesudah PP 33/2026 berlaku (16 atau 17 Januari 2027), bila naskah resminya sama dengan salinan teks, peneliti tidak menemukan jalur dalam teks bagi pemanggilan harian ke penyedia `AI` asing sampai Lembaga PDP menerbitkan daftar atau klausul (18 §2.8 baris (a); **[Perlu validasi]**). Lembaga belum terbentuk menurut media per 5 November 2026 (18 §2.7).
+
+### 1.2 Dua jalur
+
+| | **R1 — kumpulan kalimat** | **R2 — panggilan langsung berdata minimum** |
+|---|---|---|
+| Cara | Penyedia `AI` menulis kumpulan kalimat dan templat **tanpa data rumah tangga mana pun**, per kunci tertutup (corak, nuansa, musim, kategori status, jenis objek, bahasa). Server di Indonesia memilih kalimat bagi tiap orang menurut kunci itu dan mengisi angka, bila ada, di server | Server mengirim data minimum seseorang ke penyedia setiap kali saran dibuat |
+| Data rumah tangga ke luar negeri | **Tidak ada** | Ada (kategori status, jenis objek, angka agregat) |
+| Sudah dipakai | FR-AI-001 dan FR-AI-010 tanpa status (SP-54, D-92, diterima lewat "lanjut") | — |
+| Transfer menurut UU PDP Pasal 56 | Tidak ada data pribadi yang ditransfer, menurut bacaan dokumen ini **[Usulan]**; dikonfirmasi advokat (L-32) | Ya, kemungkinan besar (18 §2.8) |
+| Mutu | Bervariasi bila kumpulannya besar; tidak menyesuaikan dengan hari orang itu | Lebih menyesuaikan |
+| Pemeriksaan keamanan keluaran | **Sebelum ada yang membaca**: setiap kalimat diuji daftar terlarang (§1.9) dan disampel operator | Saat dibuat, per panggilan |
+| Biaya | Sangat kecil (sekali per kumpulan) | 18 §5.9: USD 0,33 sampai 13,04 per bulan menurut model **[Asumsi]** pemakaian |
+
+**Usulan dokumen ini [Usulan]: semua fitur `AI` pilot memakai R1.**
+
+| Fitur | Di pilot (R1) | Kunci kumpulan | Data rumah tangga yang dipakai di server | Ke penyedia |
+|---|---|---|---|---|
+| FR-AI-001 kata penyemangat | Kalimat dari kumpulan (sudah, SP-54) | Corak, nuansa religi, musim | Corak dan nuansa milik orang itu | Tidak ada |
+| FR-AI-002 kata menenangkan dan saran pesan | Kalimat dari kumpulan per kategori status | Kategori status dari daftar tertutup, jenis (suasana hati atau sakit), "butuh tenang dulu" tanpa saran (SP-47) | Kategori status yang dibagikan, dengan izin e1 atau e2 pemiliknya dan butir (b) penerima | Tidak ada |
+| FR-AI-003 pengingat hangat | Templat per jenis objek dan jarak ke tenggat | Jenis objek, jarak hari | Jenis dan tenggat; judul ditampilkan aplikasi di sebelahnya, tidak masuk kalimat yang dibuat `AI` | Tidak ada |
+| FR-AI-004 narasi bulanan | Templat bercelah; angka diisi server | Jenis kalimat (anggaran tercapai, terlampaui, tabungan, urusan selesai) | Angka agregat rumah tangga dari 07 §6.3 dan hitungan urusan selesai, **tanpa** angka per anggota dan tabel C | Tidak ada |
+| FR-AI-010 saran apresiasi | Kalimat dari kumpulan (sudah, SP-54); dengan status pasangan, kumpulan per kategori | Corak, kategori status pasangan bila diizinkan | Kategori status pasangan dengan izin e1 atau e2 | Tidak ada |
+
+**Satu selisih dengan brief §5O.** Brief: penerima "sends it as is, edits it by hand, or asks the AI to revise it". Pada R1, "minta ubah" adalah **meminta saran lain dari kumpulan**, bukan revisi langsung atas teks yang sudah ia sunting, karena teks sunting dapat memuat nama dan keadaan pasangan. Revisi langsung menunggu R2. Selisih ini diajukan ke lead untuk dicatat di dokumen 17.
+
+R2 hanya dinyalakan sesudah keputusan pemilik produk (keputusan 10-B), jawaban advokat atas L-05, L-06, L-18, L-19, dan L-26, perjanjian prosesor (L-12), dan retensi nol yang dikonfirmasi (SEC-122).
+
+### 1.3 Persyaratan aliran data
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-120 | Pada R1, kumpulan kalimat dibuat oleh pekerjaan terpisah dari jalur permintaan anggota; pemilihan kalimat bagi seseorang terjadi di server atau perangkat tanpa panggilan ke penyedia | 09 | Pilot | **[Usulan]** | Matikan jaringan ke penyedia `AI`: semua fitur `AI` tetap berfungsi dari kumpulan yang ada |
+| SEC-121 | Prompt pembuatan kumpulan hanya memuat instruksi gaya, daftar terlarang, dan kunci tertutup; tidak pernah data dari basis data rumah tangga | 09 | Pilot | **[Usulan]** | Uji otomatis atas setiap prompt: tidak ada nilai yang berasal dari tabel rumah tangga |
+| SEC-122 | R2 tidak dapat dinyalakan di konfigurasi selama syarat §1.2 alinea terakhir belum dipenuhi; saat dinyalakan, penyedia dipakai dengan retensi nol atau ketentuan tanpa simpan yang dikonfirmasi (18 §5.9: bunyi dua halaman Anthropic tentang retensi tidak sama, **[Perlu validasi]**), tanpa pelatihan atas data pelanggan, dari server saja | 09, Ops | Publik | **[Usulan]** | Pemeriksaan konfigurasi |
+| SEC-123 | **Yang tidak pernah dikirim ke penyedia `AI`, di jalur mana pun**: nama siapa pun, nama rumah tangga, pengenal yang dapat dipetakan, email; **judul objek** (pengingat dan narasi); **nama kategori yang dibuat sendiri** (diganti "lainnya"); alasan bebas `CARE`; isi chat, foto, tanda dibaca, kehadiran; apakah saran sebelumnya dipakai; tanggal dan jam tepat; zona waktu; corak dan nuansa religi; angka per anggota; tabel C 07 §6.3; data buku pribadi siapa pun. Judul dan nama kategori bebas dapat memuat nama anak dan orang lain, jadi tidak dapat dijamin bebas nama (brief §5O keputusan 3, "never names") | 09 | Pilot | **[Usulan]**; menjawab P-T2-4 | Uji muatan untuk setiap fitur: daftar medan yang keluar sama dengan daftar yang diizinkan, tidak lebih |
+| SEC-124 | **Data pribadi seseorang tidak pernah masuk keluaran bagi orang lain.** Masukan untuk anggota X hanya data yang terbaca X, dan data tentang Y hanya dengan izin Y untuk jenis itu (e1, e2) | 09 | Pilot | Brief §5O; FR-AI-006/AC-2 | Ubah data pribadi Y secara acak (buku pribadi, status yang tidak dibagikan, setelan): kalimat yang dipilih bagi X identik |
+| SEC-125 | Persetujuan per fitur (FR-AI-005 butir a sampai d) dan izin pemilik data (e1, e2) tetap berlaku pada R1, walau tidak ada yang keluar ke penyedia: kategori status Y tetap data Y yang dipakai untuk saran bagi X | 09, 08 | Pilot | Brief §5O keputusan 3; **[Usulan]** | FR-AI-005/AC-1 sampai AC-6 |
+| SEC-126 | Sebelum menyalakan fitur `AI`, layar menyatakan untuk fitur itu: apa yang dipakai di server, bahwa **tidak ada data rumah tanggamu yang dikirim ke penyedia `AI`** (R1), bahwa kalimatnya ditulis `AI` lebih dulu tanpa datamu, dan bahwa pesan dari saran tidak membawa penanda `AI`. Pada R2 layar menyebut medan yang keluar, penerimanya, dan negaranya, dan meminta izin eksplisit (Apple 5.1.2(i); 18 §2.8) | 08 | Pilot | FR-AI-005/AC-1; **[Usulan]** | Tinjauan kata layar |
+| SEC-127 | **Batas biaya keras** (FR-AI-007): angka bawaan USD 10 per bulan (usulan peneliti, 18 §5.9 butir 5; ditetapkan pemilik produk di keputusan 10-B), dipasang di dua tempat: batas belanja bulanan pada workspace khusus di penyedia (bukan Default Workspace), dan penghitung server yang diperiksa **sebelum setiap panggilan** dan berhenti sebelum batas penyedia. Penghitung server menurut jalur: (a) **R1**: batas **per pekerjaan pembuatan kumpulan** (bawaan USD 3 **[Asumsi]**, sekitar dua kali perkiraan USD 1,32 per pembangunan di 09 berkas 03 §11.1) ditambah batas **bulanan** gabungan USD 10; **tidak ada batas harian** di jalur ini, karena satu pembangunan bulanan memang menghabiskan lebih dari sepertiga puluh batas bulanan. Pekerjaan yang terhenti oleh batas tidak menerbitkan kumpulan setengah jadi; kumpulan lama tetap dipakai (SEC-128). (b) **R2** (bila kelak dinyalakan): batas harian sepertiga puluh batas bulanan berlaku hanya atas jalur panggilan langsung, ditambah batas bulanan gabungan yang sama | 09, Ops | Pilot | 18 §5.9; **[Usulan]** | Pembangunan kumpulan berbiaya USD 1,32: selesai tanpa terhenti. Pembangunan yang melewati batas per pekerjaan: berhenti, kumpulan lama tetap aktif, tidak ada kumpulan baru. Total bulan berjalan mencapai USD 10: panggilan berikutnya di jalur mana pun tidak terjadi |
+| SEC-128 | **Saklar mati di server**: setiap fitur `AI` dan semuanya sekaligus dapat dimatikan dari konfigurasi server tanpa rilis aplikasi; penyedia dapat diganti tanpa menulis ulang fitur (18 §2.8 baris (a)). Saat mati, habis biaya, atau gagal: kalimat baku tanpa `AI` atau tidak ada saran; pencatatan, permintaan, dan persetujuan tidak terpengaruh (FR-AI-008) | 09 | Pilot | Brief §5O; **[Usulan]** | Matikan saklar global: uji penerimaan Tier 1 lulus tanpa perubahan |
+| SEC-129 | **Tanpa perbandingan antar-orang di keluaran mana pun (P-T2-5)**: tidak ada keluaran `AI` yang menyebut, membandingkan, atau memeringkat anggota, atau menyebut siapa membayar, mencatat, atau menyelesaikan apa. Dijaga secara struktural: muatan dan kunci tidak pernah memuat pengenal anggota atau angka per anggota (SEC-123), jadi perbandingan tidak dapat dibuat; dan diuji lewat daftar terlarang (§1.9) | 09 | Pilot | FR-AI-004/AC-2 diperluas ke semua keluaran; **[Usulan]** | Pemeriksaan muatan; uji daftar terlarang |
+
+### 1.4 Asesmen brief §5O keputusan 2 sampai 4 terhadap riset
+
+| Keputusan | Temuan | Penilaian |
+|---|---|---|
+| 2. Pesan dari saran tanpa penanda `AI`; keduanya tahu fiturnya ada; pengirim membaca dan mengirim sendiri | Tidak ditemukan aturan yang berlaku per 12 November 2026, di toko maupun di Indonesia, yang mewajibkan penanda pada pesan yang dirancang `AI` lalu disunting dan dikirim pengguna (18 §2.10 butir 1, kesimpulan dari ketiadaan). Komdigi dilaporkan merencanakan Permen label konten `AI` (**[Perlu validasi]**, media) | **Tetap.** Dipantau sebelum rilis publik (18 §6.4). Keduanya tahu lewat SEC-87 (d) |
+| 3. Data ke penyedia hanya dengan izin orang yang datanya dipakai, minimum, tanpa nama | Transfer lintas batas bagi pemanggilan harian kemungkinan tidak punya jalur sesudah PP berlaku (18 §2.8); data yang dipseudonimkan tetap data pribadi (L-06) | **Tetap, dan pada pilot dipenuhi lebih ketat lewat R1.** Satu pengetatan diusulkan: judul objek tidak dikirim, karena tidak dapat dijamin bebas nama (SEC-123); itu menerapkan "never names" di keputusan yang sama, bukan menggantinya. Disajikan sebagai bagian keputusan 10-B |
+| 4. Narasi bulanan hanya angka agregat | Sejalan dengan 07 §6.3 dan D-43 | **Tetap.** Pada R1 angkanya bahkan tidak keluar dari server |
+
+### 1.5 Daftar uji kalimat terlarang (SP-66, P-T2-5, FR-AI-009/AC-2)
+
+Dipakai pada setiap kalimat kumpulan sebelum dipakai (R1) dan setiap keluaran (R2). Daftar berisi pola dan contoh; versi uji lengkapnya disimpan bersama kode dan diperluas setiap kali ditemukan kalimat bermasalah.
+
+| Kelompok | Dilarang | Contoh terlarang |
+|---|---|---|
+| T1 Diagnosis dan label kesehatan jiwa | Menyebut atau menyiratkan gangguan, penyakit, atau kondisi klinis | "mungkin depresi", "sepertinya burnout", "gejala kecemasan", "bipolar" |
+| T2 Saran medis | Obat, dosis, terapi, tindakan medis, nama penyakit | "minum paracetamol", "coba terapi", "itu tipes" |
+| T3 Perintah memantau | Meminta penerima mengawasi, memeriksa, melacak, atau melapor | "awasi dia", "pastikan ia tidak sendirian", "cek lokasinya", "lihat ia online atau tidak" |
+| T4 Melibatkan orang lain | Menyuruh menghubungi keluarga, teman, atasan | "kabari ibunya", "hubungi temannya" |
+| T5 Menafsirkan atau membesarkan | Menebak sebab, menilai berat ringannya, menyimpulkan | "pasti karena kerjaan", "ini serius", "dia sedang tidak baik-baik saja" (sebagai kesimpulan) |
+| T6 Menekan atau menyalahkan | Kewajiban, rasa bersalah, ancaman halus | "kamu harus", "jangan sampai dia marah", "kalau kamu sayang dia ..." |
+| T7 Membandingkan dan memeringkat orang | Siapa lebih banyak, lebih sering, lebih baik | "kamu lebih rajin dari dia", "kali ini giliranmu" |
+| T8 Mengutip atau memparafrasakan teks orang | Kutipan alasan bebas, chat, judul | Kalimat yang memuat teks pengguna |
+| T9 Fakta yang tidak diberikan | Nama, janji, kejadian, angka yang tidak ada di masukan | "seperti makan malam kemarin" |
+| T10 Agama tanpa nuansa yang dipilih | Ungkapan agama bagi orang yang tidak menyalakan nuansa religi | — |
+| T11 Interogasi | Rentetan pertanyaan yang menuntut jawaban ("bukan untuk di tanya jawab", 06 §13.6) | "kenapa? sejak kapan? sudah ke dokter belum? kenapa belum?" |
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-130 | Setiap kalimat kumpulan dan setiap keluaran R2 lolos daftar terlarang secara otomatis sebelum dapat ditampilkan; kalimat yang gagal dibuang, tidak diperbaiki diam-diam | 09 | Pilot | SP-66 **[Usulan]** | Sisipkan kalimat dari setiap kelompok ke kumpulan uji: semuanya ditolak |
+| SEC-131 | Sebelum satu kumpulan dipakai, operator membaca sampel acak (paling sedikit 10% atau 50 kalimat per kunci, mana yang lebih kecil) **[Asumsi]**; kumpulan dengan satu saja temuan T1 sampai T6 ditolak seluruhnya | Ops | Pilot | **[Usulan]** | Catatan tinjauan per kumpulan |
+| SEC-132 | Tidak ada keluaran `AI` yang memuat diagnosis, saran medis, atau klaim terapi; saran saat sakit hanya bernada perhatian praktis (FR-AI-009/AC-2) | 09 | Pilot | Brief §5O | Daftar T1, T2 |
+
+### 1.6 Tanda tekanan berat, menyakiti diri, atau kekerasan (FR-AI-009, P-T2-9)
+
+Brief §5O meminta dokumen ini menetapkan apa yang dilakukan pendamping atas tanda tekanan berat, menyakiti diri, atau kekerasan, termasuk menunjuk bantuan profesional.
+
+**Asas.** Aplikasi tidak menebak keadaan siapa pun. Di pilot `AI` tidak pernah membaca teks bebas (FR-AI-009), jadi ia tidak dapat dan tidak boleh "mendeteksi" apa pun; satu-satunya tanda adalah pilihan yang dibuat orang itu sendiri dari daftar tertutup kelompok "berat" (FR-CARE-001). Menyalurkan tanda itu kepada pasangan juga bukan jalan aman: pasangan mungkin sumber tekanannya. Karena itu bantuan ditunjukkan **kepada pemilik status sendiri**, tidak pernah kepada orang lain.
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-133 | **Arahan bantuan bagi pemilik status (menjawab P-T2-9: ya).** Saat seseorang memilih status dari kelompok "berat", layar statusnya sendiri menampilkan satu baris tenang yang dapat ditutup, misalnya "Kalau terasa berat sekali, kamu bisa bicara dengan konselor. Lihat Bantuan." Baris itu tidak tampil bagi siapa pun selain pemiliknya, tidak menjadi notifikasi, tidak menjadi Peristiwa, tidak tercatat, dan tidak mengubah apa pun yang dilihat pasangan; tampil paling banyak sekali per hari **[Asumsi]** | 08, 09 | Pilot (bila Tier 2 dibangun) | **[Usulan]** `security-privacy` | Pilih "sedih" dua kali sehari: baris tampil sekali; sebagai pasangan, tidak ada yang berbeda dibanding status yang sama tanpa baris itu |
+| SEC-134 | **Halaman Bantuan statis**, terbuka bagi setiap anggota dari setelan kapan saja, tanpa jejak: daftar layanan bantuan profesional yang sudah lolos SEC-138 (§1.7), satu kalimat bahwa aplikasi ini bukan layanan darurat, dan nomor darurat yang terverifikasi berlaku nasional (110, kepolisian). 112 tidak ditulis sebagai nomor darurat nasional, karena per Maret 2025 baru tersedia di 161 kabupaten dan kota (18 §2.12.1). Halaman ini juga memuat jalan keluar dari rumah tangga, dan kontak pengelola yang dipublikasikan (SEC-154) **hanya bila pengelola server bukan anggota rumah tangga pembaca**; bila anggota (pilot), butir itu tidak tampil, karena alamatnya jatuh ke pasangan pembaca (08 §10.7, §12.4). Membukanya tidak menghasilkan Peristiwa, notifikasi, log yang terhubung ke akun, atau analitik | 08, 09 | Pilot | **[Usulan]** | Buka halaman: tidak ada baris baru di basis data atau log yang berisi pengenal akun. Konfigurasi dengan pengelola sebagai anggota rumah tangga pembaca: butir kontak pengelola tidak tampil; pengelola bukan anggota: tampil |
+| SEC-135 | **Tidak ada pemindaian** teks bebas, alasan status, atau chat untuk mencari tanda tekanan atau kekerasan, oleh `AI` maupun kata kunci. Pemindaian seperti itu adalah pengawasan atas isi pesan pribadi, menghasilkan tebakan yang keliru, dan dapat menjadi alat bagi pasangan | 09 | Pilot | **[Usulan]** | Pemeriksaan kode: tidak ada jalur yang membaca `body` pesan atau alasan bebas selain untuk ditampilkan |
+| SEC-136 | Izin mengirim alasan bebas ke `AI` (FR-AI-002/AC-3) **tidak ditawarkan di pilot** (R1 tidak memerlukannya). Dinilai ulang bersama R2 sebelum tahap publik; bila kelak ditawarkan, keluaran tetap tidak mengutip atau memparafrasakannya (SP-56 (b)) | 05, 09 | Pilot | FR-AI-009/AC-1; **[Usulan]** | FR-AI-009/AC-1 |
+| SEC-137 | **Percakapan nasihat terbuka (Tier 3)**: sebelum dibangun memerlukan protokol krisis tersendiri dari dokumen ini: bila orang itu sendiri menulis tanda ingin menyakiti diri atau mengalami kekerasan, pendamping berhenti memberi nasihat, menampilkan Bantuan, tidak mendiagnosis, dan tidak pernah memberi tahu orang lain di rumah tangga | 10 | Tier 3 | **[Usulan]** | — |
+| SEC-138 | Daftar layanan bantuan disimpan sebagai konfigurasi server yang dapat diubah tanpa rilis, dan setiap nomornya diverifikasi di situs resmi penyelenggaranya sebelum pilot dan sebelum rilis publik | Ops | Pilot | **[Usulan]** | Catatan verifikasi bertanggal |
+
+### 1.7 Layanan bantuan dan status verifikasinya
+
+Sumber: 18 §2.12.1 (diakses `researcher` 12 November 2026). Hanya baris berstatus "lolos SEC-138" yang tampil di halaman Bantuan; baris lain tampil sesudah verifikasinya dicatat bertanggal.
+
+| Layanan | Untuk | Yang ditulis di halaman Bantuan | Status SEC-138 |
+|---|---|---|---|
+| **Healing119** (Kementerian Kesehatan) | Dukungan kesehatan jiwa, pencegahan bunuh diri; pertolongan pertama psikologis, bukan terapi jangka panjang | "119 ekstensi 8", gratis, 24 jam dengan kemungkinan antre; tautan ke healing119.id untuk chat (nomor WhatsApp tidak diterbitkan di situs resmi, jadi tidak ditulis). Bagi anggota di luar negeri, tautan chat lebih andal daripada panggilan | **Lolos**: **[Terverifikasi]** di healing119.id dan FAQ Kemenkes (18 §2.12.1). Sebutan lama "dahulu SEJIWA" dihapus karena tidak ada di halaman yang dibaca |
+| **SAPA 129** (Kementerian PPPA) | Pengaduan kekerasan terhadap perempuan dan anak | Belum ditulis. Sesudah lolos: nomor dan WhatsApp yang terbaca di situs penyelenggara; jam layanan hanya bila tertulis di sana | **Belum lolos**: nomor 129 dan WhatsApp 08111-129-129 terbaca di setkab.go.id dan infopublik.id, bukan di situs penyelenggara (situs KemenPPPA menolak alat peneliti, HTTP 403); jam layanan dan selisih "129" lawan "021-129" **[Perlu validasi]**. Pemilik produk atau operator membuka situs KemenPPPA dari peramban biasa atau menelepon 129 sekali, lalu mencatat hasilnya bertanggal (18 §6.4 butir 9), sebelum pilot memproses data nyata |
+| **110** (Polri) | Keadaan darurat, kejahatan, gangguan ketertiban | "110", gratis, 24 jam | **Lolos**: **[Terverifikasi]** di inp.polri.go.id (18 §2.12.1) |
+| 112 | Panggilan darurat terpadu | **Tidak ditulis sebagai nomor nasional.** Per Maret 2025 tersedia di 161 kabupaten dan kota (siaran pers Komdigi, **[Terverifikasi]** per tanggal itu; cakupan terkini **[Perlu validasi]**) | Tidak dipakai di pilot |
+| 119 (gawat darurat medis) | Ambulans, PSC | Tidak ditulis | **[Perlu validasi]**: hanya cuplikan pencarian |
+
+### 1.8 Lintas batas (UU PDP Pasal 56; PP 33/2026)
+
+| Jalur | Sebelum PP berlaku | Sesudah PP berlaku (16 atau 17 Januari 2027) | Pertanyaan advokat |
+|---|---|---|---|
+| R1: pembuatan kumpulan tanpa data rumah tangga | Bukan transfer data pribadi menurut bacaan dokumen ini **[Usulan]** | Sama | L-32 |
+| R2: penyedia di luar negeri (Anthropic, PBC; OpenAI) | Jenjang persetujuan UU Pasal 56 ayat (4) tersedia menurut bunyi UU; izin eksplisit Apple 5.1.2(i) | Jenjang 1 dan 2 menunggu Lembaga; jenjang persetujuan dibatasi Pasal 173 (tidak berulang; memberi tahu Lembaga) **[Perlu validasi]** | L-26 (sebelum PP berlaku); L-05, L-06, L-18, L-19 |
+| R2 lewat Bedrock Jakarta | Pihak kontrak PT Amazon Web Services Indonesia, perutean global (18 §5.9) | Sama | L-16 (18 §2.8 tinjauan butir 5) |
+| APNs dan FCM | Token perangkat dan teks umum lewat Apple dan Google | Sama | L-16 |
+| VPS dan cadangan | Penyedia berbadan hukum dan berpusat data di Indonesia; pihak kontrak dicatat di ADR hosting (18 §2.8 baris (b)) | Sama | L-16 |
+
+---
+
+## 2. Kepatuhan toko aplikasi
+
+Sumber: 18 §2.4 dan §2.10 (**[Terverifikasi]** untuk bunyi halaman yang dibaca). Ini kebijakan toko, bukan hukum.
+
+| ID | Persyaratan | Toko | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-140 | Hapus akun dapat dimulai di dalam aplikasi (SEC-105); Google juga meminta tautan web untuk permintaan hapus | Apple 5.1.1(v); Google | Di aplikasi: pilot. Tautan web: sebelum Play produksi | Terverifikasi (18) | SEC-105 |
+| SEC-141 | Label privasi Apple mencantumkan, semuanya **tertaut ke pengguna**: Health ("other user provided health or medical data"; `CARE`), Other Financial Info, Emails or Text Messages (chat), Photos or Videos, Other User Content, Contact Info (email akun), Identifiers (token perangkat), dan data diagnostik bila laporan galat dinyalakan (SEC-49). Tidak ada pelacakan | Apple | Sebelum kiriman ke App Store; draf sebelum pilot | 18 §2.10 butir 4 | Label dibandingkan dengan tabel 10.2 §1 |
+| SEC-142 | Data safety Google mencantumkan Health info, Financial info, Messages, Photos, App info and performance (bila laporan galat), Personal info (email), Device IDs; terenkripsi saat transit; dapat diminta hapus. Prosesor yang bekerja atas instruksi (hosting, push) tidak dideklarasikan sebagai "sharing" (18 §2.4) | Google | Sebelum jalur selain internal testing (internal testing dikecualikan, 18 §2.4); draf sebelum pilot | 18 §2.4, §2.10 | Formulir dibandingkan dengan tabel 10.2 §1 |
+| SEC-143 | Deklarasi aplikasi kesehatan Google Play diisi (wajib bagi semua pengembang, termasuk jalur pengujian; 18 §2.10); kategori dipilih setelah `CARE` final (tidak ada kategori suasana hati) **[Perlu validasi]**. Deskripsi toko menyatakan aplikasi bukan alat medis, tidak mendiagnosis, dan menganjurkan berkonsultasi ke tenaga kesehatan (18 §2.4) | Google | Sebelum aplikasi Android pertama di Play, termasuk pengujian | 18 §2.4, §2.10 | Formulir terisi; deskripsi ditinjau |
+| SEC-144 | Izin eksplisit sebelum data pribadi dikirim ke `AI` pihak ketiga (Apple 5.1.2(i)). Pada R1 tidak ada data pribadi yang dikirim; penjelasan tetap tampil (SEC-126) | Apple | Pilot (penjelasan); R2 (izin) | 18 §2.8, §2.10 | SEC-126 |
+| SEC-145 | Data kesehatan (`CARE`) tidak dipakai untuk iklan, pemasaran, atau penambangan data, dan **tidak disimpan di iCloud** (Apple 5.1.3; 18 §2.4), yang juga dijaga SEC-46 (basis data lokal dikecualikan dari cadangan awan). Tidak memakai HealthKit atau Health Connect | Apple, Google | Pilot | 18 §2.4 | Cadangan iCloud perangkat uji tidak memuat basis data aplikasi |
+| SEC-139 | Kebijakan privasi di URL publik (bukan PDF, tanpa geofence) dan di dalam aplikasi, memuat data yang dikumpulkan, penggunaannya, prosesor, retensi (10.3 §3.2), penghapusan, dan cara menarik persetujuan (Apple 5.1.1(i); Google User Data; 18 §2.4). Kebijakan privasi, syarat layanan, halaman Bantuan, dan petunjuk penggunaan tersedia **dalam bahasa Indonesia** (Permenkominfo 5/2020 Pasal 9 ayat (2), §3.4; sejalan dengan brief §1). Disusun dari dokumen ini; teksnya ditinjau advokat bersama L-03, L-17 | Ops | Sebelum pilot memproses data nyata (versi pilot); sebelum publik (versi publik) | 18 §2.4 | Dokumen ada |
+| SEC-146 | Izin perangkat minimum: notifikasi, kamera saat dipakai, biometrik untuk kunci aplikasi; tanpa lokasi, kontak, mikrofon, atau baca galeri penuh (SEC-67) | Apple, Google | Pilot | **[Usulan]** | Daftar izin |
+
+Fitur `AI` Tier 2 berada di luar cakupan kebijakan AI-Generated Content Google Play menurut contoh "AI-suggested email drafts" (18 §2.10 butir 3); percakapan nasihat terbuka (Tier 3) dinilai ulang, termasuk kewajiban pelaporan konten `AI` di dalam aplikasi. Aplikasi tidak masuk Kids Category dan tidak mendeklarasikan anak sebagai target audiens (18 §2.4 butir 5).
+
+Rating usia toko (Apple 18+, deskriptor "Dating and Relationships", target audiens Google): SEC-83 di 10.3 §1.2.
+
+### 2.1 Apple Guideline 1.2 pada chat rumah tangga (keputusan 10-G)
+
+**Fakta.** Bunyi 1.2 meminta aplikasi yang memungkinkan pengguna membuat atau membagikan konten memiliki: penyaringan materi yang tidak pantas sebelum terunggah, mekanisme melaporkan konten dan tanggapan tepat waktu, kemampuan memblokir pengguna yang kasar dari layanan, dan kontak yang dipublikasikan. Tidak ada pengecualian bagi grup tertutup, khusus undangan, atau pribadi (**[Terverifikasi]** untuk bunyinya, 18 §2.12.4). Apakah App Review menerapkannya pada chat antar-anggota satu rumah tangga belum diketahui (**[Perlu validasi]**; 18 §6.4 butir 10). Di Indonesia, Permenkominfo 5/2020 mewajibkan PSE lingkup privat *user generated content* menyediakan sarana pelaporan yang dapat diakses publik (Pasal 10; §3.4 di bawah); apakah chat tertutup menjadikan Family OS PSE seperti itu adalah L-38.
+
+**Ketegangan dengan rancangan.** (a) Penyaringan lawan SEC-135: server tidak memindai teks atau foto. (b) Blokir lawan brief §4.2 sesudah 12 November 2026 ("member exit") dan 06 INV-A48: tidak ada orang dewasa yang mengeluarkan orang dewasa lain; di rumah tangga dua orang, memblokir berarti memutus satu-satunya lawan bicara, dan tombol "keluarkan" adalah alat kendali (06, paragraf "PG-13 dirumuskan ulang"). (c) Pelaporan: di pilot pengelola server adalah anggota rumah tangga (keputusan 25), jadi "lapor ke pengelola" berarti lapor kepada pasangan, yang mungkin justru orang yang dilaporkan.
+
+**Rekomendasi [Usulan] `security-privacy` (pilihan A pada 10-G):** penuhi tujuan 1.2 dengan padanan yang tidak membaca isi dan tidak mengeluarkan orang dewasa.
+
+| Unsur 1.2 | Padanan di Family OS | Persyaratan | Pilot atau publik |
+|---|---|---|---|
+| Blokir pengguna | (1) **Sembunyikan untuk saya**: setiap anggota dapat menyembunyikan pesan bebas dan foto dari anggota tertentu di layarnya sendiri; (2) **keluar dari rumah tangga** (F06) sebagai pemutus terakhir, dengan ekspornya | SEC-153; 06 F06 | Pilot |
+| Penyaringan | Tidak ada pemindaian server (SEC-135). Foto dari anggota lain diburamkan di perangkat penerima bila ia menyalakan peringatan konten sensitif sistem operasi; hasil analisis tidak pernah keluar dari perangkat. iOS: Sensitive Content Analysis, hanya bekerja bila pengguna sendiri menyalakan setelannya (**[Terverifikasi]**, 18 §2.12.5). Android: `ContentSafetyManager` ada, ketersediaannya di Galaxy A55 **[Perlu validasi]** (18 §2.12.5) | SEC-153 butir (d) | Sebelum TestFlight eksternal atau App Store |
+| Lapor dan tanggapan | **Laporkan**: pelapor memilih pesan atau foto tertentu yang ia kirim ke kontak pengelola; tidak ada yang terkirim otomatis; yang dilaporkan tidak diberi tahu oleh aplikasi (kewajiban memberi tahu menurut Permenkominfo 5/2020 Pasal 10 ayat (4) huruf c: L-38). Selama pengelola anggota rumah tangga pelapor (pilot), tombol ini membuka halaman Bantuan (SEC-134), bukan pengelola; laporan tidak pernah sampai ke orang yang dilaporkan | SEC-154 | Lapor ke pengelola: sebelum TestFlight eksternal atau App Store; Bantuan: pilot |
+| Kontak dipublikasikan | Kontak pengelola di kebijakan privasi, halaman toko, dan halaman Bantuan (yang terakhir hanya bila pengelola bukan anggota rumah tangga pembaca, SEC-154 (c)) | SEC-154 | Sebelum kiriman toko pertama |
+| Penjelasan untuk peninjau | Catatan App Review: chat hanya terbuka bagi anggota yang diundang dan dikukuhkan (06 F04), beserta ketiga mekanisme di atas (18 §2.12.4 butir 3) | SEC-154 | Sebelum TestFlight eksternal atau App Store |
+
+**Pilot.** Pilot memakai TestFlight **internal** (ADR-022; 09 indeks §8 (e)): pemilik produk dan istrinya penguji internal. Dokumentasi Apple hanya menyebut Beta App Review untuk penguji eksternal ("A review is required only for the first build" pada grup eksternal); bahwa build internal bebas review tidak dinyatakan eksplisit oleh Apple (**[Perlu validasi]**, 18 §2.12.6). Akibatnya bagi dokumen ini:
+
+- SEC-153 (d) dan SEC-154 (a), (b), (d) sampai (f) **wajib sebelum build pertama dikirim ke grup TestFlight eksternal atau ke App Store**, bukan sebelum pilot. SEC-153 (a) sampai (c), (e) dan SEC-154 (c) tetap wajib di pilot, karena melindungi pasangan pilot sendiri, bukan karena peninjau.
+- Agar dapat menjadi penguji internal, istri pemilik produk harus menjadi pengguna App Store Connect dengan salah satu peran Account Holder, Admin, App Manager, Developer, atau Marketing (18 §2.12.6). **Syarat [Usulan]:** ia diberi **peran tersempit** yang cukup untuk menjadi penguji internal, dibatasi pada aplikasi ini saja, tanpa hak mengelola pengguna; hak akses tiap peran belum dibaca (**[Perlu validasi]**), jadi peran yang dipakai dicatat di runbook rilis sesudah diperiksa di App Store Connect. Peran itu tidak memberi akses ke server, basis data, atau data aplikasi; hal itu tetap diatur SEC-33 dan keputusan 25.
+- Bila suatu saat salah satu dari mereka dipindah ke grup eksternal, atau ada penguji di luar rumah tangga pilot, syarat butir pertama berlaku lebih dulu.
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-153 | **Sembunyikan untuk saya** (padanan blokir, 10-G A): (a) setiap anggota dapat menyembunyikan pesan bebas dan foto dari satu anggota lain di perangkat dan akunnya sendiri, dan membatalkannya kapan saja; (b) **senyap**: tidak menghasilkan Peristiwa, notifikasi, atau perubahan apa pun yang terbaca anggota itu; tanda dibaca tetap mengikuti tanda air 06 §16.5, sehingga pesan tersembunyi yang berada di bawah tanda air tampil "dibaca" bagi pengirimnya (dinyatakan di layar menyembunyikan, karena kalau tidak, menyembunyikan akan terlihat dari tanda yang membeku); (c) **kartu objek tidak ikut tersembunyi**: permintaan, persetujuan, dan serah terima tetap tampil di "Menunggu kamu" dan di chat, karena menyembunyikannya membuat orang tidak dapat menanggapi dan aturan diam bukan persetujuan (06 PG-04) tetap berlaku; notifikasi pesan bebas dari anggota itu berhenti; (d) **peringatan konten sensitif di perangkat penerima** (18 §2.12.5): foto dari anggota lain, di chat maupun sebagai lampiran objek, diperiksa API sistem operasi sebelum ditampilkan dan, bila ditandai, diburamkan sampai penerima memilih membukanya. **iOS**: framework Sensitive Content Analysis (iOS 17 ke atas; entitlement `com.apple.developer.sensitivecontentanalysis.client` di tanda tangan kode). Deteksi hanya bekerja bila **pengguna sendiri** menyalakan Sensitive Content Warning (atau Communication Safety) di setelan sistem; selain itu `analysisPolicy` bernilai `disabled` dan foto tampil seperti biasa. Aplikasi **tidak** menambah setelan sendiri dan tidak menanyakan atau menampilkan apakah setelan itu menyala (**[Terverifikasi]** untuk perilaku API). **Android**: `ContentSafetyManager` dipakai hanya bila API ada dan `isContentSafetyEnabled()` benar; hasil `TYPE_UNCLASSIFIED` atau API yang tidak ada berarti foto tampil seperti biasa; ketersediaannya di Galaxy A55 **[Perlu validasi]**. Di kedua platform: tanpa model deteksi buatan sendiri dan tanpa SDK pihak ketiga (SEC-49); **hasil analisis tidak pernah keluar dari perangkat** (juga larangan Apple): tidak dikirim ke server, tidak masuk basis data yang disinkron, log, Peristiwa, ekspor, atau `AI`, dan pengirim tidak diberi tahu bahwa fotonya diburamkan. Bahwa analisis iOS berjalan di perangkat tersirat dari larangan itu, tidak dinyatakan Apple (**[Perlu validasi]**); (e) setelan ini pribadi seperti SEC-19 dan tidak keluar ke ekspor siapa pun selain pemiliknya | 08, 09 | Pilot: (a) sampai (c), (e); (d) sebelum build pertama ke TestFlight eksternal atau App Store (§2.1 "Pilot") | **[Usulan]**; 18 §2.12.4, §2.12.5 | A menyembunyikan B: B mengirim pesan, foto, dan permintaan; layar A tidak menampilkan pesan dan foto tetapi menampilkan kartu permintaan; tidak ada data yang dapat dibaca B yang berbeda dibanding sebelum menyembunyikan; batalkan: pesan tampil lagi. (d): di iPhone uji dengan Sensitive Content Warning mati, foto uji tampil biasa; menyala, foto uji diburamkan; dalam kedua keadaan, rekaman lalu lintas jaringan dan basis data lokal yang disinkron tidak memuat hasil analisis |
+| SEC-154 | **Lapor dan kontak** (10-G A): (a) tombol "Laporkan" pada pesan atau foto mengirim ke kontak pengelola hanya butir yang dipilih pelapor beserta pengenal laporan; tidak ada salinan otomatis isi chat lain; (b) laporan tidak menghasilkan Peristiwa atau notifikasi kepada anggota yang dilaporkan; (c) selama pengelola server adalah anggota rumah tangga pelapor (pilot, keputusan 25), tombol itu membuka halaman Bantuan dan jalan keluar, bukan pengelola, dan kontak pengelola tidak ditampilkan di aplikasi bagi rumah tangga itu; aturan umumnya: **laporan tidak pernah dialirkan kepada orang yang dilaporkan**, dan kontak pengelola tampil di aplikasi hanya bila pengelola bukan anggota rumah tangga pembaca; (d) kontak pengelola dipublikasikan di halaman Bantuan (dengan syarat (c)), kebijakan privasi, dan halaman toko; (e) runbook tanggapan laporan menyebut tenggat menanggapi pelapor **[Asumsi]** 3 x 24 jam, dan menyerahkan kewajiban Permenkominfo 5/2020 Pasal 10 ayat (4) kepada jawaban L-38; (f) catatan App Review disiapkan | 08, 09, Ops | (c): pilot. (a), (b), (d) sampai (f): sebelum build pertama ke TestFlight eksternal atau App Store (§2.1 "Pilot"; pilot memakai TestFlight internal, ADR-022) | **[Usulan]**; 18 §2.12.4, §2.12.6; Permenkominfo 5/2020 Pasal 10 (§3.4) | Laporkan satu pesan: kontak pengelola menerima butir itu saja; anggota lain tidak menerima apa pun; di konfigurasi pilot tombol membuka Bantuan, Bantuan tidak menampilkan kontak pengelola, dan pengelola tidak menerima apa pun |
+
+---
+
+## 3. Ringkasan regulasi dan pertanyaan advokat
+
+### 3.1 Regulasi
+
+| Aturan | Status (dari 18) | Yang menyentuh Family OS | Jawaban rancangan | Advokat |
+|---|---|---|---|---|
+| UU 27/2022 (PDP) | Berlaku, masa penyesuaian lewat **[Terverifikasi]** (18 §2.1) | Data spesifik (kesehatan, anak, keuangan); dasar pemrosesan dan persetujuan; hak subjek 3 x 24 jam; hapus dan musnahkan; DPIA; pemberitahuan kegagalan 3 x 24 jam; prosesor; transfer | Dirancang **seolah pengecualian rumah tangga tidak berlaku** (18 §2.1); persetujuan sebagai data (FR-FAM-019, FR-AI-005); ekspor dan hapus di aplikasi; SEC-148 sampai SEC-150 | L-01, L-02, L-03, L-04, L-11, L-20 |
+| PP 33/2026 | Salinan teks **[Perlu validasi]**; berlaku 16 atau 17 Januari 2027 | Penghapusan termasuk cadangan (Penjelasan Pasal 82); DPIA sebelum pemrosesan (Pasal 121); prosesor 11 butir (Pasal 14); transfer (Pasal 160 sampai 173); dokumen pengendali (Pasal 74, 75, 117, 138) | SEC-43, SEC-96, SEC-97; R1 (§1.2); SEC-149 | L-05, L-06, L-12, L-16, L-18, L-19, L-21, L-26, L-34 |
+| PP 17/2025, Permen Komdigi 9/2026, Kepmen Komdigi 142/2026 | **[Terverifikasi]** (18 §2.2, §2.9) | "Mungkin digunakan anak": indikator A sampai E | SEC-80 sampai SEC-85 | L-07 sampai L-10, L-27 sampai L-30 |
+| Permenkominfo 5/2020 (PSE lingkup privat) | Naskah 2020 **[Terverifikasi]**: halaman 1–37 dibaca seluruhnya oleh `researcher` (18 §2.11, "Pasal kewajiban"); halaman 38–41 serta perubahan 10/2021 dan sesudahnya **[Perlu validasi]** | Pendaftaran sebelum dipakai, dengan sanksi pemutusan akses bila tidak (Pasal 7 ayat (2)); petunjuk penggunaan berbahasa Indonesia (Pasal 9 ayat (2)); chat = "percakapan dalam jaringan" dan mungkin *user generated content*; sarana pelaporan; pemutusan akses; akses Kementerian dan aparat atas data, termasuk konten komunikasi dengan penetapan pengadilan; rekam jejak audit atas akses itu | SEC-147; SEC-139 (bahasa); SEC-154; SEC-39 (rekam jejak); E2EE ditunda ke ADR sebelum publik (10.2 §4). Pasal 42 mengatur penyedia VPS, bukan aplikasi (§3.4) | L-14, L-38 |
+| PBI 23/6/PBI/2021; POJK 3/2024 | **[Terverifikasi]** (18 §2.11) | Pencatat murni tampak di luar keduanya **[Usulan]**; pemicunya bila kelak ada pembayaran, saldo, atau tarikan rekening | Tidak ada fitur pemicu di Tier 1 sampai 3 yang dirancang | L-13, L-15 |
+| Apple App Store, Google Play | **[Terverifikasi]** (18 §2.4, §2.10) | Hapus akun, label privasi, Data safety, deklarasi kesehatan, izin `AI` | §2 | — |
+| Rencana Perpres `AI` dan Permen label konten `AI` | **[Perlu validasi]**, media (18 §2.10) | Penanda `AI` (brief §5O keputusan 2) | Dipantau sebelum rilis publik | — |
+
+### 3.2 Butir advokat yang ada: mana yang menghalangi pilot
+
+| Kapan perlu jawaban | Butir | Alasan |
+|---|---|---|
+| **Sebelum pilot memproses data nyata** | L-01 (pengecualian rumah tangga), L-14 (pendaftaran PSE, termasuk pilot dan operator perorangan lewat OSS; 18 §2.11 tinjauan butir 2), L-24 (operator yang juga anggota) | L-14: pendaftaran "dilakukan sebelum Sistem Elektronik mulai digunakan" (Permenkominfo 5/2020 Pasal 2 ayat (3), 18 §2.11); bila pilot wajib, memakainya tanpa mendaftar adalah pelanggaran, dan sanksinya pemutusan akses atas sistem (*access blocking*, Pasal 7 ayat (2); 18 §2.11 kesimpulan butir 7), bukan sekadar teguran. L-01 dan L-24 menentukan kewajiban pilot; dokumen ini sudah merancang seolah kewajiban berlaku, jadi jawabannya mengurangi, bukan menambah, pekerjaan |
+| Sebelum R2 dinyalakan | L-05, L-06, L-12, L-18, L-19; L-26 bila R2 dinyalakan sebelum PP 33/2026 berlaku | §1.8 |
+| Sebelum TestFlight eksternal atau App Store | Tidak ada butir advokat; L-38 dianjurkan sebelum bentuk SEC-154 dikunci | §2.1 |
+| Sebelum tahap publik | Semua butir lain, termasuk L-04 dan L-20 (ADR-007 tetap sementara sampai keduanya terjawab), L-32 (R1), dan L-38 | 17 bagian L |
+
+### 3.3 Butir advokat dari dokumen ini dan nomornya di dokumen 17
+
+Semua **[Perlu validasi]**; bukan nasihat hukum. Draf pertama dokumen ini mengusulkan L-26 sampai L-36, yang bertabrakan dengan L-26 sampai L-31 yang sudah dipakai di dokumen 17 (temuan CS-B-01). Butir yang isinya sama dengan butir 17 kini memakai nomor 17; sisanya memakai nomor baru **L-32 sampai L-38**, yang sudah ditulis `product-analyst` di 17 bagian L dengan nomor yang sama (nomor final). Tabel pemetaan lengkap: indeks §7.1.
+
+**Sudah ada di 17 (tidak ditambahkan lagi):** L-14 (kewajiban Permenkominfo 5/2020 bagi "percakapan dalam jaringan", akses aparat, hubungannya dengan enkripsi; diperluas S4), L-26 (persetujuan sebelum PP berlaku untuk `AI` luar negeri; dirujuk §1.8), L-27 (pernyataan usia, indikator B), L-28 (wajib lapor hasil penilaian indikator), L-29 (anak memakai akun orang tua), L-30 (data anak yang dicatat bukan orang tua atau wali).
+
+**Baru dari dokumen ini, kini tertulis di 17 (bunyi 17 yang berlaku):**
+
+| Nomor 17 | Pertanyaan | Asal | Menghalangi |
+|---|---|---|---|
+| L-32 | Apakah membuat kumpulan kalimat lewat penyedia `AI` di luar negeri, dengan prompt tanpa data rumah tangga, lalu memilih kalimat bagi seseorang di server di Indonesia menurut kategori statusnya, bebas dari ketentuan transfer UU 27/2022 Pasal 56 | §1.2 R1 | Tahap publik; pilot memakai R1 dengan risiko rendah yang dinyatakan |
+| L-33 | Apakah ekspor orang yang keluar boleh memuat pesan chat dan rincian (catatan, foto struk) yang ditulis anggota yang tersisa sampai saat ia keluar, mengingat PP 33/2026 Pasal 76 ayat (2) ("tidak berdampak bagi pengungkapan Data Pribadi orang lain"); dan kedudukan chat sebagai bukti dalam perpisahan (melengkapi L-22) | SEC-102; SP-62 (a), (c) | Tahap publik; pilot memakai bawaan SEC-102 |
+| L-34 | Apakah penghapusan yang sampai ke cadangan lewat berakhirnya umur set cadangan (paling lama 38 hari, SEC-96), dengan pemulihan yang menjalankan ulang penghapusan, memenuhi Penjelasan PP 33/2026 Pasal 82 ("termasuk salinan cadangan") | SEC-96, SEC-97 | Tahap publik |
+| L-35 | Hak ahli waris atas data pribadi anggota yang wafat (buku pribadi, `CARE`, chat), dan apakah prosedur SEC-106 (dihapus tanpa dibaca siapa pun) sah | SEC-106; PA-FAM-6 | Tahap publik |
+| L-36 | Berapa lama bukti persetujuan (pemberitahuan operator, berbagi, izin `AI`, pernyataan usia) harus disimpan sesudah akun dihapus (UU 27/2022 Pasal 24; PP 33/2026 Pasal 36) | SEC-109 | Tahap publik |
+| L-37 | Hak pemilik status kepedulian atas keterangan tentang kesehatannya di dalam pesan pasangan yang tetap ada sesudah statusnya dihapus (Q-153; SP-56 (d)) | SEC-68 | Tahap publik |
+| L-38 | Permenkominfo 5/2020 (§3.4): apakah chat tertutup antar-anggota satu rumah tangga menjadikan Family OS "PSE Lingkup Privat *User Generated Content*" (Pasal 1 angka 7); bila ya, (a) apakah sarana pelaporan yang "dapat diakses oleh publik" (Pasal 10 ayat (3)) terpenuhi oleh SEC-154, (b) apakah kewajiban "memberikan pemberitahuan kepada Pengguna Sistem Elektronik" atas laporan terhadap kontennya (Pasal 10 ayat (4) huruf c) dapat ditunda atau ditiadakan bila pemberitahuan itu membahayakan pelapor yang serumah, (c) bagaimana pemutusan akses dalam 1 x 24 jam atau 4 jam (Pasal 15 ayat (6), (8)) dijalankan atas chat yang tidak dipindai server, dan (d) apakah pilot dua orang tercakup. Juga untuk ADR E2EE: apakah pemberian akses Konten Komunikasi dan Data Pribadi Spesifik atas penetapan ketua pengadilan negeri (Pasal 36 ayat (3) sampai (5)) mewajibkan PSE mampu membuka isi yang dienkripsi end-to-end | §2.1; §3.4; 10.2 §4; SEC-153, SEC-154 | Tahap publik; sebelum ADR E2EE |
+
+### 3.4 Permenkominfo 5/2020: pasal kewajiban yang dibaca (18 §6.4 butir 7)
+
+**Sumber.** Naskah 2020 dari [jdih.komdigi.go.id](https://jdih.komdigi.go.id/produk_hukum/unduh/id/759/t/peraturan+menteri+komunikasi+dan+informatika+nomor+5+tahun+2020) (berkas PDF 41 halaman). Sumber kanonisnya kini **18 §2.11, tabel "Pasal kewajiban Permenkominfo 5/2020"**: `researcher` membaca halaman 1–37 seluruhnya (pembukaan sampai Pasal 45 ayat (2)), diakses 12 November 2026, dan mencocokkannya dengan bacaan pertama dokumen ini. Hasilnya cocok kecuali satu koreksi (Pasal 42, di bawah). Tabel ini hanya ringkasan **penerapan** pada Family OS; bunyi pasal dikutip dari 18. Bunyi itu **[Terverifikasi]** untuk naskah 2020; halaman 38–41 (sisa Pasal 45 sampai akhir, termasuk Pasal 47) dan perubahan oleh Permenkominfo 10/2021 serta sesudahnya **tidak dibaca**: setiap pasal **[Perlu validasi]** terhadap naskah yang berlaku. Ini bacaan, bukan nasihat hukum; penerapannya pada Family OS adalah L-14 dan L-38.
+
+**Kewajiban operator aplikasi (PSE lingkup privat)**
+
+| Pasal (halaman) | Bunyi atau isi | Yang menyentuh Family OS **[Usulan]** |
+|---|---|---|
+| 1 angka 7 (hlm. 3) | "PSE Lingkup Privat *User Generated Content* adalah PSE Lingkup Privat yang penyediaan, penayangan, pengunggahan, dan/atau pertukaran Informasi Elektronik dan/atau Dokumen Elektroniknya dilakukan oleh Pengguna Sistem Elektronik." | Chat, foto, dan catatan diunggah dan dipertukarkan pengguna; definisinya tidak menyebut sifat terbuka atau tertutup. L-38 |
+| 1 angka 18, 19, 20 (hlm. 5–6) | Data Lalu Lintas (asal dan tujuan, alamat IP, waktu mulai dan berakhir, ukuran, jenis layanan "seperti surel, layanan pesan instan"); Informasi Pengguna (identitas, alamat, email, nomor telepon); Konten Komunikasi (yang dikirim atau diterima pengguna "selain Data Lalu Lintas ... dan Informasi Pengguna") | Log server (SEC-44) memuat alamat jaringan 14 hari, yaitu Data Lalu Lintas; isi chat adalah Konten Komunikasi |
+| 7 ayat (1)–(2) (hlm. 11) | Menteri mengenakan sanksi kepada PSE yang "tidak melakukan pendaftaran", berupa "Pemutusan Akses terhadap Sistem Elektronik (*access blocking*)" | **Memperberat L-14**: bila pilot termasuk PSE yang wajib mendaftar, memakainya tanpa pendaftaran dapat berakibat sistemnya diblokir, bukan hanya teguran. Karena itu L-14 tetap butir yang harus dijawab sebelum pilot memproses data nyata (§3.2; keputusan 10-C) |
+| 9 ayat (2) (hlm. 13) | "PSE Lingkup Privat wajib menyediakan petunjuk penggunaan layanan dalam bahasa Indonesia sesuai dengan ketentuan perundang-undangan." | Sudah sejalan dengan brief §1 (bahasa Indonesia lebih dulu); dikunci di SEC-139 untuk kebijakan privasi, syarat layanan, Bantuan, dan petunjuk penggunaan |
+| 9 ayat (3), (4) (hlm. 14) | PSE "wajib memastikan" sistemnya tidak memuat dan tidak memfasilitasi penyebarluasan informasi yang dilarang (melanggar peraturan; meresahkan masyarakat dan mengganggu ketertiban umum; memberitahukan cara mengakses yang dilarang) | Tanpa pemindaian (SEC-135), pemenuhannya lewat laporan dan pemutusan atas permintaan; L-38 |
+| 10 ayat (1)–(5) (hlm. 14–16) | PSE UGC "wajib": tata kelola (hak dan kewajiban pengguna dan PSE, tanggung jawab atas konten yang diunggah, sarana dan penyelesaian pengaduan) dan "menyediakan sarana pelaporan" yang "harus dapat diakses oleh publik"; atas laporan, PSE wajib menanggapi pelapor, memeriksa, "memberikan pemberitahuan kepada Pengguna Sistem Elektronik mengenai aduan dan/atau laporan" atas konten yang ia unggah, dan menolak laporan atas konten yang tidak dilarang; ayat (5): yang tidak memenuhinya diputus aksesnya | SEC-154 (lapor dan kontak); syarat layanan sebagai tata kelola (SEC-139). Kewajiban memberi tahu yang dilaporkan bertentangan dengan keselamatan pelapor serumah: L-38 (b) |
+| 11 (hlm. 16) | PSE UGC "dapat dibebaskan" dari tanggung jawab hukum atas konten terlarang bila memenuhi Pasal 9 ayat (3) dan 10, memberikan Informasi Pengguna yang mengunggahnya untuk pengawasan atau penegakan hukum, dan melakukan pemutusan akses | — |
+| 13, 15 ayat (6), (8); 16 ayat (7), (9) (hlm. 17–23) | Wajib *take down* konten terlarang; atas perintah Menteri "paling lambat 1 x 24 ... jam"; untuk yang mendesak (terorisme, pornografi anak, konten yang meresahkan masyarakat) "paling lambat 4 (empat) jam setelah peringatan diterima"; tenggat yang sama untuk permohonan Kementerian atau Lembaga, aparat penegak hukum, dan lembaga peradilan (Pasal 16) | Operator perorangan harus dapat dihubungi dan menghapus satu pesan atau foto dalam tenggat itu; runbook SEC-148 dan SEC-154 (e) |
+| 21, 25 (hlm. 26–29) | Wajib memberi akses atas Sistem Elektronik dan/atau Data Elektronik kepada Kementerian atau Lembaga (pengawasan) dan Aparat Penegak Hukum (penegakan hukum); wajib menunjuk paling sedikit satu Narahubung berdomisili di Indonesia | Tahap publik: Narahubung dicatat di SEC-147 |
+| 36 ayat (1)–(5), 37 (hlm. 33–34) | Data Lalu Lintas dan Informasi Pengguna diberikan atas permintaan resmi APH; **Konten Komunikasi** dan **Data Pribadi Spesifik** hanya bila permintaan melampirkan antara lain "surat penetapan dari ketua pengadilan negeri"; dipenuhi paling lambat 5 hari kalender | Isi chat, `CARE`, dan data keuangan pribadi termasuk kelas yang memerlukan penetapan pengadilan. Hubungannya dengan E2EE: L-38 dan L-14 |
+| 32, 33 (hlm. 31–32) | Akses APH terbatas pada tindak pidana dengan ancaman penjara paling singkat 2 tahun (data) dan 5 tahun, atau 2 sampai 5 tahun dengan penetapan pengadilan (sistem) | — |
+| 34 (hlm. 32) | PSE yang mengelola data atau sistem "di luar wilayah Indonesia" tetap memberi akses untuk Pasal 32 dan 33 | Tidak relevan selama server dan cadangan di Indonesia (ADR-020; 18 §2.11 kesimpulan butir 10) |
+| 43, 44 (hlm. 36–37) | PSE "wajib memiliki rekam jejak audit mengenai penggunaan akses" oleh Kementerian atau Lembaga dan oleh Aparat Penegak Hukum | SEC-39 butir (d) |
+
+**Kewajiban penyedia komputasi awan (penyedia VPS dan tujuan cadangan), bukan aplikasi**
+
+Draf sebelumnya menggabungkan Pasal 42 dengan Pasal 32 dan 33 sebagai batas ancaman pidana bagi aplikasi. Itu salah kelompok (koreksi 18 §2.11, kesimpulan butir 6): Pasal 42 mengatur **Penyelenggara Komputasi Awan**.
+
+| Pasal (halaman) | Bunyi atau isi (18 §2.11) | Yang menyentuh Family OS **[Usulan]** |
+|---|---|---|
+| 42 (hlm. 36) | "Penyelenggara Komputasi Awan wajib memberikan Akses ... dalam rangka penegakan hukum"; kewajiban itu "hanya untuk keperluan situasi darurat terkait" terorisme, pornografi anak, perdagangan orang, *organized crime*, dan situasi yang mengancam nyawa | Kewajiban ini milik penyedia VPS dan penyedia tujuan cadangan (ADR-020), bukan operator aplikasi, dan dapat dijalankan **tanpa melalui operator**. Tidak menambah persyaratan baru; ia menambah alasan bagi persyaratan yang sudah ada: cadangan dienkripsi sebelum meninggalkan VPS dengan kunci terpisah dari tujuannya (SEC-43), enkripsi disk (SEC-45), dan bahan bagi ADR E2EE sebelum publik (10.2 §4; L-38). Pemberitahuan pengelola server (SEC-34) dan kebijakan privasi (SEC-139) menyebut bahwa penyedia hosting tunduk pada kewajiban akses hukumnya sendiri **[Usulan]**; bunyinya ditinjau advokat bersama L-14 |
+
+Tidak ditemukan ketentuan tentang enkripsi atau kewajiban membuka isi terenkripsi di halaman 1–37 (18 §2.11, baris "Enkripsi"); halaman 38–41 **[Perlu validasi]**.
+
+---
+
+## 4. Sembilan perilaku brief §8
+
+Setiap perilaku dirumuskan dari aturan yang sudah kanonis; dokumen ini menambah sisi keamanan dan privasinya. "A" dan "B" adalah dua anggota dewasa penuh; semua aturan simetris.
+
+### 4.1 Pasangan berpisah
+
+| Hal | Perilaku |
+|---|---|
+| Pemicu | Salah satu, misalnya A, memutuskan keluar. Tidak ada perintah bagi B untuk mengeluarkan A atau sebaliknya (06 INV-A48; FR-FAM-016). Sebelum memutuskan keluar, A dapat menyembunyikan pesan B untuk dirinya sendiri (SEC-153) |
+| Langkah | A menjalankan F06 dengan kredensial akun (SEC-13), sesudah membaca akibatnya dan ditawari ekspor (FR-FAM-012/AC-1). Akses A berakhir seketika. Masa tenggang 7 hari **[Asumsi]**, hanya A yang dapat membatalkan (F08). F07 pada hari ke-7: `exit_closure` atas klaim terbuka (tidak menyatakan lunas), buku pribadi ditutup, `CARE` dihapus, chat ditutup. Pengecualian yang diterima: bila A sendiri memilih hapus seketika pada F06, F07 berjalan dalam transaksi yang sama (10.3 §3.1) |
+| Uang | Pembagian harta adalah keputusan keluarga atau hukum, bukan aturan aplikasi (07 §8.2 butir 5); kedudukan `exit_closure` dan catatan sebagai bukti: L-22, L-33 |
+| Yang diberi tahu | B: satu baris di ringkasan berikutnya (SEC-56), bukan push seketika |
+| Data | Jalan ekspor A terbuka sejak F06 sampai hari ke-90 sesudah F07, termasuk chat dan rincian (SEC-101, SEC-102). B tetap memegang buku rumah tangga; B tidak pernah membaca buku pribadi atau `CARE` A |
+| Penyalahgunaan | B tidak dapat menahan kepergian A (06 INV-A35); tidak dapat membatalkannya; tidak dapat menyatakan A "tidak akan kembali" (SEC-106). Bila keduanya ingin "memegang" rumah tangga, aplikasi tidak memutuskan; yang ingin pergi membuat rumah tangga baru |
+
+```mermaid
+sequenceDiagram
+    participant A as A (yang pergi)
+    participant S as Server
+    participant B as B (yang tinggal)
+    A->>S: F06 + kredensial akun (+ pilih ekspor)
+    S->>S: akses A berakhir di semua sesi; tanpa langkah yang merusak
+    S-->>B: (tanpa push) layar keanggotaan: "sudah keluar"
+    Note over S,B: 19.00: satu baris N-26 di ringkasan B
+    alt A berubah pikiran dalam 7 hari
+        A->>S: F08 + kredensial akun
+        S->>S: keanggotaan pulih, tanpa notifikasi
+    else hari ke-7
+        S->>S: F07: exit_closure, buku pribadi ditutup, CARE dihapus, chat ditutup
+        A->>S: ekspor (jalan terbuka sejak F06 sampai hari ke-90 sesudah F07)
+        S->>S: hari ke-90 sesudah F07: buku pribadi A dihapus; jalan ekspor tertutup
+    end
+```
+
+### 4.2 Seorang anggota meninggalkan keluarga
+
+| Hal | Perilaku |
+|---|---|
+| Anggota dewasa penuh | Sama dengan 4.1. Tidak ada yang dialihkan kepada anggota yang tersisa: tidak ada kepemilikan rumah tangga yang berpindah, dan buku pribadi, `CARE`, serta setelan yang pergi tidak pernah diserahkan kepada siapa pun (SEC-110) |
+| Anggota yang juga di rumah tangga lain | F06 hanya mengakhiri keanggotaan di rumah tangga itu; sesi dan keanggotaannya di rumah tangga lain tidak berubah, dan tidak ada yang terbaca lintas rumah tangga (SEC-38) |
+| Tanggungan (Tier 3) | Tanpa login, jadi tidak "keluar" sendiri. Profilnya dihapus lewat kesepakatan semua anggota dewasa penuh; catatan yang menyebutnya tetap sebagai catatan rumah tangga |
+| Rumah tangga menjadi kosong | SEC-100 |
+
+### 4.3 Perangkat hilang atau dicuri
+
+| Hal | Perilaku |
+|---|---|
+| Penemu | Data lokal dilindungi kunci perangkat dan proteksi berkas (SEC-46); kunci aplikasi bila menyala (SEC-19); notifikasi umum (SEC-51) |
+| Pemilik | Masuk di perangkat lain, mencabut sesi yang hilang (SEC-16, SEC-21) atau memulihkan akun (SEC-24). Perangkat yang dicabut menghapus datanya saat tersambung |
+| Catatan belum terkirim | Hilang; dinyatakan di layar cabut (FR-FAM-017/AC-3) |
+| Pasangan | Tidak terpengaruh; tidak dapat mencabut sesi atau bertindak atas nama pemiliknya (SEC-22; FR-FAM-017/AC-2) |
+
+### 4.4 Anak berumur 18 tahun
+
+| Hal | Perilaku |
+|---|---|
+| Pilot | Tidak ada akun anak; tidak ada yang terjadi |
+| Tahap publik, tanggungan tanpa login | Tidak ada transisi otomatis (SEC-10 syarat 1). Bila ia akan menjadi anggota, ia diundang seperti orang dewasa lain, menerima sendiri, dan peran yang membuka dana bersama memerlukan kesepakatan semua anggota dewasa penuh. Ia tidak otomatis melihat buku rumah tangga |
+| Data yang dicatat tentang dia | Tetap catatan rumah tangga. Sebagai orang dewasa ia punya hak subjek data atas data tentang dirinya (lewat operator di pilot; SEC-107 di tahap publik); prosedur peralihan status anak (PP 33/2026 Pasal 38 ayat (8), salinan teks): L-10 |
+| Bila kelak ada akun anak (Tier 3) | Segala pemantauan oleh orang tua berakhir pada hari ulang tahun ke-18 menurut tanggal yang dinyatakan; akunnya menjadi akun dewasa hanya dengan persetujuannya sendiri; dirancang di dokumen ini sebelum akun anak dibangun (L-08 sampai L-10) |
+
+### 4.5 Admin kehilangan akses
+
+| Hal | Perilaku |
+|---|---|
+| Kedudukan | Tidak ada admin: setiap anggota dewasa penuh pemilik dengan wewenang identik (keputusan 4; FR-FAM-017) |
+| Anggota lain | Tetap mencatat, menanggapi, membaca; objek yang menunggu orang itu tetap menunggu (PG-04) |
+| Pemulihan | SEC-24; operator tidak memasang kredensial (SEC-26); tidak ada pemulihan darurat oleh anggota lain (SEC-27); setiap pemulihan tercatat di jejak keamanan yang hanya terbaca pemilik akun (SEC-39) |
+| Semua anggota kehilangan akses | Data tetap; masing-masing memulihkan akunnya sendiri; tidak ada yang hilang kecuali catatan belum terkirim |
+
+### 4.6 Transaksi yang dipersoalkan
+
+| Hal | Perilaku |
+|---|---|
+| Jalan | Keberatan D01 dengan alasan dari daftar tertutup, tanpa teks bebas; penjelasan di diskusi yang menempel (06 §8.2) |
+| Pagar | Pihak lain tidak dapat menghapus, menutup, atau menyembunyikannya; tidak ada penutupan otomatis; tidak mengubah angka; koreksi lewat entri pembalik (07 §3.12) |
+| Pengawasan | Tidak ada hitungan keberatan per orang (AT-4; SEC-07) |
+| Sengketa | Aplikasi tidak memutus siapa yang benar (keputusan 7); ekspor dapat dipakai di luar aplikasi |
+| Jejak | Pencatatan, koreksi, keberatan, dan tanggapan tercatat sebagai Peristiwa hanya-menambah yang tidak dapat diubah peran aplikasi (SEC-39), sehingga kedua pihak membaca riwayat yang sama |
+
+### 4.7 Akses yang dicabut
+
+| Hal | Perilaku |
+|---|---|
+| Server | Seketika, tanpa persetujuan, tanpa notifikasi kepada siapa pun (V-7, INV-A36); notifikasi yang masih tertahan untuk data itu gugur (FR-CARE-003/AC-2) |
+| Perangkat yang kehilangan akses | Menghapus salinannya pada sinkron berikutnya (SEC-48); sampai itu perangkat luring masih menampilkannya, dinyatakan di "siapa melihat apa" |
+| Chat | Kartu status hilang bagi keduanya tanpa penanda; balasan tetap sebagai pesan bebas penulisnya (SP-45; SEC-68) |
+| `AI` | Data itu tidak lagi dipakai sejak saat itu (FR-AI-005/AC-3; SEC-124) |
+| Yang tidak dapat ditarik | Yang sudah dibaca, diingat, atau disimpan penerima sendiri |
+
+### 4.8 Pemakaian luring
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-151 | Perintah yang dibuat luring diotorisasi ulang di server saat tiba, menurut keanggotaan, peran, dan visibilitas **saat diterima**, bukan saat dibuat; perintah dari orang yang sudah F06 ditolak (FR-FAM-012/AC-5); balasan atas objek yang sementara itu menyempit menjadi pesan bebas (06 §16.3); hasilnya dilaporkan hanya kepada pengirim. **Jeda urungkan di perangkat** (08 §9.3) tidak mengubah aturan ini: perintah dinilai saat tiba di server, bukan saat dibuat atau saat jeda berakhir. **Perintah pelindung tidak pernah ditahan jeda urungkan** dan dikirim seketika saat tersambung. Daftar kanonisnya: (1) setiap perintah yang **menyempitkan** visibilitas (pencabutan berbagi V-7, hapus status `CARE` yang dibagikan); (2) **menghapus data sendiri**: pesan, rincian, akun (SEC-105); (3) **sembunyikan untuk saya** (`mute_member`, SEC-153); (4) **melaporkan** (`report_content`, SEC-154); (5) **mencabut sesi** (SEC-16, SEC-21); (6) **keluar rumah tangga** (F06); (7) setiap perintah yang memerlukan **autentikasi ulang** (SEC-13). Daftar ini sama dengan 09 berkas 03 §1 ("Perintah yang tidak pernah ditahan"); bila salah satu berubah, keduanya diubah bersama. Urungkan atas penyempitan adalah perintah berbagi baru yang mengikuti aturan perluasan biasa (V-6). **Pesan chat tanpa jeda** (06 P-41) dan `unmute_member` boleh tanpa jeda karena pilihan rasa pakai, bukan karena melindungi; dokumen ini tidak keberatan dengan P-41, karena penulis tetap dapat menghapus pesannya (06 §16.7) dan otorisasi saat tiba berlaku sama. Yang tidak boleh terjadi adalah kebalikannya: perintah dari daftar (1) sampai (7) diberi jeda | 09, 08 | Pilot | 06 §12; 09 berkas 03 §1; **[Usulan]** | Cabut berbagi saat B luring; B membalas kartu status luring; sinkron: balasan tersimpan sebagai pesan bebas tanpa tautan. Cabut berbagi saat tersambung: server menerima pencabutan sebelum 5 detik berlalu. Uji kontrak: setiap jenis perintah di daftar (1) sampai (7) bernilai `hold_seconds = 0` di tabel jenis perintah (09 berkas 03 §1); jenis perintah baru yang menyempitkan, menghapus, atau berautentikasi ulang gagal uji bila nilainya bukan 0 |
+
+Basis data lokal: SEC-46, SEC-47. Kehadiran dan tanda terkirim tidak pernah digerakkan pekerjaan latar (06 §16.5, §16.6).
+
+### 4.9 Suntingan yang bertabrakan
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-152 | Server satu-satunya tempat state berubah (06 S-1); perintah membawa versi dan state yang diharapkan (S-3, S-4); uang hanya-menambah, tanpa last-write-wins (07). **Tanggapan penolakan karena tabrakan tidak memuat data yang tidak terbaca pengirim** (misalnya isi revisi pihak lain atas permintaan yang ia bukan pihaknya, atau keberadaan entri pribadi) | 09 | Pilot | **[Usulan]** | Kirim perintah dengan versi lama atas objek yang kini menyempit: tanggapan hanya `state_changed` tanpa isi |
+
+---
+
+## 5. Bahan DPIA
+
+UU PDP Pasal 34 mewajibkan DPIA bagi pemrosesan data pribadi spesifik dan teknologi baru, termasuk `AI` menurut Penjelasan PP 33/2026 Pasal 120; salinan teks PP meminta dilakukan sebelum pemrosesan (18 §2.1). Dokumen ini ditulis agar dapat menjadi bahannya.
+
+| Isi minimum (PP Pasal 121 ayat (2), salinan teks) | Di mana di dokumen 10 |
+|---|---|
+| Deskripsi kegiatan dan tujuan | 10.1 §1 (aset); 10.2 §1 (kelas data); tujuan dari brief §1.1 |
+| Kebutuhan dan proporsionalitas | 10.2 §1 (yang tidak dikumpulkan); SEC-85; SEC-123; R1 |
+| Risiko terhadap hak subjek | 10.1 §4 (TM-01 sampai TM-30); 10.3 §2.7 |
+| Langkah pelindungan | Semua SEC; indeks §4 (pilot lawan publik) |
+
+| ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
+|---|---|---|---|---|---|
+| SEC-147 | Rencana pendaftaran PSE lingkup privat lewat OSS sebelum tahap publik; untuk pilot menurut jawaban L-14. Rencana itu memuat Narahubung berdomisili di Indonesia (Permenkominfo 5/2020 Pasal 25), jalur menerima perintah pemutusan akses dalam tenggat Pasal 15, dan tata kelola serta sarana pelaporan bila L-38 menyatakan Pasal 10 berlaku (§3.4) | Ops | Publik; pilot menurut L-14 | 18 §2.11 butir 4; §3.4 | Dokumen rencana ada |
+| SEC-148 | Rencana respons insiden tertulis sebelum pilot memproses data nyata: cara memastikan kejadian dari log (SEC-44), siapa memberi tahu siapa, isi minimum pemberitahuan, tenggat 3 x 24 jam kepada subjek data (dan Lembaga, bila ada) (UU PDP Pasal 46; 18 §2.1) | Ops | Pilot | 18 §2.1 baris kegagalan pelindungan | Latihan sekali sebelum pilot |
+| SEC-149 | Catatan kegiatan pemrosesan minimum (PP 33/2026 Pasal 74, salinan teks): tujuan, jenis data, subjek, penerima dan prosesor, transfer, retensi (10.3 §3.2). Bentuk minimum bagi operator perorangan: L-21 | Ops | Pilot | **[Usulan]** | Dokumen ada |
+| SEC-150 | DPIA singkat ditulis selama fase bangun dan selesai sebelum pilot memproses data nyata, kecuali advokat menyatakan pilot dikecualikan (L-01) | Ops | Pilot | 18 §2.1; **[Usulan]**; keputusan 10-C | Dokumen ada sebelum data nyata |

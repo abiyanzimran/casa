@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `product-analyst` |
 | Tahap | S3, fase B (12 November 2026) |
-| Status | Draf pertama; ditinjau `critic` A (fase D); garis besar `COM` diperbarui putaran perbaikan fase D (CA-04) |
+| Status | Draf pertama; ditinjau `critic` A (fase D); garis besar `COM` diperbarui putaran perbaikan fase D (CA-04). S4 fase D (12 November 2026, belum ditinjau `critic`): garis besar F-FIN-027 "Sembunyikan angka" di bagian 9 |
 | Bagian dari | [05-functional-requirements.md](../05-functional-requirements.md) |
 | Kedalaman | Satu halaman per modul, tanpa nomor FR (brief §1.1: "A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs") |
 
@@ -182,7 +182,9 @@ Bagian modul Tier 1 dan Tier 2 yang tidak disebut di tingkat itu adalah Tier 3 (
 | Modul | Fitur Tier 3 di dokumen 04 | Fondasi yang sudah dijaga |
 |---|---|---|
 | `FAM` | F-FAM-010 sampai F-FAM-013; F-FAM-014 sampai 017 Will not build | Lima konsep terpisah (FR-FAM-001 AC-2); tanpa riwayat kegiatan per anggota (06 AT-3) |
-| `FIN` | F-FIN-021 sampai F-FIN-026 | Isinya milik [FIN-1.md](FIN-1.md) dan [FIN-2.md](FIN-2.md) |
+| `FIN` | F-FIN-021 sampai F-FIN-027 | Isinya milik [FIN-1.md](FIN-1.md) dan [FIN-2.md](FIN-2.md) |
+
+**F-FIN-027 "Sembunyikan angka" (Could; S4 fase D).** Diusulkan `ux-designer` sebagai Tier 1 (08 §12.1, §23.1 butir 1; bawaan "selalu tersamar saat dibuka" UX-3). Ditaruh di Tier 3 **[Usulan]** `product-analyst` karena tidak menyelesaikan masalah brief §1.1 (PRN-02), dokumen 10 §7.2 menerimanya sebagai perlindungan dari penonton dan bukan kendali keamanan, dokumen 10 §4 tidak menandainya wajib pilot, dan ponsel yang dipegang orang lain sudah dijaga kunci aplikasi (FR-FAM-021). **Yang tidak boleh dihalangi Tier 1:** setiap jumlah di layar, termasuk kartu chat, dirender lewat satu komponen tampilan angka, sehingga penyamar dapat ditambah tanpa menyentuh angka. **Bila naik**, syarat 10 §7.2 berlaku: setelan per perangkat tanpa Peristiwa atau notifikasi dan tidak terbaca orang lain; pembaca layar mengucapkan "angka disembunyikan"; penyamar selebar tetap; tangkapan layar memuat penyamar. **Syarat naik:** pilot menunjukkan kebutuhannya, atau pemilik produk memilih menaikkannya di checkpoint S4 bersama UX-3.
 | `REQ` | F-REQ-014 sampai F-REQ-017 | Jenis permintaan sebagai diskriminator (06 §14) |
 | `SHP` | F-SHP-003, F-SHP-004 | Penugasan pembelanja hanya lewat permintaan tindakan |
 | `PLN` | F-PLN-002 sampai F-PLN-004 | Rencana umum kelak memakai primitif permintaan yang sama |
