@@ -2,34 +2,16 @@
  * Casa web design tokens. The single source of web tokens (08 §25.4); screens import this file,
  * they never copy its values.
  *
- * Three visual directions for the repeat gate (08 §19.12): one :root[data-arah] block each. After
- * the owner picks one, the other two blocks and their font files are deleted (08 §19.12.11).
- * Colour: 08 §19.12.3 (neutrals), §19.12.4 (meaning), §19.12.5 (accents). Light and dark come from
- * light-dark(), so each value is written once and follows the colour scheme; high contrast is
- * prefers-contrast: more. Type: §19.4, §19.12.6, §25.4 "Huruf". Shape: §19.12.7. Grid: §17.8.
+ * One visual direction: the owner's reference images (08 §19.13). Colour: §19.13.2 (neutrals,
+ * accents, navigation), §19.12.4 (meaning). Light and dark come from light-dark(), so each value is
+ * written once and follows the colour scheme; high contrast is prefers-contrast: more. Type: §19.4,
+ * §19.13.4. Shape, grid and motion keep their interim values until the component and layout specs
+ * that follow the owner's research request (13 November 2026); see the note at those tokens.
  */
 
 @font-face {
-	font-family: 'Manrope';
-	/* Google Fonts build 4.505 (has tnum), converted to WOFF2 unchanged; own origin (SEC-160 (d)) */
-	src: url('/fonts/Manrope-Variable.woff2') format('woff2');
-	font-weight: 400 700;
-	font-style: normal;
-	font-display: swap;
-}
-
-@font-face {
-	font-family: 'Plus Jakarta Sans';
-	/* Official release 2.7.1 (font 2.071, has tnum), converted to WOFF2 unchanged */
-	src: url('/fonts/PlusJakartaSans-Variable.woff2') format('woff2');
-	font-weight: 400 700;
-	font-style: normal;
-	font-display: swap;
-}
-
-@font-face {
 	font-family: 'Figtree';
-	/* Google Fonts build 2.002 (has tnum), converted to WOFF2 unchanged */
+	/* Google Fonts build 2.002 (has tnum), converted to WOFF2 unchanged; own origin (SEC-160 (d)) */
 	src: url('/fonts/Figtree-Variable.woff2') format('woff2');
 	font-weight: 400 700;
 	font-style: normal;
@@ -39,19 +21,30 @@
 :root {
 	color-scheme: light dark;
 
-	/* 08 §19.12.3: shared neutral scale, pure grey (light, dark) */
+	/* 08 §19.13.2: neutral scale (light, dark) */
 	--kertas: light-dark(#f4f4f4, #111111);
 	--kartu: light-dark(#ffffff, #1c1c1c);
 	--sisip: light-dark(#eeeeee, #262626);
-	--lintasan: light-dark(#e2e2e2, #333333); /* bar track; never carries text */
+	--lintasan: light-dark(#e2e2e2, #333333); /* never carries text */
 	--garis: light-dark(#dcdcdc, #333333);
 	--garis-tegas: light-dark(#767676, #8c8c8c);
 	--tinta: light-dark(#141414, #f0f0f0);
 	--tinta-2: light-dark(#595959, #adadad);
 	--selubung: light-dark(rgb(20 20 20 / 0.4), rgb(0 0 0 / 0.6)); /* tinta 40%; black 60% */
-	/* only the sheet and the floating Catat button, light theme only (§17.8 "Bayangan") */
+	/* light theme only (§19.13.2) */
 	--bayangan: 0 2px 12px light-dark(rgb(20 20 20 / 0.16), transparent);
-	--permukaan-mengambang: light-dark(var(--kartu), var(--sisip));
+	--permukaan-mengambang: var(--kartu);
+
+	/* 08 §19.13.2: blue to act and to select, lime as fill only, a dark floating navigation */
+	--aksen: light-dark(#1757f0, #1a5cff);
+	--di-atas-aksen: #ffffff;
+	--aksen-tinta: light-dark(#1757f0, #8dbbff);
+	--aksen-muda: light-dark(#e8efff, #1c2a45);
+	--sorot: #c6f432; /* fill only, never text or a thin line on a light surface */
+	--di-atas-sorot: #141414;
+	--navigasi: light-dark(#262626, #333333);
+	--di-atas-navigasi: #adadad;
+	--pil-navigasi: light-dark(#ffffff, #f0f0f0);
 
 	/* 08 §19.12.4: meaning colours, only on small markers next to an icon or word (WCAG 1.4.1) */
 	--positif: light-dark(#005a43, #6bd6a8);
@@ -59,8 +52,8 @@
 	--lebih: light-dark(#8c2b0a, #ff9a70);
 	--galat: light-dark(#93112b, #ff9eab);
 
-	/* 08 §19.4, §25.4 "Huruf": sizes in rem so they follow the browser text size */
-	--huruf: system-ui, sans-serif;
+	/* 08 §19.4, §19.13.4: sizes in rem so they follow the browser text size */
+	--huruf: 'Figtree', system-ui, sans-serif;
 	--ukuran-angka-utama: 2.5rem;
 	--ukuran-angka-besar: 1.75rem;
 	--ukuran-angka-baris: 1.0625rem;
@@ -69,7 +62,6 @@
 	--ukuran-judul-subbagian: 0.9375rem;
 	--ukuran-isi: 1rem;
 	--ukuran-terkecil: 0.8125rem;
-	--bobot-angka-utama: 600;
 
 	/* 08 §17.7: spacing in multiples of 4 px */
 	--jarak-1: 4px;
@@ -84,7 +76,20 @@
 	--sasaran-utama: 48px;
 	--penuh: 999px; /* pill */
 
-	/* 08 §17.8 grid, Ringkas (< 600); the wider states below */
+	/* Interim shape values (the earlier Koral Hangat shapes, the closest to §19.13.5), kept until the
+	   component specs that follow the owner's research request; §19.13.9 item 1 replaces them. */
+	--sudut-kartu: 24px;
+	--sudut-kelompok: 18px;
+	--sudut-tombol-utama: var(--penuh);
+	--sudut-tombol: var(--penuh);
+	--sudut-tanda: var(--penuh);
+	--sudut-lembar: 28px;
+	--tebal-batang: 10px;
+	--sudut-batang: var(--penuh);
+	--isi-batang: var(--tinta);
+
+	/* Interim grid (08 §17.8), Ringkas (< 600); the wider states below. §19.13.6 replaces it with
+	   the component and layout specs. */
 	--margin: 16px;
 	--padding-kartu: 16px;
 	--jarak-bagian: 24px;
@@ -96,10 +101,7 @@
 	--lebar-lembar: 560px;
 	--panel-samping: clamp(320px, 33.333%, 400px);
 
-	/* word spacing per direction (08 §19.12.6); 0 except Koral Hangat */
-	--spasi-kata: 0;
-
-	/* 08 §25.4 "Gerak": at most 200 ms, no bounce */
+	/* Interim motion (08 §25.4); §19.13.7 replaces it */
 	--gerak: 200ms ease-out;
 }
 
@@ -122,104 +124,22 @@
 	}
 }
 
-/* ---------- Direction 1: Tinta & Limau (08 §19.12.5, §19.12.6, §19.12.7) ---------- */
-:root[data-arah='limau'] {
-	--huruf: 'Manrope', system-ui, sans-serif;
-	--bobot-angka-utama: 700;
-
-	--aksen: #a3eb6e; /* fill only, never text or a line on a light surface */
-	--di-atas-aksen: #141414;
-	--aksen-tinta: light-dark(var(--tinta), #a3eb6e);
-	--aksen-muda: light-dark(#ecf8df, #2a3a1f);
-	--navigasi: light-dark(#141414, #1c1c1c); /* black anchor */
-	--di-atas-navigasi: #adadad;
-
-	--sudut-kartu: 20px;
-	--sudut-kelompok: 14px;
-	--sudut-tombol-utama: var(--penuh);
-	--sudut-tombol: 12px;
-	--sudut-tanda: 6px;
-	--sudut-lembar: 24px;
-	/* bars: 8 px, square ends (2 px), tinta fill, unconfirmed part hatched */
-	--tebal-batang: 8px;
-	--sudut-batang: 2px;
-	--isi-batang: var(--tinta);
-}
-
-/* ---------- Direction 2: Koral Hangat ---------- */
-:root[data-arah='koral'] {
-	--huruf: 'Plus Jakarta Sans', system-ui, sans-serif;
-	--bobot-angka-utama: 600;
-	--spasi-kata: 0.08em;
-
-	--aksen: light-dark(#ff7f62, #ff9580); /* fill only; text uses aksen-tinta */
-	--di-atas-aksen: #141414;
-	--aksen-tinta: light-dark(#b5391f, #ff9580);
-	--aksen-muda: light-dark(#ffe4dc, #3d2420);
-	--navigasi: var(--kartu);
-	--di-atas-navigasi: var(--tinta-2);
-
-	--sudut-kartu: 24px;
-	--sudut-kelompok: 18px;
-	--sudut-tombol-utama: var(--penuh);
-	--sudut-tombol: var(--penuh);
-	--sudut-tanda: var(--penuh);
-	--sudut-lembar: 28px;
-	/* bars: 10 px, round ends, tinta-2 fill, unconfirmed part hatched */
-	--tebal-batang: 10px;
-	--sudut-batang: var(--penuh);
-	--isi-batang: var(--tinta-2);
-}
-
-/* ---------- Direction 3: Pulpen Biru ---------- */
-:root[data-arah='biru'] {
-	--huruf: 'Figtree', system-ui, sans-serif;
-	--bobot-angka-utama: 600;
-
-	--kertas: light-dark(#ffffff, #111111); /* white page; cards carry a 1 px garis */
-	--aksen: light-dark(#2443c4, #8dbbff); /* fill and text */
-	--di-atas-aksen: light-dark(#ffffff, #141414);
-	--aksen-tinta: var(--aksen);
-	--aksen-muda: light-dark(#e6ecfb, #1c2a45);
-	--navigasi: var(--kartu);
-	--di-atas-navigasi: var(--tinta-2);
-
-	--sudut-kartu: 12px;
-	--sudut-kelompok: 0px; /* list groups have no container: hairlines on the page */
-	--sudut-tombol-utama: 8px;
-	--sudut-tombol: 8px;
-	--sudut-tanda: 4px;
-	--sudut-lembar: 16px;
-	/* bars: a 4 px ruler with quarter ticks, tinta-2 fill, unconfirmed part dashed */
-	--tebal-batang: 4px;
-	--sudut-batang: 0px;
-	--isi-batang: var(--tinta-2);
-}
-
-/* 08 §19.12.3-§19.12.5 high contrast; after the direction blocks so it wins */
+/* 08 §19.13.2, §19.13.9 item 1: high contrast */
 @media (prefers-contrast: more) {
 	:root {
 		--garis-tegas: light-dark(#595959, #adadad);
 		--garis: var(--garis-tegas);
 		--tinta-2: var(--tinta);
-	}
-
-	:root[data-arah='limau'] {
+		--aksen: light-dark(#0b3fbf, #8dbbff);
+		--aksen-tinta: light-dark(#0b3fbf, #8dbbff);
+		--di-atas-aksen: light-dark(#ffffff, #141414);
 		--di-atas-navigasi: #f0f0f0;
-	}
-
-	:root[data-arah='koral'] {
-		--aksen-tinta: var(--tinta);
-	}
-
-	:root[data-arah='biru'] {
-		--aksen: light-dark(#1d36a8, #8dbbff);
 	}
 }
 
-/* Sample pages only (08 §19.12.11 item 2): the switch sets data-tema and data-kontras on <html> so
+/* Sample pages only (08 §19.13.9 item 5): the switch sets data-tema and data-kontras on <html> so
    the owner compares without changing system settings. Inert in the product, which never sets
-   them; deleted with the two directions that are not chosen. The values repeat the block above. */
+   them. The values repeat the block above. */
 :root[data-tema='terang'] {
 	color-scheme: light;
 }
@@ -232,26 +152,17 @@
 	--garis-tegas: light-dark(#595959, #adadad);
 	--garis: var(--garis-tegas);
 	--tinta-2: var(--tinta);
-}
-
-:root[data-kontras='tinggi'][data-arah='limau'] {
+	--aksen: light-dark(#0b3fbf, #8dbbff);
+	--aksen-tinta: light-dark(#0b3fbf, #8dbbff);
+	--di-atas-aksen: light-dark(#ffffff, #141414);
 	--di-atas-navigasi: #f0f0f0;
 }
 
-:root[data-kontras='tinggi'][data-arah='koral'] {
-	--aksen-tinta: var(--tinta);
-}
-
-:root[data-kontras='tinggi'][data-arah='biru'] {
-	--aksen: light-dark(#1d36a8, #8dbbff);
-}
-
 @media (forced-colors: active) {
-	/* 08 §25.4: system colours, one block for every direction; borders, card lines and focus rings
-	   stay visible. Matters where an element opts out with forced-color-adjust: none. */
+	/* 08 §25.4: system colours; borders, card lines and focus rings stay visible. Matters where an
+	   element opts out with forced-color-adjust: none. Also beats the sample high-contrast hook. */
 	:root,
-	:root[data-arah],
-	:root[data-kontras][data-arah] {
+	:root[data-kontras] {
 		--kertas: Canvas;
 		--kartu: Canvas;
 		--sisip: Canvas;
@@ -271,8 +182,11 @@
 		--di-atas-aksen: HighlightText;
 		--aksen-tinta: LinkText;
 		--aksen-muda: Canvas;
+		--sorot: Highlight;
+		--di-atas-sorot: HighlightText;
 		--navigasi: Canvas;
 		--di-atas-navigasi: CanvasText;
+		--pil-navigasi: Highlight;
 		--isi-batang: CanvasText;
 	}
 }
@@ -292,11 +206,10 @@
 	}
 }
 
-/* One family for all text, numbers included (08 §19.12.6) */
+/* One family for all text, numbers included (08 §19.13.4) */
 html {
 	font-family: var(--huruf);
 	font-weight: 400;
-	word-spacing: var(--spasi-kata);
 	background: var(--kertas);
 	color: var(--tinta);
 }
@@ -320,7 +233,7 @@ html {
 }
 
 .angka-utama {
-	font-weight: var(--bobot-angka-utama);
+	font-weight: 600;
 	font-size: max(40px, min(var(--ukuran-angka-utama), var(--batas-lebar-jumlah)));
 	line-height: 1.15;
 	letter-spacing: -0.02em;
@@ -339,7 +252,7 @@ html {
 	line-height: 1.4;
 }
 
-/* 08 §19.4, §19.12.6 "Rp" toned down: 60% and tinta-2 on angka-utama and angka-besar, same
+/* 08 §19.4, §19.13.5 "Rp" toned down: 60% and tinta-2 on angka-utama and angka-besar, same
    baseline; on angka-baris "Rp" keeps the digits' size and colour */
 .angka-utama .rp,
 .angka-besar .rp {
@@ -375,12 +288,4 @@ html {
 	font-size: var(--ukuran-judul-subbagian);
 	line-height: 1.35;
 	color: var(--tinta-2);
-}
-
-/* form controls do not inherit word spacing by default */
-button,
-input,
-select,
-textarea {
-	word-spacing: inherit;
 }

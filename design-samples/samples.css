@@ -1,10 +1,10 @@
 /*
- * Layout of the 1.8 sample screens, repeat gate (08 §19.12).
+ * Layout of the 1.8 sample screens, one visual direction (08 §19.13; structure still §17.8 until the
+ * component and layout specs that follow the owner's research request).
  * Four layout states (08 §4.2, §17.8, §25.2, §25.3): Ringkas < 600, Sedang 600-839 (one column),
  * Lebar 840-1199 (main and companion pane), Sangat lebar >= 1200 (sidebar, content capped at 1200,
  * a third pane from 1504). Every colour, size and shape comes from tokens.css; nothing here is a
- * colour value. Direction differences that are structure, not tokens (08 §19.12.11 item 4), use
- * [data-arah] selectors here, never a branch in the markup.
+ * colour value.
  */
 
 *,
@@ -191,9 +191,9 @@ p {
 /* ---------- Frame: navigation, top bar, content ---------- */
 
 .navigasi {
-  /* selected destination: a pill with filled icon and bold label (08 §19.12.5) */
-  --pil-latar: var(--aksen-muda);
-  --pil-tinta: var(--aksen-tinta);
+  /* selected destination: pil-navigasi pill, filled icon and bold label in navigasi (08 §19.13.2) */
+  --pil-latar: var(--pil-navigasi);
+  --pil-tinta: var(--navigasi);
   position: fixed;
   inset: auto 0 0;
   z-index: 3;
@@ -202,19 +202,9 @@ p {
   color: var(--di-atas-navigasi);
 }
 
-/* Direction 1: navigasi is the dark anchor with the aksen pill; its focus ring is aksen (12.8:1) */
-[data-arah="limau"] .navigasi {
-  --pil-latar: var(--aksen);
-  --pil-tinta: var(--di-atas-aksen);
-}
-
-[data-arah="limau"] .navigasi :focus-visible {
-  outline-color: var(--aksen);
-}
-
-/* Direction 3: navigasi on kartu, ruled off from the content by garis */
-[data-arah="biru"] .navigasi {
-  border-top: 1px solid var(--garis);
+/* focus ring on the dark navigation is sorot (08 §19.13.5 "Cincin fokus") */
+.navigasi :focus-visible {
+  outline-color: var(--sorot);
 }
 
 .navigasi ul {
@@ -275,7 +265,7 @@ p {
   display: inline-flex;
 }
 
-/* Count badge: neutral, never the accent (08 §4.1). 08 §25.4: 0.8em of the label, never under
+/* Count badge: sorot with di-atas-sorot (08 §19.13.2). 08 §25.4: 0.8em of the label, never under
    13 px; at the icon's top-right, covering at most that quarter of the icon. */
 .lencana {
   position: absolute;
@@ -285,8 +275,8 @@ p {
   padding: 0 0.35em;
   border: 1px solid transparent;
   border-radius: var(--penuh);
-  background: var(--di-atas-navigasi);
-  color: var(--navigasi);
+  background: var(--sorot);
+  color: var(--di-atas-sorot);
   font-size: max(13px, 0.8em);
   font-weight: 700;
   line-height: 1.2;
@@ -369,11 +359,6 @@ main:focus {
       env(safe-area-inset-left);
   }
 
-  [data-arah="biru"] .navigasi {
-    border-top: 0;
-    border-right: 1px solid var(--garis);
-  }
-
   .navigasi ul {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--jarak-3);
@@ -440,10 +425,6 @@ main:focus {
     font-size: var(--ukuran-judul-bagian);
     font-weight: 600;
     line-height: 1.3;
-    color: var(--tinta);
-  }
-
-  [data-arah="limau"] .kepala-navigasi {
     color: light-dark(var(--kartu), var(--tinta));
   }
 
@@ -523,8 +504,8 @@ main:focus {
 }
 
 @media (min-width: 600px) and (max-width: 1199.98px) {
-  /* Tinta & Limau rail: more room under Catat before the destinations */
-  [data-arah="limau"] .catat-navigasi {
+  /* rail: more room under Catat before the destinations */
+  .catat-navigasi {
     margin-bottom: var(--jarak-6);
   }
 }
@@ -642,10 +623,6 @@ main:focus {
   --lebar-em: 6.25;
 }
 
-[data-arah="biru"] .uang-kita {
-  border-color: var(--garis);
-}
-
 .uang-kita .angka-utama {
   margin-top: var(--jarak-2);
 }
@@ -730,19 +707,6 @@ main:focus {
   background: var(--kartu);
 }
 
-/* Direction 3: no container, rows on the page between hairlines, like a ruled cash book */
-[data-arah="biru"] .kelompok {
-  padding-inline: 0;
-  border: 0;
-  border-block: 1px solid var(--garis);
-  border-radius: 0;
-  background: transparent;
-}
-
-[data-arah="biru"] .bagian > .judul-bagian {
-  margin-left: 0;
-}
-
 .kelompok .judul-subbagian {
   padding-top: var(--jarak-3);
 }
@@ -797,10 +761,6 @@ main:focus {
   margin-left: var(--jarak-1);
 }
 
-[data-arah="biru"] .bagian > .tautan {
-  margin-left: 0;
-}
-
 /* --- Budget bars (08 §19.12.5, §19.12.7): informative, never change colour (§20 D-7) --- */
 .batang {
   position: relative;
@@ -818,28 +778,10 @@ main:focus {
   background: var(--isi-batang);
 }
 
-/* Not yet confirmed: hatched 45 deg, 1.5 px lines 5 px apart (directions 1 and 2) */
+/* Not yet confirmed: hatched 45 deg, 1.5 px lines 5 px apart (interim bar; §19.13.5 segments follow) */
 .batang-belum {
   width: var(--belum);
   background: repeating-linear-gradient(-45deg, var(--isi-batang) 0 1.5px, transparent 1.5px 6.5px);
-}
-
-/* Direction 3: a 4 px ruler with ticks every quarter; the unconfirmed part is dashed */
-[data-arah="biru"] .batang {
-  overflow: visible;
-  margin-bottom: var(--jarak-2);
-}
-
-[data-arah="biru"] .batang-belum {
-  background: repeating-linear-gradient(to right, var(--isi-batang) 0 4px, transparent 4px 7px);
-}
-
-[data-arah="biru"] .batang::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 -4px;
-  background: repeating-linear-gradient(to right, transparent 0 calc(25% - 1px), var(--garis-tegas) calc(25% - 1px) 25%);
-  pointer-events: none;
 }
 
 /* ---------- Chat (08 §10.1-§10.4, §10.6) ---------- */
@@ -938,11 +880,6 @@ main:focus {
   align-self: flex-start;
   border-bottom-left-radius: var(--jarak-1);
   background: var(--kartu);
-}
-
-[data-arah="biru"] .gelembung-lain {
-  border-color: transparent;
-  background: var(--sisip);
 }
 
 .gelembung-sendiri {
@@ -1055,10 +992,6 @@ main:focus {
   font: inherit;
   font-size: max(1rem, 16px);
   resize: none;
-}
-
-[data-arah="biru"] .kotak-tulis textarea {
-  border-radius: var(--sudut-tombol);
 }
 
 .kotak-tulis .tombol-kirim {
@@ -1371,10 +1304,6 @@ details[open] summary .ikon {
   border: 1px solid transparent;
   border-radius: var(--sudut-kartu);
   background: var(--kartu);
-}
-
-[data-arah="biru"] .halaman-indeks form {
-  border-color: var(--garis);
 }
 
 .halaman-indeks form .tombol-utama {
