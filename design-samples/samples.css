@@ -11,6 +11,8 @@
 }
 
 body {
+  /* height of the Ringkas bottom nav (one .tujuan cell); every offset above the nav builds on it */
+  --tinggi-navigasi: 4rem;
   margin: 0;
   font-size: var(--ukuran-isi);
   line-height: 1.5;
@@ -215,7 +217,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: var(--jarak-1);
-  min-height: 4rem;
+  min-height: var(--tinggi-navigasi);
   padding: var(--jarak-1);
   color: var(--tinta-2);
   /* 08 §25.4 "Navigasi tingkat atas": the label stops growing at its cell width, never below 13 px;
@@ -261,7 +263,7 @@ a {
 main {
   display: block;
   padding: var(--jarak-3) calc(var(--jarak-3) + env(safe-area-inset-right))
-    calc(4rem + env(safe-area-inset-bottom) + var(--jarak-6)) calc(var(--jarak-3) + env(safe-area-inset-left));
+    calc(var(--tinggi-navigasi) + env(safe-area-inset-bottom) + var(--jarak-6)) calc(var(--jarak-3) + env(safe-area-inset-left));
 }
 
 main:focus {
@@ -269,14 +271,14 @@ main:focus {
 }
 
 .dengan-tombol-mengambang main {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom) + var(--sasaran-utama) + var(--jarak-8) + var(--jarak-4));
+  padding-bottom: calc(var(--tinggi-navigasi) + env(safe-area-inset-bottom) + var(--sasaran-utama) + var(--jarak-8) + var(--jarak-4));
 }
 
 /* Floating Catat button, Ringkas only (08 §25.2) */
 .tombol-mengambang {
   position: fixed;
   right: calc(var(--jarak-4) + env(safe-area-inset-right));
-  bottom: calc(4rem + env(safe-area-inset-bottom) + var(--jarak-4));
+  bottom: calc(var(--tinggi-navigasi) + env(safe-area-inset-bottom) + var(--jarak-4));
   z-index: 3;
   min-height: 56px;
   padding-inline: var(--jarak-4) var(--jarak-6);
@@ -688,7 +690,7 @@ main:focus {
 
 .kotak-tulis {
   position: sticky;
-  bottom: calc(4rem + env(safe-area-inset-bottom));
+  bottom: calc(var(--tinggi-navigasi) + env(safe-area-inset-bottom));
   display: flex;
   align-items: flex-end;
   gap: var(--jarak-1);
@@ -718,7 +720,7 @@ main:focus {
 }
 
 .halaman-chat main {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--tinggi-navigasi) + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 600px) {
