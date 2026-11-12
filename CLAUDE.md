@@ -6,7 +6,7 @@ A husband and wife know the state of their household money and household matters
 
 Every document, decision, and (later) line of code must trace back to this goal and to the core problem in `family-os-brief.md` §1.1. Work that does not serve it is cut or deferred, and the reason is recorded.
 
-The goal is staged (brief §1.1): the pilot household first, then a public product. The foundations the brief requires for the second stage — flexible family structures, household isolation, privacy, and abuse prevention — serve the goal and are not cut.
+The app is for the owner's own household, built to the standard of a public product (brief §1.1, owner decision 51). Going public is not planned, but stays possible without a rewrite. The foundations a public product needs — flexible family structures, household isolation, privacy, and abuse prevention — serve the goal and are not cut.
 
 ## Current phase: planning only
 
@@ -65,7 +65,7 @@ Agent files for the build phase are written by the lead only after the owner app
 | `backend-dev` | Server, database, migrations, API contract |
 | `ios-dev`, `android-dev` | One per platform if the UI is fully native; a single `mobile-dev` if S4 chooses a shared framework |
 | `ux-designer` (continues) | Reviews every built screen against `docs/08-ux-ui-strategy.md` and the platform's guidelines |
-| `security-privacy` (continues) | Findings-only review before GR-2 (first real data) and before GR-4 (first user outside the pilot household), in place of a dedicated security role (owner decision 49) |
+| `security-privacy` (continues) | Findings-only review before GR-2 (first real data), before the Android app holds real data, before GR-4 (first user outside the couple, parents included), and once a year, in place of a dedicated security role (owner decisions 49, 52, 53) |
 | `code-reviewer` | Two-pass review of every change: meets the requirement, then code quality against `ENGINEERING-STANDARDS.md` |
 | `qa` | Proves Tier 1 acceptance criteria and financial invariants end to end, on the pilot devices |
 

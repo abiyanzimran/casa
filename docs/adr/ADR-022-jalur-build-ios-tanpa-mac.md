@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, Xcode Cloud + TestFlight internal + sewa Mac sekali (S4-3 (i) A). Kata-katanya: "#S4-3: A Xcode Cloud + sewa Mac sekali - A iOS 26, Android 10" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama; dikukuhkan dengan "lanjut"). **Butir 4 diubah keputusan 43** (12 November 2026; diterima atas saran lead): tetap opsi A tanpa sewa bulanan dan tanpa membeli Mac; B atau C ditinjau lagi hanya bila dana ada (catatan keputusan 43). **Butir 1 diubah ADR-028 butir 4** (keputusan 44): batas keras 80 hari sejak unggahan |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; fakta dan catatan S5; catatan keputusan 42; keputusan 43 dan 44) |
+| Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, Xcode Cloud + TestFlight internal + sewa Mac sekali (S4-3 (i) A). Kata-katanya: "#S4-3: A Xcode Cloud + sewa Mac sekali - A iOS 26, Android 10" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama; dikukuhkan dengan "lanjut"). **Butir 4 diubah keputusan 43** (12 November 2026; diterima atas saran lead): tetap opsi A tanpa sewa bulanan dan tanpa membeli Mac; B atau C ditinjau lagi hanya bila dana ada (catatan keputusan 43). **Butir 1 diubah ADR-028 butir 4** (keputusan 44): batas keras 80 hari sejak unggahan. **Catatan keputusan 51:** jalur distribusi keluarga tanpa batas waktu dinilai ulang dengan temuan 18 §5.2.9; **Keputusan 55** (Q-228, 12 November 2026; diterima atas saran lead): tetap TestFlight internal, pindah ke App Store unlisted (C) bila Apple menghentikannya. Kata-kata pilihannya: "TestFlight, pindah bila dihentikan (Saran)" ([_progress.md](../_progress.md), "Jawaban pemilik produk atas pertanyaan sesudah keputusan 51 dan 52") |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; fakta dan catatan S5; catatan keputusan 42; keputusan 43 dan 44; catatan keputusan 51, dinilai dengan 18 §5.2.9; keputusan 55) |
 | Pengusul | `architect` |
 | Mengubah | — (diubah oleh [ADR-028](ADR-028-lingkungan-dan-irama-rilis-pilot.md) butir 4 pada butir 1) |
 | Rincian | [09.1 §12](../09-technical-architecture/01-pilihan-teknologi.md); [09.4 §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -85,3 +85,99 @@ Kedudukan: diterima atas saran lead (pemilik produk memilih pilihan bertanda "(S
 - **Peninjauan ulang:** hanya bila dana tersedia, atas prakarsa pemilik produk. Titik impas membeli terhadap menyewa (catatan S5; 14 §9) dipakai sebagai acuan saat itu, dengan harga yang dicek ulang (ES §8 berlaku juga atas harga).
 
 **Keputusan 44 mengubah butir 1** lewat ADR-028 butir 4: pemilik produk menjawab "Ya, 60/80 hari (Saran)" atas pertanyaan rilis pemeliharaan bila 60 hari tanpa rilis, batas keras 80 hari. Yang berlaku: rilis pemeliharaan bila 60 hari tanpa rilis; build iOS berikutnya diunggah paling lambat 80 hari sesudah unggahan sebelumnya; 90 hari adalah kedaluwarsa TestFlight (18 §2.12.6), bukan lagi batas kerja.
+
+## Catatan keputusan 51: TestFlight internal sebagai jalur keluarga tanpa batas waktu
+
+**Status catatan: diputuskan (keputusan 55).** Pemilik produk memilih pilihan 1 dari rekomendasi di bawah: butir 1 (jalur A) tetap berlaku, dan C menjadi jalan keluar bila Apple menghentikan TestFlight (bagian "Keputusan 55" di akhir catatan). Penilaian di bawah memakai temuan `researcher` di 18 §5.2.9 (diakses 12 November 2026). Bagian "Riwayat penilaian" di akhir mencatat versi yang menunggu riset.
+
+### Konteks baru dari 18 §5.2.9
+
+- **Tidak ada saluran Apple untuk keluarga tanpa badan hukum yang sekaligus resmi, tanpa Mac, dan bebas batas 90 hari** (18 §5.2.9.5, **[Usulan]** `researcher`).
+- **TestFlight internal (A).** Guideline 2.2 kemungkinan tidak jelas menjangkau build internal yang tidak diajukan ke TestFlight App Review (**[Usulan]** `researcher`). Batas yang mengikat ada di kontrak, DPLA 7.4.1 (versi 29 Oktober 2026), **[Terverifikasi]**:
+  - yang didistribusikan "pre-release versions";
+  - pemakaiannya "solely for their internal use in testing, evaluating and/or developing";
+  - penerimanya "members of Your company or organization", padahal pengguna tambahan pada akun perorangan "not part of your team";
+  - Apple dapat meminta distribusi dihentikan "at any time in its sole discretion".
+  
+  Catatan penegakan atas pemakaian seperti ini tidak ditemukan **[Perlu validasi]**.
+- **Ad Hoc (B).** Bunyi DPLA 7.3 ("otherwise affiliated with You", tanpa kata "testing") paling dekat dengan pemakaian keluarga, dan Introduction App Review Guidelines menyebutnya untuk "family and friends" **[Terverifikasi]**. Kendalanya:
+  - 100 perangkat per keluarga produk per tahun;
+  - pemeriksaan daring PPQ saat aplikasi pertama dibuka;
+  - pemasangan `.ipa` lewat Device Hub atau Apple Configurator memerlukan **Developer Mode**, yang menurut Apple "reduces the security of your device" **[Terverifikasi]**; apakah pemasangan OTA juga memerlukannya **[Perlu validasi]**;
+  - masa berlaku profil belum terverifikasi;
+  - **Xcode Cloud tidak menawarkan ekspor Ad Hoc** menurut dokumentasinya, sehingga B memerlukan jalur build di Mac.
+- **App Store unlisted (C).** Hanya lewat tautan, dengan App Review penuh untuk setiap versi; permintaan ditolak bila aplikasi berstatus beta atau prerelease; siapa pun yang memegang tautan dapat memasang. Kelayakan akun perorangan **[Perlu validasi]**. Dampak terhadap pengecualian kegiatan rumah tangga (PP 33/2026 Pasal 3 ayat (2) huruf c, "tidak diperuntukkan bagi publik") perlu advokat. Dapat dibangun dari Xcode Cloud tanpa Mac, dan tanpa batas 90 hari.
+- **Custom Apps (D)** memerlukan organisasi dengan D-U-N-S, jadi tidak cocok. **App Store publik (E)** bertentangan dengan keputusan 51.
+
+### Kriteria dan matriks
+
+Kriteria: (1) kesesuaian dengan kontrak dan pedoman Apple; (2) tanpa Mac, karena keputusan 43 (diterima atas saran lead) menetapkan tanpa sewa bulanan dan tanpa membeli Mac sampai dana ada; (3) keamanan perangkat yang memegang data nyata; (4) batas waktu build terpasang; (5) beban rilis dan jarak dari jalur publik (keputusan 51); (6) biaya; (7) pertanyaan hukum yang dibuka. D dan E gugur karena syarat (badan hukum; keputusan 51) dan tidak dinilai lebih jauh.
+
+| Kriteria | **A. TestFlight internal (tetap)** | B. Ad Hoc | C. App Store unlisted |
+|---|---|---|---|
+| Kontrak dan pedoman Apple | Ketegangan dengan DPLA 7.4.1 (pre-release, internal testing, anggota organisasi); Apple dapat menghentikan kapan saja; penegakan tidak ditemukan | Paling dekat (DPLA 7.3; Introduction pedoman) | Saluran rilis resmi; kelayakan akun perorangan dan keluarga sebagai *limited audience* belum terverifikasi |
+| Tanpa Mac (keputusan 43) | Ya | **Tidak**: Xcode Cloud tanpa ekspor Ad Hoc; runner macOS CI lain **[Perlu validasi]**. Bertentangan dengan keputusan 43 kecuali pemilik produk membukanya kembali | Ya ("TestFlight and App Store" di Xcode Cloud) |
+| Keamanan perangkat | Tidak berubah | **Developer Mode** di iPhone 13 dan iPad mini 7 yang memegang data nyata, kemungkinan; PPQ memerlukan internet saat pertama dibuka | Tidak berubah. Siapa pun yang memegang tautan dapat memasang, tetapi tanpa undangan yang dikukuhkan pengundang tidak masuk ke rumah tangga (F-FAM-002), dan pendaftaran tertutup di server (SEC-158, Pilot bagi semua opsi; ditambahkan sesudah penilaian ini, 10 §3.3) |
+| Batas waktu build | 90 hari per build; irama 60/80 hari (ADR-028 butir 4) | Masa profil (belum terverifikasi) | Tidak ada |
+| Beban rilis; jarak dari jalur publik | Tetap seperti sekarang | Pendaftaran UDID, profil, dan ekspor per rilis di Mac | App Review penuh setiap rilis, termasuk perbaikan mendesak; akun demo untuk peninjau; prasyarat toko dari jalur publik maju ke sebelum pemakaian: SEC-153 (d), sisa SEC-154, SEC-83, label privasi (14 QG-31 (b)) |
+| Biaya di luar USD 99 per tahun | Tidak ada | Mac atau runner macOS (14 §9; USD 0,062 per menit untuk runner GitHub, 18 §5.2.3) | Tidak ada; waktu pengembang untuk prasyarat toko |
+| Pertanyaan hukum | DPLA 7.4.1 (advokat) | DPLA 7.3 (advokat) | DPLA dan pengecualian rumah tangga PP 33/2026 Pasal 3 (advokat) |
+
+### Rekomendasi [Usulan] `architect`: tetap A, dengan C sebagai jalan keluar yang sudah direncanakan
+
+1. **Tetap TestFlight internal untuk aplikasi harian keluarga.** Hanya A yang memenuhi keputusan 43 tanpa menambah beban rilis atau melemahkan keamanan perangkat. Risikonya kontraktual dan berakibat kehilangan akses, bukan kebocoran data: data tetap di server (ADR-013). Irama 80 hari (ADR-028 butir 4) menjamin build terpasang masih berlaku sekurangnya 10 hari bila Apple menghentikan distribusi.
+2. **Jalan keluar yang direncanakan adalah C**, karena C tetap tanpa Mac. Pemicunya:
+   - Apple meminta distribusi TestFlight dihentikan, atau ada tanda dari App Store Connect (galat kontrak beta atau build yang tiba-tiba tidak tersedia);
+   - advokat menyatakan pemakaian A melanggar DPLA 7.4.1.
+   
+   Syarat sebelum C dipakai ada di tabel "Syarat opsi C" di bawah.
+3. **B tidak direkomendasikan.** B memerlukan Mac, yang ditolak keputusan 43 sampai dana ada, dan kemungkinan menyalakan Developer Mode di perangkat yang memegang data nyata. Sejak 10 §0, **Developer Mode tidak pernah menyala di perangkat berdata nyata**, sebagai aturan dengan uji; `security-privacy` menolak B dari sisi keamanan selama B memerlukannya (10 §3.3). B baru dinilai lagi bila pemilik produk membuka keputusan 43 **dan** pemasangan OTA tanpa Developer Mode terbukti.
+4. **Bila A dihentikan sebelum C siap, ada jeda tanpa aplikasi iOS.** Lamanya jeda = waktu menyelesaikan prasyarat C + App Review, dikurangi sisa masa build terpasang (10 sampai 90 hari). Lama App Review untuk aplikasi ini **[Asumsi]** belum diketahui. Selama jeda, pencatatan berhenti di iOS, tetapi catatan yang terlambat diterima dengan tanggal kejadiannya (07 §3.11). Catatan di antrean perangkat yang belum terkirim saat build kedaluwarsa dapat hilang, jadi saat pemicu datang, aplikasi diminta mengosongkan antrean lebih dulu.
+5. **Pertanyaan advokat baru** (diminta ke `product-analyst` untuk 17, sesuai 18 §5.2.9 butir tinjauan 1 sampai 3): DPLA 7.4.1 untuk A, DPLA 7.3 untuk B, dan pengaruh App Store unlisted terhadap pengecualian rumah tangga untuk C.
+
+### Syarat opsi C (dikukuhkan `security-privacy`, 10 §3.3)
+
+Semua butir wajib lulus sebelum build App Store pertama dipasang di perangkat keluarga. Selama A berjalan, tidak ada yang dijadwalkan; daftarnya disiapkan supaya pindah ke C tidak dirancang ulang saat pemicu datang.
+
+| # | Syarat | Pemilik | Sumber |
+|---|---|---|---|
+| C-1 | Akun Apple Developer Program perorangan terbukti layak untuk distribusi unlisted (permintaan ke Apple dijawab) | Pemilik produk | 18 §5.2.9.3 |
+| C-2 | Advokat menjawab apakah distribusi lewat App Store, walau hanya lewat tautan, masih "tidak diperuntukkan bagi publik" (PP 33/2026 Pasal 3 ayat (2) huruf c; L-01) | Pemilik produk; advokat | 10 §3.3; 18 §5.2.9 butir tinjauan 3 |
+| C-3 | Pendaftaran tertutup di server (SEC-158). Ini sudah syarat Pilot sejak GR-2 bagi semua opsi, jadi di C hanya diperiksa ulang | `backend-dev` | 10.4 SEC-158 |
+| C-4 | Jalan akun demo App Review dipilih dan siap (di bawah) | `ios-dev`; pemilik produk | Guideline 2.1(a) |
+| C-5 | Prasyarat toko dari 14 QG-31 (b) yang berlaku bagi kiriman App Store: SEC-153 (d), SEC-83 rating usia, label privasi, SEC-139 versi publik di URL publik | `ios-dev`; `security-privacy` | 14 §5.3 |
+| C-6 | Tinjauan penuh `security-privacy` atas 10 §0 dan SEC-41 (d) sebelum C dipakai. Bahan tinjauan awal: build App Store adalah build produksi dengan pemeriksaan arsip CI yang sama; satu perangkat tidak dapat memegang build TestFlight staging dan build App Store dengan bundle ID yang sama, jadi uji perangkat 10 §0 dijalankan di build staging sebelum pindah, atau dipakai bundle ID staging tersendiri **[Perlu validasi]**; domain yang dihubungi (SEC-49) diperiksa ulang lewat App Privacy Report | `security-privacy`; `architect` | 10 §3.3, §7.8 |
+| C-7 | Antrean perangkat dikosongkan sebelum build TestFlight terakhir kedaluwarsa | `ios-dev`; pemakai | Butir 4 di atas |
+
+**Jalan akun demo App Review [Usulan] `architect`, mengikuti anjuran `security-privacy`.** Guideline 2.1(a) meminta info akun demo bila aplikasi memiliki login. Demo mode bawaan hanya boleh dipakai "with prior approval by Apple" **[Terverifikasi]** (10 §3.3). Build App Store hanya menghubungi server produksi (SEC-41 (d)), jadi akun demo di produksi adalah akun orang asing di server keluarga, yaitu pengguna luar pertama (Q-209).
+- **Dipilih: (i) demo mode di perangkat.** Data sintetis dibundel di build, tanpa koneksi ke server mana pun, dan dimintakan izin Apple lebih dulu. Demo mode ini memakai alur dan layar yang sama. Aturan uang tetap di server (ADR-013): demo mode menampilkan hasil yang sudah dihitung dari vektor emas, bukan salinan aturan kedua di klien. Uji: dalam demo mode tidak ada permintaan jaringan ke domain produksi (App Privacy Report), dan tidak ada data demo yang tersimpan di luar wadah demo.
+- **Cadangan, bila Apple menolak (i): (ii) rumah tangga demo di produksi**, hanya sesudah QG-31 (a) dan (a+) lulus. Isinya data sintetis saja, dibuat lewat token pemasangan SEC-158 (b), dan dikunci atau dihapus di antara peninjauan. Harganya: QG-31 (a) dan (a+) maju ke sebelum C.
+
+### Pilihan yang tidak diambil (dicatat sebagai bahan bila keputusan 55 dibuka kembali)
+
+- **Pilihan 2 (A sekarang, C disiapkan sebelum GR-2):** prasyarat toko dari 14 QG-31 (b) dikerjakan sebelum GR-2: SEC-153 (d), sisa SEC-154, SEC-83, label privasi, dan rencana akun demo yang hanya berisi data uji. Jeda pada butir 4 menyusut menjadi lama App Review saja. Harganya waktu pengembang di FS-1 dan pertanyaan advokat C yang dimajukan.
+- **Pilihan 3 (C untuk aplikasi harian sejak GR-2; TestFlight internal hanya untuk aplikasi staging):** pembagian ini paling cocok dengan bunyi DPLA, karena TestFlight dipakai untuk menguji dan App Store untuk versi final. Harganya: App Review untuk setiap rilis produksi, termasuk perbaikan mendesak (14 §6.3); prasyarat toko sebelum GR-2; akun demo peninjau di instans produksi berisi data uji; keputusan atas pendaftaran terbuka; dan jawaban advokat soal pengecualian rumah tangga **sebelum** data nyata. 14 §6, QG-23, QG-25, dan §4.8 direvisi; QG-23 (80 hari) tidak lagi berlaku untuk aplikasi harian.
+
+### Keputusan 52
+
+Orang tua yang kelak diberi login juga memerlukan jalur pemasangan. Di A, setiap anggota keluarga yang memakai iPhone menjadi pengguna App Store Connect di akun pengembang pemilik produk (butir 1), dan ini menambah ketegangan dengan DPLA 7.4.1 ("members of Your company or organization"). Di C, mereka memasang lewat tautan. Ini dicatat sebagai bahan bagi pemilik produk saat orang tua diberi login, bukan pemicu C; pemicunya hanya yang ditetapkan keputusan 55. Bila mereka dipasang lewat TestFlight internal, setiap orang mendapat peran App Store Connect tersempit (14 QG-31 (a); 10.4 §2.1).
+
+### Keputusan 55
+
+Pertanyaan lead (Q-228) menawarkan tiga pilihan di atas; Ad Hoc tidak ditawarkan karena memerlukan Mac (keputusan 43). Pemilik produk memilih "TestFlight, pindah bila dihentikan (Saran)". **Kedudukan: diterima atas saran lead** (`_progress.md`, "Jawaban pemilik produk atas pertanyaan sesudah keputusan 51 dan 52", baris 55).
+
+Akibatnya:
+- butir 1 tetap: Xcode Cloud ke TestFlight internal, dengan irama 60/80 hari (ADR-028 butir 4);
+- C adalah jalan keluar, dipicu hanya oleh dua pemicu di butir 2 rekomendasi: Apple menghentikan distribusi, atau advokat menyatakan A melanggar DPLA 7.4.1;
+- syarat C-1 sampai C-7 tidak dijadwalkan sebelum pemicu, kecuali C-3 (SEC-158), yang memang syarat Pilot;
+- risiko sisanya, yaitu jeda tanpa aplikasi iOS selama syarat C dan App Review berjalan, diterima atas saran lead (keputusan 55; 15 RISK-92).
+
+### Riwayat penilaian: versi yang menunggu riset
+
+- **Mengapa dibuka.** Saat ADR ini diterima, TestFlight internal adalah jalur uji untuk pilot yang berbatas waktu menuju beta dan rilis publik. Sejak keputusan 51, go public tidak direncanakan, jadi TestFlight internal dapat menjadi **satu-satunya jalur distribusi iOS keluarga tanpa batas waktu**.
+- **Yang diangkat `security-privacy`** (10 §3.3 butir 7, §8 butir 15, §7.8 permintaan (1)): Apple Guideline 2.2 menyatakan aplikasi di TestFlight "should be intended for public distribution", dan Apple mengarahkan aplikasi yang hanya untuk keluarga sendiri ke pemasangan lewat Xcode atau distribusi Ad Hoc. Kutipan dan bacaan ini **[Perlu validasi]** di dokumen ini sampai `researcher` memeriksanya di halaman resmi Apple dan mencatatnya di 18.
+- **Akibat yang dinilai: kehilangan akses, bukan kebocoran data.** Bila Apple menolak atau menghentikan pemakaian itu, build baru tidak dapat dipasang dan build terpasang kedaluwarsa dalam 90 hari, sehingga istri (iPhone 13) dan pemilik produk (iPad mini 7) kehilangan aplikasi. Data rumah tangga tetap utuh di server (sumber kebenaran; ADR-013); yang dapat hilang hanya catatan di antrean perangkat yang belum terkirim. Dinilai di 15 RISK-92.
+- **Yang sedang diperiksa `researcher`:** (1) apakah Guideline 2.2 berlaku bagi build TestFlight internal yang tidak melewati Beta App Review; (2) distribusi Ad Hoc tanpa Mac: batas perangkat, masa berlaku profil, dan pendaftaran perangkat; (3) apakah Xcode Cloud dapat mengekspor build Ad Hoc tanpa Mac; (4) distribusi App Store *unlisted*.
+- **Sesudah temuan tiba:** ADR ini dinilai ulang dengan matriks opsi (A tetap, Ad Hoc lewat Xcode Cloud, App Store *unlisted*, dan opsi lain yang ditemukan) terhadap kriteria ADR ini ditambah kesesuaian dengan aturan Apple untuk pemakaian tanpa batas waktu. Bila jalurnya diganti, `security-privacy` meninjau ulang 10 §0 (uji iOS tanpa Mac) dan SEC-41 (d) sebelum jalur baru dipakai (10 §7.8), dan pemilik produk yang memutuskan, karena butir 1 adalah keputusannya (S4-3 (i) A).
+- **Keputusan 52 menambah satu kriteria.** Orang tua yang kelak diberi login juga memerlukan jalur pemasangan. Di jalur A, setiap penguji internal harus menjadi pengguna App Store Connect dengan satu peran (butir 1), sehingga setiap anggota keluarga yang memakai iPhone mendapat akun di akun pengembang pemilik produk. Matriks opsi menilai juga hal itu.
+- **Kapan harus selesai** **[Usulan]**: sebelum GR-1, karena jalur build menentukan penyiapan FS-1 langkah 1 (Apple Developer Program, sewa Mac sekali, alur kerja Xcode Cloud pertama); paling lambat sebelum GR-2, karena sesudah itu kehilangan jalur berarti kehilangan aplikasi yang memegang data nyata.

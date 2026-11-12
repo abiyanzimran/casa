@@ -43,7 +43,7 @@ Dokumen 10 mengajukan dua syarat:
    |---|---|
    | Pihak kontrak | **PT Biznet Gio Nusantara** |
    | Pusat data | Di Indonesia: NEO Cloud di Cimanggis dan MidPlaza menurut halaman Biznet Gio sendiri. Kota pusat data VPS ini diminta tertulis dari penyedia sebelum data nyata masuk |
-   | Kebijakan privasi | Penyedia diminta menyatakan tertulis bahwa kalimat "di luar wilayah Republik Indonesia" tidak mencakup isi VPS pelanggan, sebelum data nyata masuk. Penilaian advokat atasnya (L-01, L-14) dilakukan sebelum tahap publik, karena pemilik produk memilih advokat sebelum tahap publik (S4-4 (iii) A) |
+   | Kebijakan privasi | Penyedia diminta menyatakan tertulis bahwa kalimat "di luar wilayah Republik Indonesia" tidak mencakup isi VPS pelanggan, sebelum data nyata masuk. Penilaian advokat atasnya (L-01, L-14) dilakukan sebelum tahap publik bila diambil (keputusan 51), karena pemilik produk memilih advokat sebelum tahap publik (S4-4 (iii) A) |
    | Spesifikasi | 2 vCPU, 4 GB RAM, 60 GB SSD |
    | Harga | Rp139.000 per bulan (PPN tidak disebut) |
 
@@ -74,6 +74,6 @@ Dokumen 10 mengajukan dua syarat:
 - Kota pusat data Biznet Gio dan cakupan kalimat "di luar wilayah Republik Indonesia" di kebijakan privasinya belum terbukti tertulis (RISK-04). Keduanya harus selesai sebelum data nyata.
 - Status `repo1-type=sftp` di pgBackRest 2.60.0 dan dukungan "penuh" PG18 belum dikukuhkan **[Perlu validasi]** (RISK-05). WAL-G v3.0.9 menjadi alternatif bila uji pemulihan gagal.
 - Dua penyedia berarti dua tagihan dan dua akun untuk dijaga.
-- L-14 (pendaftaran PSE) berlaku untuk kedua penyedia dan milik advokat, sebelum tahap publik (S4-4 (iii) A); risiko pemutusan akses bila pilot ternyata wajib terdaftar (W-32) diterima pemilik produk.
-- Catatan ketentuan prosesor (18 §5.8 butir tinjauan 2) untuk kedua penyedia dibuat saat S4-2 diputuskan, sebelum data nyata, dan hanya tinjauan advokat atas teksnya yang menunggu tahap publik (dokumen 10 §3.1, §4.1 butir 4). Waktu itu, juga untuk DPIA, **diterima atas saran lead** (Q-208; pemilik produk menjawab "pasang semua", [_progress.md](../_progress.md), "Hal terakhir checkpoint S4"): DPIA dan catatan ketentuan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai.
+- L-14 (pendaftaran PSE) berlaku untuk kedua penyedia dan milik advokat, sebelum tahap publik bila diambil (S4-4 (iii) A; keputusan 51); risiko pemutusan akses bila pilot ternyata wajib terdaftar (W-32) diterima pemilik produk.
+- Catatan ketentuan prosesor (18 §5.8 butir tinjauan 2) untuk kedua penyedia dibuat saat S4-2 diputuskan, sebelum data nyata, dan hanya tinjauan advokat atas teksnya yang menunggu tahap publik, bila diambil (dokumen 10 §3.1, §4.1 butir 4). Waktu itu, juga untuk DPIA, **diterima atas saran lead** (Q-208; pemilik produk menjawab "pasang semua", [_progress.md](../_progress.md), "Hal terakhir checkpoint S4"): DPIA dan catatan ketentuan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai.
 - Bila sebelum tahap publik ada pengguna di luar rumah tangga pilot, advokat menjawab L-14 (bersama L-01 dan L-24) lebih dulu. Pemicu ini berlaku (Q-209, diterima dengan cara yang sama).

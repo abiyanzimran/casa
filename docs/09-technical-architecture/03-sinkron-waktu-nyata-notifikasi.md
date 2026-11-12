@@ -36,6 +36,59 @@ Asasnya:
 
 **Urutan kirim dari antrean.** Pengiriman berurutan FIFO per rumah tangga menurut **waktu lepas** perintah (di bawah). Perintah yang merujuk objek yang belum terkirim (misalnya foto pada belanja offline) merujuknya lewat `pending_ref` dan baru dikirim sesudah perintah pembuatnya diterima. Perintah yang ditolak atau masih ditahan tidak menahan perintah lain yang tidak bergantung padanya. **Perintah pelindung lebih dulu** (revisi S5; ADR-028 butir 3): perintah yang jenisnya bertanda `protective` (daftar di bawah) dikirim seketika saat tersambung, mendahului antrean FIFO, dan tidak pernah menunggu jeda coba ulang yang dipicu penolakan perintah lain, termasuk `WRITE_FROZEN`. Perintah pelindung atas objek yang belum diterima server diselesaikan di perangkat: misalnya pencabutan atas berbagi yang belum terkirim menghapus kedua baris antrean, sehingga berbagi itu tidak pernah sampai. **`WRITE_FROZEN`** (server dalam tahan tulis, ADR-028 butir 3) adalah kode galat tersendiri yang dapat dicoba ulang dan dibedakan aplikasi dari "tidak ada jaringan" (08 §13.2). **Jumlah catatan yang belum terkirim** yang tampil di layar keluar (08 §18.3; 07 §8.2) dihitung dari antrean perangkat, bukan dari server, karena server tidak mengetahui perintah yang belum tiba.
 
+**`NOTICE_UNREAD`: tahan tulis per akun sampai pemberitahuan baru dibaca** (10.1 SEC-34; **[Usulan]** `architect` untuk mekanismenya). Sesudah versi pemberitahuan pengelola yang berlaku bagi sebuah akun berubah, termasuk saat versi akun diganti, server menolak perintah tulis biasa dari akun itu dengan kode galat `NOTICE_UNREAD` sampai versi itu diakui. Kode ini terpisah dari `WRITE_FROZEN`: `WRITE_FROZEN` berlaku untuk seluruh server dan diputus operator, sedangkan `NOTICE_UNREAD` berlaku per akun dan diputus pemilik akun sendiri.
+
+- **Yang tidak pernah ditahan `NOTICE_UNREAD`:**
+  - setiap jenis bertanda `protective` (SEC-151 (1) sampai (7)), termasuk hapus akun;
+  - keluar akun (sign-out);
+  - ekspor;
+  - pengakuan pemberitahuan itu sendiri;
+  - RPC `identity` di luar antrean (masuk, autentikasi ulang, pembaruan token, pemulihan lewat email). Tanpa keempatnya, pemilik akun tidak dapat mencapai LY-05 untuk mengakui (dikukuhkan `security-privacy`, 10.1 SEC-34).
+  
+  RPC `identity` tidak lewat tabel jenis perintah, jadi pengecualiannya ditegakkan di tempat yang sama dengan pengecualian tahan tulisnya (ADR-028 butir 3): pemeriksaan `NOTICE_UNREAD` hanya dipasang pada jalur perintah antrean dan perintah daring biasa, tidak pada RPC `identity`. Daftarnya satu tanda tambahan `notice_exempt` di tabel jenis perintah yang sama, dibaca server, Swift, dan Kotlin dari kode hasil generate. **Uji kontrak:** setiap jenis `protective` juga `notice_exempt`; jenis yang `notice_exempt` tetapi bukan `protective` hanya keluar akun, ekspor, dan pengakuan. Jadi tidak ada daftar kedua yang ditulis tangan.
+- **Setiap versi menahan, tanpa batas jumlah dan tanpa jendela** (10.1 SEC-34 aturan (5)):
+  - setiap versi pemberitahuan baru dan setiap pergantian versi sebuah akun menahan tulisan biasa akun itu (`NOTICE_UNREAD`) sampai diakui di LY-05;
+  - LY-05 tampil pada sinkron berikutnya;
+  - setiap versi menulis satu baris di jejak keamanan akun itu.
+
+  Server menyimpan per akun hanya versi terakhir yang diterbitkan dan versi terakhir yang diakui. Akun ditahan selama keduanya berbeda. **Hanya pengakuan atas versi terakhir yang melepas tahan.** Bila v4 terbit sebelum v3 diakui, LY-05 menampilkan v4, dan pengakuan atas v3 saja tidak melepas. Sesudah pengakuan, antrean perangkat terkirim utuh.
+- **Versi pemberitahuan mendahului fitur** (SEC-35; FR-FAM-019/AC-8). Versi yang memuat kalimat sebuah fitur harus sampai ke akun sebelum, atau bersama, build yang melepas fitur itu. Build yang lebih dulu gagal tinjauan rilis (14 §6.3).
+- **Risiko sisa:** pengelola dapat menerbitkan versi berulang kali untuk menahan pencatatan pasangan atau orang tuanya. Batasnya:
+  - tidak ada data yang hilang;
+  - satu kali baca dan satu ketukan mengakhiri tahan, kapan saja;
+  - tindakan pelindung tidak pernah ditahan;
+  - setiap versi terlihat di Riwayat keamanan.
+  
+  Dinilai di 15 RISK-11 dan RISK-93.
+- **Uji:**
+  - v2, v3 (pergantian versi akun), dan v4 masing-masing menahan, menulis satu baris di jejak keamanan, dan sesudah diakui antrean terkirim utuh;
+  - v4 terbit sebelum v3 diakui: LY-05 menampilkan v4, dan pengakuan v3 saja tidak melepas;
+  - build Tier 2 yang dilepas sebelum versi pemberitahuannya gagal tinjauan rilis.
+- **Membaca tetap boleh.** Umpan `sync` dan `read` tidak diperiksa, sehingga data yang sudah ada tetap tampil (SEC-34 (3)).
+- **Urutan pemeriksaan di server untuk setiap perintah:**
+  1. jenis `protective` melewati butir 2 dan 3; jenis `notice_exempt` lainnya melewati butir 3 saja, dan tahan tulis bagi mereka mengikuti ADR-028 butir 3 seperti sekarang;
+  2. `WRITE_FROZEN` (server);
+  3. `NOTICE_UNREAD` (akun);
+  4. otorisasi ulang saat tiba (SEC-151);
+  5. penerapan.
+  
+  `WRITE_FROZEN` diperiksa lebih dulu karena keadaannya berlaku bagi semua orang dan menentukan teks status 08 §13.2. Aplikasi tidak bergantung pada kode mana yang datang lebih dulu untuk menampilkan LY-05: ia mengetahui versi baru dari sinkron (SEC-34 (2)).
+- **Penolakan ini menunda, tidak menolak.** Kedua kode dapat dicoba ulang. Perintah tidak diterapkan, `idempotency_key`-nya **tidak dicatat sebagai selesai**, dan perintah tetap di antrean perangkat. Saat dikirim ulang, perintah diterima tepat sekali dengan tanggal kejadian aslinya (07 §3.11). Jadi 06 S-7 (pencatatan tidak pernah ditolak) tetap berlaku, sama seperti pada `WRITE_FROZEN`.
+- **Di perangkat:**
+  - Begitu sinkron menyatakan ada versi yang belum diakui, pengirim antrean berhenti mengambil perintah yang bukan `notice_exempt` dari akun itu, agar tidak menghasilkan penolakan yang sia-sia. Perintah pelindung tetap dikirim seketika (urutan kirim di atas).
+  - Pengguna tetap dapat mencatat; catatan masuk antrean seperti biasa, dan layar menampilkannya "menunggu terkirim".
+  - Sesudah pengakuan diterima server, antrean terkirim FIFO menurut waktu lepas.
+- **Pengakuan adalah RPC daring di luar antrean**, karena teks harus dibaca utuh di layar dari versi yang tersimpan di server. Selama `WRITE_FROZEN`, pengakuan **diterima** (dikukuhkan `security-privacy`, 10.4 SEC-151), karena hanya menulis catatan pengakuan milik akun itu dan satu baris jejak keamanan, tanpa menyentuh inti moneter. **Pengakuan selama `WRITE_FROZEN` tidak melepas tulisan lain yang ditahan:** `NOTICE_UNREAD` gugur bagi akun itu, tetapi perintah biasanya tetap ditolak `WRITE_FROZEN` dan tetap di antrean sampai saklar mati.
+- **Jeda urungkan tidak berubah.** Jeda berjalan di perangkat sebelum perintah dikirim. "Urungkan" selama jeda tetap menghapus baris antrean, dan `NOTICE_UNREAD` baru dapat terjadi sesudah `release_at`, saat perintah tiba di server. Perintah yang lewat jedanya ketika ada versi yang belum diakui tetap di antrean tanpa dikirim. Kesempatan mengurungkan tidak diperpanjang.
+- **Hanya akun itu.** Anggota lain di rumah tangga yang sama tidak terpengaruh. Pasangan tidak melihat apa pun dari keadaan ini selain catatan yang terlambat datang, sama dengan perangkat yang luring.
+- **Uji** (berkas 04 §4; 14 QG-30 butir 15):
+  - ubah versi akun uji: perintah biasa ditolak `NOTICE_UNREAD` dan tetap di antrean; perintah pada daftar di atas diterima;
+  - sesudah pengakuan, antrean terkirim tanpa catatan hilang dan tanpa penerapan ganda;
+  - `WRITE_FROZEN` dan `NOTICE_UNREAD` bersamaan: perintah biasa ditolak `WRITE_FROZEN`, perintah pelindung diterima, pengakuan diterima tetapi perintah biasa tetap ditolak `WRITE_FROZEN` sampai saklar mati, dan hasil akhirnya identik dengan rangkaian tanpa keduanya;
+  - dengan versi yang belum diakui: masuk, autentikasi ulang, pembaruan token, dan pemulihan lewat email berhasil, dan LY-05 tercapai;
+  - urungkan selama jeda saat ada versi yang belum diakui: tidak ada jejak di server;
+  - anggota lain tetap dapat menulis.
+
 **Jeda urungkan 5 detik** (dokumen 08 §9.3; angka **[Asumsi]** 08). Mekanismenya **[Usulan]**:
 
 - **Perintah yang tidak pernah ditahan** (daftar kanonis dokumen 10 SEC-151; keduanya diubah bersama): (1) setiap perintah yang **menyempitkan** visibilitas (pencabutan berbagi V-7, hapus status `CARE` yang dibagikan); (2) **menghapus data sendiri**: pesan, rincian, akun (SEC-105); (3) **sembunyikan untuk saya** (`mute_member`, SEC-153); (4) **melaporkan** (`report_content`, SEC-154); (5) **mencabut sesi** (SEC-16, SEC-21); (6) **keluar rumah tangga** (F06); (7) setiap perintah yang memerlukan **autentikasi ulang** (SEC-13). Perintah itu melindungi pengguna dan dikirim seketika saat tersambung. Daftarnya satu tabel jenis perintah di kontrak (`hold_seconds` dan, sejak revisi S5, tanda `protective` per jenis), sehingga server, Swift, dan Kotlin membaca nilai yang sama dari kode hasil generate; satu daftar `protective` melayani jeda urungkan (`hold_seconds = 0`) dan pengecualian tahan tulis di server (ADR-028 butir 3; SEC-151), dan klien memakainya untuk urutan kirim (di atas). Masuk, autentikasi ulang, pembaruan token, dan pemulihan email adalah RPC `identity` di luar antrean dan di luar pemeriksaan tahan tulis. **Uji kontrak** (CI, berkas 04 §4): setiap jenis di daftar (1) sampai (7) bernilai `hold_seconds = 0` dan bertanda `protective`; `protective` selalu disertai `hold_seconds = 0`; setiap jenis perintah baru yang menyempitkan, menghapus, atau berautentikasi ulang gagal uji bila nilainya bukan 0 atau tandanya tidak ada. Pesan chat (06 P-41) dan `unmute_member` boleh 0 karena rasa pakai, bukan karena daftar ini. Urungkan atas penyempitan adalah perintah berbagi baru yang mengikuti aturan perluasan biasa (V-6). Jeda tidak mengubah otorisasi: perintah dinilai saat tiba di server (SEC-151).
@@ -58,7 +111,7 @@ Asasnya:
 | Proteksi berkas | Kelas **`NSFileProtectionCompleteUntilFirstUserAuthentication`** (Class C). Kunci kelasnya tetap di memori sesudah perangkat pertama kali dibuka, sehingga sinkron latar tetap mungkin, dan ini kelas bawaan untuk data aplikasi pihak ketiga ([Apple Platform Security, Data Protection classes](https://support.apple.com/guide/security/data-protection-classes-secb010e978a/web), diakses 12 November 2026) **[Terverifikasi]**. Kelas ditetapkan eksplisit pada berkas basis data, WAL, dan direktori foto. Apple menyarankan kelas yang lebih ketat bila sinkron latar tidak diperlukan, dan pilot memang tidak punya jalur latar (§8 butir 2); penyimpangan ini dan alasannya dicatat di ADR-024: dengan Class A, tulisan SQLite dan WAL yang masih berjalan saat perangkat dikunci (misalnya jawaban `Sync` atau penghapusan antrean sesudah perintah diterima) gagal, dan basis data antrean dapat tertinggal dalam keadaan setengah tertulis **[Asumsi]**, diuji `ios-dev` di perangkat. **Berkas `CARE` lokal** (status yang tidak dibagikan; 10-D A) memakai **Class A, `NSFileProtectionComplete`**: tidak terbaca selama perangkat terkunci, karena tidak pernah disinkron | Penyimpanan internal aplikasi (*credential encrypted*), yang terbuka sesudah pengguna pertama kali membuka perangkat (Android 10 ke atas memakai *file-based encryption*, **[Perlu validasi]** untuk semua produsen). Tidak memakai *device protected storage* | SEC-46 |
 | Pengecualian dari cadangan | `URLResourceValues.isExcludedFromBackup = true` pada direktori basis data, antrean, dan foto **[Perlu validasi]**: halaman dokumentasi Apple tidak terbaca alat; perilakunya diuji di perangkat (cadangan iCloud tidak memuat basis data) | `android:dataExtractionRules` (target API 31+) dengan `<exclude>` domain `database`, `file`, dan `sharedpref` pada **`<cloud-backup>`, `<device-transfer>`, dan `<cross-platform-transfer>`** (18 §5, fase D) **[Terverifikasi]**, ditambah `android:fullBackupContent` untuk Android 11 ke bawah. Halaman resmi menyatakan bahwa `allowBackup="false"` pada sebagian produsen **tidak** menghentikan transfer antarperangkat, sehingga aturan eksklusi eksplisit diperlukan ([developer.android.com/identity/data/autobackup](https://developer.android.com/identity/data/autobackup), diakses 12 November 2026) **[Terverifikasi]**. Direktori `getNoBackupFilesDir()` selalu dikecualikan | SEC-46, SEC-145 |
 | Token sesi | Keychain, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` **[Perlu validasi]** nama konstanta | Android Keystore, kunci yang tidak dapat diekspor, membungkus token di penyimpanan internal yang dikecualikan dari cadangan | SEC-15 |
-| SQLCipher | Tidak dipakai di pilot (SEC-46); dinilai ulang sebelum tahap publik | Sama | SEC-46 |
+| SQLCipher | Tidak dipakai di pilot (SEC-46); dinilai ulang sebelum tahap publik, bila diambil | Sama | SEC-46 |
 | Keluar dari akun | Menghapus basis data, cache foto, dan antrean, sesudah peringatan jumlah catatan yang belum terkirim | Sama | SEC-47 |
 | Sesi dicabut dari perangkat lain | Hapus jarak jauh sebelum layar pertama (ADR-024) | Sama | SEC-21 |
 

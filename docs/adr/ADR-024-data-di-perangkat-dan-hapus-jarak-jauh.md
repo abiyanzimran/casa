@@ -50,7 +50,7 @@ Perilaku platform yang diperiksa 12 November 2026:
    - basis data di penyimpanan internal (*credential encrypted*);
    - `dataExtractionRules` meng-`exclude` domain `database`, `file`, dan `sharedpref` pada `<cloud-backup>`, `<device-transfer>`, dan `<cross-platform-transfer>`, ditambah `fullBackupContent` setara; uji di Galaxy A55 membuktikan bahwa pindah perangkat tidak membawa basis data;
    - token dibungkus kunci Android Keystore yang tidak dapat diekspor.
-3. **Tanpa SQLCipher di pilot.** Dinilai ulang sebelum tahap publik (SEC-46).
+3. **Tanpa SQLCipher di pilot.** Dinilai ulang sebelum tahap publik, bila diambil (SEC-46; keputusan 51).
 4. **Hapus jarak jauh.**
    - Setiap jawaban server atas sesi yang dicabut adalah galat `session_revoked`.
    - Aplikasi menghapus basis data, berkas, antrean, dan notifikasi yang tampil **sebelum** menampilkan layar apa pun.
@@ -82,4 +82,4 @@ Keputusan ADR ini tidak berubah. Karena pemilik produk memilih tetap tanpa Mac (
 - Penemu perangkat yang terkunci sesudah dinyalakan ulang tidak dapat membaca data. Sesudah pembukaan pertama, perlindungannya bergantung pada kunci perangkat dan kunci aplikasi (SEC-19). Status `CARE` lokal tidak terbaca setiap kali perangkat terkunci.
 - Tidak ada salinan data rumah tangga di iCloud atau Google Drive (SEC-145).
 - Dua jalan yang sengaja menghilangkan data yang belum terkirim (hapus jarak jauh dan pindah ponsel) dinyatakan di layar. Keduanya diterima `security-privacy` di dokumen 10 §8.
-- Sebagian alur `CARE` (I01 sampai I04 sebelum berbagi) berjalan di perangkat. E2EE chat, foto chat, alasan bebas `CARE`, dan sebutan anggota (F-FAM-021; SEC-155 (j)) dinilai lewat satu ADR baru sebelum tahap publik (S4-6 (i) A; dokumen 10 §8 butir 13). Dasarnya terhadap ES §2 adalah ADR ini sendiri, yang butir 5-nya disetujui pemilik produk (S4-6 (i) A), sesuai syarat ES baris 3 bagi penyimpangan; alur lokal itu satu-satunya implementasinya, karena status yang tidak dibagikan tidak pernah sampai ke server. Yang dibagikan tetap diputus server.
+- Sebagian alur `CARE` (I01 sampai I04 sebelum berbagi) berjalan di perangkat. E2EE chat, foto chat, alasan bebas `CARE`, dan sebutan anggota (F-FAM-021; SEC-155 (j)) dinilai lewat satu ADR baru sebelum tahap publik, bila diambil, (S4-6 (i) A; dokumen 10 §8 butir 13). Dasarnya terhadap ES §2 adalah ADR ini sendiri, yang butir 5-nya disetujui pemilik produk (S4-6 (i) A), sesuai syarat ES baris 3 bagi penyimpangan; alur lokal itu satu-satunya implementasinya, karena status yang tidak dibagikan tidak pernah sampai ke server. Yang dibagikan tetap diputus server.

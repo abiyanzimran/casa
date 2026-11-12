@@ -50,8 +50,8 @@ These constraints shape every recommendation, especially technology choice, scop
 | Product owner | Solo founder / small studio, technical background |
 | Team size for v1 | `[DEFAULT]` 1–3 developers |
 | Team strengths | Strong in Go and Rust backend; extensive mobile experience. The owner is open to any mobile stack and wants the best recommendation, not the most familiar one |
-| First users (pilot) | The owner's own household: husband and wife first, for several months. Parents and children get logins later. Public launch only after the pilot shows sustained daily use. Architecture and privacy design must not need a rewrite to go public |
-| Pilot devices | iPhone 13 (wife, main recorder), iPad mini 7 and Samsung Galaxy A55 (owner). Both spouses must be able to use the app. Real data starts on iOS and iPadOS; Android is built after real data starts and joins the pilot before the beta (decision 42) |
+| First users (pilot) | The owner's own household: husband and wife first, for several months. Parents and children get logins later. Going public is not planned (decision 51); if the owner later decides on it, only after the pilot shows sustained daily use. Architecture and privacy design must not need a rewrite to go public |
+| Pilot devices | iPhone 13 (wife, main recorder), iPad mini 7 and Samsung Galaxy A55 (owner). Both spouses must be able to use the app. Real data starts on iOS and iPadOS; Android is built after real data starts and joins the pilot before the beta, if a beta is ever held (decisions 42, 51) |
 | Build environment | The owner develops on Linux and has no Mac. Any iOS recommendation must state how the app gets built, tested on a real iPhone, and distributed, and what that costs |
 | Engineering standards | `ENGINEERING-STANDARDS.md` holds the hard rules for the build phase (clean code, no duplication, performance, security, financial correctness, testing, review). Every recommendation must be compatible with it; `14-engineering-roadmap.md` adopts it and adds the stack-specific tooling |
 | Team and working rules | `CLAUDE.md` defines the single goal, the order of sources of truth, document ownership per agent, and the review rule |
@@ -68,7 +68,7 @@ If any of these values makes a requirement in this brief unrealistic, say so exp
 
 ### 1.1 Goal, core problem & success criteria
 
-**Goal.** Staged: first a product the owner's own household uses every day, then a public product for Indonesian families. The pilot household is the primary source of truth for MVP scope.
+**Goal.** A product the owner's own household uses every day, designed and built to the standard of a public product for Indonesian families. Going public is not planned or scheduled, but stays possible: if the owner later decides on it, the app must not need a rewrite (owner decision 51). The pilot household is the primary source of truth for MVP scope.
 
 **Core problem (real, from the pilot household).** Household money is invisible and unplanned, and coordinating it costs constant asking.
 

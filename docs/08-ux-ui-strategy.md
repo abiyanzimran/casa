@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. Belum ditinjau `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
+| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. **Atas keputusan 51 (12 November 2026), tanpa rencana go public:** rancangan tidak dikurangi; waktu bangun yang bergantung pada TestFlight eksternal, App Store, kiriman toko, FS-3, GR-4, atau tahap publik kini bersyarat "bila kelak go public" (§10.7, §16, §16.4, §18.3, §23.3); waktu Android di §0 dan §16 berkedudukan "diterima atas saran lead lewat keputusan 50", dan "sebelum beta" hanya berlaku bila beta kelak diadakan; pembingkaian konflik iPad mini 7 dengan brief §1 di §16 dihapus karena baris "Platforms" sudah memuat pengecualiannya. **Atas keputusan 52 dan 10.1 §11.3.1 (12 November 2026):** kata layar final versi keluarga pengelola bagi orang tua dan kerabat yang diberi login (§7.5.1); label versi per akun dan tanggal baca di LY-71, "Riwayat keamanan" dengan baris akses darurat di LY-73 (§7.5.2; SEC-36, SEC-39 (b)); LY-05, §7.1, §21 diselaraskan; lalu atas ketetapan `security-privacy` di 10.1 §11.3.1: "isi dompet campuran" dan isi salinan cadangan ditambahkan ke teks dan tabel fakta wajib (§7.5.1), pergantian versi per akun menulis baris di riwayat keamanan (§7.5.2); atas SEC-34 yang diperbarui, versi baru menahan pengisian sampai dibaca: LY-05 tampil begitu sinkron membawanya, isian yang terbuka masuk antrean atau draf, kata keadaan tertahan (§7.5.3, §13.2). **Atas 10.1 SEC-18 dan SEC-25 (F-FAM-022, FR-FAM-026; Tier 2, FS-2):** layar LY-88 "Pengaman tambahan saat masuk" dengan pernyataan sebelum tombol nyalakan, 10 kode yang tampil sekali, serta matikan dan buat kode baru dengan kata sandi dan faktor kedua atau satu kode (§5.2, §12.5, §21); empat usulan dikukuhkan `security-privacy`, ditambah masa gugur pemasangan dan papan klip sensitif (§12.5). **Atas temuan `critic` (12 November 2026):** S-1 tenggat Android "sebelum jalur pengujian Google Play dibuka" (§16, §16.4); S-2 panggilan identitas tidak pernah ditahan (§7.5.3); S-3 FS-2 hanya TOTP, passkey mungkin di tahap publik (§5.2, §12.5); S-4, menurut SEC-34 (5) final (pilihan A `security-privacy`): setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui, tanpa batas frekuensi; bila versi lebih baru datang sebelum diakui, LY-05 menampilkan yang terbaru saja (§7.5.2, §7.5.3); M-a tenggat Android yang sama di §0; M-e pengakuan pemberitahuan tidak pernah ditahan (§7.5.3). Atas 10.1 SEC-34 (5), SEC-35, §11.3: LY-05 selalu menampilkan teks lengkap versi dari server; kalimat fitur yang belum tersedia bertanda "berlaku saat fitur ini tersedia", tanpa tampilan yang bergantung pada build (§7.5, §7.5.1). Belum ditinjau `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
 | Pemilik | `ux-designer` |
 | Tingkat kedalaman | Tier 1 penuh (brief §1.1); Tier 2 ringkas; Tier 3 daftar saja. Rancangan berlaku untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pemakai pertamanya (brief §1.1, "Tiers set what is built first, not what is designed") |
 | Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1); `_progress.md` |
@@ -65,7 +65,7 @@
 | Layar kunci N-28 "Ada kabar baru" | Bentuk (a), diterima lewat "lanjut" (S3-8 (vii)) | 17 S3-8 |
 | Hanya komponen dan API stabil | Aturan keras: versi stabil terbaru, tanpa alpha, beta, rc, atau API berlabel eksperimental kecuali lewat ADR. Komponen Material 3 Expressive tidak dipakai sampai rilis stabil yang memuatnya terbit (§17.1) | `ENGINEERING-STANDARDS.md` §8 (kalimat ADR-023 dipasang lead sesudah S4-1 (iii) A); ADR-012 butir 4 dan 5; ADR-023 |
 | Versi OS minimum iOS dan iPadOS 26, Android 10 | Diputuskan pemilik produk di checkpoint S4 (S4-3 (ii) A). Status ADR-012 butir 2 diperbarui `architect` | `_progress.md`, "Checkpoint S4" |
-| Platform pilot: iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 (istri, pencatat utama) dan iPad mini 7 (pemilik produk: gaji, pembagiannya, membaca angka); GR-2 tidak menunggu Android | **Keputusan 42**, dinyatakan pemilik produk sendiri; kata-katanya: "ios ipad yang bakalan dipakai pilot ya". Android dibangun sesudah GR-2 untuk Galaxy A55 miliknya dan bergabung ke pilot paling lambat sebelum GR-4 (beta). Brief §1 baris "Pilot devices" dan "Platforms" sudah diubah sejalan dengan keputusan ini, termasuk pengecualian iPad mini 7 dari "Phones come first" (**keputusan 50**, diterima atas saran lead; K-66 selesai). **Akibat di dokumen ini:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16.2); rancangan Android (Material 3) tidak dikurangi, hanya waktu bangunnya yang mengikuti keputusan | `_progress.md`, "Keputusan pemilik produk: platform pilot (12 November 2026)"; 17, keputusan 50 |
+| Platform pilot: iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 (istri, pencatat utama) dan iPad mini 7 (pemilik produk: gaji, pembagiannya, membaca angka); GR-2 tidak menunggu Android | Platform pilot iOS dan iPadOS: **keputusan 42**, dinyatakan pemilik produk sendiri; kata-katanya: "ios ipad yang bakalan dipakai pilot ya". Waktu Android tidak ada di kata-kata itu: Android dibangun sesudah GR-2 untuk Galaxy A55 miliknya, waktu yang semula bawaan lead **[Usulan]** dan kini **diterima atas saran lead lewat keputusan 50** (bunyi brief §1 baris "Pilot devices" yang ia setujui). Tenggat Android di dokumen ini adalah **sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b))**; bagian "bergabung ke pilot sebelum beta" tidak lagi dipakai sebagai tenggat, karena go public tidak direncanakan atau dijadwalkan (**keputusan 51**). Brief §1 baris "Pilot devices" dan "Platforms" sudah diubah sejalan dengan keputusan ini, termasuk pengecualian iPad mini 7 di baris "Platforms" (**keputusan 50**, diterima atas saran lead; K-66 selesai). **Akibat di dokumen ini:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16.2); rancangan Android (Material 3) tidak dikurangi, hanya waktu bangunnya yang mengikuti keputusan | `_progress.md`, "Keputusan pemilik produk: platform pilot (12 November 2026)" dan "Keputusan pemilik produk 51"; 17, keputusan 50 |
 
 **Dua batas evidensi.** (1) Saya tidak melihat gambar. Rupa aplikasi rujukan di dokumen ini hanya dikutip dari 18 §4.10.2, tempat `researcher` membuka tangkapan layar App Store sebelas aplikasi keuangan dengan batas yang ia nyatakan sendiri (materi pemasaran pilihan vendor, satu tema, warna disebut dengan mata); di luar itu `researcher` membaca halaman sebagai teks (18 §4.0). (2) Uji langsung aplikasi pesaing (R-02) belum dilakukan, jadi sasaran kecepatan mencatat di §9.1 adalah **[Asumsi]** dari `ENGINEERING-STANDARDS.md` §3 dan dari pola di dokumen 03 §2.4, bukan dari pengukuran.
 
@@ -244,7 +244,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-02 | Daftar dan masuk | Email, kata sandi minimal 12 karakter tanpa aturan komposisi (SEC-11); saran memakai email yang hanya dibuka sendiri (10.1 §9) | F-FAM-001 | Form; isian dengan `textContentType` email dan kata sandi baru agar pengelola kata sandi sistem bekerja | Form; autofill kata sandi sistem |
 | LY-03 | Periksa email | Menunggu tautan verifikasi; kirim ulang | F-FAM-001 | Layar | Layar |
 | LY-04 | Pernyataan usia | "Saya berusia 18 tahun atau lebih" tanpa tanggal lahir (SEC-80) | SEC-80, SEC-32 | Layar dengan satu kotak centang dan tombol | Sama |
-| LY-05 | Pemberitahuan pengelola server | Teks final §7.5 (dari 10.1 §11.3, tanpa kalimat janji), dibaca utuh sebelum data apa pun (SEC-34, SEC-35) | F-FAM-008, FR-FAM-019 | Layar gulir; tombol aktif sesudah dibaca sampai akhir | Sama |
+| LY-05 | Pemberitahuan pengelola server | Teks final §7.5 (dari 10.1 §11.3, tanpa kalimat janji) dalam versi yang ditetapkan untuk akun itu (§7.5.1), dibaca utuh sebelum data apa pun (SEC-34, SEC-35) | F-FAM-008, FR-FAM-019 | Layar gulir; tombol aktif sesudah dibaca sampai akhir | Sama |
 | LY-06 | Buat rumah tangga | Nama (wajib), zona waktu (terisi dari perangkat), hari mulai bulan anggaran (bawaan 1); mata uang hanya tampil bila produk mendukung lebih dari satu (FR-FAM-001) | F-FAM-001 | Form | Form |
 | LY-07 | Undang | Pernyataan sebelum mengundang (FR-FAM-003/AC-1, AC-8; D-90), tombol bagikan dengan teks tanpa nama (SEC-29); pada Tier 2, isian sebutan opsional yang menempel pada undangan dan tidak pernah masuk teks undangan (§7.4; SEC-155 (a), (c)) | F-FAM-002; F-FAM-021 | Lembar bagikan sistem | Sharesheet sistem |
 | LY-08 | Kukuhkan anggota | Email terverifikasi penerima utuh dan nama tampilannya; "pastikan ini email orang yang kamu undang" (SEC-31); pada Tier 2, sebutan yang dibuat di LY-07 tampil di samping nama akun, tidak menggantikannya, dan dapat diubah (§7.4; SEC-155 (d)) | F-FAM-002; F-FAM-021 | Layar dengan tombol "Kukuhkan" dan "Bukan dia" | Sama |
@@ -281,9 +281,9 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-63 | Laporkan (F-COM-014, S4-7 A) | Pesan atau foto yang dipilih pelapor, teks opsional, tanda terima; di pilot membuka LY-76 dan jalan keluar (§10.7) | SEC-154; 06 §16.12 | Lembar | Lembar bawah (pembungkus yang sama dengan LY-32) |
 | **Saya** | | | | | |
 | LY-70 | Saya | Nama tampilan, foto opsional, daftar ke LY-71 sampai LY-79 | F-FAM-003 | Daftar | Daftar |
-| LY-71 | Siapa melihat apa | Isi SEC-87 (a) sampai (f); sama bagi setiap anggota. Ditambah (SEC-59 (d)): "Setiap anggota membaca catatan rumah tangga di perangkatnya sendiri. Perangkat itu mungkin juga dipegang orang lain." Tidak menyebut siapa memakai kunci aplikasi (SEC-19) | FR-FAM-010, SEC-59 | Layar gulir | Sama |
+| LY-71 | Siapa melihat apa | Isi SEC-87 (a) sampai (f); sama bagi setiap anggota. Ditambah (SEC-59 (d)): "Setiap anggota membaca catatan rumah tangga di perangkatnya sendiri. Perangkat itu mungkin juga dipegang orang lain." Tidak menyebut siapa memakai kunci aplikasi (SEC-19). Bagian "Pemberitahuan pengelola server" di atasnya menampilkan versi yang berlaku untuk akun pembaca saja, dengan label dan tanggal bacanya (§7.5.2) | FR-FAM-010, SEC-59, SEC-34 | Layar gulir | Sama |
 | LY-72 | Notifikasi | Jam tenang, jam ringkasan, rincian di layar kunci tidak ditawarkan (SEC-51), tautan ke setelan sistem | F-NTF-002 sampai 005 | Form | Form |
-| LY-73 | Keamanan | Kunci aplikasi, daftar sesi dan perangkat milik sendiri (SEC-16), ganti kata sandi | SEC-13, 16, 19, 21 | Form | Form |
+| LY-73 | Keamanan | Kunci aplikasi, daftar sesi dan perangkat milik sendiri (SEC-16), ganti kata sandi, "Riwayat keamanan" (jejak keamanan akun sendiri, termasuk baris akses darurat; §7.5.2); pada Tier 2, "Pengaman tambahan saat masuk" ke LY-88 (§12.5) | SEC-13, 16, 19, 21, 39 (b), 36; Tier 2 SEC-18, 25 | Form | Form |
 | LY-74 | Keanggotaan | Anggota, "sudah keluar" (SEC-56), keluar dengan aman dan masa tenggangnya; pada Tier 2, tiap baris anggota lain membuka LY-87 sebutan (§7.4) | F-FAM-006; F-FAM-021 | Daftar | Daftar |
 | LY-75 | Data saya | "Salinan data saya" selama aktif, sesudah autentikasi ulang LY-77: hanya data milik sendiri, tanpa kabar bagi anggota lain; dibangun FS-1, pilot (FR-FAM-013/AC-12, ketetapan lead; 10.3 SEC-107). Ekspor (SEC-101), hapus akun (SEC-105), batas penghapusan (FR-FAM-014/AC-4) | F-FAM-006 | Daftar | Daftar |
 | LY-76 | Bantuan | Halaman statis SEC-134 | SEC-134 | Layar | Layar |
@@ -303,6 +303,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-85 | Berbagi status | Penerima dipilih; kalimat SEC-62 sebelum penerima pertama, diikuti (SEC-59 (d)): "{nama} membacanya di perangkatnya sendiri, yang mungkin juga dipegang orang lain." Tidak menyebut apakah penerima memakai kunci aplikasi | Default tidak berbagi (brief §5K) |
 | LY-86 | Pendamping | Ikut serta per fitur dengan kalimat SEC-126; nuansa religi pilihan sendiri | Mati secara bawaan; tidak ada fitur yang menunggu `AI` (PRN-06) |
 | LY-87 | Sebutan anggota | Sebutan yang hanya terlihat oleh pembuatnya untuk satu anggota lain; ubah atau hapus (F-FAM-021) | §7.4. iOS: lembar; Android: lembar bawah (pembungkus LY-32) |
+| LY-88 | Pengaman tambahan saat masuk | Faktor kedua (TOTP di FS-2; passkey mungkin di tahap publik, SEC-11) dan 10 kode pemulihan, pilihan per akun: nyalakan, sisa kode, buat kode baru, matikan (F-FAM-022, FR-FAM-026; SEC-18, SEC-25; FS-2) | §12.5. Dibuka dari LY-73; mati secara bawaan; tidak terbaca anggota lain |
 | — | Saran kata di chat | Baris saran di atas kotak tulis: "Pakai", "Saran lain", "Tutup" (Q-32 pilihan C); pesan terkirim tanpa penanda `AI` (brief §5O keputusan 2) | Tanpa ikon kilau; label kata "Saran kata" **[Usulan]** (§20 baris animasi) |
 | — | Kata penyemangat | Satu kalimat di bagian atas Beranda, dapat ditutup (F-AI-001) | Tidak pernah memuat angka atau nama pasangan |
 
@@ -372,7 +373,7 @@ flowchart TD
 |---|---|---|---|
 | Akun | Email dan kata sandi | Ya | SEC-11; tanpa nomor telepon, tanggal lahir, atau nama lengkap |
 | Pernyataan usia | Satu kotak centang | Ya, sebelum bergabung atau membuat rumah tangga | SEC-80; tanpa pernyataan, pembuatan ditolak |
-| Pemberitahuan pengelola | Teks §7.5 | Ya, sebelum data pribadi apa pun | SEC-34; dibaca sendiri, pengakuan tercatat bertanggal dan berversi, **tanpa kalimat janji** (S4-6 (ii) A; SEC-35) |
+| Pemberitahuan pengelola | Teks §7.5, versi per akun (§7.5.1) | Ya, sebelum data pribadi apa pun | SEC-34; dibaca sendiri, pengakuan tercatat bertanggal dan berversi, **tanpa kalimat janji** (S4-6 (ii) A; SEC-35) |
 | Buat rumah tangga | Nama | Hanya nama (FR-FAM-001/AC-3) | Zona waktu terisi; hari mulai bawaan 1; mata uang tersembunyi selama hanya IDR yang didukung, tetapi ruangnya ada di layar (FR-FAM-001 "Mata uang dan pasar"); tidak ada pertanyaan hubungan atau struktur keluarga |
 | Tempat uang pertama | Satu atau beberapa | Tidak; dapat dilewati | Saldo awal sekali (F-FIN-001); "Tambah lagi" untuk tempat berikutnya |
 | Undang | Pernyataan dulu, lalu bagikan | Tidak; dapat nanti dari Saya | FR-FAM-003/AC-1; teks terbagi tanpa nama (SEC-29) |
@@ -472,7 +473,7 @@ Menyimpan sebutan tidak ditahan 5 detik dan tidak menghasilkan Peristiwa, kartu,
 
 ### 7.5 Teks pemberitahuan pengelola server (LY-05; SEC-34, SEC-35)
 
-Bunyi final dari 10.1 §11.3 versi pilot, **tanpa kalimat janji** (S4-6 (ii) A). Disalin utuh; `{pengelola}` adalah nama tampilan yang diisi saat pemasangan. Dua kalimat bertanda **[Tier 2]** hanya tampil bila fiturnya ada di build yang dipasang (SEC-35), dan menambahkannya berarti versi baru yang meminta pembacaan ulang (SEC-34). Teks tahap publik diganti teks lain (FR-FAM-019/AC-6).
+Pemberitahuan ini punya **tiga versi, dipilih per akun** (SEC-34; 10.1 §11.3, §11.3.1): versi pilot di bawah, versi keluarga pengelola (§7.5.1), dan teks umum. Bunyi di bawah adalah versi pilot dari 10.1 §11.3, hanya untuk pasangan pilot, **tanpa kalimat janji** (S4-6 (ii) A). Disalin utuh; `{pengelola}` adalah nama tampilan yang diisi saat pemasangan. LY-05 selalu menampilkan **teks lengkap versi yang dikirim server**, termasuk kalimat tentang fitur yang belum ada di build yang terpasang; tidak ada tampilan yang bergantung pada build (10.1 SEC-34 (5), SEC-35, §11.3). Kalimat semacam itu, di dokumen ini bertanda **[Tier 2]**, membawa tanda "berlaku saat fitur ini tersedia" yang dikirim server per kalimat, sehingga build lama pun menampilkannya (bentuk tanda: di bawah teks). Pengakuan mencakup seluruh versi, termasuk kalimat bertanda. Teks tahap publik diganti teks lain (FR-FAM-019/AC-6).
 
 > **Siapa yang dapat melihat datamu di luar aplikasi**
 >
@@ -491,6 +492,103 @@ Bunyi final dari 10.1 §11.3 versi pilot, **tanpa kalimat janji** (S4-6 (ii) A).
 > [ ] Saya sudah membaca dan memahami pemberitahuan ini.
 
 Bentuk layar tetap LY-05: layar gulir; kotak centang dan tombol lanjut aktif sesudah dibaca sampai akhir; tanggal dan versi yang dibaca tersimpan sebagai catatan milik pembacanya.
+
+**Tanda "berlaku saat fitur ini tersedia"** **[Usulan]** bentuknya. Satu baris keterangan tepat di atas paragraf bertanda, berbunyi persis "Berlaku saat fitur ini tersedia", dengan gaya teks sekunder yang tetap memenuhi kontras teks normal dan ikut ukuran teks sistem (Dynamic Type; ukuran font Android). Tanda berupa kata, bukan warna, ikon, atau huruf miring saja. Paragrafnya tampil utuh dengan gaya biasa: tidak dilipat, tidak dipudarkan, dan ikut dihitung dalam "dibaca sampai akhir". Pembaca layar membaca tanda lebih dulu, lalu paragrafnya. Tanda yang sama tampil di LY-71 dan berlaku untuk ketiga versi. iOS dan Android sama; hanya gaya teks sekundernya mengikuti platform (§17, §19).
+
+#### 7.5.1 Versi keluarga pengelola (10.1 §11.3.1; keputusan 52)
+
+Untuk orang tua atau kerabat pengelola yang diberi login, yang menurut keputusan 52 adalah pengguna luar. Bunyi final di bawah adalah penulisan ulang draf 10.1 §11.3.1 untuk pembaca yang lebih tua: kalimat pendek, kata "server", "akses darurat", dan "dienkripsi" dijelaskan di tempat, dan letak riwayat keamanan disebut sebagai jalur menu. Setiap fakta draf tetap ada (tabel di bawah teks). Sapaan tetap "kamu" (§18.1), karena dokumen ini tidak menetapkan sapaan lain bagi orang tua; kehangatan datang dari penjelasan dan dari izin untuk menolak, bukan dari "Anda".
+
+> **Siapa yang dapat melihat datamu di luar aplikasi**
+>
+> Semua catatan di aplikasi ini disimpan di server, yaitu komputer tempat data aplikasi disimpan. Server itu dikelola oleh {pengelola}, anggota keluargamu sendiri. {Hanya bila {pengelola} anggota rumah tangga yang sama di aplikasi: "{pengelola} juga anggota rumah tangga ini."}
+>
+> **Di dalam aplikasi**, {pengelola} dan anggota lain tidak dapat melihat dana pribadimu, isi dompet campuranmu, status suasana hati atau kabar sakit yang tidak kamu bagikan, atau apa pun yang ditandai "hanya kamu".
+>
+> **Di luar aplikasi berbeda.** Sehari-hari {pengelola} tidak membuka data di server secara langsung. Bila perlu, misalnya untuk memperbaiki kerusakan, ia memakai akses darurat, yaitu cara masuk khusus yang meminta alasan tertulis. Setiap akses darurat tercatat di riwayat keamanan akunmu, berisi tanggal, lamanya, dan alasannya. Catatan itu hanya kamu yang dapat membacanya, di Saya > Keamanan > Riwayat keamanan.
+>
+> Lewat akses darurat, semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Data itu tidak dienkripsi terhadap {pengelola}, artinya tidak ada kunci yang menutupnya dari dia.
+>
+> **Pencatatan itu tidak mencegah semuanya.** {pengelola} memegang server dan kunci salinan cadangan data, dan salinan cadangan itu berisi data yang sama dengan server. Karena itu, secara teknis ia tetap dapat membuka datamu, dari server maupun dari salinan cadangan, tanpa tercatat di riwayat keamanan akunmu.
+>
+> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca dengan cara di atas.
+>
+> **[Tier 2]** Sebutan yang kamu berikan untuk anggota lain hanya tampil di aplikasimu, tetapi tersimpan di server dan dapat terbaca dengan cara di atas.
+>
+> Bila keadaan ini tidak cocok untukmu, kamu boleh tidak mengisi data pribadi apa pun. Itu pilihan yang wajar. Kamu dapat membaca pemberitahuan ini lagi kapan saja di Saya > Siapa melihat apa.
+>
+> [ ] Saya sudah membaca dan memahami pemberitahuan ini.
+
+| Fakta yang diwajibkan 10.1 §11.3.1 | Kalimat di atas |
+|---|---|
+| Pengelola server adalah anggota keluarga pembaca; kalimat serumah hanya bila memang serumah di aplikasi | Paragraf 1 |
+| Di dalam aplikasi: dana pribadi, isi dompet campuran, suasana hati dan kabar sakit yang tidak dibagikan, "hanya kamu" tertutup bagi pengelola dan anggota lain | Paragraf 2 |
+| Pengelola tidak membuka basis data sehari-hari; bila perlu, akses darurat dengan alasan tertulis; setiap akses tercatat di riwayat keamanan akun pembaca, hanya terbaca pemiliknya (SEC-36; SEC-39 (b)). Isi baris (tanggal, lama, alasan, tanpa isi data) dari SEC-36 | Paragraf 3 |
+| Lewat akses itu semua data server terbaca, termasuk dana pribadi, isi dompet campuran, chat dan foto, setelan pribadi (setelan jam tenang tercakup di sini); tidak dienkripsi terhadap pengelola | Paragraf 4 |
+| Pencatatan tidak mencegah semuanya; pengelola menguasai server dan kunci cadangan; salinan cadangan berisi data yang sama; data dapat dibuka dari server maupun dari cadangan tanpa tercatat | Paragraf 5 |
+| [Tier 2] Status yang tidak dibagikan tetap di perangkat; sesudah dibagikan tersimpan di server | Paragraf 6 |
+| [Tier 2] Sebutan anggota hanya tampil di aplikasi pembuatnya, tetapi tersimpan di server dan dapat terbaca (SEC-155 (i)) | Paragraf 7 |
+| Bila tidak cocok, pembaca boleh tidak mengisi data pribadi; dapat dibaca ulang di "Siapa melihat apa" | Paragraf 8 |
+
+**Yang ditambahkan dokumen ini, dan alasannya.** (1) Penjelasan "server", "akses darurat", dan "dienkripsi" di tempat, karena pembacanya mungkin tidak mengenal kata itu. (2) Jalur menu ke riwayat keamanan, agar janji "tercatat" dapat diperiksa sendiri. Dua usulan dokumen ini kini menjadi bagian draf 10.1 §11.3.1 atas ketetapan `security-privacy` (tabel "Ketetapan atas kata-kata akhir 08 §7.5.1"): kalimat [Tier 2] sebutan anggota, dan "kamu boleh tidak mengisi … Itu pilihan yang wajar" sebagai pengganti "jangan mengisi", yang dinilai bukan kalimat janji operator (SEC-35). Atas ketetapan yang sama, "isi dompet campuran" dan kalimat isi salinan cadangan ditambahkan ke paragraf 2, 4, dan 5.
+
+**Gerbang tampil** (SEC-35; 10.1 §11.3.1 "Uji"). Versi ini tidak tampil sebelum baris akses darurat SEC-36 di riwayat keamanan dibangun; karena SEC-36 berlaku sebelum pengguna luar pertama (10 indeks §4.2), orang tua tidak dapat masuk sebelum itu. Kalimat [Tier 2] selalu tampil dengan tanda "berlaku saat fitur ini tersedia", sama dengan versi pilot (§7.5). Akun berversi keluarga pengelola tidak pernah menampilkan versi pilot.
+
+#### 7.5.2 Versi mana yang berlaku: di "Siapa melihat apa" (LY-71)
+
+Versi ditetapkan pengelola per akun saat memberi akses, sebagai konfigurasi server; aplikasi tidak menebak hubungan keluarga (10.1 §11.3.1). Karena itu pemilik akun harus dapat melihat sendiri versi mana yang ia baca, dalam kalimat yang dapat ia periksa kebenarannya.
+
+| Tempat | Isi | iOS dan iPadOS | Android |
+|---|---|---|---|
+| LY-71, bagian paling atas "Pemberitahuan pengelola server" | Satu baris label versi (tabel berikut), lalu "Kamu membacanya {tanggal}." Lalu teks lengkap versi akun itu. Versi lain tidak pernah tampil | Bagian (`Section`) dalam daftar gulir; teks penuh di bawah label | Kartu atau bagian berjudul di layar gulir; teks penuh di bawah label |
+| LY-71, di bawah label | "Kalau kalimat ini tidak sesuai dengan keadaanmu, jangan mengisi data pribadi dulu dan minta {pengelola} memperbaikinya." | Teks sekunder | Teks sekunder |
+| LY-73 "Riwayat keamanan" | Daftar baris jejak keamanan milik sendiri (SEC-39 (b)); baris akses darurat berbunyi "Akses darurat oleh {pengelola} · {tanggal} · {lama} · Alasan: {alasan tertulis}", tanpa isi data (SEC-36). Baris pergantian versi pemberitahuan berbunyi "Pemberitahuan pengelola server diganti ke versi untuk {pasangan / keluarga / pengguna umum} · {tanggal}" (SEC-34), ditulis saat versi itu diterbitkan untuk akun tersebut (§7.5.3). Hanya pemilik akun yang melihatnya; tidak ada hitungan atau tanda di Beranda | Daftar dorong dari LY-73 | Daftar dorong dari LY-73 |
+
+| Versi (10.1) | Label di LY-71 | Siapa |
+|---|---|---|
+| Versi pilot | "Pemberitahuan ini untuk pasangan {pengelola}, yang mengelola server." | Pasangan pilot saja (keputusan 25) |
+| Versi keluarga pengelola | "Pemberitahuan ini untuk keluarga {pengelola}, yang mengelola server." | Orang tua dan kerabat yang diberi login di server keluarga pemilik produk (keputusan 52) |
+| Teks umum | "Pemberitahuan ini untuk pengguna umum. Pengelola server bukan anggota keluargamu." | Beta atau publik, bila kelak ada (FR-FAM-019/AC-6) |
+
+Label menyebut nama pengelola dan hubungannya, sehingga salah pilih tampak bagi pembacanya sendiri. Bila pengelola mengubah versi sebuah akun, itu dihitung versi baru (SEC-34, dikukuhkan 10.1 §11.3.1): LY-05 tampil begitu sinkron membawa versi baru, tidak menunggu pembukaan berikutnya, dan pengisian data ditahan sampai pengakuan (§7.5.3). Pergantian itu juga menulis satu baris di riwayat keamanan akun tersebut (tabel di atas), sehingga pergantian versi tidak terjadi diam-diam.
+
+**Masking dan layar kunci.** Teks pemberitahuan dan label tidak memuat angka atau isi peka, jadi tidak disamarkan. Baris "Riwayat keamanan" tidak memuat isi data, tetapi alasan tertulis dapat menyinggung hal peka; karena itu isinya tidak pernah menjadi isi notifikasi, judul jendela, atau widget, dan pengalih aplikasi menampilkan layar netral seperti layar lain (SEC-20, §12.2).
+
+#### 7.5.3 Versi baru di tengah pemakaian: pengisian ditahan sampai dibaca (SEC-34)
+
+Berlaku untuk setiap versi baru, termasuk pergantian versi akun. Sampai pemilik akun mencentang dan menekan "Lanjut" di LY-05, server menolak perintah tulis biasa dari akun itu dengan kode galat "pemberitahuan baru perlu dibaca" (10.1 SEC-34). Yang tidak pernah ditahan: perintah pelindung SEC-151 (1) sampai (7), keluar akun, ekspor, dan hapus akun; juga masuk, autentikasi ulang, pembaruan token, dan pemulihan lewat email, yang adalah panggilan identitas di luar tabel perintah (09 berkas 03 §1), sehingga orang yang belum membaca tetap dapat masuk untuk membacanya; dan pengakuan pemberitahuan itu sendiri (09 berkas 03 §1), karena tanpanya tahanan tidak pernah dapat dibuka. Membaca tetap boleh.
+
+**Tanpa batas frekuensi** (10.1 SEC-34 (5), pilihan A `security-privacy`; temuan `critic` S-4). Setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui di LY-05, tampil pada sinkron berikutnya, dan menulis satu baris di riwayat keamanan (§7.5.2). Tidak ada jendela waktu dan tidak ada versi yang menunggu di server. Bila versi yang lebih baru datang sebelum versi sebelumnya diakui, LY-05 langsung menampilkan versi terbaru saja; hanya pengakuan atas versi terbaru itu yang membuka tahanan, dan versi lama tidak perlu dibaca lagi. Catatan yang dibuat di perangkat tidak pernah hilang (PRN-06): ia antre dan terkirim sesudah pengakuan.
+
+```mermaid
+flowchart TD
+    A[Sinkron membawa versi baru, atau server menolak tulis dengan kode itu] --> B{Ada lembar Catat, permintaan, atau ketikan chat yang terbuka?}
+    B -- Tidak --> D[LY-05 tampil seketika]
+    B -- Ya --> C["Lembar tidak ditutup paksa. Simpan: catatan masuk antrean. Tutup: draf §9.3. Pesan terkirim: antre"]
+    C --> D
+    D --> E{Pilihan pembaca}
+    E -- "Centang, Lanjut" --> F[Pengakuan tersimpan; antrean terkirim; baris status hilang]
+    E -- Nanti --> G[Aplikasi tetap terbuka; baris status 'pemberitahuan baru'; catatan baru antre]
+    G -- "Baca, di baris status atau di Siapa melihat apa" --> D
+```
+
+| Saat | Perilaku | iOS dan iPadOS | Android |
+|---|---|---|---|
+| Versi baru diketahui | Bila tidak ada isian yang terbuka, LY-05 tampil seketika, juga bila aplikasi sedang di layar mana pun. Bila ada lembar Catat atau permintaan yang terbuka, atau ketikan chat, LY-05 tampil sesudah lembar itu ditutup atau pesan dikirim, tidak menutupnya di tengah ketikan. Isian tidak pernah dibuang: "Simpan" memasukkan catatan ke antrean dengan ikon jam (§13.2 "Butir antre"); menutup lembar menyimpan draf (§9.3) | LY-05 sebagai lembar ukuran besar yang tidak tertutup dengan gestur geser; "Nanti" di posisi batal bilah atas **[Usulan]** | LY-05 sebagai dialog layar penuh dari `Dialog` dan `Scaffold` stabil (bentuk yang sama dengan cadangan lembar di §17.4), tombol tutup "Nanti" di awal bilah atas; kembali sistem sama dengan "Nanti" **[Usulan]** |
+| Di LY-05 | Teks lengkap versi akun itu dengan satu baris di atas judul (bunyi di bawah). Kotak centang dan "Lanjut" aktif sesudah digulir sampai akhir, sama dengan pembacaan pertama | Sama | Sama |
+| Sesudah "Nanti" | Semua layar terbuka untuk dibaca. Mencatat dan menjawab tetap bisa; hasilnya antre di perangkat. Perintah pelindung, keluar, ekspor, salinan data saya, dan hapus akun berjalan seperti biasa dengan kalimat hasil yang sama seperti saat normal, dan dikirim seketika, tidak di belakang antrean yang tertahan (sama dengan *tahan tulis*, §13.2) | Baris status di bawah bilah judul, posisi yang sama dengan baris "Luring" | Sama |
+| Tindakan yang perlu server dan bukan pelindung (buat rumah tangga, terima undangan) | Tombol tetap aktif; menekannya membuka LY-05 | Sama | Sama |
+| Sesudah pengakuan | Antrean terkirim dalam urutan biasa; ikon jam hilang satu per satu; tidak ada kalimat tambahan | Sama | Sama |
+
+**Kata layar** **[Usulan]**:
+
+| Tempat | Bunyi |
+|---|---|
+| Baris di atas judul LY-05, hanya untuk versi baru | "Pemberitahuan ini berubah. Bacalah sampai akhir. Sementara itu kamu tetap bisa melihat semua catatan, dan catatan baru tersimpan di ponselmu sampai kamu selesai membaca." |
+| Tombol sekunder LY-05 | "Nanti" |
+| Baris status sesudah "Nanti" | "Ada pemberitahuan baru tentang siapa yang dapat melihat datamu. Catatan baru tersimpan di ponsel dan terkirim sesudah kamu membacanya." dengan tombol "Baca" |
+| Butir antre selama ditahan | Ikon jam yang sama; "Info tanda" berbunyi "Belum terkirim. Tersimpan di ponselmu dan terkirim sesudah kamu membaca pemberitahuan baru." |
+Bedanya dengan *tahan tulis* (§13.2): di sana layar tidak menyebut alasannya karena pembaca tidak dapat berbuat apa-apa; di sini alasannya disebut karena pembaca sendiri yang membuka tahanan. Kata "ponsel" mengikuti aturan nama perangkat §18.1. Bentuk penyajian di kedua platform berstatus **[Perlu validasi]** terhadap HIG Modality dan panduan dialog Material 3: kedua halaman tidak terbaca lewat alat pengambil halaman pada 12 November 2026, jadi `ux-designer` memeriksanya langsung sebelum bangun.
 
 ---
 
@@ -782,9 +880,9 @@ Bentuk tombol: iOS, tombol bergaris dan satu tombol menonjol untuk "Setuju"; And
 | Unsur | Kapan dibangun |
 |---|---|
 | Sembunyikan pesan {nama} (LY-62) | Pilot (SEC-153 (a) sampai (c), (e)) |
-| Foto diburamkan bila peringatan konten sensitif sistem menyala | Sebelum TestFlight eksternal atau App Store (SEC-153 (d)) |
-| Laporkan (LY-63) | Pilot: membuka LY-76; ke pengelola: sebelum TestFlight eksternal atau App Store (SEC-154) |
-| Kontak pengelola di LY-76 | Sebelum kiriman toko pertama (SEC-154 (d)) |
+| Foto diburamkan bila peringatan konten sensitif sistem menyala | Bila kelak go public: sebelum TestFlight eksternal atau App Store (SEC-153 (d)) |
+| Laporkan (LY-63) | Pilot: membuka LY-76; ke pengelola, bila kelak go public: sebelum TestFlight eksternal atau App Store (SEC-154) |
+| Kontak pengelola di LY-76 | Bila kelak go public: sebelum kiriman toko pertama (SEC-154 (d)) |
 | Keluar dari rumah tangga (LY-74) | Sudah ada (06 F06) |
 
 **Pintu masuk.** Tekan lama pada pesan atau foto orang lain: "Sembunyikan pesan {nama}" dan "Laporkan". Menu kepala chat: "Sembunyikan pesan {nama}" atau, bila sudah, "Tampilkan lagi pesan {nama}"; pada rumah tangga dengan lebih dari dua dewasa, satu butir per anggota. iOS: `Menu` di bilah navigasi chat dan `contextMenu` pada pesan. Android: menu luapan `DropdownMenu` di bilah atas dan menu tekan lama. Kedua butir tidak pernah ada pada kartu objek, baris peristiwa, atau pesan sendiri.
@@ -893,7 +991,7 @@ Lipat itu diterima di checkpoint S4 lewat D-108 (K-57). Kalimat brief §1.1 dan 
 | LY-43 Uang pribadi | Buku pribadi | Ya | Layar netral | — | Tidak diblokir |
 | LY-60 Chat | Isi dapat memuat apa saja (SEC-63) | Jumlah di kartu: ya; teks bebas: tidak | Layar netral | Teks kelas, tanpa pengirim | Tidak diblokir |
 | LY-84 Status saya (Tier 2) | Suasana hati, sakit | — | Layar netral | N-28 "Ada kabar baru" | Tidak diblokir |
-| LY-73 Keamanan | Sesi, perangkat | — | Layar netral | — | Tidak diblokir |
+| LY-73 Keamanan | Sesi, perangkat; riwayat keamanan dengan alasan akses darurat (§7.5.2) | — | Layar netral | — | Tidak diblokir |
 | LY-76 Bantuan | Fakta bahwa orang membukanya | — | Layar netral | Tanpa jejak (SEC-134) | Tidak diblokir |
 | LY-62 Sembunyikan, LY-63 Laporkan (F-COM-014) | Fakta bahwa orang menyembunyikan atau melaporkan; isi pesan yang dilaporkan | Jumlah di kutipan kartu: ya | Layar netral | Tidak ada notifikasi bagi siapa pun (SEC-153 (b), SEC-154 (b)) | Tidak diblokir |
 
@@ -932,6 +1030,25 @@ Isi dari daftar di server (SEC-138), jadi nomor dapat diperbaiki tanpa rilis. **
 
 Bentuk: daftar statis tanpa gambar. "Telepon" membuka aplikasi telepon sistem dengan nomor terisi, tanpa memanggil langsung (iOS: konfirmasi panggilan sistem; Android: aplikasi telepon, tanpa izin `CALL_PHONE`). Tautan situs dibuka di peramban sistem, bukan di dalam aplikasi. Membuka halaman ini tidak menghasilkan Peristiwa, notifikasi, log berpengenal akun, atau analitik (SEC-134). Halaman ini terbuka dari LY-70 bagi setiap anggota, dan dari baris bantuan SEC-133 (§18.3).
 
+### 12.5 Pengaman tambahan saat masuk (LY-88; Tier 2, ringkas)
+
+F-FAM-022, FR-FAM-026; isi dari 10.1 SEC-18 dan SEC-25. Dibangun di FS-2, tidak menahan GR-2 (keputusan 54). Pilihan per akun, mati secara bawaan, hanya pemiliknya yang mengatur; tidak ada layar, tanda, atau notifikasi yang memberi tahu anggota lain apakah fitur ini menyala (FR-FAM-026/AC-5). Kata di layar **[Usulan]**.
+
+| Langkah | Rancangan dan kata layar | iOS dan iPadOS | Android |
+|---|---|---|---|
+| 1. Pembuka | "Sesudah ini menyala, masuk di perangkat baru meminta kata sandi dan satu kode dari perangkat pengamanmu. Atur ulang kata sandi lewat email juga tidak cukup untuk masuk." Tombol "Mulai" | Layar dorong dari LY-73 | Sama |
+| 2. Autentikasi ulang | Kata sandi akun (LY-77, SEC-13) | Lembar LY-77 | Sama |
+| 3. Pasang pengaman | Aplikasi autentikator (TOTP) saja di FS-2 (ketetapan lead, temuan `critic` S-3): kode QR dan kunci teks yang dapat disalin, lalu ketik satu kode yang benar. Fitur belum menyala di langkah ini (FR-FAM-026/AC-1). Passkey tidak ditawarkan; ia mungkin datang di tahap publik (SEC-11), sebagai pilihan tambahan di langkah ini | QR tampil di layar; kunci teks dapat disalin dengan aturan papan klip langkah 4 | Sama |
+| 4. Kode pemulihan, ditampilkan sekali | Judul "Simpan kode pemulihanmu dulu". "Ini 10 kode pemulihan. Setiap kode hanya bisa dipakai sekali, untuk masuk kalau perangkat pengamanmu tidak ada. Kode ini hanya tampil sekarang dan tidak bisa dilihat lagi. Simpan di tempat yang hanya kamu yang bisa membuka." Tombol "Salin" dan "Simpan atau bagikan"; kotak centang "Saya sudah menyimpan 10 kode ini" | Daftar kode dengan huruf monospace; "Simpan atau bagikan" membuka lembar bagikan sistem. "Salin" menaruh kode di papan klip yang hanya di perangkat ini (tidak ikut Universal Clipboard) dan kedaluwarsa sendiri (SEC-25) **[Perlu validasi]** di fase bangun | Lembar bagikan sistem. "Salin" menaruh kode di papan klip bertanda sensitif, sehingga pratinjau papan klip sistem tidak menampilkannya, dan dikosongkan sendiri sesudah waktu singkat bila platform memungkinkan (SEC-25) **[Perlu validasi]** di fase bangun |
+| 5. Pernyataan sebelum tombol nyalakan (SEC-18) | Tepat di atas tombol: "Kalau perangkat pengamanmu dan semua kode pemulihan hilang, akun ini tidak bisa dibuka lagi. Tidak ada orang lain yang bisa membukanya untukmu, termasuk pengelola server dan anggota rumah tanggamu." Hanya bila ada anggota dewasa lain yang aktif, ditambah: "Rumah tangga tetap berjalan bagi anggota lain." (FR-FAM-017). Tombol "Nyalakan" aktif sesudah kotak centang langkah 4 dicentang | Tombol menonjol | `Button` terisi |
+| Batal di langkah mana pun, atau pemasangan gugur | Tidak ada yang menyala; rahasia pengaman dan kode yang sudah tampil gugur. Pemasangan yang belum dinyalakan juga gugur sesudah 15 menit **[Asumsi]** atau bila pemasangan baru dimulai (SEC-25). Kata saat batal: "Pengaman tambahan belum dinyalakan." Kata saat kembali ke pemasangan yang sudah gugur: "Waktu memasang sudah habis, jadi kode tadi tidak berlaku. Mulai lagi dari awal." dengan tombol "Mulai lagi" | Sama | Sama |
+| Masuk sesudah menyala (AC-2, AC-3) | Sesudah kata sandi: "Masukkan kode dari perangkat pengamanmu." dengan tautan "Pakai kode pemulihan". Sesudah satu kode pemulihan dipakai: "Kode itu sudah terpakai. Sisa {n} kode." | Sama | Sama |
+| LY-88 sesudah menyala | Status "Menyala", "Sisa kode pemulihan: {n}"; bila sisa 3 atau kurang: "Kodemu tinggal sedikit. Buat kode baru supaya tetap bisa masuk kalau perangkat pengamanmu hilang." | Daftar | Daftar |
+| Buat kode baru (AC-4) | Kata sandi (LY-77) **dan** "Masukkan kode dari perangkat pengamanmu atau satu kode pemulihan." Sebelum mengukuhkan: "Semua kode lama tidak berlaku lagi begitu kode baru dibuat." Lalu langkah 4 | Sama | Sama |
+| Matikan (AC-4) | Kata sandi (LY-77) **dan** kode dari perangkat pengaman atau satu kode pemulihan. Konfirmasi: "Sesudah dimatikan, masuk di perangkat baru cukup dengan kata sandi, dan semua kode pemulihan dihapus." Tombol "Matikan" | `confirmationDialog` | `AlertDialog` |
+
+Menyalakan, mematikan, membuat kode baru, dan memakai kode pemulihan menulis satu baris di "Riwayat keamanan" pemiliknya saja (SEC-39 (b); §7.5.2) dan diberitahukan kepadanya saja (SEC-17). Kode tidak pernah tampil di notifikasi, judul jendela, atau widget; pengalih aplikasi menampilkan layar netral (SEC-20). Tangkapan layar tidak diblokir (SEC-20); layar langkah 4 tidak menganjurkan atau melarang cara simpan tertentu. Empat usulan dokumen ini **dikukuhkan `security-privacy`** di 10.1 SEC-18 dan SEC-25: kode yang tampil lalu dibatalkan gugur; tangkapan layar tidak diblokir di layar kode; kalimat "Rumah tangga tetap berjalan bagi anggota lain." hanya bila ada anggota dewasa lain yang aktif; ambang "tinggal sedikit" 3 kode (angkanya tetap **[Asumsi]**). Dua tambahan dari `security-privacy` (SEC-25): masa gugur pemasangan 15 menit **[Asumsi]**, dan papan klip yang hanya lokal, kedaluwarsa sendiri, dan bertanda sensitif **[Perlu validasi]**.
+
 ---
 
 ## 13. Keadaan kosong, galat, luring, memuat
@@ -958,6 +1075,7 @@ Bentuk: daftar statis tanpa gambar. "Telepon" membuka aplikasi telepon sistem de
 | Jawaban luring yang basi saat sinkron | Kartu | "Jawabanmu belum terkirim karena syaratnya sudah berubah. Lihat yang terbaru." | §10.4 |
 | Galat server | Semua | "Ada gangguan di server. Catatanmu aman di ponsel; kami coba lagi otomatis." | — |
 | Server menahan tulis (*tahan tulis*, ADR-028 butir 3) | Semua | **Tanpa kalimat baru.** Ponsel memperlakukannya seperti server tidak terjangkau: catatan, pesan, dan jawaban masuk antrean dengan ikon jam (baris "Butir antre"), dan angka server tetap tampil dengan "Diperbarui di ponsel ini 10.42". Baris status dipilih dari apa yang diketahui ponsel: bila sistem melaporkan tidak ada jaringan, kalimat baris "Luring"; bila ada jaringan tetapi server tidak menerima tulis, kalimat baris "Galat server" **[Usulan]**, supaya ponsel yang tersambung tidak berkata "Belum tersambung". Layar tidak pernah menyebut *tahan tulis*, alasannya, atau pengelola server | **Perintah pelindung SEC-151 butir (1) sampai (7)** (cabut berbagi, hapus data sendiri, sembunyikan untuk saya, laporkan, cabut sesi, keluar, perintah berautentikasi ulang) tidak ditahan dan diterima server seperti biasa (ketetapan lead; amandemen ADR-028 butir 3 oleh `architect`): dikirim seketika, tidak menunggu di belakang antrean yang tertahan (09 berkas 03 §1), dengan kalimat hasil yang sama seperti saat normal (§9.3). Keluar dengan antrean yang belum kosong: §18.3 |
+| Pemberitahuan pengelola versi baru belum dibaca (SEC-34) | Semua | Baris status "Ada pemberitahuan baru tentang siapa yang dapat melihat datamu. Catatan baru tersimpan di ponsel dan terkirim sesudah kamu membacanya." dengan tombol "Baca" ke LY-05 | Catatan, pesan, dan jawaban antre dengan ikon jam; perintah pelindung, keluar, ekspor, salinan data saya, dan hapus akun tidak ditahan. Rincian §7.5.3 |
 | Ditolak aturan (bukan galat) | Kesepakatan, tautan ke tagihan rutin (SEC-92; 07 INV-37, T-47) | Tautan susulan: "Kategori catatan ini bukan {kategori tagihan}, jadi tidak bisa ditautkan ke {nama tagihan}." Saat mencatat, catatan tetap tersimpan tanpa tautan: ditambah "Catatannya tetap tersimpan." Mengganti kategori catatan yang tertaut: "Catatan ini tertaut ke {nama tagihan}, jadi kategorinya tetap {kategori tagihan}." Kata dari `finance-domain` (07 fase D) | Keterangan di bawah isian, warna netral (§17.2); bukan galat sistem. Pencegahan di §9.1 |
 | Memuat pertama kali | Sesudah masuk di perangkat baru | Kerangka bagian tanpa angka palsu; "Mengambil catatan rumah tangga…" bila lebih dari 1 detik | iOS `ProgressView`; Android indikator Material |
 | Memuat foto | Chat | Ruang foto dengan ukuran tetap dan warna permukaan | — |
@@ -1000,9 +1118,9 @@ Bila izin ditolak: fitur tetap berjalan sejauh mungkin; satu baris di LY-72 "Not
 
 Tata letak khusus tablet dan foldable adalah Tier 3; adaptasi ke setiap lebar adalah syarat sejak hari pertama (brief §1.1, §10.3). Untuk perangkat lipat berlaku bawaan (c) Q-120: kelas ukuran jendela ditambah emulator; tidak ada perangkat lipat sebenarnya di pilot **[Asumsi]**.
 
-**iPad mini 7 siap di GR-2 (keputusan 42, §0).** Brief §1 menulis "Phones come first". Untuk iPad mini 7 saja keputusan 42 menang: pemilik produk memakai iPad itu sebagai perangkat pilotnya dengan data nyata, jadi keadaan Sedang dan Lebar (dan Ringkas di jendela sempit) untuk setiap alur Tier 1 yang ia pakai dirancang di §16.2 dan **lulus daftar uji §16.4 di iPad mini 7 sebelum GR-2**, bukan sesudahnya. Ini bukan tata letak khusus tablet: tiga keadaan §4.2 dan bentuk per layar §16.1 tetap satu-satunya tata letak; yang berubah adalah waktunya dan bahwa ia diuji di perangkat nyata. Tablet Android dan perangkat lipat tidak berubah: adaptif sejak hari pertama, tata letak khusus Tier 3.
+**iPad mini 7 siap di GR-2 (keputusan 42, §0).** Brief §1 baris "Platforms" mendahulukan ponsel, kecuali iPad mini 7: perangkat pilot harian, sehingga setiap alur Tier 1 yang dipakainya ditata untuknya sebelum data nyata (keputusan 42 dan 50). Pemilik produk memakai iPad itu sebagai perangkat pilotnya dengan data nyata, jadi keadaan Sedang dan Lebar (dan Ringkas di jendela sempit) untuk setiap alur Tier 1 yang ia pakai dirancang di §16.2 dan **lulus daftar uji §16.4 di iPad mini 7 sebelum GR-2**, bukan sesudahnya. Ini bukan tata letak khusus tablet: tiga keadaan §4.2 dan bentuk per layar §16.1 tetap satu-satunya tata letak; yang berubah adalah waktunya dan bahwa ia diuji di perangkat nyata. Tablet Android dan perangkat lipat tidak berubah: adaptif sejak hari pertama, tata letak khusus Tier 3.
 
-**Android.** Seluruh bentuk Android di dokumen ini (Material 3, §4.3, §16.1, §16.3, §17, §19.7) tetap rancangan lengkap. Yang mengikuti keputusan 42 hanya waktu bangunnya: sesudah GR-2, untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4 (brief §1 baris "Pilot devices", bunyinya disetujui lewat keputusan 50). Uji Android di §16.4 dan §19.7 dijalankan sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14).
+**Android.** Seluruh bentuk Android di dokumen ini (Material 3, §4.3, §16.1, §16.3, §17, §19.7) tetap rancangan lengkap. Yang mengikuti keputusan 42 hanya waktu bangunnya: sesudah GR-2, untuk Galaxy A55 milik pemilik produk, dan sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)). Waktunya **diterima atas saran lead lewat keputusan 50** (brief §1 baris "Pilot devices"). Uji Android di §16.4 dan §19.7 dijalankan sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14).
 
 ### 16.1 Per layar
 
@@ -1072,7 +1190,7 @@ Pada setiap ukuran: teks 200% (Android) atau ukuran aksesibilitas terbesar Dynam
 | Kapan | Perangkat atau emulator |
 |---|---|
 | Sebelum GR-2 | iPhone 13; iPad mini 7 potret, lanskap, jendela berdampingan selebar *compact* dan *regular*, dan jendela yang diubah ukurannya di tengah alur, untuk setiap baris alur di §16.2 |
-| Sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14; sesudah GR-2, paling lambat sebelum GR-4) | Galaxy A55; emulator foldable Android 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp (perangkat uji minimum adaptive app quality, 18 §4.4); emulator foldable dalam tabletop, buku, dan peralihan; emulator dua layar berengsel |
+| Sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14; sesudah GR-2, dan sebelum jalur pengujian Google Play dibuka, GR-4 butir 8; QG-31 (b)) | Galaxy A55; emulator foldable Android 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp (perangkat uji minimum adaptive app quality, 18 §4.4); emulator foldable dalam tabletop, buku, dan peralihan; emulator dua layar berengsel |
 
 ---
 
@@ -1240,7 +1358,7 @@ Kata yang tidak pernah tampil di layar: debit, kredit, jurnal, buku besar, nerac
 | Butuh tenang hari ini (IDEA-19, SP-59) | "{Nama} akan tahu kamu butuh tenang. 'Online' dan tanda dibaca tetap terlihat." |
 | Baris bantuan status berat (SEC-133) | Satu baris dapat ditutup, paling banyak sekali sehari, hanya bagi pemilik status: "Kalau perlu teman bicara, ada layanan bantuan." dengan tautan ke LY-76 |
 | Biometrik (SEC-14) | §12.3 |
-| Status Plus (tahap publik, dirancang sekarang, dibangun FS-3; 13 §7.5 (a); 06 PG-15) | "Plus aktif sampai {tanggal}." **[Usulan]**, satu baris di Pengaturan, sama bagi setiap anggota berakun rumah tangga itu (Q-217; SEC-156 (b)) dan tidak tampil di rumah tangga lain. Tidak pernah menyebut siapa yang membayar, di layar, notifikasi, maupun ringkasan; lembar pembelian dan pengelolaan langganan adalah lembar sistem toko di ponsel pembayar saja. Tidak peka (bukan angka uang rumah tangga), jadi tanpa aturan samar §12 |
+| Status Plus (tahap publik, dirancang sekarang, dibangun di FS-3 bila kelak go public; 13 §7.5 (a); 06 PG-15) | "Plus aktif sampai {tanggal}." **[Usulan]**, satu baris di Pengaturan, sama bagi setiap anggota berakun rumah tangga itu (Q-217; SEC-156 (b)) dan tidak tampil di rumah tangga lain. Tidak pernah menyebut siapa yang membayar, di layar, notifikasi, maupun ringkasan; lembar pembelian dan pengelolaan langganan adalah lembar sistem toko di ponsel pembayar saja. Tidak peka (bukan angka uang rumah tangga), jadi tanpa aturan samar §12 |
 
 ### 18.4 Kategori bawaan (SEC-90)
 
@@ -1474,7 +1592,9 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 | SEC-82 desain sasaran dewasa dan catatan bukti | §20; §19.2, §19.5, §19.6 (arah C tanpa ilustrasi, karakter, atau gaya huruf bulat) |
 | SEC-87 "Yang dilihat pasanganmu tentang kamu, dan yang tidak", isi (a) sampai (f), sama bagi setiap anggota | LY-71 (§5.1); isinya: (a) tabel 10.3 §2.1 sebagai "tidak pernah"; (b) persentuhan dana pribadi 07 §5.3 B1 sampai B6; (c) tanda dibaca dan arti "terkirim" (§10.2), kehadiran seperti WhatsApp (§10.3), tanda baca kartu status, dan sebutan anggota yang hanya terlihat pembuatnya (§7.4); (d) pesan mungkin berasal dari saran tanpa penanda; (e) salinan di perangkat luring baru hilang saat sinkron; (f) pemberitahuan pengelola server |
 | SEC-88 "disepakati sebagai" dan pernyataan sebelum menyimpan | §9.4, §18.2, §18.3 |
-| SEC-34, SEC-35 pemberitahuan pengelola server | LY-05, §7.1; teks final §7.5 dari 10.1 §11.3, tanpa kalimat janji (S4-6 (ii) A) |
+| SEC-34, SEC-35 pemberitahuan pengelola server | LY-05, §7.1; teks final §7.5 dari 10.1 §11.3, tanpa kalimat janji (S4-6 (ii) A); versi keluarga pengelola §7.5.1 dari 10.1 §11.3.1; versi yang berlaku tampil di LY-71 (§7.5.2); penahanan sampai versi baru dibaca §7.5.3, §13.2 |
+| SEC-36 baris akses darurat, SEC-39 (b) jejak keamanan | LY-73 "Riwayat keamanan" (§7.5.2) |
+| SEC-18, SEC-25 faktor kedua dan kode pemulihan (Tier 2, FS-2) | LY-88, §12.5 |
 | SEC-62 layar berbagi `CARE` | LY-85; §18.3 |
 | SEC-13 autentikasi ulang | LY-77; §9.3 |
 | SEC-14 kata biometrik | §12.3 |
@@ -1606,7 +1726,7 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 | # | Butir | Akibat |
 |---|---|---|
 | 1 | R-02 (uji langsung aplikasi pesaing) belum dilakukan | Sasaran waktu mencatat §9.1 tetap **[Asumsi]** sampai diukur di pilot |
-| 2 | Perangkat lipat hanya diuji di emulator (Q-120) | Perilaku engsel dan postur **[Perlu validasi]** di perangkat nyata sebelum tahap publik |
+| 2 | Perangkat lipat hanya diuji di emulator (Q-120) | Perilaku engsel dan postur **[Perlu validasi]** di perangkat nyata sebelum tahap publik, bila kelak go public |
 | 3 | Kehadiran dan ketelitian "terakhir aktif" | **Ditutup** di checkpoint S4 (S4-5 A, A; §10.3) |
 | 3a | Compose Material 3 1.5.0 belum stabil | Padanan stabil di §17.4 berlaku; padanan Expressive diganti sesudah 1.5.0 stabil, diperiksa live saat bangun |
 | 3b | Jalur `AI` | **Ditutup** (S4-4 (i) A, R1; §18.3) |

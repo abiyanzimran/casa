@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `architect` |
 | Tahap | S5 — Rencana dan sintesis, fase B (12 November 2026; izin pemilik produk "gas", `_progress.md` "S5 dimulai") |
-| Status | Revisi S5 fase D sesudah tinjauan `critic` A dan B, lalu revisi keputusan 42 (platform pilot, 12 November 2026), lalu revisi keputusan 43 sampai 50 (12 November 2026). Hitungan §2 dan §12 dihitung ulang lead dengan skrip sebelum revisi; yang berubah di revisi ini ditandai di §12 |
+| Status | Revisi S5 fase D sesudah tinjauan `critic` A dan B, lalu revisi keputusan 42 (platform pilot, 12 November 2026), lalu revisi keputusan 43 sampai 50 (12 November 2026), lalu revisi keputusan 51 dan 52 (tujuan tanpa rencana go public; jalur publik opsional; pengguna luar pertama; RISK-92 dinilai dengan 18 §5.2.9; RISK-93 baru, 12 November 2026), lalu revisi keputusan 53 sampai 55 (RISK-92 Diterima, RISK-40 faktor kedua opsional di FS-2). Hitungan §2 dan §12 dihitung ulang lead dengan skrip sebelum revisi; yang berubah di revisi ini ditandai di §12 |
 | Sumber yang mengikat | Brief §1, §1.1, §4.3, §5D, §5O, §7, §8, §14, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` (ES); dokumen 02, 03, 06, 07, 08, 09 (indeks dan berkas 04 §9), 10 (indeks dan empat berkas), 12, 13, 17, 18; ADR-002 sampai ADR-027 |
 | Dipakai oleh | 14 (`architect`, quality gate per gerbang), 16 dan 01 (lead), 17 (`product-analyst`) |
 
@@ -58,13 +58,21 @@ P1 dibahas di ringkasan (§1) dan harus punya mitigasi yang teruji sebelum gerba
 
 | Kedalaman | Berlaku untuk | Bentuk |
 |---|---|---|
-| Penuh | Risiko yang mengenai Tier 1, data nyata pilot, atau gerbang GR-1 sampai GR-5 | Kartu dengan semua kolom (§3) |
+| Penuh | Risiko yang mengenai Tier 1, data nyata pilot, atau gerbang GR-1 sampai GR-5 (GR-4 (a) sebelum pengguna luar pertama; GR-3, GR-4 (b), dan GR-5 di jalur publik opsional) | Kartu dengan semua kolom (§3) |
 | Ringkas | Risiko fitur Tier 2 | Satu baris tabel dengan semua kolom (§4) |
 | Satu baris | Risiko Tier 3 | Satu kalimat (§5) |
 
 **Pemilik mitigasi** adalah peran, bukan orang: pemilik produk; pengelola server (glosarium; di pilot pemilik produk sendiri); peran tim bangun di `CLAUDE.md` (`backend-dev`, `ios-dev`, `android-dev`, `ux-designer`, `code-reviewer`, `qa`); pemilik dokumen perencanaan (`architect`, `finance-domain`, `security-privacy`, `product-analyst`, `researcher`, lead); advokat.
 
-**Fase dan gerbang** memakai 13 §1: GR-1 mulai bangun, FS-1 bangun Tier 1, GR-2 data nyata, FS-2 pilot, GR-3 evaluasi tiga bulan, GR-4 pengguna luar pertama, FS-3 persiapan publik dan beta, GR-5 rilis publik, FS-4 sampai FS-8 tahap publik.
+**Fase dan gerbang** memakai 13 §1: GR-1 mulai bangun, FS-1 bangun Tier 1, GR-2 data nyata, FS-2 pilot, GR-3 evaluasi tiga bulan, GR-4 gerbang pengguna luar pertama dengan dua pintu, (a) di jalur keluarga dan (b) di jalur publik (glosarium; 13 §3.6), FS-3 persiapan publik dan beta, GR-5 rilis publik, FS-4 tahap publik, dan FS-5 sampai FS-8 Tier 3, yang dapat dipicu dari rumah tangga sendiri maupun dari jalur publik (13 §3.8).
+
+**Jalur publik opsional (keputusan 51).** Diputuskan pemilik produk dengan mengukuhkan bacaan lead: aplikasi ini untuk keluarganya sendiri dengan standar kelas publik, dan go public tidak direncanakan tetapi tidak ditutup. Kata-kata jawabannya: "yap benar seperti itu, untuk sekarang gitu aja, tapi tidak menutup kemungkinan untuk go public" (`_progress.md`, "Keputusan pemilik produk 51"). Akibatnya bagi register ini:
+
+- GR-3, FS-3, GR-4 pintu (b), GR-5, dan FS-4 adalah **jalur publik opsional** yang tidak dijadwalkan. GR-4 pintu (a) ada di jalur keluarga (butir pengguna luar pertama di bawah). Fase Tier 3 FS-5 sampai FS-8 tidak termasuk jalur publik (13 §3.8). Jalur rumah tangga berakhir pada rumah tangga yang memakai aplikasi sehari-hari: FS-1, GR-2, FS-2 yang berlanjut, gelombang Tier 2, dan jalur Android untuk Galaxy A55.
+- Risiko yang **seluruhnya** timbul dari beta, toko, penjualan, keluarga lain, atau keputusan go public diberi status "**jalur publik**" di register (§2) dan di kartunya. Risiko itu tidak dihapus dan tidak dinilai ulang: K dan D tetap dinilai seolah jalur itu diambil (sesuai arti K di bawah, "dalam fase yang disebut di kolom Harus ada pada"), dan mitigasinya wajib berlaku bila pemilik produk kelak mengambil jalur itu.
+- **Pengguna luar pertama (keputusan 52)** adalah jalur opsional tersendiri, terpisah dari tahap publik: orang tua yang diberi login dihitung pengguna di luar rumah tangga pilot (Q-209). Diputuskan pemilik produk sendiri, berlawanan dengan usulan `security-privacy`; kata-katanya: "orang tua yaa hitung pengguna luar, yang harus di tanyakan ke advokat apa?" (`_progress.md`, "Keputusan pemilik produk 52"). Jadi syarat sebelum pengguna luar pertama (10 §4.2; 14 QG-31 (a)) dapat diperlukan tanpa beta, tanpa rilis toko, dan tanpa go public. Risiko yang timbul sejak pengguna luar pertama, bukan hanya di tahap publik, diberi status "**pengguna luar**".
+- Risiko yang sebagian berlaku bagi rumah tangga dan sebagian hanya di jalur opsional tetap berstatus biasa; bagiannya ditulis "sebelum pengguna luar pertama" atau "bila jalur publik diambil" di kolom "Harus ada pada".
+- Tidak ada rancangan yang dipotong karena keputusan ini (brief §1.1; keputusan 51). Risiko Tier 3 (§5) mengikuti fasenya (FS-5 sampai FS-8) dan penempatannya di 13; karena belum dinilai, kecuali RISK-83, mereka tidak masuk hitungan pembagian jalur di §1.1.
 
 **Risiko sisa** dipakai dengan arti: risiko yang tetap ada sesudah semua mitigasi yang disebut berlaku, beserta siapa yang menerimanya. Istilah ini belum ada di glosarium; diminta ke lead (§11).
 
@@ -74,36 +82,38 @@ P1 dibahas di ringkasan (§1) dan harus punya mitigasi yang teruji sebelum gerba
 
 ## 1. Ringkasan: risiko yang dapat menggagalkan tujuan
 
-Tujuan (`CLAUDE.md`): suami dan istri mengetahui keadaan uang dan urusan rumah tangga tanpa saling bertanya, dengan usaha mencatat serendah mungkin, dan aplikasi membantu mereka saling memperhatikan dan bersikap hangat. Lima kelompok risiko dapat menggagalkannya. Semua P1 ada di sini.
+Tujuan (`CLAUDE.md`): suami dan istri mengetahui keadaan uang dan urusan rumah tangga tanpa saling bertanya, dengan usaha mencatat serendah mungkin, dan aplikasi membantu mereka saling memperhatikan dan bersikap hangat. Empat kelompok risiko dapat menggagalkannya; kelompok kelima hanya berlaku bila kelak ada pengguna luar pertama (keputusan 52) atau pemilik produk mengambil jalur publik opsional (keputusan 51; §0). Semua P1 ada di sini.
 
 | # | Kelompok | Risiko | Mengapa dapat menggagalkan tujuan | Pengaman terkuat yang sudah dirancang |
 |---|---|---|---|---|
 | 1 | **Masalah inti tidak terjawab** | RISK-18, RISK-19, RISK-20 | Bila hanya satu orang mencatat, atau mencatat terlalu lama, atau catatan terlewat, angka utama tidak menjawab "sisa berapa dan siapa memegang" (KS-1) dan orang kembali bertanya. Tidak ada fitur lain yang menggantikan ini | Data nyata dimulai di aplikasi iOS yang sama bagi kedua pasangan, dengan pencatat utama di iPhone 13 dan pemilik produk di iPad mini 7 (keputusan 42; 13 §3.2); ES §3 tiga ketukan dan simpan lokal seketika; entri terlambat diterima (07 §3.11); rekonsiliasi kas yang menampilkan selisih (07 §3.10) |
 | 2 | **Angka uang salah** | RISK-47, RISK-48 | Satu angka yang terbukti salah meruntuhkan kepercayaan pada semua angka (brief §7: "non-negotiable") | Satu implementasi aturan di server (ADR-013); setiap invarian 06 dan 07 dan setiap contoh terhitung sebagai uji yang memblokir merge (ES §5); kunci idempotensi dan satu transaksi `SERIALIZABLE` per perintah; VL-10 nol; bila tidak nol, server masuk *tahan tulis* sementara pencatatan berlanjut di antrean perangkat (13 §6.2; ADR-028 butir 3) |
 | 3 | **Aplikasi menjadi alat kendali antaranggota** | RISK-11, RISK-35, RISK-38, RISK-40 (P1); RISK-21, RISK-31, RISK-34, RISK-37, RISK-39 (P2) | Aplikasi yang dipakai satu orang untuk mengawasi atau menekan yang lain merusak "attentive and kind" dan melanggar brief §8. Untuk tahap publik, satu kasus seperti itu cukup untuk merusak kepercayaan pada produk | Pagar 06 PG-01 sampai PG-14 sebagai uji; "tidak pernah terlihat" per peran (SEC-86); uji simetri berpermutasi (SEC-89); keluar dengan aman tanpa persetujuan siapa pun; tidak ada perintah atas orang dewasa lain; halaman Bantuan tanpa jejak |
-| 4 | **Keputusan GR-3 diambil atas bukti yang lemah** | RISK-25 (P1); RISK-26 | Pilot satu rumah tangga yang dijalankan salah satu pasangan, yang juga pengelola server, dapat menghasilkan "lanjut" yang tidak berlaku bagi keluarga lain, atau tidak menangkap rasa diawasi | Pertanyaan tentang aplikasi, bukan tentang pasangan; beta tertutup dengan pengelola yang bukan anggota sebagai uji pagar sebenarnya (13 §6.4, §6.5) |
-| 5 | **Tahap publik terhalang** | RISK-65, RISK-58, RISK-10 (P1) | Layanan dapat diputus aksesnya bila wajib PSE tetapi tidak mendaftar; model bisnis belum punya bukti; satu orang memegang seluruh pengetahuan operasi | GR-4 mensyaratkan jawaban advokat dan pendaftaran PSE bila wajib (13 §3.6; Q-209); wawancara dan beta sebelum GR-5; runbook di fase bangun |
+| 4 | **Operasi bergantung pada satu orang** | RISK-10 (P1) | Pemilik produk adalah pemimpin teknis, pengelola server, dan pemegang kunci cadangan; bila ia berhalangan lama, rumah tangga kehilangan aplikasi yang dipakainya sehari-hari | Runbook di fase bangun, sebelum GR-2; komponen sedikit; salinan kunci cadangan offline; Q-222 diputuskan sebelum GR-2 |
+| 5 | **Jalur opsional, bila kelak diambil: pengguna luar pertama atau tahap publik** (keputusan 51, 52) | RISK-65 bagian sesudah pilot dan RISK-93 (pengguna luar pertama, termasuk orang tua yang diberi login); RISK-25, RISK-58 (tahap publik) (P1); RISK-26 | Layanan dapat diputus aksesnya bila wajib PSE tetapi tidak mendaftar, dan ini dapat terjadi begitu orang tua diberi login, tanpa go public; pengelola server yang anak mereka sendiri dapat membuka data orang tua, sementara orang tua sungkan menolak (RISK-93, Pagar); pilot satu rumah tangga dapat menghasilkan "lanjut" di GR-3 yang tidak berlaku bagi keluarga lain; model bisnis belum punya bukti. Tidak satu pun mengancam tujuan rumah tangga selama tidak ada pengguna luar dan jalur publik tidak diambil | GR-4 mensyaratkan jawaban advokat dan pendaftaran PSE bila wajib sebelum pengguna luar pertama (Q-209; 14 QG-31 (a)); SEC-36 dengan baris akses darurat di jejak keamanan setiap akun dan SEC-34 versi keluarga pengelola sebelum login pertama orang tua; pertanyaan tentang aplikasi, bukan tentang pasangan; beta tertutup dengan pengelola yang bukan anggota sebagai uji pagar sebenarnya (13 §6.4, §6.5); wawancara dan beta sebelum GR-5 |
 
 **Dua P1 yang diterima pemilik produk dengan syarat**, bukan ditutup: RISK-11 (pengelola server pilot adalah pasangan; keputusan 25, 10-F A) dan RISK-65 untuk pilot (risiko PSE, W-32, S4-4 (iii) A). Keduanya dinyatakan di kartunya beserta syaratnya.
 
-**Penyalahgunaan antaranggota dan kebenaran uang** mendapat perhatian khusus karena keduanya fondasi yang brief §1.1 larang dipotong untuk pilot. Dari 89 risiko terbuka, **21 bertanda Pagar** dan **6 berkategori Keuangan**; keduanya punya mitigasi yang berupa uji otomatis, bukan niat (§3.3, §3.4, §6).
+**Penyalahgunaan antaranggota dan kebenaran uang** mendapat perhatian khusus karena keduanya fondasi yang brief §1.1 larang dipotong untuk pilot. Dari 91 risiko terbuka, **22 bertanda Pagar** dan **6 berkategori Keuangan**; keduanya punya mitigasi yang berupa uji otomatis, bukan niat (§3.3, §3.4, §6). Hanya satu risiko Pagar (RISK-63, langganan Plus) yang berstatus jalur publik, dan satu (RISK-93, pengelola server yang anak orang tua yang diberi login) berstatus pengguna luar; semua risiko Keuangan berlaku bagi rumah tangga.
 
 ### 1.1 Peta prioritas risiko berkedalaman penuh
 
 | D \ K | Rendah | Sedang | Tinggi | Pasti |
 |---|---|---|---|---|
-| **Kritis** | 05, 42, 44, 46 | 35, 38, 40, 47, 65 | 48 | 11 |
-| **Tinggi** | 43, 59, 71 | 04, 12, 14, 16, 21, 24, 31, 34, 37, 39, 41, 45, 49, 60, 63, 66, 67, 68, 91 | 10, 18, 19, 20, 25, 58 | — |
+| **Kritis** | 05, 42, 44, 46 | 35, 38, 40, 47, 65 | 48 | 11, 93 |
+| **Tinggi** | 43, 59, 71 | 04, 12, 14, 16, 21, 24, 31, 34, 37, 39, 41, 45, 49, 60, 63, 66, 67, 68, 91, 92 | 10, 18, 19, 20, 25, 58 | — |
 | **Sedang** | 06, 09, 56, 57 | 02, 03, 22, 23, 26, 27, 30, 33, 36, 50, 51, 54, 55, 61, 62, 64, 69, 70, 72 | 01, 52, 53 | — |
 | **Rendah** | 07 | 08, 13, 17, 29, 32 | — | — |
 
-Angka adalah nomor `RISK-NN`. P1: 13 risiko; P2: 26; P3: 32 (berkedalaman penuh, 71 risiko; RISK-59 turun dari P2 ke P3 di S5 fase D; RISK-28 ditutup dan RISK-91 baru oleh keputusan 42). Risiko Tier 2 dinilai di §4; Tier 3 tidak dinilai sampai diangkat, kecuali RISK-83 (P3, §5, karena brief §14).
+Angka adalah nomor `RISK-NN`. P1: 14 risiko; P2: 27; P3: 32 (berkedalaman penuh, 73 risiko; RISK-59 turun dari P2 ke P3 di S5 fase D; RISK-28 ditutup dan RISK-91 baru oleh keputusan 42; RISK-92 baru oleh keputusan 51, dinilai dengan 18 §5.2.9; RISK-93 baru oleh keputusan 52 dan 10.1 §11.3.1). Risiko Tier 2 dinilai di §4; Tier 3 tidak dinilai sampai diangkat, kecuali RISK-83 (P3, §5, karena brief §14).
+
+**Pembagian menurut jalur (keputusan 51, 52; §0).** Dari 73 risiko berkedalaman penuh yang terbuka, **11 berstatus jalur publik**: P1 RISK-25, RISK-58; P2 RISK-16, RISK-60, RISK-63, RISK-67; P3 RISK-26, RISK-59, RISK-61, RISK-62, RISK-72. **3 berstatus pengguna luar**: P1 RISK-93; P3 RISK-69, RISK-70. **Jalur rumah tangga: 59 risiko, P1 11, P2 23, P3 25** (termasuk RISK-92 baru, yang timbul justru karena jalur rumah tangga tidak berbatas waktu). Beberapa risiko rumah tangga punya bagian yang jatuh tempo sebelum pengguna luar pertama (RISK-06, RISK-11, RISK-12, RISK-40, RISK-44, RISK-65, RISK-68). Peta di atas tetap memuat keduanya, karena K dan D tidak berubah.
 
 ---
 
 ## 2. Register ringkas
 
-Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling lambat bagi mitigasinya. Status "Diterima" berarti risiko sisanya diterima pemilik produk dengan kedudukan yang disebut di kartunya.
+Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling lambat bagi mitigasinya. Status "Diterima" berarti risiko sisanya diterima pemilik produk dengan kedudukan yang disebut di kartunya. Status "jalur publik" berarti risiko itu hanya berlaku bila pemilik produk kelak mengambil jalur publik opsional (keputusan 51; §0). Status "pengguna luar" berarti risiko itu berlaku sejak pengguna luar pertama, termasuk orang tua yang diberi login, walaupun tahap publik tidak diambil (keputusan 52; §0).
 
 | ID | Kategori | Pagar | Judul | K | D | P | Pemilik mitigasi utama | Harus ada pada | Status |
 |---|---|---|---|---|---|---|---|---|---|
@@ -118,24 +128,24 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-09 | Keuangan | | Eksponen IDR produk lawan ISO 4217 | Rendah | Sedang | P3 | `backend-dev` | FS-1 | Terbuka |
 | RISK-10 | Teknis | | Satu pemegang pengetahuan (bus factor) | Tinggi | Tinggi | P1 | Pemilik produk; `architect` (14) | GR-2 | Terbuka |
 | RISK-11 | Keamanan dan privasi | Pagar | Pengelola server pilot adalah pasangan | Pasti | Kritis | P1 | Pengelola server; `security-privacy` | GR-2 | Diterima dengan syarat |
-| RISK-12 | Hukum | | Jalur yang bergantung pada tafsir hukum: xtool, transfer push dan `AI` | Sedang | Tinggi | P2 | Advokat; `security-privacy` | GR-4 | Terbuka |
+| RISK-12 | Hukum | | Jalur yang bergantung pada tafsir hukum: xtool, transfer push dan `AI` | Sedang | Tinggi | P2 | Advokat; `security-privacy` | GR-4, sebelum pengguna luar pertama | Terbuka |
 | RISK-13 | Teknis | | Pembungkus SQLite iOS tidak dapat dibangun di Linux | Sedang | Rendah | P3 | `ios-dev` | FS-1 | Terbuka |
 | RISK-14 | Keamanan dan privasi | Pagar | Biometrik membuka kunci aplikasi bagi pasangan | Sedang | Tinggi | P2 | `ios-dev`; `android-dev` | GR-2 | Terbuka |
 | RISK-15 | — | | Pengecualian ES §2 ditolak | — | — | — | — | — | **Ditutup** (§9) |
-| RISK-16 | Bisnis | | App Review menolak karena Guideline 1.2 | Sedang | Tinggi | P2 | `ios-dev`; `security-privacy` | GR-4 | Terbuka |
+| RISK-16 | Bisnis | | App Review menolak karena Guideline 1.2 | Sedang | Tinggi | P2 | `ios-dev`; `security-privacy` | GR-4 | Terbuka; jalur publik |
 | RISK-17 | Teknis | | API eksperimental Compose berubah | Sedang | Rendah | P3 | `android-dev` | Jalur Android | Terbuka |
 | RISK-18 | Produk | | Hanya satu pasangan yang aktif mencatat | Tinggi | Tinggi | P1 | Pemilik produk; `ux-designer` | GR-2 | Terbuka |
 | RISK-19 | Produk | | Usaha mencatat terlalu tinggi bagi pencatat yang pelupa | Tinggi | Tinggi | P1 | `ux-designer`; `ios-dev`; `android-dev` | GR-2 | Terbuka |
 | RISK-20 | Produk | | Catatan terlewat membuat angka utama tidak dipercaya | Tinggi | Tinggi | P1 | `finance-domain`; `ux-designer` | FS-1 | Terbuka |
 | RISK-21 | Produk | Pagar | Persetujuan terasa mengekang atau tidak dipakai | Sedang | Tinggi | P2 | `architect`; `ux-designer` | FS-1 | Terbuka |
 | RISK-22 | Produk | | Notifikasi terlalu banyak | Sedang | Sedang | P3 | `architect`; `ux-designer` | FS-1 | Terbuka |
-| RISK-23 | Produk | | Cakupan dan navigasi tumbuh | Sedang | Sedang | P3 | Pemilik produk; `product-analyst` | FS-2 | Terbuka |
+| RISK-23 | Produk | | Cakupan dan navigasi tumbuh | Sedang | Sedang | P3 | Pemilik produk; `product-analyst` | FS-2; GR-3 (pemangkasan cakupan publik), bila jalur publik diambil | Terbuka |
 | RISK-24 | Produk | | Penyiapan awal terlalu berat | Sedang | Tinggi | P2 | `ux-designer`; `product-analyst` | GR-2 | Terbuka |
-| RISK-25 | Produk | | Bias validasi pilot | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-3 | Terbuka |
-| RISK-26 | Produk | | "Pemakaian harian yang bertahan" dinilai dari pernyataan sendiri | Sedang | Sedang | P3 | Pemilik produk | GR-3 | Terbuka |
+| RISK-25 | Produk | | Bias validasi pilot | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-3 | Terbuka; jalur publik |
+| RISK-26 | Produk | | "Pemakaian harian yang bertahan" dinilai dari pernyataan sendiri | Sedang | Sedang | P3 | Pemilik produk | GR-3 | Terbuka; jalur publik |
 | RISK-27 | Produk | | Ramadan dan Idulfitri di jendela pilot | Sedang | Sedang | P3 | `product-analyst` | FS-2 | Terbuka |
 | RISK-28 | — | | Urutan platform belum diputuskan | — | — | — | — | — | **Ditutup** (§9) |
-| RISK-29 | Produk | | Chat rumah tangga tidak dipakai | Sedang | Rendah | P3 | Pemilik produk | GR-3 | Terbuka |
+| RISK-29 | Produk | | Chat rumah tangga tidak dipakai | Sedang | Rendah | P3 | Pemilik produk | FS-2 | Terbuka |
 | RISK-30 | UX | | Tampilan terasa templat atau kurang native | Sedang | Sedang | P3 | `ux-designer` | FS-1 | Terbuka |
 | RISK-31 | UX | Pagar | Tanda dan laporan dibaca sebagai tuduhan atau papan skor | Sedang | Tinggi | P2 | `ux-designer`; `finance-domain` | FS-1 | Terbuka |
 | RISK-32 | UX | | Arti "terkirim" berbeda dari WhatsApp | Sedang | Rendah | P3 | `ux-designer` | FS-1 | Terbuka |
@@ -150,7 +160,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-41 | Keamanan dan privasi | Pagar | Perangkat hilang atau dipegang orang lain | Sedang | Tinggi | P2 | `ios-dev`; `android-dev` | GR-2 | Terbuka |
 | RISK-42 | Keamanan dan privasi | | Server atau cadangan dibobol | Rendah | Kritis | P2 | Pengelola server | GR-2 | Terbuka |
 | RISK-43 | Keamanan dan privasi | | Data peka keluar lewat log, push, metadata foto | Rendah | Tinggi | P3 | `backend-dev`; `qa` | FS-1 | Terbuka |
-| RISK-44 | Keamanan dan privasi | | Kebocoran lintas rumah tangga | Rendah | Kritis | P2 | `backend-dev`; `qa` | GR-2; GR-4 | Terbuka |
+| RISK-44 | Keamanan dan privasi | | Kebocoran lintas rumah tangga | Rendah | Kritis | P2 | `backend-dev`; `qa` | GR-2; GR-4, bila pengguna luar membentuk rumah tangga sendiri atau beta diadakan | Terbuka |
 | RISK-45 | Keamanan dan privasi | | Penghapusan tidak tuntas | Sedang | Tinggi | P2 | `backend-dev`; pengelola server | GR-2 | Terbuka |
 | RISK-46 | Keamanan dan privasi | Pagar | Halaman Bantuan memuat nomor yang salah atau basi | Rendah | Kritis | P2 | `security-privacy`; pengelola server | GR-2 | Terbuka |
 | RISK-47 | Keuangan | | Aturan uang salah diimplementasikan | Sedang | Kritis | P1 | `backend-dev`; `qa`; `finance-domain` | FS-1 | Terbuka |
@@ -164,24 +174,26 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-55 | Teknis | | Rekayasa berlebihan | Sedang | Sedang | P3 | `architect`; `code-reviewer` | FS-1 | Terbuka |
 | RISK-56 | Teknis | | Kunci tanda tangan APK dan distribusi APK | Rendah | Sedang | P3 | `android-dev`; pemilik produk | Jalur Android A1 | Terbuka |
 | RISK-57 | Teknis | | Ketergantungan pada layanan pihak ketiga | Rendah | Sedang | P3 | `backend-dev` | FS-1 | Terbuka |
-| RISK-58 | Bisnis | | Kesediaan membayar tidak diketahui | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-5 | Terbuka |
-| RISK-59 | Bisnis | | Komisi toko, pembelian dalam aplikasi, hak lintas platform | Rendah | Tinggi | P3 | `researcher`; `architect` | GR-5 | Terbuka |
-| RISK-60 | Bisnis | | Keluarga lain berbeda dari rumah tangga pilot | Sedang | Tinggi | P2 | `product-analyst` | GR-5 | Terbuka |
-| RISK-61 | Bisnis | | Pembeda belum teruji | Sedang | Sedang | P3 | `product-analyst`; pemilik produk | GR-5 | Terbuka |
-| RISK-62 | Bisnis | | Biaya operasi dan waktu pengembang di tahap publik | Sedang | Sedang | P3 | Pemilik produk | GR-5 | Terbuka |
-| RISK-63 | Bisnis | Pagar | Langganan Plus menjadi alat kendali | Sedang | Tinggi | P2 | `architect`; `security-privacy` | FS-3 | Terbuka |
+| RISK-58 | Bisnis | | Kesediaan membayar tidak diketahui | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-5 | Terbuka; jalur publik |
+| RISK-59 | Bisnis | | Komisi toko, pembelian dalam aplikasi, hak lintas platform | Rendah | Tinggi | P3 | `researcher`; `architect` | GR-5 | Terbuka; jalur publik |
+| RISK-60 | Bisnis | | Keluarga lain berbeda dari rumah tangga pilot | Sedang | Tinggi | P2 | `product-analyst` | GR-5 | Terbuka; jalur publik |
+| RISK-61 | Bisnis | | Pembeda belum teruji | Sedang | Sedang | P3 | `product-analyst`; pemilik produk | GR-5 | Terbuka; jalur publik |
+| RISK-62 | Bisnis | | Biaya operasi dan waktu pengembang di tahap publik | Sedang | Sedang | P3 | Pemilik produk | GR-5 | Terbuka; jalur publik |
+| RISK-63 | Bisnis | Pagar | Langganan Plus menjadi alat kendali | Sedang | Tinggi | P2 | `architect`; `security-privacy` | FS-3 | Terbuka; jalur publik |
 | RISK-64 | Bisnis | | Deskriptor rating usia Apple 12 Januari 2027 | Sedang | Sedang | P3 | Pemilik produk | FS-1 | Terbuka |
-| RISK-65 | Hukum | | Status regulasi layanan: PSE dan lingkup jasa keuangan | Sedang | Kritis | P1 | Pemilik produk; advokat | GR-4 | Diterima untuk pilot |
+| RISK-65 | Hukum | | Status regulasi layanan: PSE dan lingkup jasa keuangan | Sedang | Kritis | P1 | Pemilik produk; advokat | GR-4, sebelum pengguna luar pertama | Diterima untuk pilot |
 | RISK-66 | Hukum | | Kewajiban pengendali selama pilot | Sedang | Tinggi | P2 | Pemilik produk; `security-privacy` | GR-2 | Terbuka |
-| RISK-67 | Hukum | | Catatan hanya-menambah lawan hak hapus | Sedang | Tinggi | P2 | Advokat; `finance-domain` | GR-5 | Terbuka |
-| RISK-68 | Hukum | Pagar | Anak: indikator Kepmen 142/2026 dan data anak | Sedang | Tinggi | P2 | `security-privacy`; `ux-designer` | GR-2; GR-4 | Terbuka |
-| RISK-69 | Hukum | | Konten pengguna dan permintaan aparat (Permenkominfo 5/2020) | Sedang | Sedang | P3 | Advokat; `security-privacy` | GR-4 | Terbuka |
-| RISK-70 | Hukum | | Regulasi dibaca dari salinan teks; Lembaga PDP belum ada | Sedang | Sedang | P3 | `researcher`; pemilik produk | GR-4 | Terbuka |
-| RISK-71 | Hukum | | Kedudukan catatan dalam perkawinan dan perpisahan | Rendah | Tinggi | P3 | Advokat; `ux-designer` | GR-5 | Terbuka |
-| RISK-72 | Hukum | | Kewajiban menjual langganan | Sedang | Sedang | P3 | Advokat | GR-5 | Terbuka |
+| RISK-67 | Hukum | | Catatan hanya-menambah lawan hak hapus | Sedang | Tinggi | P2 | Advokat; `finance-domain` | GR-5 | Terbuka; jalur publik |
+| RISK-68 | Hukum | Pagar | Anak: indikator Kepmen 142/2026 dan data anak | Sedang | Tinggi | P2 | `security-privacy`; `ux-designer` | GR-2; GR-4, sebelum pengguna luar pertama | Terbuka |
+| RISK-69 | Hukum | | Konten pengguna dan permintaan aparat (Permenkominfo 5/2020) | Sedang | Sedang | P3 | Advokat; `security-privacy` | GR-4, sebelum pengguna luar pertama | Terbuka; pengguna luar |
+| RISK-70 | Hukum | | Regulasi dibaca dari salinan teks; Lembaga PDP belum ada | Sedang | Sedang | P3 | `researcher`; pemilik produk | GR-4, sebelum pengguna luar pertama | Terbuka; pengguna luar |
+| RISK-71 | Hukum | | Kedudukan catatan dalam perkawinan dan perpisahan | Rendah | Tinggi | P3 | Advokat; `ux-designer` | FS-1; GR-5, bila jalur publik diambil | Terbuka |
+| RISK-72 | Hukum | | Kewajiban menjual langganan | Sedang | Sedang | P3 | Advokat | GR-5 | Terbuka; jalur publik |
 | RISK-73 sampai RISK-80 | Tier 2 | sebagian | Lihat §4 | | | | | FS-2 | Terbuka |
 | RISK-81 sampai RISK-90 | Tier 3 | — | Lihat §5 | | | | | FS-4 sampai FS-8 | Terbuka |
-| RISK-91 | Teknis | | Android menyusul: pengalaman Android teruji belakangan | Sedang | Tinggi | P2 | Pemilik produk; `android-dev`; `qa` | QG-30 (Android); GR-4 | Terbuka |
+| RISK-91 | Teknis | | Android menyusul: pengalaman Android teruji belakangan | Sedang | Tinggi | P2 | Pemilik produk; `android-dev`; `qa` | QG-30 (Android); sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) | Terbuka |
+| RISK-92 | Teknis | | TestFlight internal sebagai jalur iOS keluarga tanpa batas waktu tidak sesuai aturan Apple | Sedang | Tinggi | P2 | `architect` (ADR-022); `researcher`; pemilik produk | GR-1; GR-2 (SEC-158) | Diterima (keputusan 55) |
+| RISK-93 | Keamanan dan privasi | Pagar | Pengelola server adalah anak atau kerabat pengguna luar dari keluarganya sendiri | Pasti | Kritis | P1 | Pengelola server; `security-privacy`; `backend-dev` | GR-4, sebelum login pertama orang tua atau kerabat | Terbuka; pengguna luar |
 
 ---
 
@@ -197,7 +209,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Nilai produk lahir ketika kedua orang melihat angka yang sama tanpa bertanya (PRN-01; KS-1). Bila hanya satu yang mencatat, custody di tangan pasangannya kosong atau basi, dan KS-2 gagal. Brief §14 menyebut "only one family member actively using the app". Sebabnya: pemrakarsa aplikasi akan memakainya apa pun bentuknya, sedangkan pasangannya belum tentu (A-25; 03 §2.1; dipertanyakan Q-218); pencatatan terasa sebagai tugas satu orang. **Sejak keputusan 42:** sampai klien Android tersedia, pemilik produk mencatat di iPad mini 7, yang bukan perangkat yang dibawa saat berbelanja, sehingga pengeluarannya di luar rumah baru tercatat belakangan dari iPad **[Asumsi]** (13 §3.2 "Risiko sisa"; 17 keputusan 42). Catatan yang tertunda membuat angka utama tertinggal sampai catatan itu masuk, dan pasangannya kembali bertanya |
 | Mitigasi | Istri, yang menurut pemilik produk paling sering mencatat ("istri saya yang sering catat", `_progress.md` 12 November 2026), memakai platform pertama, iPhone 13, yang mendapat kehalusan paling banyak (keputusan 42; Q-211 terjawab). Siapa pemrakarsanya tidak ditetapkan di sini (A-25 **[Asumsi]**; Q-218 terbuka); kedua pasangan memakai aplikasi iOS yang sama sejak data nyata (13 §3.2); entri terlambat diterima dengan tanggal kejadiannya (PRN-06; 07 §3.11); pemilik produk "jarang kemana-mana" (17 keputusan 42); bila VL-07 butir (2) menunjukkan bahwa momen yang terlewat terutama pengeluaran pemilik produk di luar rumah, Android dinaikkan urutannya di dalam FS-2 (13 §3.2 **[Usulan]**; 14 §3.8); usaha mencatat rendah (RISK-19); serah terima dikonfirmasi pemegangnya, jadi pencatatan dua arah sejak hari pertama (07 §2.5); tidak ada hitungan per orang yang membuat satu orang tampak malas (06 PG-09, AT-4); kartu objek di chat sehingga tanggapan terjadi di tempat percakapan (ADR-011) |
 | Pemilik mitigasi | Pemilik produk (urutan Android di FS-2); `ux-designer`; `ios-dev`; `android-dev` |
-| Harus ada pada | GR-2 (iPhone 13 dan iPad mini 7 terpasang, 13 §3.3 butir 4); QG-30 (Android) paling lambat sebelum GR-4 (14 §3.8) |
+| Harus ada pada | GR-2 (iPhone 13 dan iPad mini 7 terpasang, 13 §3.3 butir 4); QG-30 (Android) sesudah GR-2, untuk Galaxy A55 pemilik produk; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) (14 §3.8; keputusan 42, 51) |
 | Tanda awal | VL-03 bulan pertama "tidak" dari salah satu; bahan frekuensi VL-02 turun; baris "belum dikonfirmasi" menumpuk di tempat uang satu pemegang (dibaca di tingkat rumah tangga); VL-01 tetap memperlihatkan pertanyaan "sisa berapa" seperti di VL-00 |
 | Risiko sisa | K Sedang, D Tinggi. Aplikasi tidak dapat memaksa orang mencatat dan memang tidak boleh menekan (PG-06). Bila VL-03 gagal, 13 §6.2: FS-2 diperpanjang dan model "dua pencatat" ditinjau ulang |
 | Sumber | Brief §1.1 KS-1, KS-2; brief §14; A-19, A-25; Q-211, Q-218; keputusan 42; 03 §2.1; 13 §3.2, §6.2, VL-07; SCN-27 |
@@ -262,7 +274,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Brief §14 "too many features", "complex navigation". Tier 1 kini 55 fitur dengan 198 FR Must, dan 18 fitur Tier 2 masuk selama pilot (`_progress.md`, "Putaran pencatatan sesudah lanjut"; 13 §1). Setiap gelombang menambah layar dan kata |
 | Mitigasi | Empat tujuan navigasi di Tier 1, ditambah satu di Tier 2 (08); fitur muncul kontekstual lewat kartu objek, bukan menu; Tier 2 dilepas bergelombang (13 §3.4); fitur Tier 2 yang tidak dipakai enam minggu sesudah dilepas menjadi kandidat dikeluarkan (13 §6.2; PRN-02) |
 | Pemilik mitigasi | Pemilik produk; `product-analyst`; `ux-designer` |
-| Harus ada pada | FS-2 (bergelombang); GR-3 (pemangkasan) |
+| Harus ada pada | FS-2 (bergelombang); GR-3 (pemangkasan cakupan publik), bila jalur publik diambil |
 | Tanda awal | VL-08 "apa yang ingin kamu ubah" menyebut menu atau mencari; gelombang Tier 2 yang tidak meninggalkan objek apa pun |
 | Risiko sisa | K Rendah, D Sedang |
 | Sumber | Brief §14; 04; 08; 13 §3.4, §6.2 |
@@ -284,7 +296,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Produk · K **Tinggi** · D **Tinggi** · **P1** |
+| Penilaian | Produk · K **Tinggi** · D **Tinggi** · **P1** · **Jalur publik** (keputusan 51: berlaku hanya bila pemilik produk kelak mempertimbangkan go public; §0) |
 | Uraian dan sebab | 13 §6.5: pilot dijalankan salah satu pasangan, yang juga pengelola server dan pewawancara; tidak ada pihak ketiga. Jawaban jujur pasangan yang lain tentang pagar (VL-08) tidak dapat dijamin. Satu rumah tangga tidak dapat digeneralisasi (PRN-04). Pemrakarsa memakai aplikasi apa pun bentuknya (A-25). Akibatnya GR-3 dapat memutuskan "lanjut" atas bukti yang lemah, dan masalah pagar baru tampak di tahap publik |
 | Mitigasi | Pertanyaan VL-08 tentang aplikasi, bukan tentang pasangan; boleh dijawab tertulis kapan saja (13 §6.1); VL-10 dan VL-02 (b) dibaca dari data, bukan pendapat, sedangkan VL-02 (a) adalah pernyataan sendiri kedua pasangan (keputusan 46) dan memikul bias yang sama (RISK-26), sehingga satu "belum" menahan GR-3 dan jawabannya lewat saluran VL-08; wawancara keluarga lain dengan pasangan diwawancarai terpisah (13 §6.3); beta tertutup sekurangnya 5 rumah tangga tanpa batas atas (sekurangnya 14 penguji Android bila akun Play pribadi; 13 §6.4, 14 §6.7), yang pengelola servernya bukan anggota mereka, sebagai uji pagar yang sebenarnya, dengan VL-08 tanpa temuan menghalangi sebagai syarat GR-5 (13 §6.4). Permintaan tambahan: saluran jawaban VL-08 yang tidak melewati pemilik produk (§11) |
 | Pemilik mitigasi | Pemilik produk; `product-analyst` |
@@ -297,14 +309,14 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Produk · K **Sedang** · D **Sedang** · **P3** |
-| Uraian dan sebab | Brief §1: "Public launch only after the pilot shows sustained daily use". Risiko semula, yaitu ambang ditetapkan sesudah hasil pilot terlihat, **sudah tertangani**: pemilik produk menjawab Q-213 sebelum GR-2 (keputusan 46, 12 November 2026). Menurut bacaan lead atas keputusan itu (`_progress.md`, "Penutupan pertanyaan terbuka sebelum S6"; 13 §3.5, VL-02), GR-3 paling cepat tiga bulan sesudah GR-2, bila (a) kedua pasangan menyatakan sendiri merasa nyaman dan aman memakai aplikasi, dan (b) dalam 14 hari terakhir tidak ditemukan bug baru yang berat (angka uang salah, data hilang atau bocor, aplikasi tidak dapat dipakai). Ambang 5 dari 7 hari dicabut; frekuensi catatan hanya bahan. Risiko yang tersisa: (a) adalah pernyataan sendiri, dan pemilik produk sekaligus pengelola server, pengembang, dan penanya, sehingga "nyaman" dapat dinyatakan tanpa kebiasaan mencatat yang bertahan, dan tekanan untuk menyatakannya tidak terlihat (RISK-25). Tanpa ambang frekuensi, "lanjut" di GR-3 tidak membuktikan pemakaian harian bagi keluarga lain |
-| Mitigasi | Satu "belum" dari pasangan mana pun menahan GR-3, dan tidak ada yang menimpanya (13 §6.2); jawaban (a) per orang, terpisah, tentang aplikasi, lewat saluran VL-08 yang tidak melewati pemilik produk (13 VL-02, §6.5); (b) dibaca dari catatan bug yang hanya memuat tanggal, golongan, dan status perbaikan, dengan golongan yang diperdebatkan dibaca berat (13 VL-02; 14 §5.3 masukan teknis GR-3), bersama VL-10 dari data; frekuensi catatan tetap dibaca sebagai bahan tanpa pemisahan per orang (PRN-11); GR-5 bergantung pada beta dengan pengelola yang bukan anggota, bukan pada pilot (RISK-25) |
+| Penilaian | Produk · K **Sedang** · D **Sedang** · **P3** · **Jalur publik** (keputusan 51; §0) |
+| Uraian dan sebab | Brief §1 "First users": "Going public is not planned (decision 51); if the owner later decides on it, only after the pilot shows sustained daily use". Jadi GR-3 sendiri kini opsional: ia dinilai hanya bila pemilik produk kelak mempertimbangkan go public. Risiko semula, yaitu ambang ditetapkan sesudah hasil pilot terlihat, **sudah tertangani**: pemilik produk menjawab Q-213 sebelum GR-2 (keputusan 46, 12 November 2026). Menurut bacaan lead atas keputusan itu (`_progress.md`, "Penutupan pertanyaan terbuka sebelum S6"; 13 §3.5, VL-02), GR-3 paling cepat tiga bulan sesudah GR-2, bila (a) kedua pasangan menyatakan sendiri merasa nyaman dan aman memakai aplikasi, dan (b) dalam 14 hari terakhir tidak ditemukan bug baru yang berat (angka uang salah, data hilang atau bocor, aplikasi tidak dapat dipakai). Ambang 5 dari 7 hari dicabut; frekuensi catatan hanya bahan. Risiko yang tersisa: (a) adalah pernyataan sendiri, dan pemilik produk sekaligus pengelola server, pengembang, dan penanya, sehingga "nyaman" dapat dinyatakan tanpa kebiasaan mencatat yang bertahan, dan tekanan untuk menyatakannya tidak terlihat (RISK-25). Tanpa ambang frekuensi, "lanjut" di GR-3 tidak membuktikan pemakaian harian bagi keluarga lain |
+| Mitigasi | Satu "belum" dari pasangan mana pun menahan GR-3, dan tidak ada yang menimpanya (13 §6.2); jawaban (a) per orang, terpisah, tentang aplikasi, lewat saluran VL-08 yang tidak melewati pemilik produk (13 VL-02, §6.5); (b) dibaca dari catatan bug yang hanya memuat tanggal, golongan, dan status perbaikan, dengan golongan yang diperdebatkan dibaca berat (13 VL-02; 14 §5.3 masukan teknis GR-3), bersama VL-10 dari data; bug berat yang ditemukan lebih dari 14 hari sebelum GR-3 tetapi belum diperbaiki juga menahan GR-3 (bacaan lead **[Usulan]** atas `critic` P-4, `_progress.md`; 14 §5.3), sehingga (b) tidak dapat dipenuhi dengan menunggu 14 hari tanpa memperbaiki; frekuensi catatan tetap dibaca sebagai bahan tanpa pemisahan per orang (PRN-11); GR-5 bergantung pada beta dengan pengelola yang bukan anggota, bukan pada pilot (RISK-25) |
 | Pemilik mitigasi | Pemilik produk; `product-analyst`; `qa` (catatan bug) |
-| Harus ada pada | GR-3 |
+| Harus ada pada | GR-3, bila jalur publik diambil |
 | Tanda awal | Pernyataan "nyaman" dari kedua pasangan sementara bahan frekuensi menurun atau catatan terlambat menumpuk; catatan bug tanpa satu pun golongan berat selama berbulan-bulan sementara VL-04 "angkanya dipercaya?" dijawab ragu |
 | Risiko sisa | K Sedang, D Sedang. Tidak dapat dihilangkan dalam pilot satu rumah tangga. Ini akibat definisi keputusan 46, tetapi risiko sisa ini tidak disajikan kepada pemilik produk saat ia menjawab, jadi statusnya tetap Terbuka, bukan Diterima. Bukti pemakaian bagi keluarga lain datang dari beta (13 §6.4) |
-| Sumber | Brief §1; keputusan 46; glosarium *Pemakaian harian yang bertahan*; 13 §3.5, §6.2, VL-02; Q-213 (selesai); RISK-25 |
+| Sumber | Brief §1; keputusan 46, 51; glosarium *Pemakaian harian yang bertahan*; 13 §3.5, §6.2, VL-02; Q-213 (selesai); RISK-25 |
 
 #### RISK-27 — Ramadan dan Idulfitri di jendela pilot
 
@@ -324,8 +336,8 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | | |
 |---|---|
 | Penilaian | **Ditutup** 12 November 2026 (§9). Penilaian sebelumnya: Produk · K Sedang · D Tinggi · P2. Pengenal tidak dipakai ulang |
-| Dasar penutupan | Keputusan 42 (17): iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), pilot dengan data nyata di iPhone 13 istri dan iPad mini 7 pemilik produk, Android sesudah GR-2 paling lambat sebelum GR-4 (semula bawaan lead; diterima atas saran lead lewat keputusan 50). Siapa memakai perangkat mana kini diketahui (Q-211 terjawab). Urutan kerjanya di 14 §3.4 dan §3.8 |
-| Harga pilihan itu, dinilai di risiko lain | RISK-01 (siklus UI iOS lambat sejak awal FS-1, diterima lewat keputusan 43; 14 §9); RISK-18 (belanja pemilik produk di luar rumah tercatat belakangan dari iPad sampai Android tersedia); RISK-91 (pengalaman Android teruji belakangan, dekat beta) |
+| Dasar penutupan | Keputusan 42 (17): iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), pilot dengan data nyata di iPhone 13 istri dan iPad mini 7 pemilik produk, Android sesudah GR-2 paling lambat sebelum GR-4 (semula bawaan lead; diterima atas saran lead lewat keputusan 50; sejak keputusan 51, tenggatnya menjadi "sebelum jalur pengujian Google Play dibuka (GR-4 butir 8)"). Siapa memakai perangkat mana kini diketahui (Q-211 terjawab). Urutan kerjanya di 14 §3.4 dan §3.8 |
+| Harga pilihan itu, dinilai di risiko lain | RISK-01 (siklus UI iOS lambat sejak awal FS-1, diterima lewat keputusan 43; 14 §9); RISK-18 (belanja pemilik produk di luar rumah tercatat belakangan dari iPad sampai Android tersedia); RISK-91 (pengalaman Android teruji belakangan, dan dekat beta bila beta kelak diadakan) |
 | Sumber | Keputusan 42; 17 K-66; Q-37, Q-211; 13 §3.2, §3.4; 14 §3.4, §3.8 |
 
 #### RISK-29 — Chat rumah tangga tidak dipakai
@@ -336,7 +348,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Chat adalah bagian termahal untuk dibangun (W-22). Bila pasangan tetap bercakap di WhatsApp, chat menjadi kotak kartu yang sepi |
 | Mitigasi | Beranda yang menjawab "tanpa bertanya" tidak bergantung pada chat (W-22); kartu objek tetap dapat ditanggapi dari notifikasi; tidak ada yang rusak bila chat sepi |
 | Pemilik mitigasi | Pemilik produk |
-| Harus ada pada | GR-3 (dinilai) |
+| Harus ada pada | FS-2 (dinilai pemilik produk selama rumah tangga memakai aplikasi; juga di GR-3 bila jalur publik diambil) |
 | Tanda awal | Chat hanya berisi kartu sesudah bulan pertama |
 | Risiko sisa | K Sedang, D Rendah: biaya bangun sudah dikeluarkan |
 | Sumber | W-22; ADR-011; 04 §4.1 |
@@ -405,12 +417,25 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Keamanan dan privasi · **Pagar** · K **Pasti** · D **Kritis** · **P1** · **Diterima pemilik produk dengan syarat** |
 | Uraian dan sebab | Selama pilot pemilik produk mengoperasikan server dan basis data sekaligus anggota rumah tangga (keputusan 25; PL-05). Secara teknis ia dapat membaca buku pribadi dan chat istrinya (TM-12), mengubah basis data langsung (TM-31), dan membaca sebutan yang diberikan istrinya untuknya (TM-34). Wewenang ini satu arah (10.3 §2.3). Larangan V-4, V-5, PG-03 mengikat peran di dalam aplikasi, bukan akses server (06 §9) |
-| Mitigasi | Tanpa API admin; operasi lewat subperintah di SSH yang tercatat di `security_event` (SEC-33); pemberitahuan pengelola server yang dibaca istri sendiri di aplikasi, dengan pengakuan bertanggal dan berversi, tanpa kalimat janji (SEC-34; 10-F A); status kepedulian yang tidak dibagikan tidak pernah meninggalkan perangkat (10-D A); di pilot "Laporkan" tidak mengirim apa pun dan kontak pengelola tidak tampil (SEC-154; 06 §16.12); beta tertutup memakai pengelola yang bukan anggota (13 §6.4); ADR E2EE sebelum tahap publik (10-D A) |
+| Mitigasi | Tanpa API admin; operasi lewat subperintah di SSH yang tercatat di `security_event` (SEC-33); pemberitahuan pengelola server yang dibaca istri sendiri di aplikasi, dengan pengakuan bertanggal dan berversi, tanpa kalimat janji (SEC-34; 10-F A). Setiap versi baru dan setiap pergantian versi menahan tulisan biasa istri sampai ia mengakui versi terakhir di LY-05, dan menulis satu baris di jejak keamanannya; tindakan pelindung tidak pernah ditahan (10.1 SEC-34 aturan (5); 09.3 §1); status kepedulian yang tidak dibagikan tidak pernah meninggalkan perangkat (10-D A); di pilot "Laporkan" tidak mengirim apa pun dan kontak pengelola tidak tampil (SEC-154; 06 §16.12); beta tertutup, bila kelak diadakan, memakai pengelola yang bukan anggota (13 §6.4); ADR E2EE sebelum tahap publik, bila diambil (10-D A) |
 | Pemilik mitigasi | Pengelola server; `security-privacy` |
-| Harus ada pada | GR-2 (10 §4.1 butir 2; SEC-107 salinan swalayan, dibangun di FS-1 lewat FR-FAM-013/AC-12, sehingga operator tidak menyusun salinan dari basis data); GR-4 (pengelola bukan anggota rumah tangga beta; SEC-36 akses darurat dengan log hanya-menambah di luar VPS, SEC-39 (c) publik, SEC-34 teks umum, menurut 10 §4.2) |
+| Harus ada pada | GR-2 (10 §4.1 butir 2; SEC-107 salinan swalayan, dibangun di FS-1 lewat FR-FAM-013/AC-12, sehingga operator tidak menyusun salinan dari basis data); GR-4, sebelum pengguna luar pertama termasuk orang tua yang diberi login (keputusan 52; pengelola bukan anggota rumah tangga beta bila beta diadakan; SEC-36 akses darurat dengan log hanya-menambah di luar VPS dan satu baris tanpa isi di jejak keamanan setiap akun, SEC-39 (c) publik, SEC-34 tiga versi per akun, menurut 10 §4.2; risiko bagi orang tua sendiri di RISK-93) |
 | Tanda awal | Sulit diamati: pengelola yang sama mengendalikan log dan basis data (TM-31). VL-08 adalah satu-satunya tanda dari sisi istri |
-| Risiko sisa | Bentuknya tetap Pasti dan Kritis selama pilot, **diterima pemilik produk** (keputusan 25; TM-12 "Diterima untuk pilot"). Arsitektur tidak dapat menutupnya tanpa E2EE, yang tidak dipakai di pilot (S4-6 (i) A) |
+| Risiko sisa | Bentuknya tetap Pasti dan Kritis selama pilot, **diterima pemilik produk** (keputusan 25; TM-12 "Diterima untuk pilot"). Arsitektur tidak dapat menutupnya tanpa E2EE, yang tidak dipakai di pilot (S4-6 (i) A). Penerimaan ini berlaku untuk pemakaian rumah tangga tanpa batas waktu (10 §3.3): menurut penilaian `security-privacy`, keputusan 25 tetap mencakupnya sesudah keputusan 51, dan teks pemberitahuan pengelola tidak berbatas waktu (ketetapan lead atas §11 (h)). Bila orang tua diberi login (keputusan 52), pengelola yang sama dapat membaca data mereka; syarat sebelum pengguna luar pertama di atas berlaku, dan risikonya bagi mereka dinilai tersendiri di RISK-93. **Tahan berulang lewat versi pemberitahuan** (SEC-34 aturan (5)): pengelola dapat menerbitkan versi berulang kali untuk menahan pencatatan istrinya. Batasnya:<br>- tidak ada data yang hilang, karena catatan tetap di antrean;<br>- satu kali baca dan satu ketukan mengakhirinya, kapan saja istri mau;<br>- tindakan pelindung tidak pernah ditahan;<br>- setiap versi terlihat di Riwayat keamanan.<br><br>Pengelola juga dapat menulis langsung ke basis data. Selama server hanya dipakai pasangan, keduanya termasuk penerimaan keputusan 25 di atas. Sejak pengguna luar pertama, akses basis data hanya lewat akses darurat SEC-36 yang tercatat di jejak keamanan setiap akun |
 | Sumber | 09.4 §9; 10.1 §11; TM-12, TM-31, TM-34; L-24; keputusan 25; 10 §3 10-D, 10-F, 10-G |
+
+##### RISK-93 — Pengelola server adalah anak atau kerabat pengguna luar dari keluarganya sendiri
+
+| | |
+|---|---|
+| Penilaian | Keamanan dan privasi · **Pagar** · K **Pasti** · D **Kritis** · **P1** · **Pengguna luar** (keputusan 52; cermin RISK-11) |
+| Uraian dan sebab | Bila orang tua atau anggota keluarga lain di luar pasangan diberi login (keputusan 52), pengelola server, yaitu pemilik produk, adalah anak atau kerabat mereka. Secara teknis ia dapat membaca data yang mereka simpan di server, termasuk dana pribadi, kabar sakit yang dibagikan, serta chat beserta foto (TM-12), dan dapat mengubah basis data langsung (TM-31). Ada tiga perbedaan dari RISK-11 (10.1 §11.3.1):<br>- keputusan 25 tidak mengikat mereka, dan versi pilot pemberitahuan tidak berlaku bagi mereka;<br>- anak dewasa yang dapat membuka data keuangan dan kesehatan orang tuanya adalah hubungan kuasa tersendiri;<br>- orang tua dapat sungkan menolak anaknya, sehingga "jangan mengisi data pribadi" lebih sulit dipilih.<br><br>Wewenangnya satu arah. Bila mereka membuat rumah tangga sendiri, pengelola bahkan bukan anggota rumah tangga itu |
+| Mitigasi | Sebelum login pertama mereka (14 QG-31 (a); 10 §4.2):<br>- **SEC-36**: tidak ada akses basis data tetap bagi seluruh basis data produksi; akses darurat per kejadian dengan alasan tertulis; log hanya-menambah dikirim keluar dari VPS. Di server keluarga pemilik produk, setiap akses darurat juga menulis **satu baris tanpa isi data** (tanggal, lama, alasan) di jejak keamanan setiap akun, dan baris itu hanya terbaca pemilik akunnya;<br>- **SEC-34 versi keluarga pengelola**, dipilih per akun sebagai setelan server: menyebut pengelola sebagai anggota keluarga, cara akses darurat, dan bahwa pencatatan tidak mencegah semuanya. Pengakuannya bertanggal dan berversi oleh orang itu sendiri; versi yang salah terlihat oleh pembacanya di "Siapa melihat apa" (FR-FAM-019/AC-9), dan **setiap pergantian versi sebuah akun menulis satu baris di jejak keamanan akun itu** (SEC-34; 10 §3.3), sehingga pengelola tidak dapat diam-diam memindahkan orang tua ke versi lain. Setiap versi baru dan setiap pergantian versi menahan tulisan biasa orang tua sampai mereka mengakui versi terakhir di LY-05; tindakan pelindung tidak pernah ditahan (10.1 SEC-34 aturan (5); 09.3 §1);<br>- status kepedulian yang tidak dibagikan tidak pernah meninggalkan perangkat (10-D A);<br>- SEC-139 versi pengguna luar, SEC-150 (a) tinjauan ulang DPIA, SEC-109 (b) catatan persetujuan uji per orang, dan jawaban advokat L-01, L-14, L-24 (Q-209).<br><br>Bila mereka membuat rumah tangga sendiri: QG-31 (a+) (SEC-154 (a), (b), (d) sampai (f); SEC-134) |
+| Pemilik mitigasi | Pengelola server; `security-privacy`; `backend-dev` (baris SEC-36 di jejak keamanan; setelan versi per akun); pemilik produk (menetapkan versi saat memberi akses) |
+| Harus ada pada | GR-4 (a), sebelum login pertama orang tua atau anggota keluarga lain di luar pasangan (keputusan 52; 14 QG-31 (a)) |
+| Tanda awal | Baris akses darurat atau baris pergantian versi pemberitahuan di jejak keamanan akun orang tua; orang tua tidak mengisi data pribadi atau berhenti memakai sesudah membaca pemberitahuan; versi pemberitahuan yang salah terlihat oleh pembacanya |
+| Risiko sisa | Pengelola tetap menguasai server dan kunci cadangan, jadi ia tetap dapat membuka data tanpa tercatat (10.1 §11.3.1). Ia juga dapat menerbitkan versi pemberitahuan berulang kali untuk menahan pencatatan orang tua (SEC-34 aturan (5)). Batasnya: tidak ada data yang hilang; satu kali baca dan satu ketukan mengakhirinya kapan saja; tindakan pelindung tidak pernah ditahan; setiap versi terlihat di Riwayat keamanan mereka. Akses basis data sejak login pertama orang tua hanya lewat akses darurat SEC-36 yang tercatat di jejak keamanan akun mereka. Arsitektur tidak dapat menutupnya tanpa E2EE, yang tidak dipakai (S4-6 (i) A). Akses lewat jalur resmi selalu terlihat oleh pemilik akun; yang tersisa adalah akses di luar jalur itu: K Sedang · D Kritis **[Usulan]**. **Pemilik produk tidak dapat menerimanya atas nama orang tua**, karena keputusan 25 tidak mengikat mereka. Dasarnya hanya pembacaan dan pengakuan mereka sendiri atas versi keluarga pengelola (10.1 §11.3.1). Status tetap Terbuka |
+| Sumber | Keputusan 25, 52; 10 §3.3 (RISK-93 dikukuhkan `security-privacy`), §4.2; 10.1 SEC-34, SEC-36, §11.3.1; TM-12, TM-31; Q-209; RISK-11; 14 QG-31 (a) |
 
 ##### RISK-14 — Biometrik membuka kunci aplikasi bagi pasangan
 
@@ -511,11 +536,11 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Keamanan dan privasi · **Pagar** (TM-11) · K **Sedang** · D **Kritis** · **P1** |
 | Uraian dan sebab | Kredensial bocor dari layanan lain dipakai menebak kata sandi (TM-01); pasangan yang menguasai email mengatur ulang kata sandi (TM-11); tautan undangan diteruskan ke orang yang salah (TM-16) |
-| Mitigasi | Argon2id, minimal 12 karakter, daftar kata sandi bocor di server, batas laju (SEC-11, SEC-12; 09.4 §2); token akses 15 menit, token penyegar berputar, pencabutan seketika (SEC-15); pemberitahuan masuk hanya kepada pemilik akun (SEC-17); pemulihan lewat tautan email sekali pakai 30 menit (SEC-24); undangan 7 hari sekali pakai, pengundang mengukuhkan email terverifikasi penerima (SEC-28 sampai SEC-31; 06 F04) |
-| Pemilik mitigasi | `backend-dev`; `security-privacy` |
-| Harus ada pada | GR-2; GR-4 (SEC-25 kode pemulihan, 10 §4.2); GR-5 (SEC-18 faktor kedua) |
+| Mitigasi | Argon2id, minimal 12 karakter, daftar kata sandi bocor di server, batas laju (SEC-11, SEC-12; 09.4 §2); token akses 15 menit, token penyegar berputar, pencabutan seketika (SEC-15); pemberitahuan masuk hanya kepada pemilik akun (SEC-17); pemulihan lewat tautan email sekali pakai 30 menit (SEC-24); undangan 7 hari sekali pakai, pengundang mengukuhkan email terverifikasi penerima (SEC-28 sampai SEC-31; 06 F04); pendaftaran tertutup di server, hanya dengan token undangan atau token pemasangan sekali pakai dari pengelola untuk satu orang tertentu, dengan tanggapan penolakan seragam (SEC-158, Pilot); **faktor kedua (SEC-18) dan kode pemulihan (SEC-25) sebagai satu pasangan fitur opsional per akun**, dibangun di FS-2: bila pemilik akun menyalakannya, pemulihan lewat email tidak melewati faktor kedua, dan kode pemulihan adalah jalan kembali bila perangkat faktor kedua hilang (keputusan 54; 10.1 SEC-18, SEC-25) |
+| Pemilik mitigasi | `backend-dev`; `ios-dev`; `security-privacy` |
+| Harus ada pada | GR-2 (SEC-158 dan mitigasi lainnya); FS-2 (pasangan SEC-18 dan SEC-25, tidak menahan GR-2; keputusan 54); sudah ada sebelum pengguna luar pertama (QG-31 (a)) |
 | Tanda awal | Pemberitahuan masuk dari perangkat yang tidak dikenal (SEC-17); lonjakan penolakan batas laju |
-| Risiko sisa | K Sedang, D Tinggi di pilot: kode pemulihan (SEC-25) wajib sebelum GR-4 dan faktor kedua (SEC-18) sebelum GR-5 (10 §4.2); sampai itu penguasa email dapat mengatur ulang kata sandi dan pemiliknya mengetahuinya lewat SEC-17 (TM-11). Selama tahan tulis, masuk, pemulihan, dan pencabutan sesi tetap berjalan (SEC-151; ADR-028 butir 3) |
+| Risiko sisa | **Sejak GR-2 sampai pasangan SEC-18 dan SEC-25 terbangun di FS-2:** K Sedang, D Tinggi. Penguasa email dapat mengatur ulang kata sandi, dan pemiliknya mengetahuinya lewat SEC-17 (TM-11). Ini diterima pemilik produk sebagai harga "Opsional, setelah dipakai harian (Saran)" (keputusan 54, diterima atas saran lead; menjawab §11 (g) dan Q-227). **Sesudah FS-2:** K Rendah, D Tinggi bagi akun yang menyalakan pasangan itu. Bagi akun yang tidak menyalakannya, risiko sisa tetap K Sedang, D Tinggi, karena fiturnya opsional per akun. Selama tahan tulis, masuk, pemulihan, dan pencabutan sesi tetap berjalan (SEC-151; ADR-028 butir 3) |
 | Sumber | TM-01, TM-11, TM-16; 10.1 §8 sampai §10; D-107 |
 
 ##### RISK-41 — Perangkat hilang, dicuri, atau dipegang orang lain
@@ -565,7 +590,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Objek rumah tangga lain terbaca dengan mengganti pengenal (TM-02) atau lewat constraint, pesan galat, cache, atau orang yang menjadi anggota dua rumah tangga (TM-22). Di pilot hanya ada satu rumah tangga; kemungkinannya naik saat rumah tangga beta memakai server yang sama (GR-4) |
 | Mitigasi | `household_id` di setiap kunci (SEC-02); uji lintas rumah tangga yang dibangkitkan untuk setiap kueri (09.4 §4; ES §4); `household_id` sebagai pemilih yang diperiksa terhadap keanggotaan (SEC-38); **RLS (SEC-08) dipaksakan sejak pilot** (`FORCE ROW LEVEL SECURITY`; ADR-016 butir 3, diterima; D-99; 09.2 §3; 10 §4); uji isolasi dengan banyak rumah tangga sebelum GR-4 (14 QG-31) |
 | Pemilik mitigasi | `backend-dev`; `qa` |
-| Harus ada pada | GR-2 (uji isolasi dan RLS); GR-4 (uji isolasi dengan banyak rumah tangga) |
+| Harus ada pada | GR-2 (uji isolasi dan RLS); GR-4 (uji isolasi dengan banyak rumah tangga), bila pengguna luar membentuk rumah tangga sendiri di server yang sama (keputusan 52) atau beta diadakan |
 | Tanda awal | Kegagalan uji isolasi di CI |
 | Risiko sisa | K Rendah, D Kritis (akibat kebocoran tidak berkurang; kemungkinannya yang ditekan). RLS dan uji isolasi menjadi dua lapis; yang tersisa adalah kesalahan kebijakan RLS dan kode yang sama-sama keliru, dan orang di beberapa rumah tangga (RISK-81, Tier 3) |
 | Sumber | TM-02, TM-22; SEC-02, SEC-08, SEC-38; ES §4 |
@@ -738,7 +763,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Email masuk spam atau melampaui kuota sandbox; penyedia email menunggu S4-2 (ADR-026; K-62) |
 | Mitigasi | SPF, DKIM, DMARC; uji kirim sebelum pilot; pengiriman sebagai job yang dicoba ulang (ADR-026); keluar dari sandbox sebelum pengguna luar (09 §6) |
 | Pemilik mitigasi | `backend-dev`; pengelola server |
-| Harus ada pada | GR-2; GR-4 (sandbox) |
+| Harus ada pada | GR-2; GR-4 (sandbox), sebelum pengguna luar pertama |
 | Tanda awal | Job email yang gagal berulang |
 | Risiko sisa | K Rendah, D Rendah |
 | Sumber | 09.4 §2, §9; ADR-026 |
@@ -891,13 +916,26 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | | |
 |---|---|
 | Penilaian | Teknis · K **Sedang** · D **Tinggi** · **P2** (baru, keputusan 42) |
-| Uraian dan sebab | Keputusan 42: pilot dengan data nyata di iOS dan iPadOS; Android dibangun sesudah GR-2 untuk Galaxy A55 pemilik produk, paling lambat sebelum GR-4 (semula bawaan lead; diterima atas saran lead lewat keputusan 50). Akibatnya: (1) layar Compose, kunci aplikasi Android, pengecualian cadangan (SEC-46), FCM, dan kinerja di Galaxy A55, perangkat pilot dengan kinerja paling rendah **[Asumsi]** (RISK-54), pertama kali dipakai sungguh-sungguh jauh sesudah iOS; (2) bila jalur Android selesai dekat GR-4, pemakaian Android dengan data nyata sebelum penguji beta (sekurangnya 14 penguji Android bila akun Play pribadi, 14 §6.7) singkat atau tidak ada, jadi beta menjadi uji Android yang sebenarnya; (3) jalur Android bersaing dengan gelombang Tier 2 untuk waktu tim yang sama (RISK-53); (4) aplikasi Android bergabung ke rumah tangga yang sudah berisi data nyata berbulan-bulan, jadi potret awal dan sinkron pertamanya menghadapi volume yang tidak dialami iOS saat GR-2. Bila jalur itu tergelincir, GR-4 menunggu (14 §3.8) |
-| Mitigasi | Satu server, satu kontrak, semua aturan di server (ADR-013), jadi Android tidak membawa aturan baru dan `buf breaking` menjaga kontrak sejak FS-1; vektor emas Kotlin lulus atas seluruh berkas yang ada saat modul pertama ditambahkan (14 §4.5, QG-06); **QG-30 (Android)** sebelum APK memakai data nyata: setiap AC Tier 1 yang perlu perangkat, 38 skenario, daftar 10 §4.3, ES §3 di Galaxy A55, tata letak 08 §16.4, potret awal atas rumah tangga sintetis seukuran data pilot **[Usulan]** (14 §5.3); QG-31 mensyaratkan QG-30 (Android) dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); waktu mulai jalur Android diputuskan pemilik produk di GR-2 dan dapat dimajukan bila RISK-18 menuntutnya (13 §3.2) |
+| Uraian dan sebab | Keputusan 42: pilot dengan data nyata di iOS dan iPadOS; Android dibangun sesudah GR-2 untuk Galaxy A55 pemilik produk dan bergabung sebelum beta, bila beta kelak diadakan (semula bawaan lead; diterima atas saran lead lewat keputusan 50; bunyi brief §1 "Pilot devices" sesudah keputusan 51). Jalur Android tetap dibangun untuk keluarga, walaupun jalur publik tidak diambil. Akibatnya: (1) layar Compose, kunci aplikasi Android, pengecualian cadangan (SEC-46), FCM, dan kinerja di Galaxy A55, perangkat pilot dengan kinerja paling rendah **[Asumsi]** (RISK-54), pertama kali dipakai sungguh-sungguh jauh sesudah iOS; (2) bila jalur publik diambil dan jalur Android selesai dekat GR-4, pemakaian Android dengan data nyata sebelum penguji beta (sekurangnya 14 penguji Android bila akun Play pribadi, 14 §6.7) singkat atau tidak ada, jadi beta menjadi uji Android yang sebenarnya; (3) jalur Android bersaing dengan gelombang Tier 2 untuk waktu tim yang sama (RISK-53); (4) aplikasi Android bergabung ke rumah tangga yang sudah berisi data nyata berbulan-bulan, jadi potret awal dan sinkron pertamanya menghadapi volume yang tidak dialami iOS saat GR-2. Bila jalur itu tergelincir, pengeluaran pemilik produk di luar rumah tetap tercatat belakangan dari iPad (RISK-18), dan, bila jalur publik diambil, GR-4 menunggu (14 §3.8) |
+| Mitigasi | Satu server, satu kontrak, semua aturan di server (ADR-013), jadi Android tidak membawa aturan baru dan `buf breaking` menjaga kontrak sejak FS-1; vektor emas Kotlin lulus atas seluruh berkas yang ada saat modul pertama ditambahkan (14 §4.5, QG-06); **QG-30 (Android)** sebelum APK memakai data nyata: setiap AC Tier 1 yang perlu perangkat, 38 skenario, daftar 10 §4.3, ES §3 di Galaxy A55, tata letak 08 §16.4, potret awal atas rumah tangga sintetis seukuran data pilot **[Usulan]** (14 §5.3); bila jalur publik diambil, QG-31 mensyaratkan QG-30 (Android) dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); waktu mulai jalur Android diputuskan pemilik produk di GR-2 dan dapat dimajukan bila RISK-18 menuntutnya (13 §3.2) |
 | Pemilik mitigasi | Pemilik produk (jadwal); `android-dev`; `qa` |
-| Harus ada pada | QG-30 (Android); paling lambat GR-4 |
-| Tanda awal | Jalur Android belum dimulai saat GR-3; temuan QG-30 (Android) di sinkron, potret awal, atau kinerja |
-| Risiko sisa | K Rendah, D Sedang. Lamanya pemakaian Android di pilot bergantung jadwal; bila singkat, beta adalah uji Android sesungguhnya, dengan pagar QG-31 yang sama |
-| Sumber | Keputusan 42; 17 K-66; 13 §3.2, §3.4, GR-4 butir 8; 14 §3.8, §5.3, §6.7; 10 §4.3; RISK-53, RISK-54 |
+| Harus ada pada | QG-30 (Android), sesudah GR-2; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) |
+| Tanda awal | Jalur Android belum dimulai sesudah gelombang Tier 2 terakhir dilepas; temuan QG-30 (Android) di sinkron, potret awal, atau kinerja |
+| Risiko sisa | K Rendah, D Sedang. Lamanya pemakaian Android oleh keluarga bergantung jadwal; bila jalur publik diambil dan pemakaian itu singkat, beta adalah uji Android sesungguhnya, dengan pagar QG-31 yang sama |
+| Sumber | Keputusan 42, 51; 17 K-66; 13 §3.2, §3.4, GR-4 butir 8; 14 §3.8, §5.3, §6.7; 10 §4.3; RISK-53, RISK-54 |
+
+#### RISK-92 — TestFlight internal sebagai jalur iOS keluarga tanpa batas waktu tidak sesuai aturan Apple
+
+| | |
+|---|---|
+| Penilaian | Teknis · K **Sedang** · D **Tinggi** · **P2** · **Diterima atas saran lead** (keputusan 55) (baru, keputusan 51; dinilai dengan 18 §5.2.9; K dan D tidak berubah dari penilaian sementara) |
+| Uraian dan sebab | Jalur iOS satu-satunya adalah Xcode Cloud ke TestFlight internal (ADR-022 butir 1). Sejak keputusan 51, jalur itu menjadi saluran distribusi keluarga tanpa batas waktu, bukan uji menuju rilis. Temuan `researcher` (18 §5.2.9):<br>- Guideline 2.2 kemungkinan tidak jelas menjangkau build internal **[Usulan]**.<br>- Kontraknya, DPLA 7.4.1 (29 Oktober 2026), membatasi TestFlight internal pada "pre-release versions", "solely for their internal use in testing, evaluating and/or developing", untuk "members of Your company or organization", dan Apple dapat menghentikannya "at any time in its sole discretion" **[Terverifikasi]**.<br>- Catatan penegakan tidak ditemukan.<br><br>K **Sedang** karena pemakaian harian keluarga berada di tepi bunyi kontrak dan penghentian sepenuhnya kewenangan Apple, tetapi tanpa riwayat penegakan. **Akibatnya kehilangan akses, bukan kebocoran data:** build baru tidak terpasang, dan build terpasang kedaluwarsa dalam 10 sampai 90 hari (RISK-52; irama 80 hari). Akibatnya iPhone 13 (pencatat utama) dan iPad mini 7 kehilangan aplikasi. Data tetap di server; yang dapat hilang hanya antrean perangkat yang belum terkirim.<br><br>Tidak ada saluran Apple yang sekaligus resmi untuk keluarga tanpa badan hukum, tanpa Mac, dan tanpa batas 90 hari (18 §5.2.9.5). Ad Hoc memerlukan Mac (keputusan 43) dan kemungkinan Developer Mode; App Store unlisted memerlukan App Review dan prasyarat toko |
+| Mitigasi | **Keputusan 55** (Q-228; diterima atas saran lead): tetap TestFlight internal, pindah ke App Store unlisted (C) bila Apple menghentikannya. ADR-022 (catatan keputusan 51) memuat dua pemicu C, syarat C-1 sampai C-7, dan jalan akun demo App Review (demo mode di perangkat dengan izin Apple). Ad Hoc ditolak selama keputusan 43 berlaku dan selama memerlukan Developer Mode (10 §0). Pendukung lainnya:<br>- server sebagai sumber kebenaran (ADR-013), sehingga pindah saluran tidak memindahkan data;<br>- batas keras 80 hari (ADR-028 butir 4), sehingga build terpasang berlaku sekurangnya 10 hari lagi saat penghentian;<br>- saat pemicu datang, antrean perangkat dikosongkan lebih dulu;<br>- saluran baru ditinjau `security-privacy` atas 10 §0 dan SEC-41 (d) sebelum dipakai (10 §7.8);<br>- pertanyaan advokat DPLA 7.4.1, 7.3, dan pengecualian rumah tangga (18 §5.2.9) |
+| Pemilik mitigasi | Pemilik produk (pilihan jalur; pemegang akun); `architect` (ADR-022); `ios-dev`; `security-privacy` (10 §0); advokat |
+| Harus ada pada | GR-1: jalur dipilih (keputusan 55, selesai); GR-2: SEC-158 (syarat C-3, Pilot). Syarat C lainnya hanya saat pemicu datang |
+| Tanda awal | Galat kontrak beta atau build TestFlight yang tiba-tiba tidak tersedia di App Store Connect (cuplikan forum `BETA_CONTRACT_MISSING`, 18 §5.2.9.1 **[Perlu validasi]**); permintaan Apple untuk menghentikan distribusi |
+| Risiko sisa | **K Sedang · D Sedang, diterima atas saran lead (keputusan 55, pilihan 1).** Wujudnya jeda tanpa aplikasi iOS selama syarat C dan App Review berjalan, dikurangi sisa masa build (10 sampai 90 hari); lama App Review **[Asumsi]** belum diketahui. Data tidak hilang, kecuali antrean perangkat yang belum terkirim (syarat C-7). Pilihan yang tidak diambil: pilihan 2 (K Sedang, D Rendah) dan pilihan 3 (risiko ini hampir hilang, diganti beban App Review per rilis, RISK-16), dicatat di ADR-022 sebagai bahan bila keputusan 55 dibuka kembali |
+| Sumber | Keputusan 43, 51, 52; ADR-022 (catatan keputusan 51); ADR-028 butir 4; 10 §3.3, §7.8, §8; 18 §2.12.6, §5.2.9; RISK-16, RISK-52 |
 
 ### 3.6 Bisnis
 
@@ -905,7 +943,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Sedang** · D **Tinggi** · **P2** |
+| Penilaian | Bisnis · K **Sedang** · D **Tinggi** · **P2** · **Jalur publik** (§0; TestFlight internal rumah tangga tidak melewati App Review) |
 | Uraian dan sebab | Guideline 1.2 menuntut penyaringan, laporan, dan blokir atas konten buatan pengguna dan tidak mengecualikan chat tertutup (18 §2.12). Padanan 10-G A memenuhi setiap unsur tanpa blokir harfiah; peninjau dapat menuntut blokir harfiah (W-30) |
 | Mitigasi | SEC-153 (d) dan sisa SEC-154 sebelum build pertama ke TestFlight eksternal atau App Store (ADR-022; 06 §16.12); penjelasan di catatan App Review; R-13 |
 | Pemilik mitigasi | `ios-dev`; `security-privacy` |
@@ -918,7 +956,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Tinggi** · D **Tinggi** · **P1** |
+| Penilaian | Bisnis · K **Tinggi** · D **Tinggi** · **P1** · **Jalur publik** (§0) |
 | Uraian dan sebab | Tidak ada bukti primer kesediaan membayar aplikasi keuangan rumah tangga di Indonesia (R-16; 18 §0.3). Rekomendasi freemium per rumah tangga (13 §7.5) bersandar pada pola harga pesaing |
 | Mitigasi | Pilot tidak dimonetisasi; inti gratis sehingga tahap publik dapat berjalan bila biayanya ditanggung (13 §6.3, §7.5); harga uji di wawancara (preferensi yang dinyatakan, bukti lemah); beta; harga dan isi Plus diputuskan pemilik produk di GR-5 (Q-216) |
 | Pemilik mitigasi | Pemilik produk; `product-analyst`; `researcher` |
@@ -931,7 +969,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Rendah** · D **Tinggi** · **P3** (dinilai ulang di S5 fase D sesudah R-15; semula K Sedang, P2) |
+| Penilaian | Bisnis · K **Rendah** · D **Tinggi** · **P3** (dinilai ulang di S5 fase D sesudah R-15; semula K Sedang, P2) · **Jalur publik** (§0) |
 | Uraian dan sebab | Rumah tangga pilot sendiri memakai iPhone dan Android, jadi langganan per rumah tangga lintas platform adalah kasus biasa. Hasil R-15 (18 §2.13) **[Terverifikasi]**: komisi langganan sekitar 15% di kedua toko bagi pengembang kecil yang mendaftar (Apple Small Business Program; tingkat 15% Google); langganan wajib lewat pembelian dalam aplikasi di kedua toko; PPN pelanggan Indonesia dipungut dan disetor toko; Apple 3.1.3(b) mengizinkan hak yang dibeli di platform lain asalkan Plus juga dapat dibeli di aplikasi iOS. **Yang tersisa:** aturan Google tentang hak lintas platform tidak ditemukan **[Perlu validasi]**; tingkat harga rupiah belum dibaca **[Perlu validasi]** |
 | Mitigasi | Hak akses disimpan server per rumah tangga, bukan dibaca dari toko perangkat (13 §7.5; 14 §8); Plus dapat dibeli di dalam aplikasi di kedua platform; Family Sharing Apple tidak diaktifkan untuk Plus **[Usulan]** `researcher` (18 §2.13.3 butir 3); rekomendasi 13 menyebut syarat pembatalannya bila aturan Google tidak mengizinkan |
 | Pemilik mitigasi | `researcher` (sisa R-15); `architect` (14) |
@@ -944,7 +982,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Sedang** · D **Tinggi** · **P2** |
+| Penilaian | Bisnis · K **Sedang** · D **Tinggi** · **P2** · **Jalur publik** (§0) |
 | Uraian dan sebab | Custody tunai, kiriman ke orang tua, dan persetujuan antarpasangan adalah pola rumah tangga pilot; keluarga lain mungkin hampir tanpa tunai, satu rekening bersama, atau menganggap persetujuan mengekang (R-08) |
 | Mitigasi | Wawancara 8 sampai 12 rumah tangga dengan tabel "hasil yang mengubah rencana" (13 §6.3; A-41); beta; segmen rilis pertama yang sempit (Q-214) |
 | Pemilik mitigasi | `product-analyst` |
@@ -957,7 +995,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Sedang** · D **Sedang** · **P3** |
+| Penilaian | Bisnis · K **Sedang** · D **Sedang** · **P3** · **Jalur publik** (§0) |
 | Uraian dan sebab | Pembeda yang diusulkan (custody, permintaan dua arah sampai uangnya, arus uang keluarga besar) belum diuji terhadap pesaing (A-15; R-02); produk bank seperti Bank Jago Kantong Bersama belum diteliti (R-09) |
 | Mitigasi | Uji langsung dua atau tiga aplikasi pesaing sebelum materi publik (13 §3.1; R-02, memerlukan pemilik produk); materi publik tanpa positioning yang belum diuji (13 §3.6 GR-5) |
 | Pemilik mitigasi | `product-analyst`; pemilik produk |
@@ -970,7 +1008,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · K **Sedang** · D **Sedang** · **P3** |
+| Penilaian | Bisnis · K **Sedang** · D **Sedang** · **P3** · **Jalur publik** (§0; waktu pengembang untuk keluarga sendiri dinilai di RISK-53) |
 | Uraian dan sebab | Brief §14 "operating cost". Biaya infrastruktur pilot kecil (Rp260.667 + USD 9,57 per bulan, 09.4 §7.1) dan per rumah tangga di tahap publik diperkirakan kecil (A-42 **[Asumsi]**). Yang tidak diperkirakan dokumen mana pun: waktu pengembang, pembaruan OS tahunan untuk dua aplikasi native, dukungan pengguna, tinjauan hukum (13 §7.3) |
 | Mitigasi | Satu VPS dengan pemicu penskalaan (09 §6); `AI` R1 tidak tumbuh dengan jumlah rumah tangga (09.4 §7.2); model bisnis di GR-5 |
 | Pemilik mitigasi | Pemilik produk |
@@ -983,7 +1021,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Bisnis · **Pagar** · K **Sedang** · D **Tinggi** · **P2** |
+| Penilaian | Bisnis · **Pagar** · K **Sedang** · D **Tinggi** · **P2** · **Jalur publik** (§0; Plus tidak dibangun untuk rumah tangga, 14 §8) |
 | Uraian dan sebab | Pembayar dapat memakai status "aku yang bayar" sebagai wewenang, atau berhenti membayar untuk mencabut fitur yang diandalkan pasangannya. Brief §8 dan PRN-09, PRN-10 melarang wewenang satu arah |
 | Mitigasi | Aturan langganan 13 §7.5 (a) sampai (d) (Q-217): Plus melekat pada rumah tangga, tanpa nama pembayar, pembayar tidak mendapat peran, izin, wewenang, atau pantauan, berakhir di akhir masa bayar tanpa catatan hilang, tidak lintas rumah tangga; daftar "tidak pernah berbayar" (13 §7.5). Kini persyaratan yang dapat diuji: 06 PG-15 dan SEC-156 (setiap anggota berakun membaca baris Plus yang sama; pembayar dan toko asal tidak terbaca; 14 §8) |
 | Pemilik mitigasi | `architect` (06, 09); `security-privacy` (10); `product-analyst` |
@@ -1019,7 +1057,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 | Pemilik mitigasi | Pemilik produk (S4-2); pengelola server |
 | Harus ada pada | GR-2 |
 | Tanda awal | Penyedia menolak memberi pernyataan tertulis |
-| Risiko sisa | K Rendah, D Sedang; tafsir L-12, L-16 sebelum tahap publik |
+| Risiko sisa | K Rendah, D Sedang; tafsir L-12, L-16 sebelum pengguna luar pertama (Q-209; keputusan 52) atau tahap publik, mana yang lebih dulu |
 | Sumber | 09.4 §9; ADR-020; R-14; L-12, L-16 |
 
 #### RISK-12 — Jalur yang bergantung pada tafsir hukum: xtool, transfer push dan `AI`
@@ -1030,7 +1068,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 | Uraian dan sebab | Lisensi alat build iOS di Linux (L-31); apakah token push dan pemanggilan penyedia `AI` di luar negeri adalah transfer lintas batas (L-16, L-05, L-18, L-19, L-26, L-32). Menurut bacaan `researcher` **[Usulan]**, sesudah PP 33/2026 berlaku tidak ditemukan jalan bagi pengiriman harian ke penyedia `AI` luar negeri sampai Lembaga PDP menerbitkan daftar atau klausul (17 Q-10; R-11) |
 | Mitigasi | Xcode Cloud sebagai jalur resmi, xtool tidak dipakai (ADR-022); jalur R1: tidak ada data rumah tangga yang dikirim ke penyedia `AI` (SEC-121; ADR-021); R2 terkunci sampai ADR baru sesudah advokat (SEC-122); payload push umum (SEC-50) |
 | Pemilik mitigasi | Advokat; `security-privacy`; pemilik produk |
-| Harus ada pada | GR-4 (L-16); FS-7 (R2) |
+| Harus ada pada | GR-4 (L-16), sebelum pengguna luar pertama; FS-7 (R2) |
 | Tanda awal | Terbitnya Peraturan Lembaga atau daftar negara setara |
 | Risiko sisa | K Rendah, D Sedang untuk pilot. Bahwa R1 bukan transfer adalah bacaan `security-privacy` (L-32; W-29); token perangkat tetap lewat Apple dan Google (TM-18) |
 | Sumber | 09.4 §9; L-05, L-16, L-18, L-19, L-26, L-31, L-32; R-05, R-11; W-29; TM-19 |
@@ -1041,11 +1079,11 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 |---|---|
 | Penilaian | Hukum · K **Sedang** · D **Kritis** · **P1** · **Diterima pemilik produk untuk pilot** |
 | Uraian dan sebab | Permenkominfo 5/2020 mewajibkan PSE lingkup privat mendaftar sebelum dipakai; yang wajib tetapi tidak mendaftar dapat diputus aksesnya (18 §2.11 **[Terverifikasi]** naskah 2020; W-32; L-14). Apakah pilot dua orang termasuk belum diketahui. Terpisah: apakah pengingat tagihan dengan tautan ke aplikasi pembayaran tetap di luar "payment initiation" (L-13) |
-| Mitigasi | Pilot: risiko diterima pemilik produk (S4-4 (iii) A; W-32). GR-4: advokat menjawab L-01, L-14, L-24 dan pendaftaran PSE bila wajib, sebelum siapa pun di luar rumah tangga pilot memakai layanan (Q-209; 13 §3.6). Lingkup uang: aplikasi tidak memegang atau memindahkan dana (brief §1) |
+| Mitigasi | Pilot: risiko diterima pemilik produk (S4-4 (iii) A; W-32). GR-4, sebelum pengguna luar pertama, termasuk orang tua yang diberi login (keputusan 52): advokat menjawab L-01, L-14, L-24 dan pendaftaran PSE bila wajib, sebelum siapa pun di luar rumah tangga pilot memakai layanan (Q-209; 13 §3.6). Lingkup uang: aplikasi tidak memegang atau memindahkan dana (brief §1) |
 | Pemilik mitigasi | Pemilik produk; advokat |
-| Harus ada pada | GR-4 |
-| Tanda awal | Pengguna di luar rumah tangga pilot direncanakan (pemicu Q-209) |
-| Risiko sisa | Pilot: K Sedang, D Kritis, **diterima pemilik produk** (W-32). Sesudah GR-4: K Rendah, D Sedang |
+| Harus ada pada | GR-4, sebelum pengguna luar pertama |
+| Tanda awal | Pengguna di luar rumah tangga pilot direncanakan, termasuk orang tua yang akan diberi login (pemicu Q-209; keputusan 52) |
+| Risiko sisa | Pilot: K Sedang, D Kritis, **diterima pemilik produk** (W-32). Sesudah GR-4 (a), yaitu sesudah advokat menjawab dan PSE didaftarkan bila wajib: K Rendah, D Sedang. Sejak keputusan 51 pemakaian rumah tangga tidak berbatas waktu; bagian PSE dibawa ke pertanyaan pemilik produk P-51-1 (kapan advokat menjawab L-14), dan status tetap "Diterima untuk pilot" sampai ia menjawab (ketetapan lead atas §11 (h)) |
 | Sumber | W-32; L-13, L-14; R-07; Q-209; 10.4 §3.2; 13 §3.6 |
 
 #### RISK-66 — Kewajiban pengendali selama pilot
@@ -1058,14 +1096,14 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 | Pemilik mitigasi | Pemilik produk (sebagai pengendali); `security-privacy` |
 | Harus ada pada | GR-2 |
 | Tanda awal | Butir 10 §4.1 belum dicentang saat GR-2 |
-| Risiko sisa | K Rendah, D Sedang: teksnya baru ditinjau advokat sebelum tahap publik (10-C A) |
+| Risiko sisa | K Rendah, D Sedang: teksnya baru ditinjau advokat sebelum tahap publik, bila diambil (10-C A) |
 | Sumber | L-01, L-03, L-11, L-17, L-21, L-24; A-16; Q-208; 10 §3.1 |
 
 #### RISK-67 — Catatan hanya-menambah lawan hak hapus
 
 | | |
 |---|---|
-| Penilaian | Hukum · K **Sedang** · D **Tinggi** · **P2** |
+| Penilaian | Hukum · K **Sedang** · D **Tinggi** · **P2** · **Jalur publik** (§0; bagi rumah tangga, kewajiban pengendali dijalankan seolah pengecualian rumah tangga tidak berlaku, RISK-66, dan pemisahan inti dan rincian sudah dibangun di FS-1) |
 | Uraian dan sebab | Hak hapus menurut UU PDP berhadapan dengan riwayat uang yang tidak dapat diubah (brief §7). Pseudonimisasi inti moneter dan penghapusan rincian adalah keputusan sementara sampai advokat menjawab (keputusan 24; ADR-007; L-04, L-20, L-23). Di rumah tangga dua orang, "mantan anggota" tetap jelas siapa orangnya (W-10). Cukup-tidaknya 38 hari di cadangan (L-34), hak ahli waris (L-35), dan lama menyimpan bukti persetujuan (L-36) juga belum dijawab |
 | Mitigasi | Pemisahan inti, rincian, dan pemetaan identitas (06 §2.5; 07 §8.2) sehingga perubahan, bila diperlukan, mengenai bagian penghapusan dan bukan inti ledger; ADR-007 menyebut apa yang berubah bila jawabannya tidak |
 | Pemilik mitigasi | Advokat; `finance-domain`; `architect` |
@@ -1082,7 +1120,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 | Uraian dan sebab | Satu indikator Kepmen Komdigi 142/2026 cukup untuk menggolongkan aplikasi "mungkin digunakan atau diakses oleh anak" (18 §2.9 **[Terverifikasi]**). Rumah tangga pilot punya anak 12+ (Q-186), yang dapat memakai ponsel orang tua (L-29); data anak dicatat orang dewasa, kadang bukan orang tua atau walinya (L-30) |
 | Mitigasi | Syarat layanan melarang di bawah 18 dan pernyataan usia tanpa tanggal lahir (SEC-80); tanpa akun anak (SEC-81); desain sasaran dewasa dengan catatan bukti (SEC-82); rating 18+ (SEC-83); penilaian mandiri indikator (SEC-84); minimisasi data anak (SEC-85); kunci aplikasi (RISK-41) |
 | Pemilik mitigasi | `security-privacy`; `ux-designer`; pemilik produk |
-| Harus ada pada | GR-2 (SEC-80 sampai SEC-82, SEC-85); GR-4 (SEC-83, SEC-84) |
+| Harus ada pada | GR-2 (SEC-80 sampai SEC-82, SEC-85); GR-4: SEC-84 sebelum pengguna luar pertama, SEC-83 (rating toko) bila jalur publik diambil |
 | Tanda awal | — |
 | Risiko sisa | K Sedang, D Sedang sampai L-27 sampai L-30 dijawab |
 | Sumber | 10.3 §1; L-27 sampai L-30; Q-186; D-109 |
@@ -1091,7 +1129,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 
 | | |
 |---|---|
-| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** |
+| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** · **Pengguna luar** (§0; keputusan 52: kedudukan PSE dan permintaan aparat menyangkut layanan begitu ada pengguna di luar rumah tangga pilot) |
 | Uraian dan sebab | Bila chat tertutup menjadikan layanan "PSE Lingkup Privat User Generated Content", ada kewajiban sarana pelaporan publik dan pemutusan akses konten dalam jam atas chat yang tidak dipindai server (L-38). Permintaan data oleh aparat (TM-24; L-14). Apakah aplikasi keluarga tertutup termasuk "layanan jejaring dan media sosial" (L-07) |
 | Mitigasi | "Laporkan" (SEC-154); rekam jejak akses aparat (SEC-39 (d)); minimisasi data; L-38 dianjurkan dijawab sebelum bentuk SEC-154 dikunci |
 | Pemilik mitigasi | Advokat; `security-privacy` |
@@ -1104,7 +1142,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 
 | | |
 |---|---|
-| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** |
+| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** · **Pengguna luar** (§0; keputusan 52; bagi rumah tangga, rancangan sudah memilih bacaan yang lebih ketat) |
 | Uraian dan sebab | Banyak ketentuan PP 33/2026 dibaca dari salinan teks yang belum dicocokkan dengan pindaian resmi, dan memuat salah baca serta ayat terpotong (R-01). Lembaga PDP belum terbentuk menurut berita (R-11) |
 | Mitigasi | Label **[Perlu validasi] — salinan teks** di setiap kutipan; pencocokan oleh pemilik produk atau advokat; rancangan memilih bacaan yang lebih ketat bila ragu (10 §3.1) |
 | Pemilik mitigasi | `researcher`; pemilik produk |
@@ -1121,7 +1159,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 | Uraian dan sebab | Menyebut sebagian penghasilan "dana pribadi" atau menyepakati jatah dapat dibaca sebagai perjanjian tentang harta (L-25); catatan aplikasi dan ekspor chat dapat dipakai sebagai bukti dalam perpisahan (L-22, L-33) |
 | Mitigasi | Kata antarmuka "disepakati sebagai", bukan "milik" (SEC-88); ekspor daftar klaim sebelum penutupan |
 | Pemilik mitigasi | Advokat; `ux-designer` |
-| Harus ada pada | FS-1 (kata layar); GR-5 (jawaban advokat) |
+| Harus ada pada | FS-1 (kata layar); GR-5 (jawaban advokat), bila jalur publik diambil |
 | Tanda awal | — |
 | Risiko sisa | K Rendah, D Sedang |
 | Sumber | L-22, L-25, L-33; SEC-88 |
@@ -1130,7 +1168,7 @@ Semua butir bukan nasihat hukum. Tafsirnya adalah pertanyaan advokat di 17 bagia
 
 | | |
 |---|---|
-| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** |
+| Penilaian | Hukum · K **Sedang** · D **Sedang** · **P3** · **Jalur publik** (§0) |
 | Uraian dan sebab | Perlindungan konsumen (perpanjangan otomatis, pembatalan, pengembalian dana), pajak pengembang, dan apakah penagihan lewat toko mengubah kedudukan PSE belum diteliti (L-40) |
 | Mitigasi | L-40 sebelum Plus dijual (13 §7.5) |
 | Pemilik mitigasi | Advokat |
@@ -1229,24 +1267,25 @@ Brief §14 meminta cara konkret agar aplikasi menghemat waktu, bukan menjadi tug
 | Membaca keadaan | Angka utama dan custody di Beranda; ringkasan bulanan otomatis | 07 §5, §6.3; 08 | RISK-18, RISK-20 |
 | Notifikasi | Jam tenang, ringkasan, plafon harian, lipat | 06 §10, §11 | RISK-22 |
 | Memikirkan siapa yang salah | Tanpa papan skor; tanda tanpa notifikasi langsung | PG-09; 07 §10.3 butir 10 | RISK-31 |
-| Fitur yang tidak dipakai | Tier 2 bergelombang; dipangkas di GR-3 | 13 §3.4, §6.2 | RISK-23, RISK-79 |
+| Fitur yang tidak dipakai | Tier 2 bergelombang; dipangkas dari cakupan publik di GR-3, bila jalur publik diambil | 13 §3.4, §6.2 | RISK-23, RISK-79 |
 
 ---
 
 ## 8. Yang harus ada di setiap gerbang
 
-Masukan bagi quality gate dokumen 14. Kolom kanan menyebut risiko yang mitigasinya harus sudah berlaku saat gerbang dilewati.
+Masukan bagi quality gate dokumen 14. Kolom kanan menyebut risiko yang mitigasinya harus sudah berlaku saat gerbang dilewati. Baris GR-3, GR-4 (b), dan FS-3 sampai FS-8 adalah **jalur publik opsional** (keputusan 51; §0): berlaku hanya bila pemilik produk kelak mengambilnya. Baris GR-4 (a) berlaku sebelum pengguna luar pertama, yang dapat terjadi tanpa tahap publik (keputusan 52). Tidak ada yang dihapus.
 
 | Gerbang | Yang harus ada | Risiko |
 |---|---|---|
-| **GR-1** Mulai bangun | Urutan platform sudah diputuskan (keputusan 42); Mac sudah diputuskan: tetap Xcode Cloud tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43; 14 §9); server uji sementara memenuhi syarat 10 §4.1 butir 7 (keputusan 45; 14 §7.8); urutan pekerjaan Tier 1 di 14; versi dipatok (ES §8) | RISK-01, RISK-53, RISK-02 |
+| **GR-1** Mulai bangun | Urutan platform sudah diputuskan (keputusan 42); Mac sudah diputuskan: tetap Xcode Cloud tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43; 14 §9); server uji sementara memenuhi syarat 10 §4.1 butir 7 (keputusan 45; 14 §7.8); urutan pekerjaan Tier 1 di 14; versi dipatok (ES §8); jalur distribusi iOS keluarga dipilih pemilik produk: tetap TestFlight internal, App Store unlisted bila dihentikan (keputusan 55; ADR-022) | RISK-01, RISK-53, RISK-02, RISK-92 |
 | **FS-1** Bangun Tier 1 | Semua uji invarian dan contoh memblokir merge; uji isolasi, privasi, log, payload; uji kecepatan alur inti; gerbang contoh layar 08 §19.8; pekerjaan kalender build TestFlight; deskriptor rating usia sebelum unggahan pertama; pembungkus SQLite dinilai di minggu pertama. Mitigasi yang dikerjakan `android-dev` jatuh di jalur Android, bukan di FS-1 (14 §3.8) | RISK-09, RISK-13, RISK-19, RISK-30, RISK-33, RISK-38, RISK-43, RISK-47, RISK-48, RISK-49, RISK-52, RISK-55, RISK-57, RISK-64 |
-| **GR-2** Data nyata | Sebelas butir 10 §4.1 (W-31: tanpa butir advokat), dengan butir 3 (SEC-109 (b)) sudah sebelum build TestFlight pertama dipasang (14 QG-25), butir 7 termasuk server uji sementara dihapus (14 §7.8, QG-30 butir 8), butir 10 (iPad mini 7 yang mungkin dipegang orang lain; SEC-59) tercatat, dan butir 11 tinjauan hanya-temuan `security-privacy` (keputusan 49; 14 QG-30 butir 12); uji iOS tanpa Mac lengkap (14 QG-30 butir 13); semua AC Tier 1 lulus, termasuk FR-FAM-013/AC-12 salinan swalayan (SEC-107); iPhone 13 dan iPad mini 7 terpasang dan lulus 08 §16.4 baris "Sebelum GR-2"; ES §3 diukur di iPhone 13 dan iPad mini 7 (ADR-029); runbook ada; VL-00 dicatat | RISK-01, RISK-03 sampai RISK-06, RISK-10, RISK-11, RISK-14, RISK-18, RISK-24, RISK-35, RISK-38 sampai RISK-42, RISK-44 sampai RISK-46, RISK-54, RISK-66, RISK-68 |
-| **Jalur Android** (sesudah GR-2, paling lambat sebelum GR-4) | QG-30 (Android) sebelum APK memakai data nyata: daftar 10 §4.3, AC dan skenario di Galaxy A55, ES §3, vektor emas Kotlin, kunci APK (14 §3.8, §5.3). Bagian Android dari mitigasi RISK-14, RISK-41, RISK-48 berlaku di sini | RISK-14, RISK-17, RISK-18, RISK-41, RISK-48, RISK-54, RISK-56, RISK-91 |
-| **FS-2** Pilot berjalan | VL-01 sampai VL-10; rilis pemeliharaan pada 60 hari tanpa rilis dan build iOS berikutnya paling lambat 80 hari sesudah unggahan sebelumnya (ADR-028 butir 4, keputusan 44); risiko Tier 2 per gelombang | RISK-07, RISK-20, RISK-21, RISK-22, RISK-23, RISK-27, RISK-31, RISK-34, RISK-37, RISK-52, RISK-73 sampai RISK-80 |
-| **GR-3** Evaluasi | Paling cepat tiga bulan sesudah GR-2; tabel keputusan 13 §6.2; VL-02 (a) kedua pasangan menyatakan nyaman dan aman, satu "belum" menahan; VL-02 (b) tanpa bug berat baru dalam 14 hari dari catatan bug (14 §5.3 masukan teknis GR-3); VL-08 tanpa temuan menghalangi; VL-10 nol (keputusan 46) | RISK-18, RISK-19, RISK-20, RISK-25, RISK-26, RISK-29, RISK-79 |
-| **GR-4** Pengguna luar pertama | Tinjauan hanya-temuan `security-privacy` sebelum GR-4 (keputusan 49; 14 QG-31); QG-30 (Android) lulus dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); L-01, L-14, L-24 dijawab; PSE bila wajib; butir 10 §4.2: SEC-36 dengan log hanya-menambah di luar VPS dan SEC-39 (c) publik, SEC-34 teks umum dan SEC-139 versi publik, SEC-25, SEC-84, SEC-147 bila wajib; SEC-153 (d), SEC-154 sisanya, SEC-142, SEC-143; rating usia; pengelola bukan anggota rumah tangga beta; email keluar sandbox; uji isolasi dengan banyak rumah tangga (14 QG-31) | RISK-06, RISK-11, RISK-12, RISK-16, RISK-40, RISK-44, RISK-65, RISK-68, RISK-69, RISK-70, RISK-91 |
-| **FS-3 dan GR-5** Rilis publik | Butir L "tahap publik"; aturan langganan (SEC-156); R-15, R-16; wawancara dan beta; tinjauan toko; SEC-18, SEC-45; uji penetrasi pihak luar SEC-157 dengan temuan tinggi dan kritis diperbaiki (14 QG-32) | RISK-16, RISK-58 sampai RISK-63, RISK-67, RISK-71, RISK-72 |
+| **GR-2** Data nyata | Sebelas butir 10 §4.1 (W-31: tanpa butir advokat), dengan butir 3 (SEC-109 (b)) sudah sebelum build TestFlight pertama dipasang (14 QG-25), butir 7 termasuk server uji sementara dihapus (14 §7.8, QG-30 butir 8), butir 10 (iPad mini 7 yang mungkin dipegang orang lain; SEC-59) tercatat, dan butir 11 tinjauan hanya-temuan `security-privacy` (keputusan 49; 14 QG-30 butir 12); uji iOS tanpa Mac lengkap (14 QG-30 butir 13); semua AC Tier 1 lulus, termasuk FR-FAM-013/AC-12 salinan swalayan (SEC-107); iPhone 13 dan iPad mini 7 terpasang dan lulus 08 §16.4 baris "Sebelum GR-2"; ES §3 diukur di iPhone 13 dan iPad mini 7 (ADR-029); runbook ada; VL-00 dicatat | RISK-01, RISK-03 sampai RISK-06, RISK-10, RISK-11, RISK-14, RISK-18, RISK-24, RISK-35, RISK-38 sampai RISK-42, RISK-44 sampai RISK-46, RISK-54, RISK-66, RISK-68, RISK-92 |
+| **Jalur Android** (sesudah GR-2; untuk keluarga; sebelum jalur pengujian Google Play dibuka, GR-4 butir 8, QG-31 (b); keputusan 42, 51) | QG-30 (Android) sebelum APK memakai data nyata: tinjauan hanya-temuan `security-privacy` (keputusan 53); daftar 10 §4.3, AC dan skenario di Galaxy A55, ES §3, vektor emas Kotlin, kunci APK (14 §3.8, §5.3). Bagian Android dari mitigasi RISK-14, RISK-41, RISK-48 berlaku di sini | RISK-14, RISK-17, RISK-18, RISK-41, RISK-48, RISK-54, RISK-56, RISK-91 |
+| **FS-2** Pilot berjalan | VL-01 sampai VL-10; rilis pemeliharaan pada 60 hari tanpa rilis dan build iOS berikutnya paling lambat 80 hari sesudah unggahan sebelumnya (ADR-028 butir 4, keputusan 44); risiko Tier 2 per gelombang; pasangan opsional SEC-18 faktor kedua dan SEC-25 kode pemulihan per akun (keputusan 54); tinjauan hanya-temuan `security-privacy` tahunan (keputusan 53) | RISK-07, RISK-20, RISK-21, RISK-22, RISK-23, RISK-27, RISK-31, RISK-34, RISK-37, RISK-40, RISK-52, RISK-73 sampai RISK-80 |
+| **GR-3** Evaluasi (jalur publik opsional; hanya bila pemilik produk kelak mempertimbangkan go public, keputusan 51) | Paling cepat tiga bulan sesudah GR-2; tabel keputusan 13 §6.2; VL-02 (a) kedua pasangan menyatakan nyaman dan aman, satu "belum" menahan; VL-02 (b) tanpa bug berat baru dalam 14 hari dari catatan bug (14 §5.3 masukan teknis GR-3); bug berat yang ditemukan lebih dari 14 hari sebelumnya tetapi belum diperbaiki juga menahan GR-3 (bacaan lead **[Usulan]** atas `critic` P-4, `_progress.md`); VL-08 tanpa temuan menghalangi; VL-10 nol (keputusan 46) | RISK-18, RISK-19, RISK-20, RISK-25, RISK-26, RISK-29, RISK-79 |
+| **GR-4 (a)** Pengguna luar pertama, termasuk orang tua yang diberi login, tanpa rilis toko dan tanpa tahap publik (opsional; keputusan 52) | 14 QG-31 (a): tinjauan hanya-temuan `security-privacy` sebelum pengguna luar pertama (keputusan 49); L-01, L-14, L-24 dijawab; PSE bila wajib (Q-209); tabel 10 §4.2 kelompok (a): SEC-36 dengan log hanya-menambah di luar VPS dan satu baris tanpa isi di jejak keamanan setiap akun pada setiap akses darurat, SEC-39 (c), SEC-34 tiga versi dipilih per akun, SEC-139 versi pengguna luar, SEC-25, SEC-84, SEC-150 (a), SEC-109 (b) dan peran App Store Connect tersempit per orang baru, SEC-147 bila wajib; QG-30 (Android) bila pengguna luar memakai Android; email ke pengguna luar terbukti sampai. Kelompok (a+) bila pengguna luar membentuk rumah tangga sendiri: uji isolasi dengan banyak rumah tangga, SEC-154 (a), (b), (d) sampai (f), kontak pengelola (SEC-134) | RISK-06, RISK-11, RISK-12, RISK-40, RISK-44, RISK-65, RISK-68, RISK-69, RISK-70, RISK-93 |
+| **GR-4 (b)** Beta (jalur publik opsional) | 14 QG-31 (b): QG-30 (Android) lulus dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); SEC-153 (d) (atau di (a) bila pengguna luar dipasang lewat TestFlight eksternal), kelompok (a+), SEC-142, SEC-143; rating usia (SEC-83); SEC-139 versi publik; pengelola bukan anggota rumah tangga beta; uji isolasi dengan banyak rumah tangga; prasyarat beta 14 §6.7 | RISK-16, RISK-44, RISK-68, RISK-91 |
+| **FS-3 dan GR-5** Rilis publik (jalur publik opsional) | Butir L "tahap publik"; aturan langganan (SEC-156); R-15, R-16; wawancara dan beta; tinjauan toko; SEC-18, SEC-45; uji penetrasi pihak luar SEC-157 dengan temuan tinggi dan kritis diperbaiki (14 QG-32) | RISK-16, RISK-58 sampai RISK-63, RISK-67, RISK-71, RISK-72 |
 | **FS-4 sampai FS-8** | Dinilai saat diangkat, kecuali RISK-83 yang sudah dinilai (§5); pencegahannya Tier 1 dan mitigasinya beta (GR-5) | RISK-81 sampai RISK-90 |
 
 ---
@@ -1263,6 +1302,7 @@ Masukan bagi quality gate dokumen 14. Kolom kanan menyebut risiko yang mitigasin
 | RISK-36 | **Diterima** (risiko sisa) | 10-E A, S4-9 (i) A, diputuskan pemilik produk sendiri; W-34 |
 | RISK-50, RISK-51 | **Diterima** lewat keputusan yang disebut 07 §10.3 | 07 §10.3 butir 1, 7, 8, 10, 11 |
 | RISK-65 (pilot) | **Diterima** untuk pilot | S4-4 (iii) A; W-32 |
+| RISK-92 | **Diterima** (risiko sisa: jeda tanpa aplikasi iOS bila Apple menghentikan TestFlight sebelum App Store unlisted siap) | Keputusan 55 (Q-228; diterima atas saran lead); ADR-022 |
 
 Penerimaan ini tidak menutup kemungkinan pemilik produk membukanya kembali di checkpoint mana pun; dokumen ini tidak mengajukannya kembali.
 
@@ -1280,12 +1320,12 @@ Penerimaan ini tidak menutup kemungkinan pemilik produk membukanya kembali di ch
 | TM-04 | 42 | TM-16 | 40 | TM-28 | 37, 77 |
 | TM-05 | 42 | TM-17 | 45 | TM-29 | 31 |
 | TM-06 | 38 | TM-18 | 43 | TM-30 | 51 |
-| TM-07 | 38 | TM-19 | 12, 76 | TM-31 | 11 |
+| TM-07 | 38 | TM-19 | 12, 76 | TM-31 | 11, 93 |
 | TM-08 | 34 | TM-20 | 76 | TM-32 | 78 |
 | TM-09 | 35 | TM-21 | 76 | TM-33 | 78 |
 | TM-10 | 14, 35, 41 | TM-22 | 44, 81 | TM-34 | 11, 78 |
 | TM-11 | 40 | TM-23 | 45 | TM-35 | 78 |
-| TM-12 | 11 | TM-24 | 69 | TM-36 | 38, 78 |
+| TM-12 | 11, 93 | TM-24 | 69 | TM-36 | 38, 78 |
 
 ### 10.2 Butir dokumen 17 ke risiko
 
@@ -1312,6 +1352,8 @@ Dokumen ini tidak menyunting dokumen lain dan tidak membuat persyaratan baru.
 | `product-analyst` (13, 17) | (a) 13 §6.5 dan VL-08: pertimbangkan saluran jawaban yang tidak melewati pemilik produk, misalnya jawaban tertulis yang disimpan istrinya sendiri dan dibacakan di GR-3 atas pilihannya (RISK-25). (b) Q-213: usulan `architect` agar dijawab sebelum GR-2, bukan sebelum GR-3 (RISK-26); **selesai**, dijawab pemilik produk lewat keputusan 46 sebelum GR-2. (c) Selaraskan 13 §3.4 "80 hari" dengan ADR-022 butir 1 ("paling lambat setiap 90 hari, sasaran setiap 60 hari"); keduanya tidak bertentangan, tetapi pembaca dapat mengira sasarannya 80 (RISK-52). (d) 17 R-03 menyebut dokumen 15 memerlukan angka Epstein dkk.; dokumen ini tidak mengutipnya, jadi kolom "Diperlukan oleh" dapat diperbarui. (e) 17: catat bahwa `RISK-NN` kanonis di dokumen 15. (f) Pertanyaan baru untuk pemilik produk bila lead menyetujuinya: bila pemilik produk berhalangan lama, siapa mengoperasikan server, mengingat memberi istri akses pengelola juga memberinya akses teknis ke data pribadi suaminya (RISK-10, cermin RISK-11) | 10, 25, 26, 52 |
 | `researcher` (18) | Tidak ada permintaan baru. Angka RISK-01 sudah diperbarui dari 18 §5.2.7 (fase D) | 01 |
 | Lead (status fase D) | **`architect`:** (a) 09.4 §9 kini penunjuk; (b) judul RISK-12 di penunjuk itu sama dengan di sini; (c) RISK-04 tetap Hukum di sini, 09.4 tidak lagi menilai; (d) Q-217: 06 PG-15 sudah menyatakannya (revisi kelima belas), kini juga SEC-156; (e) 14 §5.3 memakai §8 dokumen ini sebagai masukan QG-30 sampai QG-32. **`security-privacy`:** (a) dijawab 10 §4.2 (diterapkan di §8 GR-4, RISK-11, RISK-40, RISK-44); (b) SEC-138 setiap gerbang dan sekurangnya 6 bulan (RISK-46); (c) SEC-156. **`product-analyst`:** (b) Q-213 sebelum GR-2 **[Usulan]** di 13 dan 17; (c) menjadi Q-219 (batas 80 hari usulan; ADR-022 butir 1 berlaku); (f) menjadi Q-222. **Sesudah keputusan 43 sampai 50:** Q-213 dijawab (keputusan 46), Q-219 dijawab (keputusan 44, 80 hari berlaku), Q-222 tetap terbuka sampai sebelum GR-2 | — |
+| `security-privacy` (10), sesudah keputusan 51 | (g) Sejak GR-4 dan GR-5 opsional, SEC-25 kode pemulihan dan SEC-18 faktor kedua tidak punya tenggat di jalur rumah tangga, jadi risiko sisa RISK-40 (penguasa email dapat mengatur ulang kata sandi pasangannya; TM-11, Pagar) berlaku tanpa batas waktu. Mohon dinyatakan apakah keduanya tetap terikat GR-4 dan GR-5, atau diberi tenggat di jalur rumah tangga (misalnya sebelum gelombang Tier 2 tertentu). Dokumen ini tidak mengusulkan jawabannya. **Diteruskan lead ke `security-privacy`.** Sejak keputusan 52, SEC-25 jatuh tempo sebelum pengguna luar pertama (QG-31 (a)). **Dijawab pemilik produk lewat keputusan 54** (Q-227): SEC-18 dan SEC-25 sepasang fitur opsional per akun, dibangun di FS-2, tidak menahan GR-2; diterapkan di RISK-40 | 40 |
+| Lead, sesudah keputusan 51 | (h) RISK-11 (keputusan 25, "Diterima untuk pilot") dan RISK-65 (W-32, S4-4 (iii) A, untuk pilot) diterima pemilik produk dengan kata "pilot", yang saat itu berbatas waktu menuju GR-4. Sejak keputusan 51, pemakaian rumah tangga ini tidak berbatas waktu (glosarium *Rumah tangga pilot*). Mohon dinyatakan apakah kedua penerimaan dibaca berlaku untuk pemakaian itu, atau dibawa ke pemilik produk. **Dijawab lead:** RISK-11 tetap Diterima dan berlaku untuk pemakaian rumah tangga tanpa batas waktu (penilaian `security-privacy`, 10 §3.3); bagian PSE RISK-65 dibawa ke pertanyaan pemilik produk P-51-1, dan status tetap "Diterima untuk pilot" sampai ia menjawab. Diterapkan di kartu keduanya | 11, 65 |
 | Lead | (a) README baris `RISK-NN`: sebut "kanonis di dokumen 15". (b) Glosarium: istilah *risiko sisa* (residual risk), definisi kerja di §0. (c) Brief tugas S5 menyebut `AS-01` sampai `AS-14` sebagai skenario penyalahgunaan; di dokumen 10 itu aset, dan ancaman sudah sampai TM-36 (§0). (d) Hitung ulang §12 | — |
 
 ---
@@ -1329,6 +1371,9 @@ Dokumen ini tidak menyunting dokumen lain dan tidak membuat persyaratan baru.
 | 7 | Biaya pilot Rp260.667 + USD 9,57 dikutip dari 09.4 §7.1 (sudah dihitung ulang di S4) | RISK-62 |
 | 8 | **Baru.** RISK-83 diberi K Sedang · D Sedang · P3 di §5 (brief §14); butir 3 tetap atas risiko berkedalaman penuh dan Tier 2, sehingga P3 bertambah satu di luar keduanya (jumlah semua P3: 32 + 4 + 1 = 37) | §5 |
 | 9 | **Diubah.** Titik impas Mac 16 GB/512 GB 7,1 sampai 7,9 bulan (dikutip dari 14 §11 butir 6) | §3.5 RISK-01 |
+| 10 | **Baru (keputusan 51).** **RISK-92 baru** (Teknis, K Sedang · D Tinggi · P2; dinilai dengan 18 §5.2.9, K dan D tetap). Akibatnya butir 1: 92 pengenal, 2 ditutup, **90 terbuka**; **72 berkedalaman penuh**, 8 Tier 2, 10 Tier 3. Butir 2: **Teknis 22**, jumlah 90; kategori lain tetap. Butir 3: **P1 13, P2 27, P3 32** (jumlah 72); Tier 2 tetap. Butir 4: sel Tinggi × Sedang kini **20** risiko (RISK-92 masuk). Butir 5 tetap 21 Pagar. Jalur publik di antara 72: 11 = P1 2 (RISK-25, RISK-58) + P2 4 (RISK-16, RISK-60, RISK-63, RISK-67) + P3 5 (RISK-26, RISK-59, RISK-61, RISK-62, RISK-72). Pengguna luar (keputusan 52): 2 = P3 2 (RISK-69, RISK-70). Jalur rumah tangga: 72 − 11 − 2 = 59 = P1 11 + P2 23 + P3 25. Per kategori, jalur publik: Produk 2, Bisnis 7, Hukum 2; pengguna luar: Hukum 2. Pagar di jalur publik: 1 (RISK-63), jadi Pagar di jalur rumah tangga 20 dari 21. Semua P3: 32 + 4 + 1 = 37 (butir 8 tetap). K dan D risiko lama tidak berubah | §1, §1.1, §2, §3.5 |
+| 11 | **Baru (keputusan 52; 10.1 §11.3.1).** **RISK-93 baru** (Keamanan dan privasi, Pagar, K Pasti · D Kritis · P1, pengguna luar). Akibatnya butir 1: 93 pengenal, 2 ditutup, **91 terbuka**; **73 berkedalaman penuh**, 8 Tier 2, 10 Tier 3. Butir 2: **Keamanan dan privasi 22**, Teknis 22, jumlah 91; kategori lain tetap. Butir 3: **P1 14, P2 27, P3 32** (jumlah 73); Tier 2 tetap. Butir 4: sel Kritis × Pasti kini **2** risiko (RISK-11, RISK-93). Butir 5: **22 Pagar** (RISK-93 masuk). Butir 10: jalur publik tetap 11 (P1 2, P2 4, P3 5); pengguna luar **3** = P1 1 (RISK-93) + P3 2 (RISK-69, RISK-70); jalur rumah tangga tetap 73 − 11 − 3 = 59 = P1 11 + P2 23 + P3 25. Per kategori, pengguna luar: Hukum 2, Keamanan dan privasi 1. Pagar: jalur publik 1 (RISK-63), pengguna luar 1 (RISK-93), jalur rumah tangga 20. Semua P3 tetap 37. K dan D risiko lain tidak berubah | §1, §1.1, §2, §3.3, §8, §10.1 |
+| 12 | **Tetap (keputusan 53 sampai 55).** RISK-92 kini Diterima (keputusan 55) dan RISK-40 berubah mitigasi dan risiko sisanya (keputusan 54); K, D, dan prioritas keduanya tetap. Risiko yang Diterima tetap dihitung terbuka, seperti RISK-01 dan RISK-11, jadi butir 1 sampai 5 dan 11 tidak berubah. Daftar §9 bertambah satu baris (RISK-92) | §2, §3.3 RISK-40, §3.5 RISK-92, §9 |
 
 ---
 
@@ -1340,3 +1385,12 @@ Dokumen ini tidak menyunting dokumen lain dan tidak membuat persyaratan baru.
 | 12 November 2026 | S5 fase D | CS5-A-03 (irama: ADR-022 butir 1 berlaku, 80 hari usulan Q-219), A-07 (RLS sejak pilot di RISK-44), A-08 (RISK-01 harga Mac dari 18 §5.2.7), A-11 (RISK-83 dinilai; "unclear money ownership" dipetakan eksplisit ke RISK-49), A-14 (RISK-52 label perilaku aplikasi terpasang), A-18 (peta §10.2: K-61, L-06, W-31), A-21 (RISK-27 kalimat Ramadan), CS5-B-03 (Q-213 sebelum GR-2 [Usulan]); tahan tulis di §1 dan RISK-47; 10 §4.2 di §8 GR-4, RISK-11, RISK-40; SEC-138 di RISK-46; SEC-156 di RISK-63 dan §6.1; SEC-157 di §8; RISK-79 kolom tanda awal dibatasi seperti 13 §6.2. Tinjauan ulang `critic` A2: RISK-27 tanggal Idulfitri 1448 H terverifikasi; RISK-59 dinilai ulang dengan hasil R-15 (P2 → P3); §1.1, §8, §12 menyebut RISK-83 yang sudah dinilai |
 | 12 November 2026 | Keputusan 42 | RISK-28 ditutup (§9); **RISK-91 baru** (Android menyusul, P2); RISK-18 memuat catatan terlambat dari iPad sampai Android tersedia (13 §3.2; 17 keputusan 42); §1 baris 1 tanpa "kedua platform"; RISK-01, RISK-17, RISK-19, RISK-53, RISK-54, RISK-56 menurut jalur Android 14 §3.8 dan QG-30 (Android); §8 GR-2 sepuluh butir 10 §4.1, baris "Jalur Android" baru, GR-4 dengan 13 GR-4 butir 8; §10.2 Q-37, Q-211; §12 butir 1, 2, 4 |
 | 12 November 2026 | Keputusan 43 sampai 50 | RISK-01 **Diterima** (keputusan 43; register, kartu, §9; tanda awal dan risiko sisa baru: K Tinggi, D Sedang; penilaian sebelum mitigasi tetap); RISK-26 ditulis ulang untuk keputusan 46 (judul, uraian, mitigasi, "Harus ada pada" GR-2 → GR-3; K, D, P tetap); RISK-25, RISK-18, RISK-27, RISK-52 tanpa ambang 5 dari 7 dan dengan batas 80 hari diterima (keputusan 44); §8 GR-1 (Mac, server uji sementara), GR-2 (sebelas butir 10 §4.1, tinjauan `security-privacy`, uji iOS tanpa Mac, ADR-029; RISK-01 masuk, RISK-26 pindah ke GR-3), FS-2, GR-3, GR-4 (tinjauan `security-privacy`, keputusan 49); §10.2, §11, §12 butir 6. Tidak ada K, D, atau prioritas yang berubah, jadi §1.1 dan §12 butir 1 sampai 5 tetap |
+| 12 November 2026 | Keputusan 51 | §0 aturan **jalur publik opsional** (status "jalur publik"; K dan D tidak dinilai ulang; tidak ada yang dihapus); §1 kelompok 4 kini RISK-10 (operasi bergantung pada satu orang), kelompok 5 jalur publik (RISK-25, RISK-58, RISK-65 bagian publik, RISK-26); §1.1 pembagian per jalur; §2 status 13 risiko "jalur publik" dan "bila jalur publik diambil" di kolom "Harus ada pada" RISK-12, 23, 44, 65, 68, 71, 91; RISK-29 "Harus ada pada" GR-3 → FS-2; kartu RISK-11, 16, 18, 23, 25, 26 (kutipan brief §1 yang baru; aturan bug berat lama yang belum diperbaiki, bacaan lead [Usulan]), 28, 29, 40, 44, 06, 04, 12, 58 sampai 63, 65 sampai 72, 91; §7; §8 GR-3 (aturan bug lama), GR-4, FS-3 dan GR-5 bertanda jalur publik opsional, baris Jalur Android; §11 (g), (h); §12 butir 10. Atas permintaan `security-privacy` (10 §7.8): **RISK-92 baru** (TestFlight internal sebagai jalur iOS keluarga tanpa batas waktu; kehilangan akses, bukan kebocoran; menunggu riset `researcher`), di §1.1, §2, §3.5, §8 GR-1 dan GR-2 |
+| 12 November 2026 | Keputusan 52 | Orang tua yang diberi login dihitung pengguna luar (Q-209): §0 jalur **pengguna luar pertama** dipisah dari tahap publik, status baru "pengguna luar"; RISK-69 dan RISK-70 dari "jalur publik" ke "pengguna luar"; "Harus ada pada" RISK-06, 11, 12, 40, 44, 65, 68 kini "sebelum pengguna luar pertama" untuk bagian keamanan dan hukumnya; RISK-04 risiko sisa; §1 kelompok 5; §1.1 pembagian jalur; §8 GR-4 dibagi (a) pengguna luar pertama dan (b) beta, mengikuti 14 QG-31 (a) dan (b). Ketetapan lead atas §11 (g), (h): RISK-11 berlaku untuk pemakaian rumah tangga tanpa batas waktu (10 §3.3); RISK-65 bagian PSE menunggu P-51-1; §12 butir 10. K, D, dan prioritas tidak berubah |
+| 12 November 2026 | Temuan 18 §5.2.9 | RISK-92 dinilai dengan temuan `researcher` (DPLA 7.4.1 **[Terverifikasi]**; penegakan tidak ditemukan): uraian, mitigasi (rekomendasi **[Usulan]** ADR-022: tetap A, App Store unlisted sebagai jalan keluar, Ad Hoc ditolak selama keputusan 43), pemilik mitigasi, "Harus ada pada", tanda awal, dan risiko sisa per pilihan pemilik produk; status register "menunggu pilihan pemilik produk"; §8 GR-1; §12 butir 10. K Sedang dan D Tinggi tetap, jadi §1.1 dan hitungan §12 tidak berubah |
+| 12 November 2026 | Pembaruan `security-privacy` (10 §4.2 tabel baru; 10.1 §11.3.1) | **RISK-93 baru** (pengelola server adalah anak atau kerabat pengguna luar dari keluarganya sendiri; cermin RISK-11; Pagar, K Pasti · D Kritis · P1, pengguna luar; tidak dapat diterima pemilik produk atas nama orang tua) di §1 kelompok 5, §1.1, §2, §3.3, §8 GR-4 (a), §10.1 (TM-12, TM-31), §12 butir 11. RISK-11 "Harus ada pada" dan risiko sisa menunjuk RISK-93. §8 GR-4 (a) dan (b) mengikuti tiga kelompok QG-31: (a), (a+), (b); SEC-153 (d) di (b) kecuali lewat TestFlight eksternal |
+| 12 November 2026 | Keputusan 53 sampai 55; susulan `security-privacy` (10 §3.3, §7.8) | Keputusan 55: RISK-92 **Diterima** (register, kartu, §8 GR-1, §9), risiko sisa menurut pilihan 1, syarat C dan akun demo di ADR-022. Keputusan 54: RISK-40 mitigasi pasangan opsional SEC-18 dan SEC-25 per akun di FS-2, "Harus ada pada", risiko sisa sebelum dan sesudah FS-2; §11 (g) dijawab; §8 FS-2. Keputusan 53: §8 jalur Android dan FS-2 (tinjauan `security-privacy` sebelum Android memegang data nyata dan tahunan). SEC-158 (pendaftaran tertutup, Pilot) di mitigasi RISK-40. RISK-93: pergantian versi pemberitahuan menulis baris di jejak keamanan; dikukuhkan `security-privacy`. §12 butir 12: tidak ada hitungan yang berubah |
+| 12 November 2026 | Temuan `critic` | §0 fase dan gerbang: GR-4 dua pintu, FS-5 sampai FS-8 bukan jalur publik (13 §3.8); tenggat Android menjadi "sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b))" di RISK-91, RISK-18, dan §8; RISK-11 dan RISK-93 ditambah batas pola tahan berulang oleh pengelola (satu tahan per 30 hari, usulan lead); kedudukan keputusan 55 menjadi "diterima atas saran lead". Tidak ada hitungan yang berubah |
+| 12 November 2026 | Pengukuhan `security-privacy` | Batas satu tahan per 30 hari menjadi 10.1 SEC-34 aturan (5), dihitung sejak awal tahan sebelumnya, tanpa pengecualian; dikutip di RISK-11 dan RISK-93. Risiko sisa keduanya ditambah: pengelola dengan akses basis data langsung dapat melewati batas itu, yang tercakup keputusan 25 selama server hanya dipakai pasangan, dan sejak pengguna luar pertama hanya lewat akses darurat SEC-36 yang tercatat. Tidak ada hitungan yang berubah |
+| 12 November 2026 | SEC-34 aturan (5) diganti `security-privacy` (temuan `critic` R-2) | Mitigasi RISK-11 dan RISK-93: paling banyak satu versi sampai ke akun per 30 hari; versi di dalam jendela menunggu di slot tertunda (yang terbaru menimpa) dan tidak tampil; akun mencatat di bawah versi yang terakhir diakui. Kalimat "versi berikutnya tetap dibaca tanpa menahan" dihapus. Risiko sisa akses basis data langsung tetap. Tidak ada hitungan yang berubah |
+| 12 November 2026 | SEC-34 aturan (5) opsi A (`security-privacy`; temuan `critic` R-3) | Batas 30 hari dan slot versi tertunda dicabut: setiap versi dan setiap pergantian versi menahan sampai versi terakhir diakui. Mitigasi RISK-11 dan RISK-93 diganti. Risiko sisa keduanya: tahan berulang lewat versi, dengan batasnya (tanpa data hilang, satu baca dan satu ketukan, tindakan pelindung tidak ditahan, terlihat di Riwayat keamanan), keputusan 25 bagi server pasangan, SEC-36 sejak pengguna luar pertama. Tidak ada hitungan yang berubah |

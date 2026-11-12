@@ -70,6 +70,7 @@ flowchart TB
 | Batas laju | Ember token di memori proses per (akun, alamat jaringan) untuk masuk, pemulihan, undangan, dan pendaftaran. Pada tahap publik dengan beberapa proses, dipindah ke PostgreSQL | SEC-12 |
 | Pemulihan | Tautan email sekali pakai, 30 menit, token tersimpan sebagai hash | SEC-24 |
 | Undangan | Token ≥ 128 bit, disimpan sebagai hash, 7 hari; tanggapan seragam untuk token salah, kedaluwarsa, atau sudah dipakai | SEC-28, SEC-30 |
+| Pendaftaran tertutup (Pilot, semua jalur distribusi) | Server menolak pembuatan akun kecuali dengan (a) token undangan yang sah, atau (b) **token pemasangan** sekali pakai yang dibuat pengelola lewat subperintah SSH tercatat (SEC-33) untuk satu orang tertentu, ≥ 128 bit, disimpan sebagai hash, 7 hari **[Asumsi]** 10.4. **Token (b) terikat pada alamat email orang yang dituju** (dikukuhkan `security-privacy`, 10.4 SEC-158): akun hanya dibuat dengan alamat yang sama, dibandingkan sesudah normalisasi yang sama dengan keunikan email akun, dan akun aktif baru sesudah tautan verifikasi ke alamat itu dibuka. Alamat yang tidak cocok mendapat tanggapan seragam yang sama. Token (b) hanya membuka pendaftaran: orang itu memasang kata sandinya sendiri, dan tidak ada perintah pengelola yang memasang kata sandi (SEC-26). Hanya akun dari (b) yang boleh membuat rumah tangga; akun dari (a) bergabung ke rumah tangga pengundang. Tanpa token, token salah, kedaluwarsa, atau terpakai: tanggapan seragam yang sama dengan SEC-30. Setiap token (b) dicatat di catatan operasi (SEC-37). Ditegakkan di `identity` dan `household` di server, bukan dengan menyembunyikan tombol daftar. Disimpan di tabel `setup_token` milik `identity` **[Usulan]**, tanpa `household_id` karena rumah tangganya belum ada, dengan pola hash dan kedaluwarsa yang sama dengan `recovery_token`, dan dibersihkan `identity.prune_tokens` | SEC-158; ADR-022 syarat C-3 |
 | Pengiriman email | **Usulan, menunggu S4-2:** **Amazon SES di wilayah Jakarta `ap-southeast-3` lewat API HTTPS** (`email.ap-southeast-3.amazonaws.com`), dari biner dengan AWS SDK for Go v2 (`sesv2`). Endpoint SMTP SES **tidak** tersedia di Jakarta, jadi API HTTPS adalah satu-satunya jalan di wilayah itu ([docs.aws.amazon.com/general/latest/gr/ses.html](https://docs.aws.amazon.com/general/latest/gr/ses.html), diakses 12 November 2026) **[Terverifikasi]**. Isinya hanya alamat penerima dan teks templat (tautan sekali pakai); tidak ada data rumah tangga. SPF, DKIM, dan DMARC di domain produk. Di pilot, mode sandbox cukup karena penerimanya dua alamat yang diverifikasi. Alasan dan pembandingnya di [ADR-026](../adr/ADR-026-pengiriman-email.md) | SEC-24; BT-5; BT-6 |
 
 ---
@@ -192,7 +193,7 @@ Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email y
 | **(S4-2)** Email, usulan Amazon SES | Puluhan email per bulan **[Asumsi]** | — | Mendekati 0 | Tarif per pesan **[Perlu validasi]** (ADR-026) |
 | **Jumlah** | | **Rp260.667** + PPN bila berlaku, **dengan Rp244.000 di antaranya bergantung pada S4-2** | **USD 9,57** + email (paling tinggi 18,25 + email bila batas `AI` tercapai) | |
 
-**Android di biaya pilot (keputusan 42).** Biaya pendaftaran Google Play (USD 25 sekali) tidak masuk biaya pilot: APK pilot dipasang langsung tanpa Play, dan akun dibuat saat jalur beta Play disiapkan di FS-3 (14 §6.7; §7.2). Job CI Android baru berjalan sejak jalur Android dimulai sesudah GR-2 (14 §3.8); sampai itu baris CI Linux di atas adalah batas atas **[Asumsi]**, dan anggarannya diukur ulang saat job Android ditambahkan. Angka di tabel tidak berubah.
+**Android di biaya pilot (keputusan 42).** Biaya pendaftaran Google Play (USD 25 sekali) tidak masuk biaya pilot: APK pilot dipasang langsung tanpa Play, dan akun dibuat saat jalur beta Play disiapkan di FS-3, hanya bila jalur publik opsional kelak diambil (keputusan 51; 14 §6.7; §7.2). Job CI Android baru berjalan sejak jalur Android dimulai sesudah GR-2 (14 §3.8); sampai itu baris CI Linux di atas adalah batas atas **[Asumsi]**, dan anggarannya diukur ulang saat job Android ditambahkan. Angka di tabel tidak berubah.
 
 Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667** (juga **(S4-2)**). Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
 
@@ -207,7 +208,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | Sampai sekitar 500 rumah tangga | VPS MM 8.4 (4 vCPU, 8 GB) Rp269.000; VPS cadangan yang lebih besar | Sekitar Rp400.000 sampai Rp500.000 + email | Satu proses masih cukup **[Asumsi]** |
 | Sekitar 5.000 rumah tangga | PostgreSQL di VPS LL 16.8 (Rp459.000) + dua VPS aplikasi + penyeimbang beban; foto dipindah ke penyimpanan objek self-hosted | Sekitar Rp1,5 juta sampai Rp2 juta + email | Ember token dan hub SSE memakai PostgreSQL (berkas 03 §4) |
 | Biaya yang tidak tumbuh dengan pengguna | Apple USD 99 per tahun; Play USD 25 sekali (18 §5, fase D) **[Terverifikasi]** | — | **`AI` R1 tidak tumbuh dengan jumlah rumah tangga**: satu kumpulan dipakai semua |
-| Biaya yang tumbuh | Email SES (per pesan, keluar dari sandbox perlu permohonan ke AWS); `AI` bila R2 dipilih kelak (per pemanggilan); dukungan pengguna | — | Dinilai sebelum tahap publik |
+| Biaya yang tumbuh | Email SES (per pesan, keluar dari sandbox perlu permohonan ke AWS); `AI` bila R2 dipilih kelak (per pemanggilan); dukungan pengguna | — | Dinilai sebelum tahap publik, bila diambil |
 
 ---
 
@@ -236,6 +237,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-22, SEC-23, SEC-27 | Tidak mencabut sesi orang lain; F06 mencabut semua; tanpa akses darurat oleh anggota | `identity` (pencabutan hanya oleh sesi akun yang sama); `household` F06 | 02 §1 |
 | SEC-24 | Pemulihan email 30 menit | `identity` | 04 §2 |
 | SEC-28, SEC-30 sampai SEC-32 | Token undangan; tanggapan seragam; F04 dengan email; syarat sebelum aktif | `household` | 04 §2 |
+| SEC-158 | Pendaftaran tertutup; token pemasangan sekali pakai dari pengelola | `identity`; `household` | 04 §2 |
 | SEC-33 | Tanpa API admin | Subperintah `familyos ops` lewat SSH | 04 §1 |
 | SEC-34 | Pemberitahuan operator berversi | `operator_notice`, `operator_notice_ack` | 02 §1 |
 | SEC-36 | Akses darurat (publik) | Ditunda | Indeks §6 |
