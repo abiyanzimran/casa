@@ -135,7 +135,7 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
    - Batas minimum disimpan di konfigurasi server dan dinaikkan pengelola pada rilis yang memperbaiki celah (TM-45). Ini berlaku sejak pilot bagi web, berbeda dari ADR-028 butir 5 bagi native.
    - **Service worker pengganti:** berkas darurat yang hanya mengosongkan cache app shell lalu mendaftar ulang, tanpa menyentuh IndexedDB. Disimpan di repositori dan dilatih di staging sebelum GR-2.
    - **LY-95 "Perangkat ini"** (08 §25.6) menampilkan versi dan hash bundel, **wajib untuk pilot** (SEC-169 (f)), sebagai alat periksa, bukan bukti (RISK-95).
-   - **Nama yang terlihat pengguna:** manifest web app `name` dan `short_name` "Casa", juga awal `document.title` (SEC-175 (a), (g)), memakai nama kerja sementara Casa (keputusan 70, `_progress.md` "Keputusan pemilik produk: nama aplikasi"). "Family OS" tetap nama proyek perencanaan dan pengenal yang sudah ada.
+   - **Nama yang terlihat pengguna:** manifest web app `name` dan `short_name` "Casa", juga awal `document.title` (SEC-175 (a), (g)), memakai nama kerja sementara Casa (keputusan 70, `_progress.md` "Keputusan pemilik produk: nama aplikasi"). "Family OS" tetap nama proyek perencanaan dan pengenal yang sudah ada. Catatan 13 November 2026: nama biner server adalah `casa` (bukan `familyos`) atas keputusan pemilik tanggal itu (`_progress.md`, "Keputusan pemilik produk: nama biner").
    - Halaman pemeriksaan diri (SEC-179) hanya ada di build staging. CI menolak bundel produksi yang memuat penandanya atau alamat staging.
 
 ### Data di perangkat

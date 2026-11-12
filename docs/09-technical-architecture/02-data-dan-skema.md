@@ -335,7 +335,7 @@ member_mute (household_id, viewer uuid, muted_member uuid, created_at,
 -- rumah tangga pelapor; tidak pernah diteruskan kepada orang yang dilaporkan.
 content_report (household_id, id, reporter uuid, subject_kind text, subject_id uuid,
                 attached_excerpt text NULL,  -- hanya butir yang dipilih pelapor sendiri
-                created_at, handled_at NULL) -- dibaca pengelola lewat `familyos ops report`, bukan API
+                created_at, handled_at NULL) -- dibaca pengelola lewat `casa ops report`, bukan API
 ```
 
 ### 5.4 Berkas
