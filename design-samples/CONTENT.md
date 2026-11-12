@@ -18,7 +18,8 @@ Berkas ini hanya isi: bagian, baris, angka, nama, kalimat, token yang dipakai, d
 | Penulisan uang | "Rp" lalu angka dengan titik ribuan, tanpa spasi, tanpa desimal, tanpa "rb" atau "jt". "Rp" ditulis sebagai unsur tersendiri dari token, bukan bagian teks angka | §17.3, §19.4 |
 | Token angka | Setiap jumlah memakai satu token §19.4 (`angka-utama`, `angka-besar`, atau `angka-baris`) dengan `tabular-nums`. Tidak ada jumlah di dalam kalimat teks biasa: bila sebuah baris berisi kata dan jumlah, kata di kiri dan jumlah di kanan sebagai unsur sendiri (pemeriksaan 13) | §19.4, §19.8 butir 4 |
 | "Rp" kecil | Pada `angka-utama` dan `angka-besar`: 60% ukuran angka, garis dasar sama, warna `tinta-2`. Pada `angka-baris`: ukuran dan warna sama dengan angkanya | §19.4 "Aturan angka" |
-| Warna jumlah | Semua jumlah `tinta`, tidak pernah `teal`, hijau, atau merah | §19.9 |
+| Warna jumlah | Semua jumlah `tinta`, tidak pernah `teal`, hijau, atau merah. Satu-satunya pengecualian: jumlah di dalam kalimat keterangan ("dari Rp2.500.000") memakai warna kalimatnya, `tinta-2` (13 November 2026) | §19.9; §19.4 "Jumlah di baris dan di kalimat" |
+| Jumlah besar di wadah sempit | `angka-utama` dan `angka-besar` berhenti membesar pada lebar wadahnya, tidak pernah di bawah 40 px dan 28 px; di contoh statis faktor container query tetap dikalibrasi untuk jumlah terpanjang di halaman itu (Beranda "Rp88.888.888"; Chat "Rp7.850.000") (13 November 2026, keputusan A) | §19.4 "Teks besar"; §25.4 "Batas lebar jumlah" |
 | Glif | Dari `web/static/glyphs/`, warna `tinta-2`, selalu bersama kata. Glif hiasan bagi pembaca layar (`aria-hidden`), karena katanya sudah ada | §19.5; WCAG 1.4.1 |
 | Ikon antarmuka | Material Symbols gaya garis sebagai SVG milik sendiri; nama simbol di bawah adalah usulan, `web-dev` boleh memilih padanan yang maknanya sama | §17.5, §25.4 "Ikon" |
 | Warna | Hanya lewat token §19.3 dan §25.4; tidak ada warna yang ditulis langsung di halaman | §25.4 "Token" |
@@ -132,7 +133,7 @@ Lembar terbuka di atas Beranda contoh §1 (bagian di belakangnya diredupkan oleh
 | 3 | 7 | Kepala lembar, kanan | Tombol "Simpan", wadah `teal`, teks `di-atas-teal`, tinggi ≥ 48 px | `teal` | §25.3 "Papan ketik virtual" ("Simpan" di kepala lembar) |
 | 4 | 1 | Label isian | "Jumlah" (label tampak) | Teks isi | §25.5; §25.11 pemeriksaan 18 |
 | 5 | 1 | Isian jumlah | "Rp" kecil di depan, lalu **87.000**; cincin fokus `teal` karena isian ini langsung difokus | `angka-besar`; "Rp" 60% `tinta-2`; batas `garis-tegas`, fokus `teal` | §9.1 urutan 1; §19.4; §19.2 butir 2 |
-| 6 | 1 | Tombol "000" | Tombol bergaris di **samping kanan** isian jumlah, tulisan "000", label pembaca layar "Tambah tiga nol", sama tinggi dengan isian | Bergaris `garis-tegas`, teks `teal` | §25.3 "Papan ketik virtual"; §16.2 "Papan angka di iPad" |
+| 6 | 1 | Tombol "000" | Tombol bergaris di **samping kanan** isian jumlah, tulisan "000", nama aksesibel **"000, tambah tiga nol"** (teks tampak lalu teks tak tampak ", tambah tiga nol", tanpa `aria-label`; WCAG 2.5.3; keputusan B 13 November 2026), sama tinggi dengan isian | Bergaris `garis-tegas`, teks `teal` | §25.3 "Papan ketik virtual"; §16.2 "Papan angka di iPad" |
 | 7 | 2 | Label kelompok | "Tempat uang" | Teks isi | §9.1 urutan 2 |
 | 8 | 2 | Pilihan 1, **terpilih** (terakhir dipakai) | Glif **tunai** · "Dompet Andi" | Wadah `teal-muda`, tanda pilih; kata `tinta` | §9.1 urutan 2; §19.5; §19.3 `teal-muda` "butir terpilih" |
 | 9 | 2 | Pilihan 2 | Glif **rekening** · "Rekening Andi" | Tanpa wadah, batas `garis` | §19.5 |
