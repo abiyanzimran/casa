@@ -12,17 +12,15 @@ import (
 const usage = "usage: familyos <command>\n"
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(run(os.Args[1:], os.Stderr))
 }
 
 // run executes the subcommand named by args[0] and returns the process exit
 // code: 2 for a usage error, as is conventional for command-line tools.
-// stdout stays in the signature for the subcommands that write results;
-// none does yet.
 //
 // Write errors on stderr are discarded on purpose: stderr is the last place
 // to report a problem, and the exit code still carries the failure.
-func run(args []string, _, stderr io.Writer) int {
+func run(args []string, stderr io.Writer) int {
 	if len(args) == 0 {
 		_, _ = fmt.Fprint(stderr, usage)
 		return 2
