@@ -1514,6 +1514,8 @@ Daftar ini lengkap untuk butir S4 yang bukan salah satu dari sepuluh pertanyaan.
 |---|---|---|---|---|---|---|
 | 71 | Nama biner server dan turunannya | Tidak ada pertanyaan; disampaikan pemilik produk sesudah 1.1a di-merge dengan folder `server/cmd/familyos` | "itu nama folder di server jangan familyos tapi casa aja" | **Diputuskan pemilik produk sendiri** | Biner server, foldernya, unit systemd, dan instans staging memakai `casa` (`casa`, `casa-staging`, `casa migrate`, `casa ops …`), bukan `familyos`. **Menggantikan bacaan lead atas ADR-030 butir 9** ("Family OS" tetap pengenal yang sudah ada) untuk nama biner | Kode (`backend-dev`); 06, 09.2, 09.4, 14, ADR-028, ADR-030 (`architect`); 05 COM, 12 (`product-analyst`) |
 
+**Pemeriksaan pertentangan.** Keputusan 71 menggantikan bacaan lead atas ADR-030 butir 9 untuk nama biner server saja. ADR-030 memuat catatan bertanggal (13 November 2026). Tidak ada sumber lain yang bertentangan, jadi tidak ada baris K baru.
+
 ---
 
 ## 1. Pertanyaan checkpoint S1 dan hasilnya
