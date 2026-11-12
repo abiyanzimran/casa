@@ -1,0 +1,16 @@
+# Known advisories accepted for now (ADR-030 item 8; ES §8). Each entry is a
+# development tool, never in the client bundle (scripts/check-bundle.mjs), and
+# expires after a month so the monthly dependency check revisits it.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+effectiveUntil = 2026-12-13
+reason = """deepmerge 4.3.1 (no fixed release exists), used by @sveltejs/vite-plugin-svelte \
+at build time to merge the project's own Svelte options. No untrusted object reaches it."""
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+effectiveUntil = 2026-12-13
+reason = """minimatch 10.2.6, used by ESLint and typescript-eslint to match the project's own \
+glob patterns. Needs an attacker-controlled pattern. The fix is only in minimatch 11, a major \
+release outside the ^10 range the newest ESLint and typescript-eslint declare."""

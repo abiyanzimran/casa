@@ -1,0 +1,40 @@
+# Supply-chain settings for the web client (ADR-030 item 8; SEC-168; ES §8).
+
+# Every version, transitive ones included, must have been public for 7 days
+# (10080 minutes) before it is installed. Stricter than ES §8, which asks it
+# only of bundle dependencies: one rule is simpler. A security fix that cannot
+# wait goes in minimumReleaseAgeExclude as name@version, recorded in its PR.
+minimumReleaseAge: 10080
+# Fail rather than fall back to a younger version when none is old enough.
+minimumReleaseAgeStrict: true
+
+# Install fails on any dependency build script not listed in allowBuilds. Written out
+# rather than relying on the pnpm default (ADR-030 item 8). No dependency has
+# a build script today, so there is no allowBuilds list; an entry needs
+# code-reviewer approval.
+strictDepBuilds: true
+
+# Security fixes allowed before the 7 days (ES §8), each removed once that
+# version is 7 days old.
+minimumReleaseAgeExclude:
+  # GHSA-p4f5-76q4-ffq7 (critical, dev server RCE), fixed in vite 8.3.7,
+  # published 9 November 2026; it needs rolldown 1.2.18 and its native
+  # bindings of the same day.
+  # Removable from 16 November 2026.
+  - vite@8.3.7
+  - rolldown@1.2.18
+  - '@rolldown/binding-android-arm64@1.2.18'
+  - '@rolldown/binding-android-arm-eabi@1.2.18'
+  - '@rolldown/binding-darwin-arm64@1.2.18'
+  - '@rolldown/binding-darwin-x64@1.2.18'
+  - '@rolldown/binding-freebsd-x64@1.2.18'
+  - '@rolldown/binding-linux-arm64-gnu@1.2.18'
+  - '@rolldown/binding-linux-arm64-musl@1.2.18'
+  - '@rolldown/binding-linux-arm-gnueabihf@1.2.18'
+  - '@rolldown/binding-linux-ppc64-gnu@1.2.18'
+  - '@rolldown/binding-linux-s390x-gnu@1.2.18'
+  - '@rolldown/binding-linux-x64-gnu@1.2.18'
+  - '@rolldown/binding-linux-x64-musl@1.2.18'
+  - '@rolldown/binding-openharmony-arm64@1.2.18'
+  - '@rolldown/binding-win32-arm64-msvc@1.2.18'
+  - '@rolldown/binding-win32-x64-msvc@1.2.18'

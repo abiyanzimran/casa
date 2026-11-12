@@ -1,0 +1,119 @@
+# Server and web merge gates (docs/14-engineering-roadmap.md §5.1: QG-01,
+# QG-02, QG-03, QG-05) and the repository secrets check (09.4 §5). Every gate step
+# calls one Makefile target, so CI and a local run cannot drift (ES §2, §7).
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded pull request runs are cancelled; runs on main never are.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the secrets check scans the whole history
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: server/go.mod
+          # Makefile pins the tool versions built with go run.
+          cache-dependency-path: |
+            server/go.mod
+            Makefile
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 25.0.5+8 # PMD CPD
+      # Every gate runs even after another fails, so each one's result shows.
+      - name: server-fmt (QG-01)
+        if: ${{ !cancelled() }}
+        run: make server-fmt
+      - name: server-lint (QG-01)
+        if: ${{ !cancelled() }}
+        run: make server-lint
+      - name: server-vuln (QG-03)
+        if: ${{ !cancelled() }}
+        run: make server-vuln
+      - name: server-test (QG-05)
+        if: ${{ !cancelled() }}
+        run: make server-test
+      - name: cpd-go (QG-02)
+        if: ${{ !cancelled() }}
+        run: make cpd-go
+      - name: secrets
+        if: ${{ !cancelled() }}
+        run: make secrets
+      # Coverage is reported, not gated (14 §4.13).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: server-coverage
+          path: server/coverage.out
+          if-no-files-found: warn
+
+  web:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # pnpm version from "packageManager" in web/package.json; caches the store.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+          cache: true
+          cache_dependency_path: web/pnpm-lock.yaml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 25.0.5+8 # PMD CPD
+      - name: web-install
+        run: make web-install
+      # Both engines are required (ADR-030 item 4); a missing one fails the
+      # e2e step, never skips it.
+      - name: Install Playwright browsers
+        working-directory: web
+        run: pnpm exec playwright install --with-deps chromium webkit
+      # Every gate runs even after another fails, so each one's result shows.
+      - name: web-fmt (QG-01)
+        if: ${{ !cancelled() }}
+        run: make web-fmt
+      - name: web-lint (QG-01)
+        if: ${{ !cancelled() }}
+        run: make web-lint
+      - name: web-check (QG-01)
+        if: ${{ !cancelled() }}
+        run: make web-check
+      - name: web-vuln (QG-03)
+        if: ${{ !cancelled() }}
+        run: make web-vuln
+      - name: cpd-ts (QG-02)
+        if: ${{ !cancelled() }}
+        run: make cpd-ts
+      - name: web-bundle
+        if: ${{ !cancelled() }}
+        run: make web-bundle
+      - name: web-e2e (QG-05)
+        if: ${{ !cancelled() }}
+        run: make web-e2e
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          if-no-files-found: ignore

@@ -27,7 +27,7 @@ flowchart TB
   end
   WPS[Layanan push browser:<br/>Apple, Google, lainnya]
   subgraph vps1["VPS utama di Indonesia (usulan Biznet Gio NEO Lite MS 4.2; S4-2)"]
-    APP[familyos: satu biner Go<br/>TLS, API Connect, SSE, pekerja,<br/>bundel web tersemat]
+    APP[casa: satu biner Go<br/>TLS, API Connect, SSE, pekerja,<br/>bundel web tersemat]
     PG[(PostgreSQL 18)]
     BR[pgBackRest]
   end
@@ -52,15 +52,15 @@ flowchart TB
 | Hal | Rancangan | Persyaratan |
 |---|---|---|
 | Sistem operasi | Rilis LTS terbaru Ubuntu atau Debian stabil yang didukung PGDG; versi diperiksa saat penyiapan (ES §8) | — |
-| Proses | Satu unit systemd `familyos` (API, SSE, pekerja), `postgresql`, dan timer `pgbackrest`. `GOMEMLIMIT` sekitar 512 MiB; `shared_buffers` PostgreSQL sekitar 1 GB pada RAM 4 GB **[Asumsi]**, disetel ulang sesudah pengukuran | ES §3 |
+| Proses | Satu unit systemd `casa` (API, SSE, pekerja), `postgresql`, dan timer `pgbackrest`. `GOMEMLIMIT` sekitar 512 MiB; `shared_buffers` PostgreSQL sekitar 1 GB pada RAM 4 GB **[Asumsi]**, disetel ulang sesudah pengukuran | ES §3 |
 | TLS | Biner Go melayani TLS langsung dengan sertifikat ACME (`golang.org/x/crypto/acme/autocert`, 0.x menurut ADR-023, tantangan TLS-ALPN-01, sehingga hanya porta 443 yang terbuka), `MinVersion` TLS 1.2, tanpa pinning di aplikasi. Jalan mundur bila paket itu tidak tersedia saat dipasang: certbot di VPS dengan tantangan HTTP-01 lewat porta 80 yang hanya melayani tantangan itu, dan biner membaca berkas sertifikat | SEC-40 |
 | Porta | 443 dari internet. SSH 22 dengan kunci saja, tanpa kata sandi dan tanpa login root langsung. PostgreSQL hanya di `localhost` | SEC-41 |
 | Pemutakhiran | Pemutakhiran keamanan otomatis untuk paket OS; PostgreSQL minor diperbarui bulanan bersama pembaruan dependensi (ES §8) | SEC-41 |
 | Rahasia | Kunci privat VAPID (Web Push, sejak FS-1), kunci APNs `.p8` dan akun layanan FCM (sejak jalur native), kunci API `AI`, kunci MAC kursor, kunci sesi, dan kata sandi cadangan dimuat lewat `LoadCredential=` systemd (berkas 0400, di luar repositori dan image). Rotasi: ganti berkas lalu mulai ulang, tanpa rilis aplikasi. Salinan kunci cadangan disimpan pemilik produk di luar VPS | SEC-42 |
 | Bundel web | Disematkan ke biner (`embed`, ADR-030 butir 3) dan dilayani dari origin yang sama dengan CSP, HSTS, dan header lain (ADR-030 butir 7). Hash setiap berkas bundel dan hash biner dicatat CI; runbook rilis mencocokkan hash biner di VPS dengan artefak CI (SEC-169 (a)). Service worker pengganti disimpan di repositori untuk keadaan darurat (SEC-169 (e)) | SEC-166, SEC-169 |
-| Rilis server | CI membangun biner. Perintah `familyos migrate` (peran `migrator`) dijalankan, lalu biner baru dipasang dan systemd memulai ulang. Putus sekitar satu detik; aplikasi menyambung ulang dan menarik `Sync`. Rollback: pasang biner sebelumnya (migrasi bersifat expand–contract, berkas 02 §10) | ES §7 |
+| Rilis server | CI membangun biner. Perintah `casa migrate` (peran `migrator`) dijalankan, lalu biner baru dipasang dan systemd memulai ulang. Putus sekitar satu detik; aplikasi menyambung ulang dan menarik `Sync`. Rollback: pasang biner sebelumnya (migrasi bersifat expand–contract, berkas 02 §10) | ES §7 |
 | Enkripsi disk | Dipakai bila penyedia menawarkannya. Bila tidak, dicatat sebagai risiko yang diterima di pilot | SEC-45 |
-| Tanpa API admin | Tidak ada titik akhir admin. Operasi dijalankan sebagai subperintah biner lewat SSH (`familyos ops …`), misalnya perintah anggota wafat (SEC-106), dan setiap pemakaiannya tercatat di `security_event` | SEC-33, SEC-106 |
+| Tanpa API admin | Tidak ada titik akhir admin. Operasi dijalankan sebagai subperintah biner lewat SSH (`casa ops …`), misalnya perintah anggota wafat (SEC-106), dan setiap pemakaiannya tercatat di `security_event` | SEC-33, SEC-106 |
 
 ---
 
@@ -129,9 +129,9 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 
 | Tahap | Server dan kontrak | Klien web (sejak FS-1 langkah 1; ADR-030) | Android (sejak jalur Android langkah A1; 14 §3.8) | iOS (sejak jalur iOS native; 14 §3.9) |
 |---|---|---|---|---|
-| Setiap push (gerbang ES §7; alat di ADR-025) | `buf lint` dan `buf breaking`; `gofmt -l` kosong; `go vet` dan golangci-lint; `govulncheck`; PMD CPD; uji domain, invarian, AC, isolasi, privasi, migrasi; pemeriksaan rahasia di repositori | `pnpm install --frozen-lockfile` (skrip dependensi diblokir); Prettier; ESLint dan `svelte-check`; OSV-Scanner atas `pnpm-lock.yaml`; PMD CPD; Vitest (termasuk vektor emas); Playwright Chromium dan WebKit (alur, header, CSRF, XSS); pemeriksaan daftar dependensi bundel dan bundel produksi tanpa penanda staging (ADR-025 butir 8) | ktlint (format dan lint); Android Lint; OSV-Scanner atas `gradle.lockfile`; PMD CPD; uji unit dan Compose | `swift format lint --strict`; PMD CPD; uji paket Swift non-UI di Linux **[Perlu validasi]**; peringatan kerentanan Dependabot atas `Package.resolved` (gerbang CI-nya **[Perlu validasi]**, ADR-025); setiap pull request: Xcode Cloud build dan XCUITest sebagai pemeriksaan status wajib di GitHub sebelum merge (14 §5.1) |
+| Setiap push (gerbang ES §7; alat di ADR-025) | `buf lint` dan `buf breaking`; `gofmt -l` kosong; `go vet` dan golangci-lint; `govulncheck`; PMD CPD; uji domain, invarian, AC, isolasi, privasi, migrasi; pemeriksaan rahasia di repositori dengan Betterleaks atas seluruh riwayat, mencakup semua klien (ADR-025 butir 9) | `pnpm install --frozen-lockfile` (skrip dependensi diblokir); Prettier; ESLint dan `svelte-check`; OSV-Scanner atas `pnpm-lock.yaml`; PMD CPD; Vitest (termasuk vektor emas); Playwright Chromium dan WebKit (alur, header, CSRF, XSS); pemeriksaan daftar dependensi bundel dan bundel produksi tanpa penanda staging (ADR-025 butir 8) | ktlint (format dan lint); Android Lint; OSV-Scanner atas `gradle.lockfile`; PMD CPD; uji unit dan Compose | `swift format lint --strict`; PMD CPD; uji paket Swift non-UI di Linux **[Perlu validasi]**; peringatan kerentanan Dependabot atas `Package.resolved` (gerbang CI-nya **[Perlu validasi]**, ADR-025); setiap pull request: Xcode Cloud build dan XCUITest sebagai pemeriksaan status wajib di GitHub sebelum merge (14 §5.1) |
 | Setiap merge ke cabang utama | Build biner yang menyematkan bundel web; arsip artefak dengan hash biner | Build bundel produksi dan staging; daftar hash setiap berkas sebagai artefak | Build APK bertanda tangan untuk pilot | Xcode Cloud: build, XCUITest, arsip, unggah ke TestFlight internal |
-| Rilis pilot | Manual: `familyos migrate`, lalu pasang; hash biner di VPS dicocokkan dengan artefak CI | Ikut rilis server: staging lebih dulu (header, halaman pemeriksaan diri), lalu produksi; klien memuat versi baru saat dibuka berikutnya; versi minimum dinaikkan bila rilis memperbaiki celah (ADR-028 catatan web) | APK dipasang langsung ke Galaxy A55 sesudah QG-30 (Android); sebelumnya APK staging saja (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
+| Rilis pilot | Manual: `casa migrate`, lalu pasang; hash biner di VPS dicocokkan dengan artefak CI | Ikut rilis server: staging lebih dulu (header, halaman pemeriksaan diri), lalu produksi; klien memuat versi baru saat dibuka berikutnya; versi minimum dinaikkan bila rilis memperbaiki celah (ADR-028 catatan web) | APK dipasang langsung ke Galaxy A55 sesudah QG-30 (Android); sebelumnya APK staging saja (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
 | Penandatanganan | — | Tidak ada; integritas lewat TLS dan hash artefak (TM-42 tetap terbuka, 10.5) | Kunci unggah disimpan offline oleh pemilik produk dan sebagai rahasia CI | Penandatanganan dikelola Xcode Cloud (sertifikat di cloud Apple); tidak ada Mac yang menyimpan kunci |
 | Persyaratan toko | — | Tidak ada | Target API 36 bila Play dipakai (berkas 01 §13) | Xcode dan SDK iOS stabil terbaru saat bangun; minimal Xcode 26 / SDK iOS 26 untuk unggahan (18 §5.1) |
 
@@ -266,7 +266,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-24 | Pemulihan email 30 menit | `identity` | 04 §2 |
 | SEC-28, SEC-30 sampai SEC-32 | Token undangan; tanggapan seragam; F04 dengan email; syarat sebelum aktif | `household` | 04 §2 |
 | SEC-158 | Pendaftaran tertutup; token pemasangan sekali pakai dari pengelola | `identity`; `household` | 04 §2 |
-| SEC-33 | Tanpa API admin | Subperintah `familyos ops` lewat SSH | 04 §1 |
+| SEC-33 | Tanpa API admin | Subperintah `casa ops` lewat SSH | 04 §1 |
 | SEC-34 | Pemberitahuan operator berversi | `operator_notice`, `operator_notice_ack` | 02 §1 |
 | SEC-36 | Akses darurat | Tidak dibangun di pilot; wajib sebelum GR-4 (pengguna luar pertama, termasuk orang tua yang diberi login; keputusan 52; 10 §4.2; 14 QG-31 (a)) | Indeks §6 |
 | SEC-40 | TLS ≥ 1.2 | Biner Go | 04 §1 |
@@ -295,13 +295,13 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-86, SEC-89 | Uji tidak pernah terlihat; simetri berpermutasi | Rangkaian uji | 04 §4 |
 | SEC-92 | Kecocokan kategori | Modul `budget` (satu fungsi) | 02 §1 baris `budget` |
 | SEC-155 | Sebutan anggota per pembaca (F-FAM-021, Tier 2): hanya pembuat yang membaca; diterapkan di perangkat pembuat saat tampil; tidak di push, Peristiwa, kartu, ringkasan server, `AI`, log, atau ekspor orang lain; dihapus dua arah pada F07, hapus akun, dan undangan yang gugur | `household` (`member_label`, `invitation.inviter_label`); `read`; `lifecycle` (ekspor dan hapus) | 02 §5.5; 04 §4 |
-| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G A, Tier 1). Selama pengelola server anggota rumah tangga pelapor (pilot, keputusan 25), "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun (SEC-154 (c)); laporan dikirim ke pengelola hanya bila pengelola bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan. SEC-154 (a), (b), (d) sampai (f) wajib sebelum build pertama ke TestFlight eksternal atau App Store, atau sebelum pengguna luar pertama yang membuat rumah tangga tanpa pengelola, mana yang lebih dulu (keputusan 52) | `chat` (`member_mute`); `report` dan `familyos ops report` sejak pemicu itu | 06 §16.12; 02 §5.3 |
+| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G A, Tier 1). Selama pengelola server anggota rumah tangga pelapor (pilot, keputusan 25), "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun (SEC-154 (c)); laporan dikirim ke pengelola hanya bila pengelola bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan. SEC-154 (a), (b), (d) sampai (f) wajib sebelum build pertama ke TestFlight eksternal atau App Store, atau sebelum pengguna luar pertama yang membuat rumah tangga tanpa pengelola, mana yang lebih dulu (keputusan 52) | `chat` (`member_mute`); `report` dan `casa ops report` sejak pemicu itu | 06 §16.12; 02 §5.3 |
 | SEC-93 | Tanpa agregasi sisi keluarga | Hubungan tidak disimpan; uji laporan | 02 §2 |
 | SEC-94, SEC-100 | Penghapusan 90 hari | Pekerjaan `lifecycle.*` | 03 §9 |
 | SEC-96, SEC-97 | Cadangan kedaluwarsa; pemulihan menjalankan jurnal penghapusan | pgBackRest; `deletion_journal` | 04 §6 |
 | SEC-98 | Penghapusan di perangkat | Aplikasi | 03 §2 |
 | SEC-101 sampai SEC-104 | Ekspor sesudah keluar | `lifecycle` (CSV dan JSON berversi; bilangan bulat dan mata uang; ISO 8601); tautan sekali pakai 15 menit | 03 §9; 02 §7 |
-| SEC-105, SEC-106 | Hapus akun; perintah anggota wafat | `lifecycle`; `familyos ops` | 04 §1 |
+| SEC-105, SEC-106 | Hapus akun; perintah anggota wafat | `lifecycle`; `casa ops` | 04 §1 |
 | SEC-108 | Uji hash inti identik | Uji invarian INV-09 | 04 §4 |
 | SEC-109 | Catatan persetujuan | `consent_record` | 02 §1 |
 | SEC-120, SEC-121, SEC-123 | R1; tanpa data rumah tangga; daftar yang tidak pernah dikirim | `ai.pool_build` | 03 §11 |

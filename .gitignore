@@ -1,0 +1,18 @@
+# Build output
+/server/casa
+/bin/
+
+# Test coverage report (uploaded by CI as an artifact, never committed)
+coverage.out
+
+# Downloaded tools (scripts/fetch-verified.sh, scripts/cpd.sh)
+.cache/
+
+# Web dependencies (task 1.1b)
+node_modules/
+
+# Local environment files may hold secrets (ES §4)
+.env*
+
+# Superpowers SDD scratch workspace
+.superpowers/

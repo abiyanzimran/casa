@@ -1506,6 +1506,16 @@ Daftar ini lengkap untuk butir S4 yang bukan salah satu dari sepuluh pertanyaan.
 
 **Pemeriksaan pertentangan.** Delapan baris K baru (K-71 sampai K-78, bagian 5): bunyi brief §1 "Platforms", "Pilot devices", "Build environment", §10.1, §10.2, `CLAUDE.md` "Platform order" dan "Build team", dan ES §2, §3, §8 belum diselaraskan. Menurut `CLAUDE.md` "Sources of truth", keputusan pemilik produk menang atas hal yang diputuskannya sampai bunyi itu diubah, dan bunyi baru ditunjukkan lead kepada pemilik produk sebelum dipasang (`_progress.md`, entri "Jawaban pemilik produk"). Glosarium *Kunci aplikasi* sudah memuat varian web (lead), jadi tidak ada baris K untuknya. Tidak ada aturan uang yang berubah.
 
+## Keputusan pemilik produk 71 (13 November 2026, fase bangun): nama biner server `casa`
+
+**Sumber.** [_progress.md](_progress.md), entri "Keputusan pemilik produk: nama biner" saja. Kutipan bertanda petik adalah kata-katanya tanpa disunting, dari entri itu saja. Kedudukannya sama dengan keputusan 69 dan 70.
+
+| # | Butir | Pertanyaan yang disampaikan lead (ringkas, dari `_progress.md`) | Jawaban pemilik produk, persis | Kedudukan | Yang dicatat | Dijalankan di |
+|---|---|---|---|---|---|---|
+| 71 | Nama biner server dan turunannya | Tidak ada pertanyaan; disampaikan pemilik produk sesudah 1.1a di-merge dengan folder `server/cmd/familyos` | "itu nama folder di server jangan familyos tapi casa aja" | **Diputuskan pemilik produk sendiri** | Biner server, foldernya, unit systemd, dan instans staging memakai `casa` (`casa`, `casa-staging`, `casa migrate`, `casa ops …`), bukan `familyos`. **Menggantikan bacaan lead atas ADR-030 butir 9** ("Family OS" tetap pengenal yang sudah ada) untuk nama biner | Kode (`backend-dev`); 06, 09.2, 09.4, 14, ADR-028, ADR-030 (`architect`); 05 COM, 12 (`product-analyst`) |
+
+**Pemeriksaan pertentangan.** Keputusan 71 menggantikan bacaan lead atas ADR-030 butir 9 untuk nama biner server saja. ADR-030 memuat catatan bertanggal (13 November 2026). Tidak ada sumber lain yang bertentangan, jadi tidak ada baris K baru.
+
 ---
 
 ## 1. Pertanyaan checkpoint S1 dan hasilnya
