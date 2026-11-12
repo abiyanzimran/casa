@@ -73,10 +73,10 @@ Untuk API eksperimental di dalam artefak stabil (lembar Catat di Android memakai
 
 Bukan perubahan keputusan ADR ini; mencatat jawaban atas butir 6.
 
-- **Keputusan 42** (17; `_progress.md`): "ios ipad yang bakalan dipakai pilot ya". iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), dan pilot dengan data nyata berjalan di iOS dan iPadOS: istri di iPhone 13 (pencatat utama), pemilik produk di iPad mini 7. GR-2 tidak menunggu Android. Bawaan lead **[Usulan]**, dapat diubah pemilik produk: Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4. Brief §1 "Pilot devices" ("the pilot needs iOS and Android") digantikan (17 K-66).
+- **Keputusan 42** (17; `_progress.md`): "ios ipad yang bakalan dipakai pilot ya". iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), dan pilot dengan data nyata berjalan di iOS dan iPadOS: istri di iPhone 13 (pencatat utama), pemilik produk di iPad mini 7. GR-2 tidak menunggu Android. Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4: semula bawaan lead, kini diterima atas saran lead lewat keputusan 50 (bunyi brief §1: "Android is built after real data starts and joins the pilot before the beta"). Brief §1 "Pilot devices" ("the pilot needs iOS and Android") digantikan (17 K-66); bunyi brief §1 "Pilot devices" dan "Platforms" yang baru diterima atas saran lead (keputusan 50) dan dipasang lead, dan ES §3 diubah lewat [ADR-029](ADR-029-perangkat-pengukuran-kinerja-es-3.md).
 - **Butir 1 tetap:** Android tetap Kotlin dan Compose Material 3, dan tetap dirancang penuh; yang berubah hanya waktu bangunnya (14 §3.8). Tim bangun tetap `ios-dev` dan `android-dev` terpisah; `android-dev` mulai bekerja saat jalur Android dimulai.
 - **Butir 2 dan 3 tetap.** Butir 5 berlaku sejak jalur Android dimulai; versi Compose Material 3 diperiksa ulang saat itu (ES §8), dan bila 1.5.0 sudah stabil, butir 5 (a) memilihnya. Butir 5 (c) tetap: perangkat Android pilot adalah ponsel.
-- **Akibat:** pekerjaan UI hanya SwiftUI di FS-1, sehingga pemicu Mac ADR-022 butir 4 kemungkinan besar terjadi di awal FS-1 (ADR-022 catatan keputusan 42; 14 §9). Risiko yang dibawa urutan ini: RISK-01, RISK-18, RISK-91 (15).
+- **Akibat:** pekerjaan UI hanya SwiftUI di FS-1, dan dikerjakan tanpa Mac lewat Xcode Cloud dan TestFlight, karena pemilik produk memilih tetap di opsi A tanpa sewa bulanan atau membeli Mac sampai dana ada (keputusan 43; ADR-022 butir 4; 14 §9). Risiko yang dibawa urutan ini: RISK-01 (diterima), RISK-18, RISK-91 (15).
 
 ## Konsekuensi
 

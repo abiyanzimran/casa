@@ -26,7 +26,7 @@ Planning documents must not recommend anything that breaks these rules.
 
 ## 3. Performance
 
-Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR after the first measurement in the build phase on the pilot phones (iPhone 13, Galaxy A55). The iPad mini 7 is checked for layout, not as a performance target.
+Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR after the first measurement in the build phase on the pilot devices: iPhone 13 and iPad mini 7 before the first real data, Galaxy A55 before the Android app holds real data (ADR-029).
 
 | Area | Target |
 |---|---|

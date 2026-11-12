@@ -128,7 +128,7 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 2. **Sekali**: sewa Mac jarak jauh minimal 24 jam (minimum **[Terverifikasi]**, 18 §5.2.7.2; Scaleway Mac mini M4, sekitar EUR 0,22 per jam → 24 × 0,22 = **EUR 5,28** **[Perlu validasi]**, harga dari cuplikan; pembanding AWS 24 jam: Singapura `mac2` M1 USD 18,696, Sydney `mac-m4` USD 36,912, belum termasuk EBS **[Terverifikasi]** harga per jam). Tidak ada Mac sewaan di Jakarta; terdekat Malaysia dan Singapura (18 §5.2.7.2). Mac itu dipakai untuk membuat proyek Xcode, menghubungkan repositori, dan menyiapkan alur kerja Xcode Cloud pertama, yang menurut 18 §5.2 harus dibuat di Xcode.
 3. Sesudahnya setiap push memicu build di Xcode Cloud. Jatah 25 jam komputasi per bulan sudah termasuk keanggotaan. Dengan build sekitar 10 menit **[Asumsi]**, itu sekitar 150 build per bulan.
 4. Build dipasang di iPhone 13 dan iPad mini 7 lewat TestFlight internal.
-5. **Batasnya:** tanpa pratinjau SwiftUI, simulator, dan debugger di Linux, setiap perubahan UI iOS diuji lewat perjalanan build dan TestFlight. Pemicu untuk Mac bulanan (Scaleway sekitar EUR 149 per bulan **[Perlu validasi]**; penawaran M4 16 GB lain USD 149–164 **[Terverifikasi]**) atau Mac mini sendiri (Mac mini M6 16 GB/256 GB "mulai dari" Rp17.499.000; 16 GB/512 GB, konfigurasi minimum usulan `researcher`, Rp21.499.000 **[Perlu validasi]**, 18 §5.2.7.1) adalah dimulainya pekerjaan UI iOS harian (ADR-022 butir 4; 09-C A diterima). Mac sewaan memulihkan pratinjau dan simulator, tetapi tidak debugger di iPhone fisik. Titik impas membeli terhadap menyewa bulanan **[Usulan]** (18 §5.2.7.3, §5.2.7.6; 14 §9): sekitar 7,1 sampai 7,9 bulan untuk 16 GB/512 GB; 5,8 sampai 6,4 bulan untuk 16 GB/256 GB (8,8 terhadap sewa berkomitmen 12 bulan); 5,5 sampai 6,2 bulan untuk 24 GB/512 GB.
+5. **Batasnya:** tanpa pratinjau SwiftUI, simulator, dan debugger di Linux, setiap perubahan UI iOS diuji lewat perjalanan build dan TestFlight. Batas ini berlaku untuk seluruh pekerjaan UI iOS, diterima atas saran lead (keputusan 43; ADR-022 butir 4): Mac bulanan (Scaleway sekitar EUR 149 per bulan **[Perlu validasi]**; penawaran M4 16 GB lain USD 149–164 **[Terverifikasi]**) atau Mac mini sendiri (Mac mini M6 16 GB/256 GB "mulai dari" Rp17.499.000; 16 GB/512 GB, konfigurasi minimum usulan `researcher`, Rp21.499.000 **[Perlu validasi]**, 18 §5.2.7.1) ditinjau lagi hanya bila dana tersedia. Mac sewaan memulihkan pratinjau dan simulator, tetapi tidak debugger di iPhone fisik. Titik impas membeli terhadap menyewa bulanan **[Usulan]** (18 §5.2.7.3, §5.2.7.6; 14 §9): sekitar 7,1 sampai 7,9 bulan untuk 16 GB/512 GB; 5,8 sampai 6,4 bulan untuk 16 GB/256 GB (8,8 terhadap sewa berkomitmen 12 bulan); 5,5 sampai 6,2 bulan untuk 24 GB/512 GB.
 6. xtool tidak dipakai sampai 17 L-31 dijawab advokat.
 
 ---
@@ -152,7 +152,7 @@ Penyedia VPS utama dan VPS cadangan menunggu S4-2 (ditunda sampai menjelang depl
 
 ### 6.1 Butir operasi sebelum pilot memproses data nyata
 
-Daftar kanonisnya dokumen 10 §4.1 (sepuluh butir, dicentang bertanggal di runbook pilot; bagian khusus Android di 10 §4.3, sebelum Android memakai data nyata). Butir yang dikerjakan lewat rancangan dokumen ini:
+Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temuan `security-privacy`, keputusan 49; dicentang bertanggal di runbook pilot; bagian khusus Android di 10 §4.3, sebelum Android memakai data nyata). Butir yang dikerjakan lewat rancangan dokumen ini:
 
 | 10 §4.1 | Butir | Di dokumen ini |
 |---|---|---|
@@ -196,7 +196,7 @@ Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email y
 
 Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667** (juga **(S4-2)**). Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
 
-**Satu kali:** sewa Mac 24 jam ≈ EUR 5,28 **[Perlu validasi]** (≈ Rp107.458,77 dengan kurs jual BI 12 November 2026; 18 §5.2.7.6). **Bila ADR-022 butir 4 terpicu:** Mac bulanan sekitar EUR 149 atau USD 149–164 per bulan selama fase UI iOS, atau Mac mini M6 mulai dari Rp17.499.000 sekali (harga Mac mini dan Scaleway **[Perlu validasi]**; 18 §5.2.7). Angka lama Mac mini M4 Rp12.749.000 tidak berlaku lagi.
+**Satu kali:** sewa Mac 24 jam ≈ EUR 5,28 **[Perlu validasi]** (≈ Rp107.458,77 dengan kurs jual BI 12 November 2026; 18 §5.2.7.6). **Tidak masuk biaya pilot** (keputusan 43; acuan bila dana tersedia): Mac bulanan sekitar EUR 149 atau USD 149–164 per bulan, atau Mac mini M6 mulai dari Rp17.499.000 sekali (harga Mac mini dan Scaleway **[Perlu validasi]**; 18 §5.2.7). Angka lama Mac mini M4 Rp12.749.000 tidak berlaku lagi.
 
 ### 7.2 Tahap publik
 

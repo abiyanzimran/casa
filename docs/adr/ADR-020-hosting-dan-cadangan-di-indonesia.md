@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Status | **Diusulkan** (`architect`, 12 November 2026). **Ditunda pemilik produk sampai menjelang deploy** (S4-2 (i); kata-katanya: "#S4-2: nanti aja pas mau deploy"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama). Syarat server dan cadangan di Indonesia (keputusan 10) tetap mengikat pilihan apa pun. Penyedia, harga, dan pihak kontrak di bawah diperiksa ulang saat S4-2 diajukan lagi |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
+| Status | **Diusulkan** (`architect`, 12 November 2026). **Ditunda pemilik produk sampai menjelang deploy** (S4-2 (i); kata-katanya: "#S4-2: nanti aja pas mau deploy"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama). Syarat server dan cadangan di Indonesia (keputusan 10) tetap mengikat pilihan apa pun. Penyedia, harga, dan pihak kontrak di bawah diperiksa ulang saat S4-2 diajukan lagi. **Arti "menjelang deploy" (keputusan 45, 12 November 2026; jawabannya "Sebelum data nyata (Saran)"):** sebelum deploy pertama yang akan memegang data nyata (GR-2); sampai itu FS-1 memakai server uji sementara berisi data uji saja, yang dibuang (14 §7.8). Karena cadangan, uji pulih, dan staging disiapkan di VPS ini pada FS-1 langkah 7 (QG-30 butir 7 sampai 9), S4-2 diajukan ulang sebelum langkah 7 dimulai **[Usulan]** |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; keputusan 45) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §10](../09-technical-architecture/01-pilihan-teknologi.md); [09.4 §1, §6, §7](../09-technical-architecture/04-operasi-uji-biaya.md) |

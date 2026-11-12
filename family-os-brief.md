@@ -51,13 +51,13 @@ These constraints shape every recommendation, especially technology choice, scop
 | Team size for v1 | `[DEFAULT]` 1–3 developers |
 | Team strengths | Strong in Go and Rust backend; extensive mobile experience. The owner is open to any mobile stack and wants the best recommendation, not the most familiar one |
 | First users (pilot) | The owner's own household: husband and wife first, for several months. Parents and children get logins later. Public launch only after the pilot shows sustained daily use. Architecture and privacy design must not need a rewrite to go public |
-| Pilot devices | iPhone 13, Samsung Galaxy A55, iPad mini 7. Both spouses must be able to use the app, so the pilot needs iOS and Android |
+| Pilot devices | iPhone 13 (wife, main recorder), iPad mini 7 and Samsung Galaxy A55 (owner). Both spouses must be able to use the app. Real data starts on iOS and iPadOS; Android is built after real data starts and joins the pilot before the beta (decision 42) |
 | Build environment | The owner develops on Linux and has no Mac. Any iOS recommendation must state how the app gets built, tested on a real iPhone, and distributed, and what that costs |
 | Engineering standards | `ENGINEERING-STANDARDS.md` holds the hard rules for the build phase (clean code, no duplication, performance, security, financial correctness, testing, review). Every recommendation must be compatible with it; `14-engineering-roadmap.md` adopts it and adds the stack-specific tooling |
 | Team and working rules | `CLAUDE.md` defines the single goal, the order of sources of truth, document ownership per agent, and the review rule |
 | Experience bar | WhatsApp-class: instant cold start, light, reliable on poor networks, professional finish. Recording something must take seconds |
 | Primary launch market | `[DEFAULT]` Indonesia (IDR, Bahasa Indonesia first, English second); design for later internationalization |
-| Platforms | iPhone, Android phones, iPad, Android tablets, foldables. Phones come first; see the tiers in §1.1 |
+| Platforms | iPhone, Android phones, iPad, Android tablets, foldables. Phones come first, except the iPad mini 7: it is a daily pilot device, so every Tier 1 flow it uses is laid out for it before real data. See the tiers in §1.1 |
 | Target time to MVP | No fixed deadline. Prefer the smallest scope the pilot household will use daily over a date |
 | Monthly infrastructure budget at launch | One modest VPS during the pilot. No usage-priced managed services unless clearly justified. The AI provider for §5O is the one accepted exception, under its hard cost cap |
 | Business model | `[DEFAULT]` Undecided. Evaluate freemium per household, family subscription, and one-time purchase; recommend one with reasoning |

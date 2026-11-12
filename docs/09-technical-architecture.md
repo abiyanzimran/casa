@@ -1,6 +1,6 @@
 # 09 — Arsitektur teknis
 
-**Status:** versi S4 fase D (12 November 2026), ditulis `architect`; temuan `critic` CS-A-01 sampai CS-A-26 milik `architect` sudah ditangani, menunggu tinjauan ulang. Stack mobile diputuskan pemilik produk ("Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend."; [_progress.md](_progress.md); [ADR-012](adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 1). **Checkpoint S4 (12 November 2026):** pemilik produk menjawab semua pertanyaan 09-A sampai 09-G kecuali 09-B, dan mengukuhkannya dengan "lanjut" ([_progress.md](_progress.md), "Checkpoint S4: jawaban pemilik produk", "Keputusan checkpoint S4"). Pilihan yang diterima tercatat di §1 dan §7; ADR yang diterima dicatat di §3. **Hosting, cadangan, dan email (S4-2; ADR-020, ADR-026) tetap usulan**, karena pemilik produk menundanya sampai menjelang deploy ("#S4-2: nanti aja pas mau deploy"); syarat server di Indonesia (keputusan 10) tetap mengikat. Rincian di bawah yang tidak disebut keputusan checkpoint tetap **[Usulan]** `architect`.
+**Status:** versi S4 fase D (12 November 2026), ditulis `architect`; temuan `critic` CS-A-01 sampai CS-A-26 milik `architect` sudah ditangani, menunggu tinjauan ulang. Stack mobile diputuskan pemilik produk ("Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend."; [_progress.md](_progress.md); [ADR-012](adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 1). **Checkpoint S4 (12 November 2026):** pemilik produk menjawab semua pertanyaan 09-A sampai 09-G kecuali 09-B, dan mengukuhkannya dengan "lanjut" ([_progress.md](_progress.md), "Checkpoint S4: jawaban pemilik produk", "Keputusan checkpoint S4"). Pilihan yang diterima tercatat di §1 dan §7; ADR yang diterima dicatat di §3. **Hosting, cadangan, dan email (S4-2; ADR-020, ADR-026) tetap usulan**, karena pemilik produk menundanya sampai menjelang deploy ("#S4-2: nanti aja pas mau deploy"), yang menurut keputusan 45 berarti sebelum deploy pertama yang memegang data nyata (GR-2; 14 §7.8); syarat server di Indonesia (keputusan 10) tetap mengikat. Keputusan 43 sampai 50 (12 November 2026) dicatat di §1, §3, §5, §6, dan §7. Rincian di bawah yang tidak disebut keputusan checkpoint tetap **[Usulan]** `architect`.
 
 **Pemilik:** `architect`. Keamanan dan privasi dimiliki `security-privacy` ([dokumen 10](10-security-privacy.md)); dokumen ini memenuhi persyaratannya (pemetaan di berkas 04 §8). Aturan uang kanonis di [07](07-financial-domain.md), dan aturan alur di [06](06-activity-approval-architecture.md).
 
@@ -28,7 +28,7 @@ Ringkasnya, Family OS dibangun sebagai **satu monolit modular Go dengan satu Pos
 - **Cadangan.** Dienkripsi di VPS lalu dikirim ke VPS lain di Indonesia; data yang dihapus bertahan paling lama 38 hari di salinan mana pun (D-104, diterima). Penyedianya menunggu S4-2.
 - **Email.** Usulan: Amazon SES di Jakarta lewat API HTTPS, hanya untuk verifikasi, pemulihan, dan tanda ke operator (menunggu S4-2).
 - **`AI`.** Hanya membangun kumpulan kalimat tanpa data rumah tangga.
-- **iOS.** Dibangun di Xcode Cloud dan diuji lewat TestFlight internal.
+- **iOS.** Dibangun di Xcode Cloud dan diuji lewat TestFlight internal, tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43).
 
 Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.md](_progress.md), "Keputusan checkpoint S4").
 
@@ -46,7 +46,9 @@ Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.m
 | Push | Langsung ke APNs dan FCM, payload umum, tanpa ekstensi notifikasi | ADR-019 | **Diterima** (D-101) |
 | Hosting dan cadangan | Usulan: Biznet Gio NEO Lite MS 4.2 (PT Biznet Gio Nusantara); cadangan di VPS IDCloudHost (PT Cloud Hosting Indonesia **[Perlu validasi]**) | ADR-020 | **Diusulkan; ditunda sampai menjelang deploy** (S4-2). Syarat di Indonesia tetap mengikat |
 | `AI` | R1 kumpulan kalimat, Claude Sonnet 5.5 untuk membangun kumpulan, batas USD 10 per bulan dan USD 3 per pembangunan | ADR-021 | **Diterima** (10-B A, 09-D A; S4-4 (i), (ii) A) |
-| Build iOS | Xcode Cloud + TestFlight internal, dengan sewa Mac sekali | ADR-022 | **Diterima** (09-C A; S4-3 (i) A) |
+| Build iOS | Xcode Cloud + TestFlight internal, dengan sewa Mac sekali; tanpa Mac bulanan atau milik sendiri sampai dana ada | ADR-022 | **Diterima** (09-C A; S4-3 (i) A); butir 4 diubah keputusan 43 |
+| Irama rilis iOS | Rilis pemeliharaan bila 60 hari tanpa rilis; batas keras 80 hari sejak unggahan TestFlight | ADR-028 butir 4 | **Diterima** (keputusan 44) |
+| Perangkat pengukuran ES §3 | iPhone 13 dan iPad mini 7 sebelum data nyata pertama; Galaxy A55 sebelum aplikasi Android memegang data nyata | ADR-029 | **Diterima** atas saran lead (keputusan 50) |
 | Versi 0.x dan API eksperimental | Boleh bila memenuhi lima syarat dan tercatat dengan jalan mundurnya | ADR-023 | **Diterima** (09-G A; S4-1 (iii) A); kalimatnya tercantum di ES §8 |
 | Data perangkat | Proteksi berkas Class C (`CARE` lokal Class A), dikecualikan dari cadangan dan transfer, hapus jarak jauh | ADR-024 | **Diterima** (D-102; 10-D A, S4-6 (i) A) |
 | Alat kualitas | Formatter, linter, pemindai kerentanan, dan pemeriksa duplikasi per bahasa | ADR-025 | **Diterima** (D-103) |
@@ -127,15 +129,16 @@ flowchart LR
 | [ADR-017](adr/ADR-017-pengenal-acak-dan-kursor-per-pembaca.md) | Pengenal acak dan kursor sinkron per pembaca (dokumen 10 §8 butir 1 dan 2) | **Diterima** (S4) |
 | [ADR-018](adr/ADR-018-model-sinkron-dan-waktu-nyata.md) | Model sinkron dan waktu nyata | **Diterima** (S4) |
 | [ADR-019](adr/ADR-019-push-langsung-apns-fcm.md) | Push langsung ke APNs dan FCM dengan payload umum | **Diterima** (S4) |
-| [ADR-020](adr/ADR-020-hosting-dan-cadangan-di-indonesia.md) | Hosting dan cadangan di Indonesia | Diusulkan; **ditunda sampai menjelang deploy** (S4-2) |
+| [ADR-020](adr/ADR-020-hosting-dan-cadangan-di-indonesia.md) | Hosting dan cadangan di Indonesia | Diusulkan; **ditunda sampai menjelang deploy** (S4-2), yaitu sebelum deploy pertama yang memegang data nyata (keputusan 45) |
 | [ADR-021](adr/ADR-021-jalur-ai-kumpulan-kalimat.md) | Jalur `AI`: kumpulan kalimat (R1) dan batas biaya | **Diterima** (S4), R1 dan Claude |
-| [ADR-022](adr/ADR-022-jalur-build-ios-tanpa-mac.md) | Jalur build iOS tanpa Mac | **Diterima** (S4), opsi A |
+| [ADR-022](adr/ADR-022-jalur-build-ios-tanpa-mac.md) | Jalur build iOS tanpa Mac | **Diterima** (S4), opsi A; butir 4 diubah keputusan 43 (tetap A sampai dana ada); butir 1 diubah ADR-028 butir 4 |
 | [ADR-023](adr/ADR-023-kebijakan-versi-0x.md) | Kebijakan pustaka versi 0.x dan API eksperimental (ES §8) | **Diterima** (S4); kalimat ES §8 dipasang |
 | [ADR-024](adr/ADR-024-data-di-perangkat-dan-hapus-jarak-jauh.md) | Data di perangkat: proteksi, cadangan, hapus jarak jauh, `CARE` lokal (dokumen 10 §8 butir 3, 4, 9) | **Diterima** (S4), termasuk butir 5 |
 | [ADR-025](adr/ADR-025-alat-kualitas-kode.md) | Alat kualitas kode per bahasa (ES §4, §7) | **Diterima** (S4) |
-| [ADR-026](adr/ADR-026-pengiriman-email.md) | Pengiriman email: Amazon SES Jakarta | Diusulkan; **ditunda sampai menjelang deploy** (S4-2) |
+| [ADR-026](adr/ADR-026-pengiriman-email.md) | Pengiriman email: Amazon SES Jakarta | Diusulkan; **ditunda sampai menjelang deploy** (S4-2), yaitu sebelum deploy pertama yang memegang data nyata (keputusan 45) |
 | [ADR-027](adr/ADR-027-asas-pengawasan-batas-periode-dan-aturan-dasar.md) | Asas pengawasan: batas periode dan aturan dasar (06 PG-14; dokumen 10.3 §2.4.1) | **Diterima** (S4), opsi A; butir (c) disempitkan menurut S4-9 (i) A |
-| [ADR-028](adr/ADR-028-lingkungan-dan-irama-rilis-pilot.md) | Lingkungan, irama rilis, dan kompatibilitas klien (dokumen 14 §6) | Diusulkan (S5) |
+| [ADR-028](adr/ADR-028-lingkungan-dan-irama-rilis-pilot.md) | Lingkungan, irama rilis, dan kompatibilitas klien (dokumen 14 §6) | Diusulkan (S5); **butir 4 Diterima** (keputusan 44) |
+| [ADR-029](adr/ADR-029-perangkat-pengukuran-kinerja-es-3.md) | Perangkat pengukuran kinerja ES §3 (17 K-66, K-67) | **Diterima** atas saran lead (keputusan 50); kalimat ES §3 dipasang lead |
 
 ---
 
@@ -182,15 +185,16 @@ Semua keputusan yang harus ada sebelum fase bangun dimulai sudah diambil di chec
 | Alat kualitas per bahasa | ES §4 dan §7 menuntut pemilihannya lewat ADR di S4 | ADR-025 | Diterima |
 | Penyedia `AI` di bawah R1 (09-D) dan jalur 10-B | Integrasi dibangun atas permintaan pemilik produk; `AI` tetap Tier 2 | ADR-021 | Diterima: R1, Claude |
 | Kontrak Protobuf dan Connect, PostgreSQL, monolit, pengenal, kursor, SSE, push | Fondasi; mengubahnya kemudian mahal | ADR-013, ADR-014, ADR-016 sampai ADR-019 | Diterima |
-| **Hosting dan tujuan cadangan (09-B)** | Harus ada sebelum deploy pertama; pernyataan tertulis penyedia soal letak data (ADR-020 butir 1) sebelum data nyata | ADR-020 | **Ditunda sampai menjelang deploy** (S4-2). Advokat (L-01, L-14, L-24) sebelum tahap publik (S4-4 (iii) A) |
-| **Pengiriman email** | Pilot memerlukan verifikasi dan pemulihan (SEC-24) sebelum akun pertama dibuat di server yang di-deploy | ADR-026 | **Ditunda sampai menjelang deploy** (S4-2); K-62 menunggu |
+| **Hosting dan tujuan cadangan (09-B)** | Harus ada sebelum deploy pertama yang memegang data nyata; pernyataan tertulis penyedia soal letak data (ADR-020 butir 1) sebelum data nyata | ADR-020 | **Ditunda sampai menjelang deploy** (S4-2): sebelum deploy pertama yang memegang data nyata, dengan server uji sementara sampai itu (keputusan 45; 14 §7.8); diajukan ulang sebelum FS-1 langkah 7 **[Usulan]**. Advokat (L-01, L-14, L-24) sebelum tahap publik (S4-4 (iii) A) |
+| **Pengiriman email** | Pilot memerlukan verifikasi dan pemulihan (SEC-24) sebelum akun nyata pertama dibuat | ADR-026 | **Ditunda sampai menjelang deploy** (S4-2), sama dengan baris di atas (keputusan 45); K-62 menunggu |
 
 ## 6. Yang ditunda, dan pemicunya
 
 | Butir | Ditunda sampai | Pemicu atau syarat |
 |---|---|---|
-| Hosting, tujuan cadangan, dan email (S4-2) | Menjelang deploy; **keputusan pemilik produk** | ADR-020 dan ADR-026 diajukan ulang dengan harga dan pihak kontrak yang dicek ulang; syarat di Indonesia (keputusan 10) tetap. Baris biaya yang bergantung padanya ditandai di 09.4 §7.1 |
-| Klien Android (Kotlin, Compose; ADR-012 butir 1 tetap) | Sesudah GR-2, paling lambat sebelum GR-4 (bawaan lead **[Usulan]** dalam keputusan 42; urutan iOS dan iPadOS lebih dulu dan pilot di iPhone 13 dan iPad mini 7 **diputuskan pemilik produk**) | Jalur Android dan QG-30 (Android) di 14 §3.8 dan §5.3; ADR-022 butir 4 kemungkinan besar terpicu di awal FS-1 (14 §9) |
+| Hosting, tujuan cadangan, dan email (S4-2) | Sebelum deploy pertama yang memegang data nyata (keputusan 45); **keputusan pemilik produk** | Server uji sementara berisi data uji saja di FS-1 langkah 1 sampai 6 (14 §7.8). ADR-020 dan ADR-026 diajukan ulang sebelum FS-1 langkah 7 **[Usulan]** dengan harga dan pihak kontrak yang dicek ulang; syarat di Indonesia (keputusan 10) tetap. Baris biaya yang bergantung padanya ditandai di 09.4 §7.1 |
+| Klien Android (Kotlin, Compose; ADR-012 butir 1 tetap) | Sesudah GR-2, paling lambat sebelum GR-4 (semula bawaan lead dalam keputusan 42; kini **diterima atas saran lead lewat keputusan 50**, bunyi brief §1 "Android is built after real data starts and joins the pilot before the beta"; urutan iOS dan iPadOS lebih dulu dan pilot di iPhone 13 dan iPad mini 7 **diputuskan pemilik produk**) | Jalur Android dan QG-30 (Android) di 14 §3.8 dan §5.3 |
+| Mac sewaan bulanan atau Mac mini sendiri (ADR-022 B, C) | Dana tersedia (keputusan 43) | Prakarsa pemilik produk; titik impas di 14 §9 sebagai acuan, harga dicek ulang |
 | Perkiraan offline (angka server − entri yang belum terkirim) | Bila pilot menunjukkan kebutuhannya | ADR baru: deskriptor dari server + satu penafsir per platform; butir pengecualian ES §2 tambahan (01 §3) |
 | Pembungkus SQLite iOS (GRDB, Core Data, SwiftData) | Minggu pertama `ios-dev` | Dapat diuji di Linux; stabil (03 §2) |
 | Pustaka property-based Go | Minggu pertama `backend-dev` | Status stabil (ES §8) |
@@ -217,8 +221,8 @@ Tujuh pertanyaan diajukan lead di daftar gabungan (S4-1 sampai S4-3, S4-4 (ii)).
 | ID | Butir gabungan | Jawaban | Catatan |
 |---|---|---|---|
 | 09-A | S4-1 (i) | **A, Go** ("#S4-1: A Go") | Rust tidak dipilih; axum dan sqlx keluar dari daftar ADR-023 |
-| 09-B | S4-2 | **Ditunda sampai menjelang deploy** ("#S4-2: nanti aja pas mau deploy") | ADR-020 tetap diusulkan; syarat di Indonesia tetap |
-| 09-C | S4-3 (i) | **A** | ADR-022 |
+| 09-B | S4-2 | **Ditunda sampai menjelang deploy** ("#S4-2: nanti aja pas mau deploy"); artinya sebelum deploy pertama yang memegang data nyata (keputusan 45, "Sebelum data nyata (Saran)") | ADR-020 tetap diusulkan; syarat di Indonesia tetap |
+| 09-C | S4-3 (i) | **A**; kemudian tetap A tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43, "Tetap Xcode Cloud saja (Saran)") | ADR-022 |
 | 09-D | S4-4 (ii) | **A, Claude** | ADR-021 |
 | 09-E | S4-3 (ii) | **A**: iOS dan iPadOS 26; Android 10 | ADR-012 butir 2, 3 |
 | 09-F | S4-1 (ii) | **A**, disetujui tegas ("hp boleh ikut, validasi di app dan server wajib jadi a") | Pengecualian dipasang lead di ES §2 |
@@ -230,7 +234,7 @@ Pilihan semula di bawah tetap sebagai catatan dasar keputusan; pilihan selain ja
 |---|---|---|---|
 | 09-A | Bahasa backend | **Go**: pustaka di jalur setiap permintaan ≥ 1.0; pustaka 0.x (`golang.org/x/crypto`, `golang.org/x/oauth2`) dari proyek Go sendiri dan hanya di tepi sistem; produktif bagi tim kecil | B. **Rust**: tipe lebih ketat; axum dan sqlx 0.x di jalur setiap permintaan (ADR-023); kompilasi lebih lambat **[Asumsi]** |
 | 09-B | Hosting dan tujuan cadangan | **Biznet Gio MS 4.2 (Rp139.000) + VPS cadangan IDCloudHost di lokasi Indonesia (sekitar Rp105.000 [Perlu validasi])**: dua pihak kontrak Indonesia yang berbeda | B. Keduanya Biznet Gio (cadangan XS Rp59.000): lebih murah, pihak kontrak sama. C. AWS Lightsail Jakarta (PT Amazon Web Services Indonesia), USD 24 |
-| 09-C | Perangkat keras pengembangan iOS | **Xcode Cloud + TestFlight internal, sewa Mac sekali (sekitar EUR 5,28 [Perlu validasi])**; naik ke B saat UI iOS dikerjakan harian | B. Sewa Mac bulanan selama fase UI iOS (sekitar EUR 149 per bulan [Perlu validasi]). C. Beli Mac mini M4 (Rp12.749.000 [Perlu validasi]; harga saat checkpoint, kini basi: Mac mini M6 mulai dari Rp17.499.000 [Perlu validasi], 18 §5.2.7.1) |
+| 09-C | Perangkat keras pengembangan iOS | **Xcode Cloud + TestFlight internal, sewa Mac sekali (sekitar EUR 5,28 [Perlu validasi])**; naik ke B saat UI iOS dikerjakan harian (pemicu ini dihapus keputusan 43) | B. Sewa Mac bulanan selama fase UI iOS (sekitar EUR 149 per bulan [Perlu validasi]). C. Beli Mac mini M4 (Rp12.749.000 [Perlu validasi]; harga saat checkpoint, kini basi: Mac mini M6 mulai dari Rp17.499.000 [Perlu validasi], 18 §5.2.7.1) |
 | 09-D | Penyedia `AI` untuk membangun kumpulan kalimat (bila 10-B A atau B) | **Claude** (API Anthropic; Sonnet 5.5 untuk kumpulan, sekitar USD 1,32 per pembangunan; Haiku 5.5 bila 10-B B) | B. **ChatGPT** (API OpenAI; gpt-6.1-terra, sekitar USD 0,66 per pembangunan; mutu bahasa Indonesia tanpa tolok ukur primer). Pihak kontrak OpenAI bagi pelanggan Indonesia belum diteliti |
 | 09-E | Versi OS minimum | **iOS dan iPadOS 26; Android 10 (API 29)**: satu bahasa desain iOS (Liquid Glass); penyimpanan terenkripsi berbasis berkas di Android **[Perlu validasi]** semua produsen | B. iOS 18 dan Android 9 (API 28): jangkauan lebih luas di tahap publik; dua tampilan iOS harus diuji |
 | 09-F | Letak logika bersama | **Server saja, ditambah pengecualian ES §2 untuk tiga bantuan isian** di perangkat (selisih baris sebab, "bagi rata", bentuk masukan), masing-masing ditulis di Swift dan Kotlin dan dijaga vektor uji emas dari server Go. Tanpa perkiraan offline | B. Server saja tanpa pengecualian: perangkat tidak membantu isian; server menolak dengan kode galat per medan saat perintah tiba; FR-FIN-042/AC-2 dan AC-3 diubah. C. Modul KMP: perlu macOS untuk setiap build iOS, dan tetap bukan implementasi yang sama dengan server Go. D. Inti Rust lewat UniFFI: satu implementasi hanya bila 09-A = B |
@@ -300,3 +304,4 @@ Semuanya diakses 12 November 2026. Fakta yang sudah ada di dokumen 18 (termasuk 
 | 12 November 2026 | S5 | ADR-028 baru (Diusulkan) bersama dokumen 14. Harga Mac diperbarui dari 18 §5.2.7 di 09.1 §12, 09.4 §5 dan §7.1, ADR-022 (Mac mini M6; minimum 24 jam terverifikasi; AWS EC2 Mac; tanpa Mac sewaan di Jakarta; Swift di Linux terverifikasi; paket non-UI tanpa Security, LocalAuthentication, UserNotifications). Keputusan ADR-022 tidak berubah |
 | 12 November 2026 | S5 fase D | 09.4 §9 menjadi penunjuk ke register kanonis 15 (pengenal tetap; judul RISK-12 diselaraskan dengan 15). 09.3 §1: tanda `protective` di tabel jenis perintah, perintah pelindung dikirim lebih dulu, galat `WRITE_FROZEN`, hitungan catatan yang belum terkirim dari antrean perangkat (ADR-028 butir 3). 09.4 §4 cakupan SCN; §5 Xcode Cloud sebagai pemeriksaan wajib pull request; titik impas Mac per konfigurasi dari 18 §5.2.7.6 di 09.1 §12 (penomoran butir 4 dan 5 dibetulkan) dan 09.4 §5 |
 | 12 November 2026 | Keputusan 42 | Pilot dengan data nyata di iOS dan iPadOS; Android sesudah GR-2: §6 baris klien Android; 09.1 BT-4; 09.4 §1 (diagram), §4 (perangkat dan kinerja), §5 (kolom Android), §6.1 (sepuluh butir 10 §4.1), §7.1 (Play dan CI Android di luar biaya pilot); ADR-012 dan ADR-022 diberi catatan, keputusannya tidak berubah |
+| 12 November 2026 | Keputusan 43 sampai 50 | Keputusan 43: ADR-022 butir 4 diubah (tetap A tanpa Mac bulanan atau milik sendiri sampai dana ada), §1, §6, §7 09-C, 09.1 §12, 09.4 §5 dan §7.1. Keputusan 44: ADR-028 butir 4 diterima, ADR-022 butir 1 diubah. Keputusan 45: arti "menjelang deploy" di baris Status, §3, §5, §6, §7 09-B, 09.1 §10, ADR-020, ADR-026, ADR-028 butir 1. Keputusan 50: **ADR-029 baru** (perangkat pengukuran ES §3) |

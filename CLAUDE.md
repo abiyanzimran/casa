@@ -65,6 +65,7 @@ Agent files for the build phase are written by the lead only after the owner app
 | `backend-dev` | Server, database, migrations, API contract |
 | `ios-dev`, `android-dev` | One per platform if the UI is fully native; a single `mobile-dev` if S4 chooses a shared framework |
 | `ux-designer` (continues) | Reviews every built screen against `docs/08-ux-ui-strategy.md` and the platform's guidelines |
+| `security-privacy` (continues) | Findings-only review before GR-2 (first real data) and before GR-4 (first user outside the pilot household), in place of a dedicated security role (owner decision 49) |
 | `code-reviewer` | Two-pass review of every change: meets the requirement, then code quality against `ENGINEERING-STANDARDS.md` |
 | `qa` | Proves Tier 1 acceptance criteria and financial invariants end to end, on the pilot devices |
 
