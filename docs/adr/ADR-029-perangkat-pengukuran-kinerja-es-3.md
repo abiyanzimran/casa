@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima**: diterima atas saran lead (keputusan 50, 12 November 2026); pemilik produk memilih "Setuju bunyi ini (Saran)" atas pratinjau yang disalin kata demi kata di [_progress.md](../_progress.md), "Penutupan pertanyaan terbuka sebelum S6". **ADR ini hanya mencakup kalimat ES §3.** Baris brief §1 "Pilot devices" dan "Platforms" disetujui dalam pratinjau yang sama dan dipasang lead di brief, bukan lewat ADR ini. Kalimat ES dipasang lead di `ENGINEERING-STANDARDS.md` §3. Butir 1 adalah tindakan lead yang dicatat di `_progress.md`; butir 2 mengulang kalimat yang disetujui; butir 3 dan 4 **[Usulan]** `architect`, tidak ada di pratinjau |
-| Tanggal | 12 November 2026 (sesudah S5, sebelum S6; catatan web lebih dulu sesudah S6) |
+| Tanggal | 12 November 2026 (sesudah S5, sebelum S6; catatan web lebih dulu sesudah S6); 13 November 2026 bunyi ES §3 untuk web dipasang |
 | Pengusul | `architect`, atas K-66 dan K-67 (17) |
 | Mengubah | `ENGINEERING-STANDARDS.md` §3, paragraf pembuka (satu paragraf; ES baris 3: aturan ES hanya diubah lewat ADR yang disetujui pemilik produk) |
 | Rincian | [14 §2.1, §4.10, §5.3](../14-engineering-roadmap.md) (QG-30 butir 4; QG-30 (Android) butir A-4); [ADR-012](ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) catatan urutan platform; 15 RISK-54 |
@@ -47,13 +47,13 @@ Bunyi yang disetujui pemilik produk adalah kalimat itu tanpa "(ADR-029)"; rujuka
 
 ## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
 
-Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 16. **Bunyi ES §3 yang dipasang ADR ini belum berubah**; usulan bunyi baru menunggu pratinjau pemilik produk lewat lead.
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 16. **Bunyi ES §3 baru (pengukuran di klien web; baris ukuran app shell web ≤ 500 KB `[DEFAULT]`) disetujui pemilik produk dan dipasang lead (13 November 2026)** (`_progress.md`, "Persetujuan pemilik produk atas bunyi brief, `CLAUDE.md`, dan ES").
 
 - **Sebelum GR-2:** sasaran `[DEFAULT]` ES §3 diukur di **klien web** pada ketiga perangkat pilot:
   - iPhone 13 dan iPad mini 7, web app layar utama, Safari 26;
   - Galaxy A55, Chrome.
 
-  Galaxy A55 memegang data nyata sejak GR-2 lewat web, jadi alasan butir 3 (menunggu jalur Android) tidak berlaku bagi web. Ini mendahului bunyi ES yang berlaku dan tidak melanggarnya: ES meminta iPhone 13 dan iPad mini 7 sebelum data nyata pertama, dan pengukuran tambahan di Galaxy A55 lebih ketat.
+  Galaxy A55 memegang data nyata sejak GR-2 lewat web, jadi alasan butir 3 (menunggu jalur Android) tidak berlaku bagi web. Ini kini bunyi ES §3 yang berlaku.
 - **Padanan web untuk sasaran ES §3** **[Usulan]**:
 
   | Sasaran ES | Diukur di web sebagai |
@@ -63,4 +63,4 @@ Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 16. **Bunyi ES §3
   | Scrolling and transitions | Tanpa frame terbuang yang terlihat, diukur di Chrome DevTools jarak jauh untuk Galaxy A55 dan dengan pengamatan di iPhone dan iPad (tanpa Web Inspector; ADR-022 catatan web) |
   | App download size ≤ 30 MB | Ukuran transfer app shell terkompresi ≤ 500 KB **[Asumsi]**, dikukuhkan sesudah prototipe |
 - **Aplikasi native:** butir 2 dan 3 tetap berlaku untuk masing-masing saat ia akan memegang data nyata. ADR kinerja yang sama direvisi, bukan ADR kedua.
-- **Usulan bunyi ES §3** (ADR-030 butir 16): "…on the pilot devices: the web client on iPhone 13, iPad mini 7 and Galaxy A55 before the first real data; each native app on its pilot devices before it holds real data (ADR-029, ADR-030)."
+- **Bunyi ES §3 yang diusulkan** (ADR-030 butir 16; disetujui pemilik produk dan dipasang lead, 13 November 2026, dengan rumusan lead; bunyi persisnya di `ENGINEERING-STANDARDS.md` §3): "…on the pilot devices: the web client on iPhone 13, iPad mini 7 and Galaxy A55 before the first real data; each native app on its pilot devices before it holds real data (ADR-029, ADR-030)."

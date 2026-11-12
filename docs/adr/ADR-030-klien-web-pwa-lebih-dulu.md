@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | **Diterima.** Web lebih dulu diputuskan pemilik produk sendiri (keputusan 69, dicatat `product-analyst` di 17): "web dibangun duluan aja yang penting web jalan dulu aja. ios dan android nanti. web akan jadi yang pertama untuk user experience". Stack dan rancangan di bawah **diterima atas saran lead**: "ya saya terima kan ini versi webnya, selebihnya saya ikut saran kamu pastikan semua valid dan matang wajib profesional" (keduanya [_progress.md](../_progress.md), "Sesudah S6: audit kesiapan bangun dan usulan web app", 12 November 2026). Butir yang **mengubah bunyi `ENGINEERING-STANDARDS.md`** (butir 15, 16, 17 dan bagian butir 8) menunggu pratinjau kata demi kata kepada pemilik produk, karena ES hanya berubah lewat ADR yang disetujuinya (ES baris 3); sampai itu ES berlaku |
-| Tanggal | 12 November 2026 (sesudah S6, putaran web lebih dulu); 13 November 2026 amandemen sesudah tinjauan `security-privacy` (butir 5, 9, 11, 12, 14 menurut SEC-165 (g), (h), SEC-171 (b), SEC-174 (b), SEC-176 (g); LY-95; nama Casa); 13 November 2026 amandemen atas temuan `critic` dan 18 §5.13.10 (keputusan 69 dan 70; bawaan 69.1 sampai 69.6 di butir 8, 15, 16, 19 dan tabel menunggu; pratinjau ES tidak menahan FS-1; Safari sebelum 26 [Usulan]; `strictDepBuilds` versi [Perlu validasi]; butir 5 dan 11 mode bersama di tab Safari menurut SEC-171 (b) (5); butir 9 LY-95 wajib untuk pilot) |
+| Status | **Diterima.** Web lebih dulu diputuskan pemilik produk sendiri (keputusan 69, dicatat `product-analyst` di 17): "web dibangun duluan aja yang penting web jalan dulu aja. ios dan android nanti. web akan jadi yang pertama untuk user experience". Stack dan rancangan di bawah **diterima atas saran lead**: "ya saya terima kan ini versi webnya, selebihnya saya ikut saran kamu pastikan semua valid dan matang wajib profesional" (keduanya [_progress.md](../_progress.md), "Sesudah S6: audit kesiapan bangun dan usulan web app", 12 November 2026). Butir yang **mengubah bunyi `ENGINEERING-STANDARDS.md`** (butir 15, 16, 17 dan bagian butir 8) **disetujui pemilik produk dan dipasang (13 November 2026)**: "setuju kirim chat setelah clear", diterima atas saran lead, bunyinya rumusan lead ([_progress.md](../_progress.md), "Persetujuan pemilik produk atas bunyi brief, `CLAUDE.md`, dan ES"); ES hanya berubah lewat ADR yang disetujuinya (ES baris 3) |
+| Tanggal | 12 November 2026 (sesudah S6, putaran web lebih dulu); 13 November 2026 amandemen sesudah tinjauan `security-privacy` (butir 5, 9, 11, 12, 14 menurut SEC-165 (g), (h), SEC-171 (b), SEC-174 (b), SEC-176 (g); LY-95; nama Casa); 13 November 2026 amandemen atas temuan `critic` dan 18 §5.13.10 (keputusan 69 dan 70; bawaan 69.1 sampai 69.6 di butir 8, 15, 16, 19 dan tabel menunggu; pratinjau ES tidak menahan FS-1; Safari sebelum 26 [Usulan]; `strictDepBuilds` versi [Perlu validasi]; butir 5 dan 11 mode bersama di tab Safari menurut SEC-171 (b) (5); butir 9 LY-95 wajib untuk pilot); 13 November 2026 bunyi ES §2, §3, §8 disetujui pemilik produk dan dipasang (Status, butir 8, 15 sampai 17, tabel menunggu; bantuan isian TypeScript diizinkan) |
 | Pengusul | `architect`, atas 18 §5.13 (`researcher`) dan 10.5 (`security-privacy`, SEC-160 sampai SEC-179, TM-37 sampai TM-45) |
-| Mengubah | Urutan platform ADR-012 (catatan keputusan 42); ADR-013, ADR-018, ADR-019, ADR-022, ADR-024, ADR-025, ADR-028, ADR-029 lewat catatan bertanggal di masing-masing; usulan bunyi ES §2, §3, §8 (butir 15 sampai 17) |
+| Mengubah | Urutan platform ADR-012 (catatan keputusan 42); ADR-013, ADR-018, ADR-019, ADR-022, ADR-024, ADR-025, ADR-028, ADR-029 lewat catatan bertanggal di masing-masing; bunyi ES §2, §3, §8 (butir 15 sampai 17; dipasang 13 November 2026) |
 | Rincian | [09 indeks](../09-technical-architecture.md); [09.1 §14](../09-technical-architecture/01-pilihan-teknologi.md); [09.2 §5.1](../09-technical-architecture/02-data-dan-skema.md); [09.3 §4, §8](../09-technical-architecture/03-sinkron-waktu-nyata-notifikasi.md); [09.4 §2, §4, §5, §7.1](../09-technical-architecture/04-operasi-uji-biaya.md); [14 §3](../14-engineering-roadmap.md); 15 RISK-94 sampai RISK-97 |
 
 ## Konteks
@@ -125,8 +125,8 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
    - **Lockfile** `pnpm-lock.yaml` di repositori; instalasi CI `--frozen-lockfile`.
    - **Pemindai:** OSV-Scanner atas `pnpm-lock.yaml`, yang tercantum di daftar lockfile resminya ([google.github.io/osv-scanner](https://google.github.io/osv-scanner/supported-languages-and-lockfiles/); 18 §5.13.10, diakses 13 November 2026) **[Terverifikasi]**. Satu alat untuk Kotlin dan web (ADR-025 catatan web).
    - **Dependensi bundel** (yang masuk kode yang berjalan di browser) dibatasi pada daftar ini: `svelte`, `@sveltejs/kit` (runtime klien), `dexie`, `@connectrpc/connect`, `@connectrpc/connect-web`, `@bufbuild/protobuf`, `workbox-*` yang ditarik `@vite-pwa/sveltekit`. Tambahan memerlukan tinjauan `security-privacy` dan amandemen butir ini. Dependensi pengembangan (Vite, alat lint, Playwright) tidak masuk bundel; CI memeriksa daftar paket di peta bundel.
-   - **Masa tunggu (isi diterima, bawaan 69.1; bunyi ES §8 menunggu pratinjau pemilik produk):** versi baru dependensi bundel baru dipasang sesudah berumur 7 hari, lewat `minimumReleaseAge: 10080` (menit) pnpm. Bawaan pnpm 1440 menit ([pnpm.io/settings/dependency-resolution](https://pnpm.io/settings/dependency-resolution); 18 §5.13.10, diakses 13 November 2026) **[Terverifikasi]**. Perbaikan keamanan dikecualikan lewat `minimumReleaseAgeExclude` per paket, dicatat di pull request-nya.
-   - Sampai bunyi ES §8 disetujui, ES §8 berlaku apa adanya (tanpa masa tunggu) dan sisa butir ini tetap; tidak ada langkah yang tertahan.
+   - **Masa tunggu (isi diterima, bawaan 69.1; bunyi ES §8 disetujui pemilik produk dan dipasang, 13 November 2026):** versi baru dependensi bundel baru dipasang sesudah berumur 7 hari, lewat `minimumReleaseAge: 10080` (menit) pnpm. Bawaan pnpm 1440 menit ([pnpm.io/settings/dependency-resolution](https://pnpm.io/settings/dependency-resolution); 18 §5.13.10, diakses 13 November 2026) **[Terverifikasi]**. Perbaikan keamanan dikecualikan lewat `minimumReleaseAgeExclude` per paket, dicatat di pull request-nya.
+   - Masa tunggu berlaku sejak FS-1 langkah 1.
 9. **Build, service worker, dan versi** (SEC-169):
    - **Build:** bundel dibangun hanya di CI dari komit bertanda. Daftar hash setiap berkas disimpan sebagai artefak CI. Deploy memasang biner yang memuat bundel itu tanpa build ulang di VPS. Runbook rilis membandingkan hash biner di VPS dengan artefak CI.
    - **Cache service worker:** hanya app shell berhash. Tidak pernah jawaban API, SSE, foto, atau halaman berisi data.
@@ -203,18 +203,18 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
 
 ### Standar rekayasa
 
-15. **Bantuan isian di TypeScript** (ADR-013 butir 3; isi diterima, bawaan 69.2; bunyi ES §2 menunggu pratinjau pemilik produk):
+15. **Bantuan isian di TypeScript** (ADR-013 butir 3; isi diterima, bawaan 69.2; bunyi ES §2 disetujui pemilik produk dan dipasang, 13 November 2026):
     - Ketiga bantuan isian (selisih baris, bagi rata, bentuk masukan) ditulis sekali lagi di TypeScript untuk klien web.
     - Vektor uji emas dari acuan Go yang sama dijalankan di CI web (Vitest); beda hasil memblokir merge.
     - **protovalidate-es tidak dipilih:** menambah dependensi bundel dan runtime CEL yang kecocokannya dengan CSP tanpa `'unsafe-eval'` belum diperiksa.
-    - **Usulan bunyi ES §2:** "…may be hand-written once in Swift, once in Kotlin, and once in TypeScript for the web client…"; sisa kalimat tetap.
-   - **Sampai bunyi itu disetujui**, layar web tidak memuat bantuan isian, dan server menolak dengan kode galat per medan (ADR-013 opsi B), sehingga tidak ada kode yang melanggar ES yang berlaku. **Tidak ada yang tertahan:** FS-1 langkah 1 dan seterusnya berjalan; bantuan isian ditambahkan sesudah persetujuan sebagai perubahan biasa.
-16. **Kinerja dan perangkat ukur** (ADR-029 catatan web; isi diterima, bawaan 69.3; bunyi ES §3 menunggu pratinjau pemilik produk):
+    - **Bunyi ES §2** (dipasang lead): bantuan isian juga boleh ditulis sekali di TypeScript untuk klien web; bunyi persisnya di `ENGINEERING-STANDARDS.md` §2.
+    - **Bantuan isian diizinkan di klien web sejak FS-1 langkah 1.** Aturan sementara "tanpa bantuan isian sampai disetujui" gugur.
+16. **Kinerja dan perangkat ukur** (ADR-029 catatan web; isi diterima, bawaan 69.3; bunyi ES §3 disetujui pemilik produk dan dipasang, 13 November 2026):
     - Angka `[DEFAULT]` ES §3 dikukuhkan di klien web pada iPhone 13, iPad mini 7, dan Galaxy A55 sebelum GR-2.
     - Klien native diukur sebelum masing-masing memegang data nyata, dengan ADR kinerja yang sama direvisi.
-    - "App download size ≤ 30 MB" berpadanan web: **ukuran transfer app shell terkompresi ≤ 500 KB [Usulan] [Asumsi]**, dikukuhkan sesudah prototipe.
-    - **Usulan bunyi ES §3:** "…on the pilot devices: the web client on iPhone 13, iPad mini 7 and Galaxy A55 before the first real data; each native app on its pilot devices before it holds real data (ADR-029, ADR-030)."
-17. **Masa tunggu dependensi bundel** (butir 8): **usulan tambahan ES §8:** "Exception: web bundle dependencies are installed only after a version has been public for 7 days; security fixes are exempt (ADR-030)."
+    - "App download size ≤ 30 MB" berpadanan web: **ukuran transfer app shell terkompresi ≤ 500 KB**, kini baris `[DEFAULT]` di ES §3, dikukuhkan sesudah prototipe seperti angka `[DEFAULT]` lain.
+    - **Bunyi ES §3** (dipasang lead): pengukuran di klien web pada ketiga perangkat sebelum data nyata pertama, setiap aplikasi native sebelum memegang data nyata; bunyi persisnya di `ENGINEERING-STANDARDS.md` §3.
+17. **Masa tunggu dependensi bundel** (butir 8): **bunyi ES §8** (dipasang lead, 13 November 2026): masa tunggu 7 hari bagi dependensi bundel web, perbaikan keamanan dikecualikan; bunyi persisnya di `ENGINEERING-STANDARDS.md` §8.
 18. **Alat kualitas web** (ADR-025 catatan web):
     - Formatter: Prettier dengan `prettier-plugin-svelte`.
     - Linter: ESLint dengan `typescript-eslint` dan `eslint-plugin-svelte`, ditambah `svelte-check` untuk tipe.
@@ -231,7 +231,7 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
 
 | Sekarang (ADR ini) | Menunggu, dengan titiknya |
 |---|---|
-| Urutan web lebih dulu; stack O-1 A, O-2 A, O-3 A; satu origin; sesi, CSRF, CSP; npm dengan pnpm dan OSV-Scanner; service worker dan versi minimum; Web Push | Pratinjau bunyi ES §2, §3, §8 (butir 15 sampai 17; isinya diterima sebagai bawaan 69.1 sampai 69.3): lead kepada pemilik produk, sebaiknya sebelum FS-1 langkah 1. **Tidak menahan FS-1:** sampai bunyi disetujui, klien web tanpa bantuan isian (butir 15), tanpa masa tunggu dependensi (butir 8, 17), dan ES §3 dibaca apa adanya; bantuan isian TypeScript ditambahkan sesudahnya sebagai perubahan biasa |
+| Urutan web lebih dulu; stack O-1 A, O-2 A, O-3 A; satu origin; sesi, CSRF, CSP; npm dengan pnpm dan OSV-Scanner; service worker dan versi minimum; Web Push; bunyi ES §2, §3, §8 (butir 15 sampai 17) disetujui pemilik produk dan dipasang (13 November 2026) | — |
 | PBKDF2 600.000 | Waktu derivasi di perangkat: prototipe FS-1 langkah 1 |
 | Batas bawah Safari 17 | Kebijakan Trusted Types Svelte, gaya inline, host push non-Apple: prototipe FS-1 langkah 1 sampai 2 |
 | Urutan sesudah GR-2: iOS native lalu Android native (bawaan 69.5, diterima atas saran lead) | Kapan jalur iOS native dimulai di antara gelombang Tier 2: pemilik produk di GR-2 |

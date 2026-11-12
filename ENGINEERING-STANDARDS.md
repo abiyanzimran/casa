@@ -18,7 +18,7 @@ Planning documents must not recommend anything that breaks these rules.
 
 - Before writing a helper, type, or query, search the codebase for an existing one and reuse it.
 - Every business rule has exactly one authoritative implementation. The server is always the final authority on money and approvals. Where a client must apply a rule while offline, it uses that same implementation (shared or generated code), never a hand-written copy, and the server re-checks the result on sync. Where rules run was decided at S4: on the server only (ADR-013), with the exception below.
-- Exception (ADR-013, approved by the owner at checkpoint S4): exactly three client input aids may be hand-written once in Swift and once in Kotlin: (a) the difference between an entry's lines and its total, with save unavailable until they match; (b) "split evenly", with the remainder on the first line; (c) input shape (required, positive integer, text length). Golden test vectors generated from the server's reference implementation run in each client's CI, and a mismatch blocks merge. The server re-checks (a) and (c). Any other client-side rule needs a new ADR approved by the owner.
+- Exception (ADR-013, approved by the owner at checkpoint S4; web added by ADR-030): exactly three client input aids may be hand-written once in Swift, once in Kotlin, and once in TypeScript for the web client: (a) the difference between an entry's lines and its total, with save unavailable until they match; (b) "split evenly", with the remainder on the first line; (c) input shape (required, positive integer, text length). Golden test vectors generated from the server's reference implementation run in each client's CI, and a mismatch blocks merge. The server re-checks (a) and (c). Any other client-side rule needs a new ADR approved by the owner.
 - The API contract is defined once and client types are generated from it. Hand-written copies of request or response types are not allowed.
 - Validation rules, error codes, and constants are defined once and shared.
 - Screens are built from the design system's components. A second copy of a component is a defect.
@@ -26,7 +26,7 @@ Planning documents must not recommend anything that breaks these rules.
 
 ## 3. Performance
 
-Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR after the first measurement in the build phase on the pilot devices: iPhone 13 and iPad mini 7 before the first real data, Galaxy A55 before the Android app holds real data (ADR-029).
+Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR after the first measurement in the build phase on the pilot devices: the web client on iPhone 13, iPad mini 7 and Galaxy A55 before the first real data; each native app on its pilot devices before it holds real data (ADR-029, ADR-030).
 
 | Area | Target |
 |---|---|
@@ -35,6 +35,7 @@ Targets marked `[DEFAULT]` are starting values, confirmed or changed by ADR afte
 | Scrolling and transitions | No dropped frames at the device's refresh rate on the pilot devices |
 | API response, 95th percentile, on the pilot VPS | `[DEFAULT]` ≤ 200 ms for reads, ≤ 400 ms for writes |
 | App download size | `[DEFAULT]` ≤ 30 MB |
+| Web app shell transfer size, compressed | `[DEFAULT]` ≤ 500 KB |
 
 - Every list is paginated or virtualized. No unbounded query reaches the database.
 - Every query used by a screen has an index that serves it; a query plan is reviewed for each new one.
@@ -85,6 +86,7 @@ Applies to everything installed: language toolchains, frameworks, SDKs, librarie
 
 - **Checked live.** At the moment of installing or upgrading, the current version is looked up in the official registry or release page. A version number from memory, a tutorial, or an article is never used.
 - **Newest stable only.** No alpha, beta, release candidate, canary, or nightly build, and no API its maintainers mark experimental or unstable. An exception needs an ADR. A 0.x release that is not a pre-release, or an API marked experimental inside a stable release, counts as stable only if it is listed in ADR-023 with its fallback; anything else needs its own ADR (approved by the owner at checkpoint S4).
+- **Waiting period for web bundle dependencies.** A web bundle dependency is installed or upgraded only after that version has been public for 7 days; security fixes are exempt (ADR-030).
 - **Known problems checked.** Before adopting a version, read its release notes and check the project's security advisories and open critical issues. If the newest stable release has a known defect that affects this product, use the newest stable release without that defect, and record the reason and the condition for moving up.
 - **Compatible as a set.** Versions must be supported together (framework, OS SDK, build tool, language). Follow the framework's own compatibility table, not the newest number of each part.
 - **Pinned.** Exact versions and a committed lockfile. No floating ranges.
