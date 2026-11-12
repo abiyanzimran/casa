@@ -44,7 +44,9 @@ var (
 	}, "|") + `)(?:[ :]|$)`)
 	// idLikePrefix matches a name that starts like an ID; one that does not
 	// also match testNameID is a typo, not a plain name (brief review focus 3).
-	idLikePrefix = regexp.MustCompile(`^(?:FR-|INV|PG-|CTH-|SCN-|SEC-)`)
+	// The hyphen is part of every prefix, so "INVALID input" is a plain name
+	// (lead ruling 13 Nov 2026, 1.1c).
+	idLikePrefix = regexp.MustCompile(`^(?:FR-|INV-|PG-|CTH-|SCN-|SEC-)`)
 	// typeScriptTest matches test( and it( with a string literal title, with
 	// .only or .skip; not a method such as /re/.test(…).
 	typeScriptTest = regexp.MustCompile(`(?:^|[^.\w$])(test|it)(\.only|\.skip)?\(\s*(?:'([^'\n]*)'|"([^"\n]*)"|` + "`([^`$]*)`" + `)`)
@@ -147,10 +149,47 @@ func readGoTestNames(path, rel string) ([]TestRef, error) {
 			unquoteErr = fmt.Errorf("%s: %w", fset.Position(lit.Pos()), err)
 			return false
 		}
-		names = append(names, TestRef{ID: name, File: rel, Line: fset.Position(lit.Pos()).Line})
+		names = append(names, TestRef{
+			ID:      name,
+			File:    rel,
+			Line:    fset.Position(lit.Pos()).Line,
+			Skipped: len(call.Args) > 1 && skipsDirectly(call.Args[1]),
+		})
 		return true
 	})
 	return names, unquoteErr
+}
+
+// skipsDirectly reports whether fn is a func literal whose body calls Skip,
+// Skipf or SkipNow on its first parameter as a statement of its own; a skip
+// inside a branch is not seen (lead ruling 13 Nov 2026, 1.1c).
+func skipsDirectly(fn ast.Expr) bool {
+	lit, ok := fn.(*ast.FuncLit)
+	if !ok || len(lit.Type.Params.List) == 0 || len(lit.Type.Params.List[0].Names) == 0 {
+		return false
+	}
+	param := lit.Type.Params.List[0].Names[0].Name
+	for _, stmt := range lit.Body.List {
+		expr, ok := stmt.(*ast.ExprStmt)
+		if !ok {
+			continue
+		}
+		call, ok := expr.X.(*ast.CallExpr)
+		if !ok {
+			continue
+		}
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			continue
+		}
+		if x, ok := sel.X.(*ast.Ident); ok && x.Name == param {
+			switch sel.Sel.Name {
+			case "Skip", "Skipf", "SkipNow":
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func readTypeScriptTestNames(path, rel string) ([]TestRef, error) {

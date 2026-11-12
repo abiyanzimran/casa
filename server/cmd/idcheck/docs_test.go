@@ -35,11 +35,16 @@ func TestReadRequirementsReadsOnlyDefinitions(t *testing.T) {
 		"INV-A35": true,
 		"PG-14":   true, "PG-15": false,
 		"CTH-01": true, "CTH-03b": true, "CTH-37": true, // CTH-37 is a numbered section heading
-		// SCN-08 is "2 (+1)": not required until the lead decides (14 §4.4).
-		"SCN-01": true, "SCN-02": true, "SCN-03": false, "SCN-07": false, "SCN-08": false,
-		"SEC-01": true, "SEC-02": true, "SEC-158": true,
-		// Store-only rows (Apple, Google): known, not required.
-		"SEC-143": false, "SEC-145": false, "SEC-146": false,
+		// SCN-08 is "2 (+1)": its Tier 1 part is tested in FS-1 (14 §4.4).
+		"SCN-01": true, "SCN-02": true, "SCN-03": false, "SCN-07": false, "SCN-08": true,
+		// Stage begins with "Pilot", also in bold ("**Pilot**").
+		"SEC-01": true, "SEC-02": true, "SEC-08": true, "SEC-34": true,
+		// "bila": conditional on a later build decision.
+		"SEC-57": false, "SEC-170": false,
+		// Stage does not begin with "Pilot".
+		"SEC-149": false,
+		// "Toko" tables: store rows gate the native store tracks.
+		"SEC-143": false, "SEC-145": false, "SEC-146": false, "SEC-158": false,
 	}
 	if !maps.Equal(got, want) {
 		t.Fatalf("requirements =\n%v\nwant\n%v", got, want)

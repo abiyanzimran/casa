@@ -107,9 +107,11 @@ func TestRunReleaseFailsOnEveryRequiredIDWithoutATest(t *testing.T) {
 
 func TestRunListsUntukValues(t *testing.T) {
 	code, stdout, _ := runIDCheck(t, "-docs", "testdata/docs", "-list-untuk")
-	want := "09\tserver or web\t2 rows\n" +
+	want := "08\tserver or web\t2 rows\n" +
+		"09\tserver or web\t6 rows\n" +
 		"Apple\tnot server or web\t2 rows\n" +
 		"Google\tnot server or web\t3 rows\n" +
+		"Ops\tserver or web\t1 rows\n" +
 		"Semua jalur\tserver or web\t1 rows\n"
 	if code != 0 || stdout != want {
 		t.Fatalf("code %d, stdout %q; want 0, %q", code, stdout, want)
@@ -124,8 +126,8 @@ func TestRunPrintsCountsPerKind(t *testing.T) {
 		"INV-A\t1\t1\n" +
 		"PG\t2\t1\n" +
 		"CTH\t3\t3\n" +
-		"SCN\t5\t2\n" +
-		"SEC\t6\t3\n"
+		"SCN\t5\t3\n" +
+		"SEC\t11\t4\n"
 	if code != 0 || stdout != want {
 		t.Fatalf("code %d, stdout %q; want 0, %q", code, stdout, want)
 	}

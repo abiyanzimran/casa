@@ -55,7 +55,8 @@ var deferredGuardrails = map[string]bool{"PG-15": true} // FS-3 (14 §4.2, §8)
 // document or owner that implements the requirement (10 §0 "Kolom Untuk"),
 // not a platform, and a requirement that names no platform applies to the web
 // client as written (10 §0); store values (Apple, Google) are store policy for
-// the native apps. An unmapped value fails the check.
+// the native apps (mapping confirmed by lead ruling 13 Nov 2026, 1.1c). An
+// unmapped value fails the check.
 var untukAppliesToServerOrWeb = map[string]bool{
 	"05": true, "06": true, "07": true, "08": true, "09": true, "10": true, "14": true,
 	"Ops": true, "ADR-018": true, "ADR-019": true, "ADR-030": true, "Semua jalur": true,
@@ -75,7 +76,8 @@ var (
 	invariantHeader   = regexp.MustCompile(`^\| ID \| Invarian \| Cara menguji \|`)
 	guardrailHeader   = regexp.MustCompile(`^\| ID \| Pagar \| Cara menguji \|`)
 	scenarioHeader    = regexp.MustCompile(`^\| SCN \| Judul \| Tier \|`)
-	securityHeader    = regexp.MustCompile(`^\| ID \| Persyaratan \| (Untuk|Toko) \| Tahap \|`)
+	securityHeader    = regexp.MustCompile(`^\| ID \| Persyaratan \| Untuk \| Tahap \|`)
+	storeHeader       = regexp.MustCompile(`^\| ID \| Persyaratan \| Toko \| Tahap \|`)
 	scenarioTier      = regexp.MustCompile(`^([123])(?: \(\+[123](?:, [123])*\))?$`)
 	untukSeparator    = regexp.MustCompile(`[,;]`)
 	idCellInvariant   = regexp.MustCompile(`^` + invariantPattern + `$`)
@@ -323,9 +325,9 @@ func readWorkedExamples(docsDir string, reqs requirementSet) error {
 }
 
 // readScenarios reads the 12 §2 table. A scenario is required when the first
-// tier in its Tier column is 1: "1" or "1 (+2, 3)", the 38 Tier 1 scenarios
-// of 14 §4.4. Whether a "(+1)" Tier 1 part is required is for the lead to
-// decide (14 §4.4 names SCN-08, SCN-18, SCN-41; 12 §2 also marks SCN-39).
+// tier in its Tier column is 1 ("1", "1 (+2, 3)"), or when the column holds
+// "(+1)": its Tier 1 part is tested in FS-1 too (14 §4.4; lead ruling 13 Nov
+// 2026, 1.1c, which includes SCN-39 as 12 §2 marks it).
 func readScenarios(docsDir string, reqs requirementSet) error {
 	path := filepath.Join(docsDir, "12-scenarios.md")
 	rows, err := readTable(path, scenarioHeader)
@@ -341,16 +343,16 @@ func readScenarios(docsDir string, reqs requirementSet) error {
 		if m == nil {
 			return fmt.Errorf("%s:%d: %s has tier %q, not \"N\" or \"N (+N, …)\"", path, row.line, id, cell(row, 2))
 		}
-		if err := reqs.add(id, m[1] == "1", path, row.line); err != nil {
+		required := m[1] == "1" || strings.Contains(cell(row, 2), "(+1)")
+		if err := reqs.add(id, required, path, row.line); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// readSecurityRequirements reads the SEC tables of 10. A SEC is required when
-// its stage names "Pilot" and its "Untuk" column applies to the server or
-// the web client (10 §0 "Pilot per klien").
+// readSecurityRequirements reads the SEC tables of 10. Every clause of the
+// required rule is a lead ruling of 13 Nov 2026 (1.1c).
 func readSecurityRequirements(docsDir string, reqs requirementSet) error {
 	rows, err := readSecurityRows(docsDir)
 	if err != nil {
@@ -369,7 +371,17 @@ func readSecurityRequirements(docsDir string, reqs requirementSet) error {
 			}
 			applies = applies || mapped
 		}
-		required := applies && strings.Contains(cell(row.tableRow, 3), "Pilot")
+		// The stage, trimmed of spaces and bold markers, begins with "Pilot"
+		// (lead ruling 13 Nov 2026, 1.1c; 10 §0 "Pilot per klien").
+		stage := cell(row.tableRow, 3)
+		pilot := strings.HasPrefix(strings.TrimLeft(strings.TrimSpace(stage), "*"), "Pilot")
+		// "bila" makes the row conditional on a later build decision (lead
+		// ruling 13 Nov 2026, 1.1c).
+		conditional := strings.Contains(stage, "bila")
+		// Store rows ("Toko" tables, 10.4 §2) gate the native store tracks
+		// (14 §3.8, §3.9); the web client is in no store (lead ruling 13 Nov
+		// 2026, 1.1c).
+		required := applies && pilot && !conditional && !row.store
 		if err := reqs.add(id, required, row.path, row.line); err != nil {
 			return err
 		}
@@ -379,7 +391,8 @@ func readSecurityRequirements(docsDir string, reqs requirementSet) error {
 
 type securityRow struct {
 	tableRow
-	path string
+	path  string
+	store bool // from a "Toko" table
 }
 
 func readSecurityRows(docsDir string) ([]securityRow, error) {
@@ -389,12 +402,17 @@ func readSecurityRows(docsDir string) ([]securityRow, error) {
 	}
 	var rows []securityRow
 	for _, path := range paths {
-		table, err := readTable(path, securityHeader)
-		if err != nil {
-			return nil, err
-		}
-		for _, row := range table {
-			rows = append(rows, securityRow{tableRow: row, path: path})
+		for _, kind := range []struct {
+			header *regexp.Regexp
+			store  bool
+		}{{securityHeader, false}, {storeHeader, true}} {
+			table, err := readTable(path, kind.header)
+			if err != nil {
+				return nil, err
+			}
+			for _, row := range table {
+				rows = append(rows, securityRow{tableRow: row, path: path, store: kind.store})
+			}
 		}
 	}
 	return rows, nil

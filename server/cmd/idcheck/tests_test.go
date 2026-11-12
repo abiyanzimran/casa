@@ -30,6 +30,15 @@ func TestX(t *testing.T) {
 	t.Run(name, func(t *testing.T) {})
 	t.Run("FR-FAM-01/AC-1 typo", func(t *testing.T) {})
 	t.Run("plain name", func(t *testing.T) {})
+	t.Run("INVALID input is a plain name", func(t *testing.T) {})
+	t.Run("PG-02 skipped", func(t *testing.T) { t.Skip("later") })
+	t.Run("PG-03 skipped", func(t *testing.T) { t.Skipf("later %d", 1) })
+	t.Run("PG-04 skipped", func(t *testing.T) { t.SkipNow() })
+	t.Run("PG-05 skips only sometimes", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("short")
+		}
+	})
 }
 `
 
@@ -41,6 +50,7 @@ test.skip('PG-01 symmetric', () => {});
 test.only('SCN-01 meal money', () => {});
 test('INV-1 typo', () => {});
 expect(/x/.test('INV-03 not a test')).toBe(false);
+test('INVALID input', () => {});
 `
 
 func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
@@ -66,6 +76,10 @@ func TestScanTestsReadsIDsFromTestNames(t *testing.T) {
 		{ID: "FR-FAM-001/AC-1", File: "server/x/x_test.go", Line: 6},
 		{ID: "INV-A35", File: "server/x/x_test.go", Line: 7},
 		{ID: "CTH-03b", File: "server/x/x_test.go", Line: 8},
+		{ID: "PG-02", File: "server/x/x_test.go", Line: 14, Skipped: true},
+		{ID: "PG-03", File: "server/x/x_test.go", Line: 15, Skipped: true},
+		{ID: "PG-04", File: "server/x/x_test.go", Line: 16, Skipped: true},
+		{ID: "PG-05", File: "server/x/x_test.go", Line: 17},
 		{ID: "INV-01", File: "web/src/lib/money.test.ts", Line: 3},
 		{ID: "SEC-158", File: "web/src/lib/money.test.ts", Line: 4},
 		{ID: "PG-01", File: "web/src/lib/money.test.ts", Line: 5, Skipped: true},
