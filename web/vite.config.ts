@@ -16,7 +16,7 @@ export default defineConfig({
 				fallback: 'index.html',
 				// scripts/check-bundle.mjs builds into a temporary directory, so a
 				// build with source maps never lands in build/. Unset: 'build'.
-				pages: process.env.BUNDLE_CHECK_OUT
+				pages: process.env.BUNDLE_CHECK_OUT || undefined
 			})
 		})
 	],

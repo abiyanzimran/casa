@@ -8,8 +8,9 @@
 //    temporary directory; every node_modules package named in them must be on
 //    the allowlist, and the list must not be empty and must contain svelte, so
 //    an unreadable or empty map cannot pass.
+// 3. static/ holds no script or WebAssembly file (SEC-168 (d)).
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -22,9 +23,9 @@ const allowed = new Set([
 	'@connectrpc/connect',
 	'@connectrpc/connect-web',
 	'@bufbuild/protobuf',
-	// Part of the @sveltejs/kit client runtime (Kit's own dependency, used to
-	// serialize data); not imported by Casa code. Pending confirmation that
-	// "@sveltejs/kit (runtime klien)" in ADR-030 item 8 covers it.
+	// Imported by the @sveltejs/kit client runtime itself (serializes load
+	// data); covered by the "@sveltejs/kit (runtime klien)" entry (ADR-030
+	// item 8, lead's note of 13 November 2026). Not for Casa code to import.
 	'devalue'
 ]);
 const allowedPrefixes = ['workbox-']; // pulled in by @vite-pwa/sveltekit
@@ -60,6 +61,16 @@ function packageOf(source) {
 
 /** @type {string[]} */
 const problems = [];
+
+// Files in static/ are copied into the build as they are, so a script there,
+// loaded through <script src> in app.html, would bypass the source map check.
+if (existsSync('static')) {
+	for (const file of files('static')) {
+		if (/\.(js|mjs|cjs|wasm)$/.test(file)) {
+			problems.push(`SEC-168 (d): code in static/ bypasses the bundle allowlist: ${file}`);
+		}
+	}
+}
 
 delete process.env.BUNDLE_CHECK;
 delete process.env.BUNDLE_CHECK_OUT;
