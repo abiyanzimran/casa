@@ -99,7 +99,7 @@ func check(docsDir, repoDir, scopePath string, release bool, out io.Writer) (int
 		}
 	}
 	for _, ref := range malformed {
-		report("%s:%d: test name starts like an ID but %s is not one", ref.File, ref.Line, ref.ID)
+		report("%s:%d: %s", ref.File, ref.Line, ref.Reason)
 	}
 
 	if scopePath != "" {

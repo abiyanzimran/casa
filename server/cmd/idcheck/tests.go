@@ -14,12 +14,19 @@ import (
 )
 
 // TestRef is one test whose name starts with an ID. Skipped tests are
-// reported but are never evidence (brief review focus 4).
+// reported but are never evidence (brief review focus 4). For a malformed
+// name, ID is its first word and Reason says what is wrong.
 type TestRef struct {
 	ID, File string
 	Line     int
 	Skipped  bool
+	Reason   string
 }
+
+// lookAlikeReason is the finding for an ID where none is read: a template
+// literal or describe title, or a look-alike in another letter case
+// (code-reviewer, 1.1c fix round 1).
+const lookAlikeReason = "IDs belong at the start of a plain-string test/it title"
 
 // testRoots are the directories scanned, each with the file suffix of the
 // test files in it (14 §4.1 item 3: one name shape per language).
@@ -29,11 +36,11 @@ var testRoots = []struct{ dir, suffix string }{
 	{"web/tests", ".spec.ts"},
 }
 
-// skippedDirs hold third-party code, build output, generated code, or test
-// fixtures: never this repository's tests (brief review focus 5).
-var skippedDirs = map[string]bool{
-	"node_modules": true, ".svelte-kit": true, "build": true, "gen": true, "testdata": true,
-}
+// skippedDirs hold third-party code, generated code, or test fixtures at any
+// depth: never this repository's tests (brief review focus 5). Build output
+// (web/build, web/.svelte-kit) lies outside the scanned roots, so a source
+// directory named build is still scanned.
+var skippedDirs = map[string]bool{"node_modules": true, "gen": true, "testdata": true}
 
 var (
 	// testNameID matches a test name that starts with one ID followed by a
@@ -47,9 +54,8 @@ var (
 	// The hyphen is part of every prefix, so "INVALID input" is a plain name
 	// (lead ruling 13 Nov 2026, 1.1c).
 	idLikePrefix = regexp.MustCompile(`^(?:FR-|INV-|PG-|CTH-|SCN-|SEC-)`)
-	// typeScriptTest matches test( and it( with a string literal title, with
-	// .only or .skip; not a method such as /re/.test(…).
-	typeScriptTest = regexp.MustCompile(`(?:^|[^.\w$])(test|it)(\.only|\.skip)?\(\s*(?:'([^'\n]*)'|"([^"\n]*)"|` + "`([^`$]*)`" + `)`)
+	// idLikePrefixAnyCase also catches look-alikes such as "inv-01".
+	idLikePrefixAnyCase = regexp.MustCompile(`(?i)^(?:FR-|INV-|PG-|CTH-|SCN-|SEC-)`)
 )
 
 // scanTests reads the names of the tests under repoDir and returns those
@@ -77,19 +83,25 @@ func scanTests(repoDir string) (refs, malformed []TestRef, err error) {
 			if err != nil {
 				return err
 			}
-			names, err := readTestNames(path, filepath.ToSlash(rel))
+			names, err := readTestNames(path)
 			if err != nil {
 				return err
 			}
 			for _, n := range names {
-				switch id, ok := idOfTestName(n.ID); {
-				case ok:
-					n.ID = id
-					refs = append(refs, n)
-				case idLikePrefix.MatchString(n.ID):
-					n.ID, _, _ = strings.Cut(n.ID, " ")
-					n.ID = strings.TrimSuffix(n.ID, ":")
-					malformed = append(malformed, n)
+				ref := TestRef{File: filepath.ToSlash(rel), Line: n.line, Skipped: n.skipped}
+				id, isID := idOfTestName(n.name)
+				switch {
+				case n.plain && isID:
+					ref.ID = id
+					refs = append(refs, ref)
+				case n.plain && idLikePrefix.MatchString(n.name):
+					ref.ID = firstWord(n.name)
+					ref.Reason = fmt.Sprintf("test name starts like an ID but %s is not one", ref.ID)
+					malformed = append(malformed, ref)
+				case idLikePrefixAnyCase.MatchString(n.name):
+					ref.ID, ref.Skipped = firstWord(n.name), false
+					ref.Reason = lookAlikeReason
+					malformed = append(malformed, ref)
 				}
 			}
 			return nil
@@ -109,24 +121,36 @@ func idOfTestName(name string) (string, bool) {
 	return m[1], true
 }
 
-// readTestNames returns every literal test name in one file, the whole name
-// in ID, with its line.
-func readTestNames(path, rel string) ([]TestRef, error) {
+func firstWord(name string) string {
+	word, _, _ := strings.Cut(name, " ")
+	return strings.TrimSuffix(word, ":")
+}
+
+// readTestNames returns every literal test name in one file with its line.
+func readTestNames(path string) ([]testName, error) {
 	if strings.HasSuffix(path, ".go") {
-		return readGoTestNames(path, rel)
+		return readGoTestNames(path)
 	}
-	return readTypeScriptTestNames(path, rel)
+	content, err := os.ReadFile(path) //nolint:gosec // G304: the path is a test file found under the -repo flag of a CI tool, not user input
+	if err != nil {
+		return nil, err
+	}
+	names, err := readTypeScriptTestNames(string(content))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return names, nil
 }
 
 // readGoTestNames returns the first argument of every x.Run call that is a
 // string literal; a name held in a variable is not read.
-func readGoTestNames(path, rel string) ([]TestRef, error) {
+func readGoTestNames(path string) ([]testName, error) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, path, nil, parser.SkipObjectResolution)
 	if err != nil {
 		return nil, err
 	}
-	var names []TestRef
+	var names []testName
 	var unquoteErr error
 	ast.Inspect(file, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
@@ -149,11 +173,11 @@ func readGoTestNames(path, rel string) ([]TestRef, error) {
 			unquoteErr = fmt.Errorf("%s: %w", fset.Position(lit.Pos()), err)
 			return false
 		}
-		names = append(names, TestRef{
-			ID:      name,
-			File:    rel,
-			Line:    fset.Position(lit.Pos()).Line,
-			Skipped: len(call.Args) > 1 && skipsDirectly(call.Args[1]),
+		names = append(names, testName{
+			name:    name,
+			line:    fset.Position(lit.Pos()).Line,
+			skipped: len(call.Args) > 1 && skipsDirectly(call.Args[1]),
+			plain:   true,
 		})
 		return true
 	})
@@ -161,8 +185,11 @@ func readGoTestNames(path, rel string) ([]TestRef, error) {
 }
 
 // skipsDirectly reports whether fn is a func literal whose body calls Skip,
-// Skipf or SkipNow on its first parameter as a statement of its own; a skip
-// inside a branch is not seen (lead ruling 13 Nov 2026, 1.1c).
+// Skipf or SkipNow on its first parameter as a statement of its own (lead
+// ruling 13 Nov 2026, 1.1c). Not seen, so such a test counts as evidence: a
+// skip inside a branch or a deferred call, a skip in a parent test, and a
+// subtest given as a named function; code-reviewer checks those by hand
+// (14 §4.13).
 func skipsDirectly(fn ast.Expr) bool {
 	lit, ok := fn.(*ast.FuncLit)
 	if !ok || len(lit.Type.Params.List) == 0 || len(lit.Type.Params.List[0].Names) == 0 {
@@ -190,29 +217,4 @@ func skipsDirectly(fn ast.Expr) bool {
 		}
 	}
 	return false
-}
-
-func readTypeScriptTestNames(path, rel string) ([]TestRef, error) {
-	content, err := os.ReadFile(path) //nolint:gosec // G304: the path is a test file found under the -repo flag of a CI tool, not user input
-	if err != nil {
-		return nil, err
-	}
-	text := string(content)
-	var names []TestRef
-	for _, m := range typeScriptTest.FindAllStringSubmatchIndex(text, -1) {
-		// Groups: 1 test or it, 2 .only or .skip, 3 to 5 the title in ', " or `.
-		var name string
-		for g := 3; g <= 5; g++ {
-			if m[2*g] >= 0 {
-				name = text[m[2*g]:m[2*g+1]]
-			}
-		}
-		names = append(names, TestRef{
-			ID:      name,
-			File:    rel,
-			Line:    strings.Count(text[:m[2]], "\n") + 1,
-			Skipped: m[4] >= 0 && text[m[4]:m[5]] == ".skip",
-		})
-	}
-	return names, nil
 }
