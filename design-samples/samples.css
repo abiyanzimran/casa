@@ -1024,6 +1024,26 @@ details[open] summary .ikon {
 }
 
 @media (min-width: 600px) {
+  /* Beranda: no empty band above Uang kita. The bar shares the first content row: nothing visible at
+     Sedang, only the Chat button at the right at Lebar (QG-09 M-3). */
+  .bilah-atas-beranda {
+    grid-area: isi;
+    z-index: 1;
+    align-self: start;
+    justify-self: end;
+    margin: var(--jarak-4) calc(var(--jarak-6) + env(safe-area-inset-right)) 0 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .bilah-atas-beranda .buka-chat {
+    background: var(--kertas);
+  }
+
+  .dengan-tombol-mengambang main {
+    scroll-padding-top: calc(var(--sasaran-utama) + var(--jarak-4));
+  }
+
   /* Beranda: the household name moves to the rail head; the h1 stays for screen readers */
   .judul-di-rail {
     position: absolute;
