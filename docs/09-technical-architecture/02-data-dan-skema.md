@@ -298,9 +298,11 @@ push_token (session_id uuid PRIMARY KEY, platform text, token text, updated_at t
 -- Mekanisme Apple 1.2, Tier 1 (10-G A, S4-7 A; FR-COM-019; 06 §16.12; SEC-153, SEC-154)
 member_mute (household_id, viewer uuid, muted_member uuid, created_at,
              PRIMARY KEY (household_id, viewer, muted_member))   -- milik viewer; tidak terbaca anggota lain
--- content_report TIDAK dibuat di pilot: "Laporkan" hanya membuka halaman Bantuan (SEC-154 (c)).
--- Sesudah pilot, hanya bila pengelola bukan anggota rumah tangga pelapor; tidak pernah diteruskan
--- kepada orang yang dilaporkan.
+-- content_report TIDAK dibuat selama pengelola server anggota rumah tangga pelapor (pilot):
+-- "Laporkan" hanya membuka halaman Bantuan (SEC-154 (c)). Dibuat sejak build pertama ke TestFlight
+-- eksternal atau App Store, atau sejak pengguna luar pertama membuat rumah tangga tanpa pengelola,
+-- mana yang lebih dulu (SEC-154; keputusan 52), dan hanya dipakai bila pengelola bukan anggota
+-- rumah tangga pelapor; tidak pernah diteruskan kepada orang yang dilaporkan.
 content_report (household_id, id, reporter uuid, subject_kind text, subject_id uuid,
                 attached_excerpt text NULL,  -- hanya butir yang dipilih pelapor sendiri
                 created_at, handled_at NULL) -- dibaca pengelola lewat `familyos ops report`, bukan API

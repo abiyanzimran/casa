@@ -158,7 +158,7 @@ Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temua
 | 10 §4.1 | Butir | Di dokumen ini |
 |---|---|---|
 | 1 | Persyaratan berkolom "Pilot" dibangun dan lulus uji | §4, §8 |
-| 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. DPIA dan catatan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai: usulan `security-privacy` (10 §3.1), **diterima atas saran lead** (Q-208, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4") | ADR-020; ADR-026 |
+| 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. DPIA dan catatan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai: usulan `security-privacy` (10 §3.1), **diterima atas saran lead** (Q-208, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). **Diganti keputusan 68:** tidak disiapkan untuk pilot dan ditunda ke go public; kontrol teknis tetap | ADR-020; ADR-026 |
 | 7 | Penyedia hosting dan cadangan dipilih (S4-2), dengan pihak kontrak dan lokasi pusat data tercatat dan pernyataan tertulis bahwa isi VPS dan cadangan tetap di Indonesia | ADR-020 butir 1; RISK-04 |
 | 8 | Pemulihan cadangan diuji sekali; uji SEC-96 dan SEC-97 lulus | §6 "Uji pemulihan", "Umur data paling tua", "Jurnal penghapusan" |
 
@@ -169,7 +169,7 @@ Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temua
 | Disk VPS utama rusak | Layanan mati | Pulihkan ke VPS baru dari repositori; kehilangan ≤ 1 menit |
 | Penyedia utama mati atau akun ditangguhkan | Layanan mati | Sama, di penyedia lain; cadangan tidak di pihak kontrak yang sama |
 | Kesalahan operator (`DELETE` yang salah) | Data hilang | PITR ke sesaat sebelum kesalahan, lalu jurnal penghapusan dijalankan ulang |
-| VPS utama dibobol | Data terbaca penyerang; cadangan terancam dihapus | Salinan yang tidak dapat ditulis di VPS cadangan; rencana insiden SEC-148 |
+| VPS utama dibobol | Data terbaca penyerang; cadangan terancam dihapus | Salinan yang tidak dapat ditulis di VPS cadangan; runbook insiden SEC-148 (a) (rencana pemberitahuan SEC-148 (b) ditunda ke go public, keputusan 68) |
 | Ponsel hilang | Sesi di perangkat itu | Cabut dari perangkat lain atau lewat pemulihan; hapus jarak jauh (SEC-21) |
 
 ---
@@ -232,6 +232,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-14 | Biometrik lokal | Aplikasi | 03 §2 |
 | SEC-15 | Token dan penyimpanannya | `identity`; Keychain/Keystore | 03 §2; 04 §2 |
 | SEC-16, SEC-17 | Daftar sesi dan pemberitahuan masuk, hanya kepada pemilik | `security_event` milik akun | 02 §2 |
+| SEC-18, SEC-25 | Faktor kedua dan kode pemulihan: satu pasangan opsional per akun, dibangun di FS-2, tidak menahan GR-2 (keputusan 54; FR-FAM-026); faktor kedua di FS-2 hanya TOTP, passkey tetap di tahap publik (ketetapan lead; SEC-11) | `identity`; `security_event` | Indeks §6 |
 | SEC-19, SEC-20 | Kunci aplikasi; pengalih aplikasi tertutup | Aplikasi (layar netral saat `scenePhase` tidak aktif atau `onPause`) | 03 §2 |
 | SEC-21 | Hapus jarak jauh | `identity` + aplikasi | 03 §2; ADR-024 |
 | SEC-22, SEC-23, SEC-27 | Tidak mencabut sesi orang lain; F06 mencabut semua; tanpa akses darurat oleh anggota | `identity` (pencabutan hanya oleh sesi akun yang sama); `household` F06 | 02 §1 |
@@ -240,7 +241,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-158 | Pendaftaran tertutup; token pemasangan sekali pakai dari pengelola | `identity`; `household` | 04 §2 |
 | SEC-33 | Tanpa API admin | Subperintah `familyos ops` lewat SSH | 04 §1 |
 | SEC-34 | Pemberitahuan operator berversi | `operator_notice`, `operator_notice_ack` | 02 §1 |
-| SEC-36 | Akses darurat (publik) | Ditunda | Indeks §6 |
+| SEC-36 | Akses darurat | Tidak dibangun di pilot; wajib sebelum GR-4 (pengguna luar pertama, termasuk orang tua yang diberi login; keputusan 52; 10 §4.2; 14 QG-31 (a)) | Indeks §6 |
 | SEC-40 | TLS ≥ 1.2 | Biner Go | 04 §1 |
 | SEC-41 | Pengerasan VPS | Ops | 04 §1 |
 | SEC-42 | Rahasia | `LoadCredential` systemd | 04 §1 |
@@ -267,7 +268,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-86, SEC-89 | Uji tidak pernah terlihat; simetri berpermutasi | Rangkaian uji | 04 §4 |
 | SEC-92 | Kecocokan kategori | Modul `budget` (satu fungsi) | 02 §1 baris `budget` |
 | SEC-155 | Sebutan anggota per pembaca (F-FAM-021, Tier 2): hanya pembuat yang membaca; diterapkan di perangkat pembuat saat tampil; tidak di push, Peristiwa, kartu, ringkasan server, `AI`, log, atau ekspor orang lain; dihapus dua arah pada F07, hapus akun, dan undangan yang gugur | `household` (`member_label`, `invitation.inviter_label`); `read`; `lifecycle` (ekspor dan hapus) | 02 §5.5; 04 §4 |
-| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G A, Tier 1). Di pilot "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun; sesudah pilot laporan ke pengelola yang bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan | `chat` (`member_mute`); sesudah pilot `report` dan `familyos ops report` | 06 §16.12; 02 §5.3 |
+| SEC-153, SEC-154 | "Sembunyikan untuk saya"; "Laporkan" (Apple 1.2; 10-G A, Tier 1). Selama pengelola server anggota rumah tangga pelapor (pilot, keputusan 25), "Laporkan" hanya membuka Bantuan, tanpa kiriman apa pun (SEC-154 (c)); laporan dikirim ke pengelola hanya bila pengelola bukan anggota rumah tangga pelapor, tidak pernah kepada yang dilaporkan. SEC-154 (a), (b), (d) sampai (f) wajib sebelum build pertama ke TestFlight eksternal atau App Store, atau sebelum pengguna luar pertama yang membuat rumah tangga tanpa pengelola, mana yang lebih dulu (keputusan 52) | `chat` (`member_mute`); `report` dan `familyos ops report` sejak pemicu itu | 06 §16.12; 02 §5.3 |
 | SEC-93 | Tanpa agregasi sisi keluarga | Hubungan tidak disimpan; uji laporan | 02 §2 |
 | SEC-94, SEC-100 | Penghapusan 90 hari | Pekerjaan `lifecycle.*` | 03 §9 |
 | SEC-96, SEC-97 | Cadangan kedaluwarsa; pemulihan menjalankan jurnal penghapusan | pgBackRest; `deletion_journal` | 04 §6 |

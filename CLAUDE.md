@@ -63,7 +63,7 @@ Agent files for the build phase are written by the lead only after the owner app
 | Role | Does |
 |---|---|
 | `backend-dev` | Server, database, migrations, API contract |
-| `ios-dev`, `android-dev` | One per platform if the UI is fully native; a single `mobile-dev` if S4 chooses a shared framework |
+| `ios-dev`, `android-dev` | One per platform: S4 chose a fully native UI (Swift and SwiftUI; Kotlin and Jetpack Compose) |
 | `ux-designer` (continues) | Reviews every built screen against `docs/08-ux-ui-strategy.md` and the platform's guidelines |
 | `security-privacy` (continues) | Findings-only review before GR-2 (first real data), before the Android app holds real data, before GR-4 (first user outside the couple, parents included), and once a year, in place of a dedicated security role (owner decisions 49, 52, 53) |
 | `code-reviewer` | Two-pass review of every change: meets the requirement, then code quality against `ENGINEERING-STANDARDS.md` |
@@ -82,5 +82,5 @@ Every build agent follows `ENGINEERING-STANDARDS.md` without exception, includin
 - **Identifiers and traceability.** Use the scheme in the brief §16. Every Must-have requirement (all of Tier 1, plus any Tier 2 requirement labeled Must) maps to a feature and a scenario from S3, and to a roadmap phase from S5.
 - **Depth follows the MVP tiers** in the brief §1.1: full for Tier 1, concise for Tier 2, one page for Tier 3.
 - **Computed, not read.** Before each checkpoint, the lead checks the numbers in every financial worked example and scenario by computation (a throwaway script kept outside the repository). Reading the table is not a check.
-- **Deferred on purpose.** The mobile stack is recommended at stage S4, not earlier. Which platform is built first is the owner's decision when the build phase starts.
+- **Platform order.** The mobile stack was chosen at S4: a fully native UI per platform. iOS and iPadOS are built first; Android follows after real data starts (owner decisions 42, 50 and 58).
 - **Git.** One commit per completed stage, plus one for each owner-approved revision. Commit only finished, reviewed work. Planning commits go to the main branch; branch-per-task starts with the build phase.

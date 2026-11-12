@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `product-analyst` |
 | Tahap | S3, fase B (12 November 2026) |
-| Status | Draf pertama; ditinjau `critic` A (fase D); garis besar `COM` diperbarui putaran perbaikan fase D (CA-04). S4 fase D (12 November 2026, belum ditinjau `critic`): garis besar F-FIN-027 "Sembunyikan angka" di bagian 9 |
+| Status | Draf pertama; ditinjau `critic` A (fase D); garis besar `COM` diperbarui putaran perbaikan fase D (CA-04). S6 (12 November 2026): pass konsistensi; hanya klaim tinjauan yang basi ini yang dihapus. S4 fase D (12 November 2026, ditinjau `critic` sebelum checkpoint S4): garis besar F-FIN-027 "Sembunyikan angka" di bagian 9 |
 | Bagian dari | [05-functional-requirements.md](../05-functional-requirements.md) |
 | Kedalaman | Satu halaman per modul, tanpa nomor FR (brief §1.1: "A scenario that falls in Tier 3 scope is written at outline level and needs no requirement IDs") |
 

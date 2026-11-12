@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | Pemilik | Lead |
-| Tahap | S5 — Rencana dan sintesis, fase C (12 November 2026) |
-| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); direvisi untuk keputusan 42 dan ditinjau `critic` lagi (12 November 2026); temuan diperbaiki; direvisi untuk keputusan 43–50 dan 51–55 (12 November 2026) |
+| Tahap | S5 — Rencana dan sintesis, fase C (12 November 2026); S6 (12 November 2026): pass konsistensi |
+| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); direvisi untuk keputusan 42 dan ditinjau `critic` lagi (12 November 2026); temuan diperbaiki; direvisi untuk keputusan 43–50 dan 51–55 (12 November 2026); S6: keputusan 56–68 dimasukkan ke §1, §3, §4, §5, §10 |
 | Sumber yang mengikat | Brief §0.3, §1, §1.1, §16 (baris 16: "MVP, architecture, critical decisions, deferred decisions, features to reconsider, top opportunities"); `CLAUDE.md`; keputusan pemilik produk di [17](17-open-questions-assumptions.md) dan [_progress.md](_progress.md) |
 | Merangkum | 02 sampai 15 dan 18. Dokumen ini tidak menetapkan aturan, persyaratan, atau keputusan baru; setiap butir menunjuk sumbernya |
 | Dipakai oleh | [01](01-executive-summary.md) |
@@ -13,7 +13,7 @@
 
 ## 0. Cara membaca
 
-- **Kedudukan setiap butir** ditulis terang: *diputuskan pemilik produk* (keputusannya sendiri), *diterima* (atas saran lead atau lewat "lanjut" di checkpoint), atau **[Usulan]** (rekomendasi tim yang belum diputuskan). Kata pemilik produk hanya dikutip dari [17](17-open-questions-assumptions.md) atau [_progress.md](_progress.md).
+- **Kedudukan setiap butir** ditulis terang (definisi tunggal: *Tingkat kepastian* di [glosarium](00-glossary.md)): *diputuskan pemilik produk* (keputusannya sendiri), *diterima* (atas saran lead atau lewat "lanjut" di checkpoint), atau **[Usulan]** (rekomendasi tim yang belum diputuskan). Kata pemilik produk hanya dikutip dari [17](17-open-questions-assumptions.md) atau [_progress.md](_progress.md).
 - **Tier mengatur urutan membangun, bukan batas rancangan** (brief §1.1). Semua model, aturan, alur, istilah, dan layar dirancang untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pengguna pertamanya.
 - Label bukti mengikuti [README](README.md#label-bukti). Istilah mengikuti [00-glossary.md](00-glossary.md).
 
@@ -25,8 +25,8 @@
 2. **Pertahankan arsitektur yang sudah diputuskan** (kedudukan per lapisan di §3): aplikasi native per platform (SwiftUI; Jetpack Compose Material 3), stack diputuskan pemilik produk; satu server Go (keputusan 29) dengan PostgreSQL di server di Indonesia (keputusan 10; bentuk basis data diterima lewat "lanjut", D-99); semua aturan uang dan persetujuan hanya di server (keputusan 30; ADR-013); dan pencatatan yang tidak pernah dihalangi jaringan (PRN-06).
 3. **Masuk ke data nyata hanya lewat gerbang GR-2** (13 §3.3; 14 QG-30): semua kriteria penerimaan Tier 1 lulus sebagai uji bernama, sebelas butir 10 §4.1 selesai, dan aplikasi terpasang di iPhone 13 istri dan iPad mini 7 pemilik produk; Android tidak ditunggu (keputusan 42).
 4. **Ukur pemakaian dengan ukuran yang tidak mengawasi siapa pun** (13 §6). Roadmap berakhir saat rumah tangga memakai aplikasi sehari-hari; tinjauan tiga bulan sesudah GR-2 membaca ukurannya dan bukan gerbang (13 §3.4; keputusan 51). Go public tidak direncanakan. Bila kelak dipertimbangkan, GR-3 mensyaratkan kedua pasangan merasa nyaman dan aman, dan 14 hari terakhir tanpa bug baru yang berat (keputusan 46).
-5. **Sebelum orang di luar suami dan istri memakai aplikasi, termasuk orang tua** (keputusan 52): gerbang pengguna luar pertama (13 GR-4; 14 QG-31 (a)), dengan jawaban advokat, pendaftaran PSE bila wajib, dan pemberitahuan pengelola server versi keluarga. **Bila kelak go public** (jalur publik opsional, keputusan 51): freemium per rumah tangga dengan satu langganan rumah tangga (Plus) **[Usulan]** (13 §7.5) dan beta tertutup lebih dulu (GR-5).
-6. **Keputusan berikutnya ada pada pemilik produk** (§5). Yang terdekat: waktu konsultasi advokat (Q-224, terbuka; daftar pertanyaan keluarga di 17 §6), siapa mengoperasikan server bila pemilik produk berhalangan lama (Q-222, bersama istrinya, sebelum GR-2), dan hosting dan email menjelang deploy pertama yang memegang data nyata (keputusan 45).
+5. **Sebelum orang di luar suami dan istri memakai aplikasi, termasuk orang tua** (keputusan 52): gerbang pengguna luar pertama (13 GR-4; 14 QG-31 (a)), dengan pemberitahuan pengelola server versi keluarga dan butir keamanannya. Menurut jawaban advokat, pengecualian rumah tangga UU PDP tetap berlaku untuk keluarga yang diberi login, termasuk orang tua, dan pendaftaran PSE tidak perlu selama aplikasi tertutup untuk keluarga dan nonkomersial (keputusan 59); kerabat dewasa lain dihitung sama dengan orang tua (keputusan 63). **Bila kelak go public** (jalur publik opsional, keputusan 51): freemium per rumah tangga dengan satu langganan rumah tangga (Plus) **[Usulan]** (13 §7.5) dan beta tertutup lebih dulu (GR-5).
+6. **Keputusan berikutnya ada pada pemilik produk** (§5). Yang terdekat: siapa mengoperasikan server bila pemilik produk berhalangan lama (Q-222, bersama istrinya, sebelum GR-2), dan hosting dan email menjelang deploy pertama yang memegang data nyata (keputusan 45).
 
 ---
 
@@ -61,7 +61,7 @@ Rinciannya di [09](09-technical-architecture.md) dan ADR-012 sampai ADR-029; roa
 | Hosting, cadangan, email | Satu VPS di Indonesia, cadangan terenkripsi ke penyedia Indonesia lain, email transaksional minimal | **Ditunda sampai menjelang deploy pertama yang memegang data nyata**, keputusan pemilik produk (keputusan 31, S4-2; arti "deploy" keputusan 45); sampai itu server uji sementara berisi data uji. Syarat data di Indonesia (keputusan 10) tetap mengikat |
 | `AI` | Jalur R1: kumpulan kalimat dibangun tanpa data rumah tangga; Claude; batas USD 10 per bulan dan USD 3 per pembangunan | Claude: **diputuskan pemilik produk** (keputusan 33, S4-4 (ii)). R1 dan batas biaya: rumusan lead yang dikukuhkan lewat "lanjut" (S4-4 (i)); angka batas **[Asumsi]** (ADR-021) |
 | Build iOS | Xcode Cloud + TestFlight internal, dengan sewa Mac sekali; tanpa sewa bulanan dan tanpa membeli Mac sampai ada dana. Pemasangan keluarga tetap lewat TestFlight internal; pindah ke App Store tersembunyi (unlisted) bila Apple menghentikannya (perjanjian Apple membatasi TestFlight untuk pengujian; RISK-92) | Jalur A: **diputuskan pemilik produk** (keputusan 32, S4-3 (i); ADR-022). Tanpa sewa bulanan dan tanpa membeli: diterima atas saran lead (keputusan 43). Jalur pasang: diterima atas saran lead (keputusan 55) |
-| Lingkungan dan rilis pilot | Staging di VPS yang sama sejak GR-2, tanpa sistem feature flag, saklar *tahan tulis* yang tidak pernah menahan perintah pelindung; batas rilis iOS 80 hari sejak unggah dengan rilis pemeliharaan di 60 hari | Batas rilis 60/80: diterima atas saran lead (keputusan 44, menjawab Q-219; ADR-028 butir 4). Butir ADR-028 lainnya: **[Usulan]** `architect` |
+| Lingkungan dan rilis pilot | Staging di VPS yang sama sejak GR-2, tanpa sistem feature flag, saklar *tahan tulis* yang tidak pernah menahan perintah pelindung; batas rilis iOS 80 hari sejak unggah dengan rilis pemeliharaan di 60 hari | Batas rilis 60/80: diterima atas saran lead (keputusan 44, menjawab Q-219; ADR-028 butir 4). Butir ADR-028 lainnya: diterima atas saran lead (keputusan 56); ADR-028 seluruhnya Diterima |
 
 **Biaya pilot per bulan** menurut 09.4 §7.1: **Rp260.667** + PPN bila berlaku, ditambah **USD 9,57** (paling tinggi USD 18,25 bila batas `AI` tercapai), belum termasuk email; Rp244.000 dari angka rupiah itu bergantung pada S4-2. Satu VPS sederhana, sesuai brief §1.
 
@@ -88,7 +88,7 @@ Dicatat agar tidak ditanyakan ulang. Rincian dan kata-kata pemilik produk di 17.
 | 7 | Backend Go; aturan hanya di server | **Diputuskan pemilik produk** (keputusan 29, 30) | ADR-013, ADR-015 |
 | 8 | Tanpa E2EE di pilot; status kepedulian yang tidak dibagikan tidak meninggalkan perangkat; E2EE dinilai lewat ADR sebelum tahap publik, bila diambil | **Diputuskan pemilik produk** (keputusan 36, S4-6 (i)) | 10-D; ADR-024 |
 | 9 | Pengelola server pilot adalah pasangan, dengan syarat istrinya diberi tahu terus terang sebelum mulai memakai | **Diputuskan pemilik produk** (keputusan 25, S2-10). Bentuk pemberitahuannya diterima sebagai default lewat "lanjut" (S4-6 (ii) A) | FR-FAM-019/AC-7; 15 RISK-11 |
-| 10 | Advokat ditanya sebelum tahap publik; risiko PSE selama pilot diterima | **Diputuskan pemilik produk**, berlawanan dengan saran B tim (keputusan 34, S4-4 (iii); W-32). Sejak keputusan 51 pilot tidak berbatas waktu, jadi waktunya ditanyakan ulang (Q-224, terbuka; keputusan 34 berlaku sampai pemilik produk menjawab) | 15 RISK-65; 10 §3.3 |
+| 10 | Advokat ditanya sebelum tahap publik; risiko PSE selama pilot diterima | **Diputuskan pemilik produk**, berlawanan dengan saran B tim (keputusan 34, S4-4 (iii); W-32). Konsultasi sudah dilakukan pemilik produk (keputusan 59; Q-224 selesai): tanpa pendaftaran PSE sampai dibuka untuk publik. Konsultasi lanjutan tidak dilakukan; urusan hukum dibuka lagi hanya bila go public diputuskan (keputusan 67) | 15 RISK-65; 10 §3.4 |
 | 11 | Sembunyikan untuk saya, laporkan, kontak, keluar; tanpa pemindaian dan tanpa mengeluarkan orang dewasa | **Diputuskan pemilik produk** (keputusan 37, S4-7) | F-COM-014; 10.4 SEC-153, SEC-154 |
 | 12 | Arah visual C, terang dan tenang | Diterima atas saran lead (S4-10 (i)) | 08 §19 |
 | 13 | Aplikasi menyapa dengan "kamu" | Rumusan lead yang dikukuhkan lewat "lanjut" (S4-10 (iv)) | 08 |
@@ -101,10 +101,20 @@ Dicatat agar tidak ditanyakan ulang. Rincian dan kata-kata pemilik produk di 17.
 | 20 | Wawancara dan prototipe statis dengan keluarga lain bukan "pengguna luar", dengan empat syarat | Diterima atas saran lead (keputusan 47, Q-215, Pagar) | 10 §7.4; 13 §6.3 |
 | 21 | Bila jalur publik diambil (keputusan 51): akun Google Play pribadi; sebelum dibuat, dukungan Play Console ditanya apakah aplikasi wajib akun organisasi; bila wajib, dibawa kembali ke pemilik produk | Diterima atas saran lead (keputusan 48, Q-221) | 13 §6.4; 14 §6.7 |
 | 22 | Tinjauan `security-privacy` hanya-temuan sebelum GR-2, sebelum Android memegang data nyata, sebelum pengguna luar pertama, dan setahun sekali | Diterima atas saran lead (keputusan 49, 53); bunyi baris `CLAUDE.md` rumusan lead | `CLAUDE.md` "Build team" |
-| 23 | Aplikasi untuk keluarga pemilik produk sendiri, berstandar produk publik; go public tidak direncanakan tetapi tetap terbuka tanpa pembangunan ulang. Roadmap berakhir di pemakaian sehari-hari; GR-3, GR-5 dan isinya menjadi jalur publik opsional | **Diputuskan pemilik produk** (keputusan 51; bacaan lead dikukuhkannya). Bunyi brief §1.1 dan `CLAUDE.md` rumusan lead | Brief §1.1; 13 §1, §3.4 |
+| 23 | Aplikasi untuk keluarga pemilik produk sendiri, berstandar produk publik; go public tidak direncanakan tetapi tetap terbuka tanpa pembangunan ulang. Roadmap berakhir di pemakaian sehari-hari; GR-3, GR-5, FS-3, FS-4 dan isinya menjadi jalur publik opsional (13 §1) | **Diputuskan pemilik produk** (keputusan 51; bacaan lead dikukuhkannya). Bunyi brief §1.1 dan `CLAUDE.md` rumusan lead | Brief §1.1; 13 §1, §3.4 |
 | 24 | Orang tua yang diberi login dihitung pengguna luar: gerbang pengguna luar pertama berlaku walaupun tidak go public | **Diputuskan pemilik produk**, berlawanan dengan usulan `security-privacy` (keputusan 52) | 13 GR-4; 14 QG-31 (a); 10 §4.2; 15 RISK-93 |
 | 25 | Faktor kedua (TOTP; passkey tetap tahap publik) dan kode pemulihan sebagai satu pasang fitur opsional per akun, dibangun di FS-2, tidak menahan GR-2 | Diterima atas saran lead (keputusan 54, Q-227; Pagar) | 10 SEC-18, SEC-25; 15 RISK-40 |
 | 26 | Pemasangan iOS keluarga tetap lewat TestFlight internal; pindah ke App Store tersembunyi hanya bila Apple menghentikannya | Diterima atas saran lead (keputusan 55, Q-228) | ADR-022; 15 RISK-92; 18 §5.2.9 |
+| 27 | ADR-028 seluruhnya: staging di VPS yang sama dengan basis data terpisah, tanpa feature flag, saklar *tahan tulis*, server melayani build lama yang masih terpasang | Diterima atas saran lead (keputusan 56) | ADR-028; 14 §6.1 |
+| 28 | Bunyi brief §1.1 Tier 2 `FAM` (faktor kedua dan kode pemulihan) dan dua kalimat `CLAUDE.md` (urutan platform; satu pengembang per platform native) | Diterima atas saran lead (keputusan 57, 58); bunyinya rumusan lead | Brief §1.1; `CLAUDE.md` |
+| 29 | Jawaban hukum dari konsultasi advokat: pengecualian rumah tangga UU PDP berlaku selama nonkomersial dan tertutup untuk keluarga, termasuk orang tua; tanpa pendaftaran PSE sampai dibuka untuk publik; uang saku pribadi hanya penganggaran, harta bersama tetap menurut UU Perkawinan | Sumbernya **dinyatakan pemilik produk sendiri** (keputusan 59); kutipan pasal adalah pernyataan advokat, dicek sebagian oleh `researcher` | 17 §6; 18 §2.15; 10 §3.4 |
+| 30 | Pengelola server tidak membuka data akun orang lain tanpa izin pemiliknya | Diterima atas saran lead (keputusan 60); janji, bukan kontrol teknis | 10 SEC-159; 15 RISK-11 |
+| 31 | Bagian lebih dari permintaan yang disetujui, dibayar dengan uang pribadi, bawaannya sumbangan kecuali dicentang | Diterima atas saran lead (keputusan 61) | 07 §3.5 |
+| 32 | Nuansa religi pendamping AI: satu pilihan per rumah tangga, Netral bawaan lalu enam agama yang diakui, tanpa Kepercayaan; diubah hanya lewat kesepakatan semua pihak yang wajib | Diterima atas saran lead (keputusan 62, 64, 66) | 05 tier-2 FR-AI-001; 06 §6.3; 08 §5.2 |
+| 33 | Kerabat dewasa selain orang tua yang diberi login dihitung pengguna luar | Diterima atas saran lead (keputusan 63) | 13 GR-4; 15 RISK-93 |
+| 34 | Teks notifikasi dan kalimat AI dalam bahasa penerima | Diterima atas saran lead (keputusan 65) | 06 §11.1 |
+| 35 | Tidak ada konsultasi advokat lanjutan; L-04, L-20 dan klarifikasi kutipan dibuka lagi hanya bila go public diputuskan | **Diputuskan pemilik produk sendiri**, menolak saran lead (keputusan 67); rinciannya bacaan lead | 17 §6; 10 §3.4 |
+| 36 | DPIA, catatan pemroses, kebijakan privasi, dan rencana pemberitahuan insiden tertulis tidak disiapkan untuk pilot, ditunda ke go public; kontrol keamanan teknis, termasuk runbook *tahan tulis* dan latihannya (SEC-148 (a)), tetap | **Diputuskan pemilik produk sendiri**, menolak saran lead (keputusan 68); rinciannya bacaan lead | 10 §4.1; 13 §3.3; 14 QG-30 |
 
 ---
 
@@ -117,7 +127,7 @@ Dicatat agar tidak ditanyakan ulang. Rincian dan kata-kata pemilik produk di 17.
 | **Jenis akun Google Play: konfirmasi** | Hanya bila jalur publik diambil (keputusan 51), sebelum akun dibuat | Akun pribadi, diterima atas saran lead (keputusan 48). Sebelum dibuat, dukungan Play Console ditanya apakah aplikasi keuangan rumah tangga wajib akun organisasi ("Financial products and services"; 18 §2.4). Akun pribadi baru wajib closed testing dengan sedikitnya 12 penguji selama 14 hari sebelum produksi (14 §6.7 **[Terverifikasi]**); ukuran beta di 13 §6.4 | Pemilik produk |
 | **Isi dan harga Plus** | Hanya bila jalur publik diambil (GR-5) | Calon isi dan daftar "tidak pernah berbayar" (13 §7.5; Q-36, Q-216); aturan PG-15 | Pemilik produk, sesudah wawancara dan beta |
 | **Go public atau tidak** | Tidak dijadwalkan (keputusan 51). Bila pemilik produk kelak mempertimbangkannya: GR-3, paling cepat tiga bulan sesudah GR-2; mundur bila syarat keputusan 46 belum terpenuhi | Syarat keputusan 46 (nyaman dan aman menurut kedua pasangan; 14 hari tanpa bug baru yang berat); VL-01 sampai VL-10 dan tabel keputusan 13 §6.2 | Pemilik produk |
-| **Waktu konsultasi advokat** (Q-224) | Terbuka; jawaban pemilik produk sejauh ini "saya tanya besok" (12 November 2026). Paling lambat sebelum pengguna luar pertama (QG-31 (a)) | Daftar pertanyaan keluarga di 17 §6 (inti: L-01, L-14 dan L-38, L-24); 10 §3.3 | Pemilik produk |
+| **Urusan hukum untuk go public** (L-04, L-20, klarifikasi kutipan; badan hukum, kebijakan privasi, DPIA, pendaftaran PSE) | Hanya bila go public diputuskan (keputusan 67 dan 68) | Jawaban advokat dan pemeriksaan kutipannya (17 §6; 18 §2.15); 10 §3.4 | Pemilik produk |
 | **Siapa mengoperasikan server bila pemilik produk berhalangan lama** | Sebelum GR-2 | Memberi istri akses pengelola juga memberinya akses teknis ke data pribadi suaminya, cermin RISK-11 (Q-222, Pagar) | Pemilik produk dan istrinya |
 | **Klien web untuk tahap publik** | Hanya bila jalur publik diambil | Q-210; prasyarat model keamanan browser di 10 | Pemilik produk |
 | Butir keamanan sebelum pengguna luar pertama (akses darurat SEC-36 dengan log di luar VPS, pemberitahuan pengelola server versi keluarga, dan lainnya) | Sebelum pengguna luar pertama, termasuk orang tua (keputusan 52; 14 QG-31 (a)) | 10 §4.2 | Tim |
@@ -162,7 +172,7 @@ Dasar pembedaannya [18 §1.4](18-market-research.md#14-peluang-pembedaan-positio
 Register lengkapnya di [15](15-risk-assessment.md) (RISK-01 sampai RISK-93). Empat kelompok yang dapat menggagalkan tujuan, dan satu yang hanya berlaku di jalur opsional (15 §1):
 
 1. **Hanya satu pasangan mencatat, mencatat terlalu lama, atau catatan terlewat** (RISK-18 sampai RISK-20). Penawarnya: data nyata dimulai di perangkat kedua pasangan (iPhone istri, pencatat utama; iPad pemilik produk, keputusan 42), tiga ketukan, entri terlambat diterima, rekonsiliasi kas.
-2. **Angka uang salah** (RISK-47, RISK-48). Penawarnya: setiap invarian 06 dan 07 sebagai uji yang memblokir merge, kunci idempotensi, satu transaksi per perintah; bila pemeriksaan invarian harian tidak nol, server berhenti menerima tulisan baru lewat *tahan tulis* sampai penyebabnya diperbaiki, sementara ponsel tetap menyimpan catatan di antrean dan perintah pelindung tetap berlaku seketika (ADR-028 butir 3, masih Diusulkan; SEC-151; PRN-06).
+2. **Angka uang salah** (RISK-47, RISK-48). Penawarnya: setiap invarian 06 dan 07 sebagai uji yang memblokir merge, kunci idempotensi, satu transaksi per perintah; bila pemeriksaan invarian harian tidak nol, server berhenti menerima tulisan baru lewat *tahan tulis* sampai penyebabnya diperbaiki, sementara ponsel tetap menyimpan catatan di antrean dan perintah pelindung tetap berlaku seketika (ADR-028 butir 3, diterima atas saran lead, keputusan 56; SEC-151; PRN-06).
 3. **Aplikasi menjadi alat kendali antaranggota** (RISK-11, RISK-35, RISK-38, RISK-40). Penawarnya: pagar 06 sebagai uji, simetri per peran, keluar dengan aman tanpa persetujuan siapa pun, halaman Bantuan tanpa jejak.
 4. **Operasi bergantung pada satu orang** (RISK-10): pemilik produk adalah pemimpin teknis, pengelola server, dan pemegang kunci cadangan. Penawarnya: runbook sebelum GR-2, komponen sedikit, salinan kunci cadangan offline, Q-222.
 5. **Jalur opsional, bila kelak diambil** (keputusan 51, 52): pengguna luar pertama, termasuk orang tua (PSE bila wajib, RISK-65; pengelola server yang anak mereka sendiri, RISK-93, Pagar), atau tahap publik (keputusan GR-3 atas bukti satu rumah tangga, RISK-25; kesediaan membayar, RISK-58).
@@ -177,9 +187,9 @@ Register lengkapnya di [15](15-risk-assessment.md) (RISK-01 sampai RISK-93). Emp
 
 ---
 
-## 10. Yang tersisa sesudah S5
+## 10. Yang tersisa sesudah S6
 
-- **S6 — pass konsistensi** (brief §0.3): memperbaiki kontradiksi, tautan rusak, istilah tanpa definisi, dan persyaratan yang tidak terlacak, termasuk butir W yang dibawa ke S6 di 17; laporan perubahan untuk pemilik produk.
+- **S6 — pass konsistensi** (brief §0.3) selesai 12 November 2026: kontradiksi, tautan, istilah, dan keterlacakan diperbaiki; butir W1–W7 diterapkan; laporan perubahan di [_progress.md](_progress.md), bagian "S6 — Pass konsistensi".
 - **Fase perencanaan berakhir hanya bila pemilik produk menyatakannya** (`CLAUDE.md`). Sesudah itu: agen tim bangun ditulis lead menurut stack yang dipilih, lalu GR-1.
 
 ---
@@ -193,3 +203,4 @@ Register lengkapnya di [15](15-risk-assessment.md) (RISK-01 sampai RISK-93). Emp
 | 12 November 2026 | Keputusan 42 (pilot di iOS dan iPadOS; Android menyusul): §1 butir 3 dan 6, §4 baris 16, §5 baris platform dihapus dan waktu keputusan Mac, §8 butir 1 |
 | 12 November 2026 | Keputusan 43–50 (penutupan pertanyaan terbuka sebelum S6): §1 butir 4 dan 6; §3 baris build iOS, lingkungan dan rilis, hosting, tradeoff 2; §4 baris 16 sampai 22; §5 baris Mac, hosting, akun Play, pemakaian harian (dihapus), wawancara (dihapus), GR-3; §9 diterima |
 | 12 November 2026 | Keputusan 51–55 (aplikasi untuk keluarga sendiri berstandar publik; orang tua pengguna luar; tinjauan keamanan tambahan; faktor kedua di FS-2; jalur pasang iOS): §1 butir 4 sampai 6; §3 baris build iOS; §4 baris 8, 10, 16, 21, 22 dan baris baru 23 sampai 26; §5 baris akun Play, Plus, go public, advokat (baru), klien web, keamanan sebelum pengguna luar, tahap publik; §6 baris 1, 7; §7; §8 kelompok 4 dan 5, RISK-93; §9; §2 hitungan F-FAM-022 |
+| 12 November 2026 | S6 (pass konsistensi): keputusan 56–68; §0 tautan *Tingkat kepastian*; §1 butir 5 dan 6; §3 baris lingkungan dan rilis; §4 baris 10 dan baris baru 27 sampai 36; §5 baris advokat diganti urusan hukum untuk go public; §10 |

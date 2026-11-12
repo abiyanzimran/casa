@@ -55,7 +55,7 @@ Pertanyaannya: aturan apa yang perlu berjalan di perangkat saat offline, dan di 
 | Tanda ambang, penilaian jatah, tanda tautan, kecocokan kategori | Server saja, saat entri diterima | 06 S-8; INV-A37; 07 INV-37 |
 | Selisih rekonsiliasi | Server saja | 06 S-10; 07 INV-16 |
 | Saldo, sisa anggaran, kekayaan bersih | Server saja; perangkat menampilkan angka terakhir server beserta waktunya | 06 S-9; 07 INV-04 |
-| Perkiraan "angka server − entri yang belum terkirim" | **Tidak dihitung di pilot** **[Usulan]**. FR-FIN-010/AC-6 dan FR-FIN-091/AC-2 hanya mengaturnya "bila ditampilkan"; yang wajib adalah angka server dengan waktunya dan entri yang belum terkirim tampil terpisah | 06 S-9 (revisi ketiga belas) |
+| Perkiraan "angka server − entri yang belum terkirim" | **Tidak dihitung di pilot, juga tidak dari deskriptor server** (ADR-013 butir 2, diterima, 09-F A; S6). FR-FIN-010/AC-6 dan FR-FIN-091/AC-2 hanya mengaturnya "bila ditampilkan"; yang wajib adalah angka server dengan waktunya dan entri yang belum terkirim tampil terpisah | 06 S-9 (revisi ketiga belas) |
 | (a) Selisih baris sebab terhadap jumlah saat mengisi; simpan tidak tersedia bila tidak sama | **Perangkat**, bantuan isian; server tetap menolak (07 INV-02) | FR-FIN-042/AC-2 |
 | (b) "Bagi rata": sisa pembagian pada baris pertama | **Perangkat**, bantuan isian; server tidak menghitungnya dan menerima pembagian apa pun yang berimbang | FR-FIN-042/AC-3 |
 | (c) Bentuk masukan: wajib diisi, bilangan bulat positif, panjang teks | **Perangkat**, agar perintah offline tidak baru ditolak berjam-jam kemudian; server memeriksanya ulang | ES §2, §4 |
@@ -81,7 +81,7 @@ Jadi ada satu pertanyaan yang hanya dapat dijawab pemilik produk: tiga bantuan i
 
 Keputusannya dicatat di [ADR-013](../adr/ADR-013-logika-bersama-hanya-di-server.md).
 
-**Perkiraan offline kelak.** Bila pilot menunjukkan perkiraan diperlukan, ADR baru menambahkannya sebagai deskriptor yang dikirim server (perintah mana mengubah angka mana, dengan tanda) dan satu penafsir per platform. Itu menambah satu butir pada daftar pengecualian ES §2 dan karena itu memerlukan persetujuan pemilik produk tersendiri; persetujuan 09-F hanya mencakup tiga bantuan isian.
+**Perkiraan offline kelak** (bukan cakupan pilot; tidak ada deskriptor perkiraan yang dibangun atau dikirim di pilot). Bila pilot menunjukkan perkiraan diperlukan, ADR baru menambahkannya sebagai deskriptor yang dikirim server (perintah mana mengubah angka mana, dengan tanda) dan satu penafsir per platform. Itu menambah satu butir pada daftar pengecualian ES §2 dan karena itu memerlukan persetujuan pemilik produk tersendiri; persetujuan 09-F hanya mencakup tiga bantuan isian.
 
 ---
 

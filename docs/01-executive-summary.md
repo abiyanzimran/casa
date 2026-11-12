@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | Pemilik | Lead |
-| Tahap | S5 — Rencana dan sintesis, ditulis paling akhir (brief §0.3), 12 November 2026 |
-| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); direvisi untuk keputusan 42 dan ditinjau `critic` lagi (12 November 2026); temuan diperbaiki; direvisi untuk keputusan 43–50 dan 51–55 (12 November 2026) |
+| Tahap | S5 — Rencana dan sintesis, ditulis paling akhir (brief §0.3), 12 November 2026; S6 (12 November 2026): pass konsistensi |
+| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); direvisi untuk keputusan 42 dan ditinjau `critic` lagi (12 November 2026); temuan diperbaiki; direvisi untuk keputusan 43–50 dan 51–55 (12 November 2026); S6: keputusan 56–68 |
 | Merangkum | Brief §1.1; [02](02-product-principles.md), [04](04-feature-map.md), [09](09-technical-architecture.md), [13](13-product-roadmap.md), [16](16-final-recommendations.md), [18 §1.4](18-market-research.md#14-peluang-pembedaan-positioning-dan-value-proposition). Tidak menetapkan apa pun yang baru |
 
 ---
@@ -13,7 +13,7 @@
 
 **Masalah inti.** Uang rumah tangga tidak terlihat dan tidak direncanakan, dan mengoordinasikannya berarti terus bertanya. Sesudah gaji dibagi ke cicilan, tagihan, dan kiriman untuk orang tua, lalu ditarik tunai dan berpindah tangan, tidak ada yang tahu siapa memegang berapa. Jalan-jalan diumumkan mendadak, anggaran dapur terlampaui, dan pencatat utama pelupa, jadi mencatat harus selesai dalam hitungan detik dan boleh terlambat (brief §1.1).
 
-**Audiens.** Pertama satu rumah tangga: suami dan istri sebagai dua dewasa setara; pilot di iPhone istri dan iPad suami, Android menyusul (keputusan 42). Orang tua yang kelak diberi login dihitung pengguna luar, dengan syarat keamanan dan hukumnya lebih dulu (keputusan 52). Bila kelak go public, segmen publik pertama yang diusulkan adalah rumah tangga dua dewasa dan satu dewasa **[Usulan]** (17 Q-214). Struktur keluarga lain sudah dirancang; kapan dibangun bergantung pada pemicunya (13 §3.8).
+**Audiens.** Pertama satu rumah tangga: suami dan istri sebagai dua dewasa setara; pilot di iPhone istri dan iPad suami, Android menyusul (keputusan 42). Orang tua dan kerabat dewasa yang kelak diberi login dihitung pengguna luar, dengan syarat keamanannya lebih dulu (keputusan 52, 63). Bila kelak go public, segmen publik pertama yang diusulkan adalah rumah tangga dua dewasa dan satu dewasa **[Usulan]** (17 Q-214). Struktur keluarga lain sudah dirancang; kapan dibangun bergantung pada pemicunya (13 §3.8).
 
 **Value proposition** (18 §1.4, **[Usulan]**).
 
@@ -29,4 +29,4 @@
 
 **Cara membangunnya** (09, 14). Native penuh per platform, Swift dan Kotlin (keputusan pemilik produk), iOS dan iPadOS lebih dulu; satu server Go dengan PostgreSQL di Indonesia memegang semua aturan uang dan persetujuan. Biaya pilot per bulan sekitar Rp260.667 + PPN bila berlaku, ditambah USD 9,57 (paling tinggi USD 18,25) dan email; sebagian besar angka rupiah bergantung pada pilihan hosting yang ditunda (09.4 §7.1).
 
-**Jalan ke depan** (13). Tier 1 di iOS dan iPadOS dengan data uji → gerbang data nyata → pemakaian sehari-hari dengan Tier 2 bergelombang dan aplikasi Android menyusul → tinjauan tiga bulan, bukan gerbang → pemakaian dan pemeliharaan. Tanpa tanggal tetap. Dua jalur opsional, tidak dijadwalkan: sebelum orang tua diberi login, gerbang pengguna luar pertama (advokat, PSE bila wajib; keputusan 52); bila kelak go public, GR-3 dengan syarat keputusan 46, beta tertutup, lalu rilis publik freemium **[Usulan]**. Keputusan berikutnya pemilik produk ada di 16 §5.
+**Jalan ke depan** (13). Tier 1 di iOS dan iPadOS dengan data uji → gerbang data nyata → pemakaian sehari-hari dengan Tier 2 bergelombang dan aplikasi Android menyusul → tinjauan tiga bulan, bukan gerbang → pemakaian dan pemeliharaan. Tanpa tanggal tetap. Dua jalur opsional, tidak dijadwalkan: sebelum orang tua diberi login, gerbang pengguna luar pertama (butir keamanan dan pemberitahuan pengelola server versi keluarga; menurut advokat tanpa PSE selama tertutup untuk keluarga; keputusan 52, 59); bila kelak go public, GR-3 dengan syarat keputusan 46, urusan hukum dan dokumen privasi (keputusan 67, 68), beta tertutup, lalu rilis publik freemium **[Usulan]**. Keputusan berikutnya pemilik produk ada di 16 §5.

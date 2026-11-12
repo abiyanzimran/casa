@@ -6,7 +6,7 @@ Pintu masuk seluruh dokumen perencanaan Family OS. Fase saat ini adalah **perenc
 
 Suami dan istri mengetahui keadaan uang rumah tangga dan urusan rumah tangga tanpa harus saling bertanya, dengan usaha pencatatan serendah mungkin, dan aplikasi membantu mereka saling memperhatikan dan bersikap hangat satu sama lain.
 
-Tujuan ini bertahap: pertama rumah tangga pilot (rumah tangga pemilik produk), kemudian produk publik untuk keluarga Indonesia. Setiap dokumen dan keputusan harus dapat ditelusuri ke tujuan ini dan ke masalah inti di `family-os-brief.md` §1.1.
+Aplikasi ini untuk rumah tangga pemilik produk sendiri, dibangun dengan standar produk publik (brief §1.1; keputusan pemilik produk 51). Go public tidak direncanakan, tetapi tetap mungkin tanpa membangun ulang. Fondasi yang dibutuhkan produk publik (struktur keluarga yang lentur, isolasi antar-rumah tangga, privasi, dan pencegahan penyalahgunaan) melayani tujuan ini dan tidak dipangkas. Setiap dokumen dan keputusan harus dapat ditelusuri ke tujuan ini dan ke masalah inti di `family-os-brief.md` §1.1.
 
 ## Sumber kebenaran
 
@@ -17,6 +17,8 @@ Urutan dari yang tertinggi. Bila dua sumber bertentangan, ikuti yang lebih tingg
 3. [`adr/`](adr/) — keputusan yang sudah dibuat.
 4. [`ENGINEERING-STANDARDS.md`](../ENGINEERING-STANDARDS.md) — aturan keras fase pembangunan.
 5. Dokumen lain di `docs/`.
+
+Keputusan pemilik produk yang dicatat di [17](17-open-questions-assumptions.md) (sumbernya [_progress.md](_progress.md)) setara dengan brief untuk hal yang diputuskannya. Bila bunyi brief belum diperbarui, keputusan itu yang berlaku dan selisihnya dicatat di 17.
 
 ## Urutan baca
 
@@ -49,8 +51,6 @@ Status: **belum ada** → **draf** → **ditinjau** → **final**. Status terkin
 | 17 | [Pertanyaan terbuka dan asumsi](17-open-questions-assumptions.md) | Keputusan yang menunggu pemilik, asumsi, default yang diusulkan | S1, diperbarui tiap tahap | `product-analyst` |
 | 18 | [Riset pasar](18-market-research.md) | Pasar, regulasi, integrasi, desain platform, teknologi — beserta sumber dan tanggal akses | S1, diperluas tiap ada riset baru | `researcher` |
 | — | [`adr/`](adr/) | Architecture Decision Record (`ADR-NNN-judul.md`) | Mulai S2 | `architect` |
-
-Tautan ke dokumen yang berstatus **belum ada** baru berfungsi setelah tahap asalnya selesai.
 
 ## Tahapan dan checkpoint
 
@@ -104,6 +104,7 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Pagar pencegah kendali (dokumen 06) | `PG-NN` | `PG-03` |
 | Peristiwa notifikasi (dokumen 06) | `N-NN` | `N-02` |
 | Butir terbuka dokumen 06 / 07 | `P-NN` / `T-NN` | `P-01`, `T-08` |
+| Prioritas risiko (dokumen 15) | `P1`, `P2`, `P3` (tanpa tanda hubung) | `P1` |
 | Prinsip produk (dokumen 02) | `PRN-NN` | `PRN-06` |
 | Ketegangan antar-prinsip (dokumen 02) | `KT-N` | `KT-9` |
 | Persona (dokumen 03) | `PSN-NN` | `PSN-02` |
@@ -114,7 +115,9 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Pertentangan per modul di peta fitur (dokumen 04 §10.3) | `Konflik-<MOD>-N`; yang dibawa ke dokumen 17 mendapat `K-NN` | `Konflik-COM-3` |
 | Aturan yang belum ada, ditemukan saat menulis kebutuhan atau skenario (dokumen 05, 12) | `PA-<MOD>-N`, dengan `<MOD>` kode modul atau `SCN`; nomor tidak dipakai ulang | `PA-FIN-11`, `PA-COM-4`, `PA-SCN-2` |
 | Celah yang ditemukan saat menyelaraskan dokumen 06 | `G-NN` | `G-08` |
-| Temuan pemeriksaan `security-privacy` | `SP-NN` | `SP-01` |
+| Temuan pemeriksaan `security-privacy` | `SP-NN`; ringkasannya dan dokumen tempat perbaikannya dicatat di [_progress.md](_progress.md) dan 17, laporan lengkapnya di luar repositori | `SP-01` |
+| Temuan tinjauan `critic` | Kode per putaran tinjauan: `CA-NN`, `CB-NN`, `CS-B-NN`, huruf dan angka seperti `S1`, `M4`, `P-4`, `R-2`, dan sejak S6 `S6-<kelompok>-NN`. Kode itu hanya berlaku di putaran tinjauannya; ringkasan dan penyelesaiannya dicatat di [_progress.md](_progress.md). Kode tinjauan seperti `P-4` atau `R-2` **bukan** butir terbuka 06 atau pengenal riset | `CB-03`, `S6-C-01` |
+| Penyisiran andaian khusus pilot (dokumen 17 §2.13) | `M1`–`M9` (model), `W1`–`W7` (kata-kata; dikerjakan di S6), tanpa tanda hubung, berbeda dari `W-NN` | `W7` |
 | Aset, pelaku, ancaman (dokumen 10) | `AS-NN`, `PL-NN`, `TM-NN` | `AS-08`, `PL-03`, `TM-15` |
 | Persyaratan keamanan dan privasi (dokumen 10) | `SEC-NN`, dikelompokkan per berkas; celah antarkelompok disengaja | `SEC-19` |
 | Keputusan checkpoint yang diajukan dokumen 10 | `10-X` (huruf); nomor `S4-N` dan `Q-NN` diberikan dokumen 17 | `10-A` |
@@ -129,6 +132,10 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Kriteria penerimaan (dokumen 05) | `AC-N`, lokal per kebutuhan; dikutip `FR-<MOD>-NNN/AC-N` | `FR-FIN-012/AC-3` |
 | Persyaratan lintas modul (dokumen 05, indeks) | `LM-NN` | `LM-05` |
 | Kriteria umum keuangan (dokumen 05, FIN-1) | `KU-N` | `KU-2` |
+
+**Nama lama.** Beberapa butir diberi nomor baru ketika dipindahkan; nama lamanya hanya muncul sebagai "dahulu …": `K-1` sampai `K-4` di COM.md menjadi `PA-COM-1` sampai `PA-COM-4`, `P-1` sampai `P-7` di FIN-2.md menjadi `PA-FIN-…`. Rujukan ke nama lama mengikuti pemetaan di dokumen tempat butir itu sekarang.
+
+**Penanda Pantau.** Di kolom MoSCoW dokumen 04, **Pantau** berarti fitur itu masuk daftar fitur yang dapat menjadi alat pantau atau kendali bila pagarnya lepas (04 §7). Dokumen 05 memakai penanda yang sama.
 
 Baris sesudah `ADR-NNN` adalah tambahan atas skema di brief §16; tiap pengenal hanya dipakai di dokumen yang disebut. Pengenal transisi tidak bertanda hubung (`K06`) agar tidak tertukar dengan pengenal bertanda hubung berhuruf sama (`K-29` pertentangan, `T-08` butir terbuka, `D-48` default). `KB-NN` adalah kebutuhan inti dokumen 03; `KB` tanpa nomor adalah kolom kekayaan bersih di tabel dokumen 07.
 
