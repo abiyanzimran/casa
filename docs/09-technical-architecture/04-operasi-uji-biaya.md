@@ -13,7 +13,7 @@ flowchart TB
   end
   subgraph gh["CI Linux (GitHub Actions)"]
     CI1[Server: uji, build biner]
-    CI2[Android: uji, build APK/AAB]
+    CI2[Android: uji, build APK/AAB<br/>sejak jalur Android, 14 §3.8]
     CI3[Kontrak: buf lint dan breaking]
   end
   subgraph apple["Apple"]
@@ -35,7 +35,7 @@ flowchart TB
   end
   GIT --> gh
   GIT --> XC --> TF --> IPH[iPhone 13, iPad mini 7]
-  CI2 --> AND[Galaxy A55: pasang APK bertanda tangan]
+  CI2 --> AND[Galaxy A55: pasang APK bertanda tangan<br/>data nyata sesudah QG-30 Android]
   CI1 -->|scp + systemd restart| APP
   APP --> PG
   PG --> BR -->|SFTP, sudah terenkripsi| REPO --> SNAP
@@ -107,18 +107,18 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 | Duplikasi | Pemeriksaan duplikasi kode per bahasa (ES §2) | PMD CPD, yang mendukung Go, Kotlin, dan Swift (ADR-025) | CI Linux |
 | UI Android | Uji Compose di emulator (KVM di Linux) | Compose UI test | CI Linux |
 | UI iOS | XCUITest di simulator | Xcode Cloud | Xcode Cloud |
-| Perangkat pilot | `qa` membuktikan AC Tier 1 dan invarian ujung ke ujung di iPhone 13, iPad mini 7, dan Galaxy A55, termasuk tanda terkirim (berkas 03 §5) dan cadangan perangkat (SEC-46) | Manual dengan daftar periksa | Perangkat |
-| Kinerja | Data rumah tangga sintetis setahun **[Asumsi]**; p95 baca ≤ 200 ms dan tulis ≤ 400 ms diukur di VPS pilot; cold start ≤ 2 detik di Galaxy A55 dan iPhone 13 | Skrip beban kecil | VPS uji, perangkat |
+| Perangkat pilot | `qa` membuktikan AC Tier 1 dan invarian ujung ke ujung di iPhone 13 dan iPad mini 7 sebelum GR-2, dan di Galaxy A55 sebelum Android memakai data nyata (QG-30 (Android), keputusan 42; 14 §5.3), termasuk tanda terkirim (berkas 03 §5) dan cadangan perangkat (SEC-46) | Manual dengan daftar periksa | Perangkat |
+| Kinerja | Data rumah tangga sintetis setahun **[Asumsi]**; p95 baca ≤ 200 ms dan tulis ≤ 400 ms diukur di VPS pilot; cold start ≤ 2 detik di iPhone 13 dan iPad mini 7 sebelum GR-2, di Galaxy A55 sebelum QG-30 (Android) | Skrip beban kecil | VPS uji, perangkat |
 
 ---
 
 ## 5. CI/CD
 
-| Tahap | Server dan kontrak | Android | iOS |
+| Tahap | Server dan kontrak | Android (sejak jalur Android langkah A1, sesudah GR-2; 14 §3.8) | iOS |
 |---|---|---|---|
 | Setiap push (gerbang ES §7; alat di ADR-025) | `buf lint` dan `buf breaking`; `gofmt -l` kosong; `go vet` dan golangci-lint; `govulncheck`; PMD CPD; uji domain, invarian, AC, isolasi, privasi, migrasi; pemeriksaan rahasia di repositori | ktlint (format dan lint); Android Lint; OSV-Scanner atas `gradle.lockfile`; PMD CPD; uji unit dan Compose | `swift format lint --strict`; PMD CPD; uji paket Swift non-UI di Linux **[Perlu validasi]**; peringatan kerentanan Dependabot atas `Package.resolved` (gerbang CI-nya **[Perlu validasi]**, ADR-025); setiap pull request: Xcode Cloud build dan XCUITest sebagai pemeriksaan status wajib di GitHub sebelum merge (14 §5.1) |
 | Setiap merge ke cabang utama | Build biner; arsip artefak | Build APK bertanda tangan untuk pilot | Xcode Cloud: build, XCUITest, arsip, unggah ke TestFlight internal |
-| Rilis pilot | Manual: `familyos migrate`, lalu pasang | APK dipasang langsung ke Galaxy A55 (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
+| Rilis pilot | Manual: `familyos migrate`, lalu pasang | APK dipasang langsung ke Galaxy A55 sesudah QG-30 (Android); sebelumnya APK staging saja (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
 | Penandatanganan | — | Kunci unggah disimpan offline oleh pemilik produk dan sebagai rahasia CI | Penandatanganan dikelola Xcode Cloud (sertifikat di cloud Apple); tidak ada Mac yang menyimpan kunci |
 | Persyaratan toko | — | Target API 36 bila Play dipakai (berkas 01 §13) | Xcode dan SDK iOS stabil terbaru saat bangun; minimal Xcode 26 / SDK iOS 26 untuk unggahan (18 §5.1) |
 
@@ -152,7 +152,7 @@ Penyedia VPS utama dan VPS cadangan menunggu S4-2 (ditunda sampai menjelang depl
 
 ### 6.1 Butir operasi sebelum pilot memproses data nyata
 
-Daftar kanonisnya dokumen 10 §4.1 (sembilan butir, dicentang bertanggal di runbook pilot). Butir yang dikerjakan lewat rancangan dokumen ini:
+Daftar kanonisnya dokumen 10 §4.1 (sepuluh butir, dicentang bertanggal di runbook pilot; bagian khusus Android di 10 §4.3, sebelum Android memakai data nyata). Butir yang dikerjakan lewat rancangan dokumen ini:
 
 | 10 §4.1 | Butir | Di dokumen ini |
 |---|---|---|
@@ -191,6 +191,8 @@ Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email y
 | Domain | Sekitar Rp200.000 per tahun ÷ 12 | Rp16.667 | — | **[Asumsi]** |
 | **(S4-2)** Email, usulan Amazon SES | Puluhan email per bulan **[Asumsi]** | — | Mendekati 0 | Tarif per pesan **[Perlu validasi]** (ADR-026) |
 | **Jumlah** | | **Rp260.667** + PPN bila berlaku, **dengan Rp244.000 di antaranya bergantung pada S4-2** | **USD 9,57** + email (paling tinggi 18,25 + email bila batas `AI` tercapai) | |
+
+**Android di biaya pilot (keputusan 42).** Biaya pendaftaran Google Play (USD 25 sekali) tidak masuk biaya pilot: APK pilot dipasang langsung tanpa Play, dan akun dibuat saat jalur beta Play disiapkan di FS-3 (14 §6.7; §7.2). Job CI Android baru berjalan sejak jalur Android dimulai sesudah GR-2 (14 §3.8); sampai itu baris CI Linux di atas adalah batas atas **[Asumsi]**, dan anggarannya diukur ulang saat job Android ditambahkan. Angka di tabel tidak berubah.
 
 Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667** (juga **(S4-2)**). Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
 

@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `architect` |
 | Tahap | S5 — Rencana dan sintesis, fase B (12 November 2026; izin pemilik produk "gas", `_progress.md` "S5 dimulai") |
-| Status | Revisi S5 fase D sesudah tinjauan `critic` A dan B. Hitungan §2 dan §12 dihitung ulang lead dengan skrip sebelum revisi; yang berubah di revisi ini ditandai di §12 |
+| Status | Revisi S5 fase D sesudah tinjauan `critic` A dan B, lalu revisi keputusan 42 (platform pilot, 12 November 2026). Hitungan §2 dan §12 dihitung ulang lead dengan skrip sebelum revisi; yang berubah di revisi ini ditandai di §12 |
 | Sumber yang mengikat | Brief §1, §1.1, §4.3, §5D, §5O, §7, §8, §14, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` (ES); dokumen 02, 03, 06, 07, 08, 09 (indeks dan berkas 04 §9), 10 (indeks dan empat berkas), 12, 13, 17, 18; ADR-002 sampai ADR-027 |
 | Dipakai oleh | 14 (`architect`, quality gate per gerbang), 16 dan 01 (lead), 17 (`product-analyst`) |
 
@@ -78,7 +78,7 @@ Tujuan (`CLAUDE.md`): suami dan istri mengetahui keadaan uang dan urusan rumah t
 
 | # | Kelompok | Risiko | Mengapa dapat menggagalkan tujuan | Pengaman terkuat yang sudah dirancang |
 |---|---|---|---|---|
-| 1 | **Masalah inti tidak terjawab** | RISK-18, RISK-19, RISK-20 | Bila hanya satu orang mencatat, atau mencatat terlalu lama, atau catatan terlewat, angka utama tidak menjawab "sisa berapa dan siapa memegang" (KS-1) dan orang kembali bertanya. Tidak ada fitur lain yang menggantikan ini | Data nyata dimulai di kedua platform (13 §3.2); ES §3 tiga ketukan dan simpan lokal seketika; entri terlambat diterima (07 §3.11); rekonsiliasi kas yang menampilkan selisih (07 §3.10) |
+| 1 | **Masalah inti tidak terjawab** | RISK-18, RISK-19, RISK-20 | Bila hanya satu orang mencatat, atau mencatat terlalu lama, atau catatan terlewat, angka utama tidak menjawab "sisa berapa dan siapa memegang" (KS-1) dan orang kembali bertanya. Tidak ada fitur lain yang menggantikan ini | Data nyata dimulai di aplikasi iOS yang sama bagi kedua pasangan, dengan pencatat utama di iPhone 13 dan pemilik produk di iPad mini 7 (keputusan 42; 13 §3.2); ES §3 tiga ketukan dan simpan lokal seketika; entri terlambat diterima (07 §3.11); rekonsiliasi kas yang menampilkan selisih (07 §3.10) |
 | 2 | **Angka uang salah** | RISK-47, RISK-48 | Satu angka yang terbukti salah meruntuhkan kepercayaan pada semua angka (brief §7: "non-negotiable") | Satu implementasi aturan di server (ADR-013); setiap invarian 06 dan 07 dan setiap contoh terhitung sebagai uji yang memblokir merge (ES §5); kunci idempotensi dan satu transaksi `SERIALIZABLE` per perintah; VL-10 nol; bila tidak nol, server masuk *tahan tulis* sementara pencatatan berlanjut di antrean perangkat (13 §6.2; ADR-028 butir 3) |
 | 3 | **Aplikasi menjadi alat kendali antaranggota** | RISK-11, RISK-35, RISK-38, RISK-40 (P1); RISK-21, RISK-31, RISK-34, RISK-37, RISK-39 (P2) | Aplikasi yang dipakai satu orang untuk mengawasi atau menekan yang lain merusak "attentive and kind" dan melanggar brief §8. Untuk tahap publik, satu kasus seperti itu cukup untuk merusak kepercayaan pada produk | Pagar 06 PG-01 sampai PG-14 sebagai uji; "tidak pernah terlihat" per peran (SEC-86); uji simetri berpermutasi (SEC-89); keluar dengan aman tanpa persetujuan siapa pun; tidak ada perintah atas orang dewasa lain; halaman Bantuan tanpa jejak |
 | 4 | **Keputusan GR-3 diambil atas bukti yang lemah** | RISK-25 (P1); RISK-26 | Pilot satu rumah tangga yang dijalankan salah satu pasangan, yang juga pengelola server, dapat menghasilkan "lanjut" yang tidak berlaku bagi keluarga lain, atau tidak menangkap rasa diawasi | Pertanyaan tentang aplikasi, bukan tentang pasangan; beta tertutup dengan pengelola yang bukan anggota sebagai uji pagar sebenarnya (13 §6.4, §6.5) |
@@ -93,11 +93,11 @@ Tujuan (`CLAUDE.md`): suami dan istri mengetahui keadaan uang dan urusan rumah t
 | D \ K | Rendah | Sedang | Tinggi | Pasti |
 |---|---|---|---|---|
 | **Kritis** | 05, 42, 44, 46 | 35, 38, 40, 47, 65 | 48 | 11 |
-| **Tinggi** | 43, 59, 71 | 04, 12, 14, 16, 21, 24, 28, 31, 34, 37, 39, 41, 45, 49, 60, 63, 66, 67, 68 | 10, 18, 19, 20, 25, 58 | — |
+| **Tinggi** | 43, 59, 71 | 04, 12, 14, 16, 21, 24, 31, 34, 37, 39, 41, 45, 49, 60, 63, 66, 67, 68, 91 | 10, 18, 19, 20, 25, 58 | — |
 | **Sedang** | 06, 09, 56, 57 | 02, 03, 22, 23, 26, 27, 30, 33, 36, 50, 51, 54, 55, 61, 62, 64, 69, 70, 72 | 01, 52, 53 | — |
 | **Rendah** | 07 | 08, 13, 17, 29, 32 | — | — |
 
-Angka adalah nomor `RISK-NN`. P1: 13 risiko; P2: 26; P3: 32 (berkedalaman penuh, 71 risiko; RISK-59 turun dari P2 ke P3 di S5 fase D). Risiko Tier 2 dinilai di §4; Tier 3 tidak dinilai sampai diangkat, kecuali RISK-83 (P3, §5, karena brief §14).
+Angka adalah nomor `RISK-NN`. P1: 13 risiko; P2: 26; P3: 32 (berkedalaman penuh, 71 risiko; RISK-59 turun dari P2 ke P3 di S5 fase D; RISK-28 ditutup dan RISK-91 baru oleh keputusan 42). Risiko Tier 2 dinilai di §4; Tier 3 tidak dinilai sampai diangkat, kecuali RISK-83 (P3, §5, karena brief §14).
 
 ---
 
@@ -123,7 +123,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-14 | Keamanan dan privasi | Pagar | Biometrik membuka kunci aplikasi bagi pasangan | Sedang | Tinggi | P2 | `ios-dev`; `android-dev` | GR-2 | Terbuka |
 | RISK-15 | — | | Pengecualian ES §2 ditolak | — | — | — | — | — | **Ditutup** (§9) |
 | RISK-16 | Bisnis | | App Review menolak karena Guideline 1.2 | Sedang | Tinggi | P2 | `ios-dev`; `security-privacy` | GR-4 | Terbuka |
-| RISK-17 | Teknis | | API eksperimental Compose berubah | Sedang | Rendah | P3 | `android-dev` | FS-1 | Terbuka |
+| RISK-17 | Teknis | | API eksperimental Compose berubah | Sedang | Rendah | P3 | `android-dev` | Jalur Android | Terbuka |
 | RISK-18 | Produk | | Hanya satu pasangan yang aktif mencatat | Tinggi | Tinggi | P1 | Pemilik produk; `ux-designer` | GR-2 | Terbuka |
 | RISK-19 | Produk | | Usaha mencatat terlalu tinggi bagi pencatat yang pelupa | Tinggi | Tinggi | P1 | `ux-designer`; `ios-dev`; `android-dev` | GR-2 | Terbuka |
 | RISK-20 | Produk | | Catatan terlewat membuat angka utama tidak dipercaya | Tinggi | Tinggi | P1 | `finance-domain`; `ux-designer` | FS-1 | Terbuka |
@@ -134,7 +134,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-25 | Produk | | Bias validasi pilot | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-3 | Terbuka |
 | RISK-26 | Produk | | "Pemakaian harian yang bertahan" belum disepakati | Sedang | Sedang | P3 | Pemilik produk | GR-2 | Terbuka |
 | RISK-27 | Produk | | Ramadan dan Idulfitri di jendela pilot | Sedang | Sedang | P3 | `product-analyst` | FS-2 | Terbuka |
-| RISK-28 | Produk | | Urutan platform belum diputuskan | Sedang | Tinggi | P2 | Pemilik produk | GR-1 | Terbuka |
+| RISK-28 | — | | Urutan platform belum diputuskan | — | — | — | — | — | **Ditutup** (§9) |
 | RISK-29 | Produk | | Chat rumah tangga tidak dipakai | Sedang | Rendah | P3 | Pemilik produk | GR-3 | Terbuka |
 | RISK-30 | UX | | Tampilan terasa templat atau kurang native | Sedang | Sedang | P3 | `ux-designer` | FS-1 | Terbuka |
 | RISK-31 | UX | Pagar | Tanda dan laporan dibaca sebagai tuduhan atau papan skor | Sedang | Tinggi | P2 | `ux-designer`; `finance-domain` | FS-1 | Terbuka |
@@ -160,9 +160,9 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-51 | Keuangan | Pagar | Tanda dapat dihindari atau timpang | Sedang | Sedang | P3 | `finance-domain`; `architect` | FS-1 | Diterima |
 | RISK-52 | Teknis | | Build TestFlight kedaluwarsa; jalur rilis iOS bergantung pada Apple | Tinggi | Sedang | P2 | `ios-dev`; pemilik produk | FS-1 | Terbuka |
 | RISK-53 | Teknis | | Kapasitas: dua UI native dan cakupan Tier 1 untuk tim 1–3 orang | Tinggi | Sedang | P2 | Pemilik produk; `architect` (14) | GR-1 | Terbuka |
-| RISK-54 | Teknis | | Sasaran kinerja ES §3 tidak tercapai di perangkat pilot | Sedang | Sedang | P3 | `ios-dev`; `android-dev`; `backend-dev` | GR-2 | Terbuka |
+| RISK-54 | Teknis | | Sasaran kinerja ES §3 tidak tercapai di perangkat pilot | Sedang | Sedang | P3 | `ios-dev`; `android-dev`; `backend-dev` | GR-2; QG-30 (Android) | Terbuka |
 | RISK-55 | Teknis | | Rekayasa berlebihan | Sedang | Sedang | P3 | `architect`; `code-reviewer` | FS-1 | Terbuka |
-| RISK-56 | Teknis | | Kunci tanda tangan APK dan distribusi APK | Rendah | Sedang | P3 | `android-dev`; pemilik produk | FS-1 | Terbuka |
+| RISK-56 | Teknis | | Kunci tanda tangan APK dan distribusi APK | Rendah | Sedang | P3 | `android-dev`; pemilik produk | Jalur Android A1 | Terbuka |
 | RISK-57 | Teknis | | Ketergantungan pada layanan pihak ketiga | Rendah | Sedang | P3 | `backend-dev` | FS-1 | Terbuka |
 | RISK-58 | Bisnis | | Kesediaan membayar tidak diketahui | Tinggi | Tinggi | P1 | Pemilik produk; `product-analyst` | GR-5 | Terbuka |
 | RISK-59 | Bisnis | | Komisi toko, pembelian dalam aplikasi, hak lintas platform | Rendah | Tinggi | P3 | `researcher`; `architect` | GR-5 | Terbuka |
@@ -181,6 +181,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | RISK-72 | Hukum | | Kewajiban menjual langganan | Sedang | Sedang | P3 | Advokat | GR-5 | Terbuka |
 | RISK-73 sampai RISK-80 | Tier 2 | sebagian | Lihat §4 | | | | | FS-2 | Terbuka |
 | RISK-81 sampai RISK-90 | Tier 3 | — | Lihat §5 | | | | | FS-4 sampai FS-8 | Terbuka |
+| RISK-91 | Teknis | | Android menyusul: pengalaman Android teruji belakangan | Sedang | Tinggi | P2 | Pemilik produk; `android-dev`; `qa` | QG-30 (Android); GR-4 | Terbuka |
 
 ---
 
@@ -193,13 +194,13 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | | |
 |---|---|
 | Penilaian | Produk · K **Tinggi** · D **Tinggi** · **P1** |
-| Uraian dan sebab | Nilai produk lahir ketika kedua orang melihat angka yang sama tanpa bertanya (PRN-01; KS-1). Bila hanya satu yang mencatat, custody di tangan pasangannya kosong atau basi, dan KS-2 gagal. Brief §14 menyebut "only one family member actively using the app". Sebabnya: pemrakarsa aplikasi akan memakainya apa pun bentuknya, sedangkan pasangannya belum tentu (A-25; 03 §2.1; dipertanyakan Q-218); platform pasangan yang lain siap lebih lambat atau kurang halus; pencatatan terasa sebagai tugas satu orang |
-| Mitigasi | Data nyata tidak dimulai di satu platform saja (13 §3.2, **[Usulan]** `product-analyst`); platform yang dipakai pasangan yang bukan pemrakarsa mendapat kehalusan paling banyak (03 §2.1 akibat 2; Q-211); usaha mencatat rendah (RISK-19); serah terima dikonfirmasi pemegangnya, jadi pencatatan dua arah sejak hari pertama (07 §2.5); tidak ada hitungan per orang yang membuat satu orang tampak malas (06 PG-09, AT-4); kartu objek di chat sehingga tanggapan terjadi di tempat percakapan (ADR-011) |
-| Pemilik mitigasi | Pemilik produk (Q-37, Q-211 di GR-1); `ux-designer`; `ios-dev`; `android-dev` |
-| Harus ada pada | GR-2 (kedua platform terpasang, 13 §3.3 butir 4) |
+| Uraian dan sebab | Nilai produk lahir ketika kedua orang melihat angka yang sama tanpa bertanya (PRN-01; KS-1). Bila hanya satu yang mencatat, custody di tangan pasangannya kosong atau basi, dan KS-2 gagal. Brief §14 menyebut "only one family member actively using the app". Sebabnya: pemrakarsa aplikasi akan memakainya apa pun bentuknya, sedangkan pasangannya belum tentu (A-25; 03 §2.1; dipertanyakan Q-218); pencatatan terasa sebagai tugas satu orang. **Sejak keputusan 42:** sampai klien Android tersedia, pemilik produk mencatat di iPad mini 7, yang bukan perangkat yang dibawa saat berbelanja, sehingga pengeluarannya di luar rumah baru tercatat belakangan dari iPad **[Asumsi]** (13 §3.2 "Risiko sisa"; 17 keputusan 42). Catatan yang tertunda membuat angka utama tertinggal sampai catatan itu masuk, dan pasangannya kembali bertanya |
+| Mitigasi | Istri, yang menurut pemilik produk paling sering mencatat ("istri saya yang sering catat", `_progress.md` 12 November 2026), memakai platform pertama, iPhone 13, yang mendapat kehalusan paling banyak (keputusan 42; Q-211 terjawab). Siapa pemrakarsanya tidak ditetapkan di sini (A-25 **[Asumsi]**; Q-218 terbuka); kedua pasangan memakai aplikasi iOS yang sama sejak data nyata (13 §3.2); entri terlambat diterima dengan tanggal kejadiannya (PRN-06; 07 §3.11); pemilik produk "jarang kemana-mana" (17 keputusan 42); bila VL-07 butir (2) menunjukkan bahwa momen yang terlewat terutama pengeluaran pemilik produk di luar rumah, Android dinaikkan urutannya di dalam FS-2 (13 §3.2 **[Usulan]**; 14 §3.8); usaha mencatat rendah (RISK-19); serah terima dikonfirmasi pemegangnya, jadi pencatatan dua arah sejak hari pertama (07 §2.5); tidak ada hitungan per orang yang membuat satu orang tampak malas (06 PG-09, AT-4); kartu objek di chat sehingga tanggapan terjadi di tempat percakapan (ADR-011) |
+| Pemilik mitigasi | Pemilik produk (urutan Android di FS-2); `ux-designer`; `ios-dev`; `android-dev` |
+| Harus ada pada | GR-2 (iPhone 13 dan iPad mini 7 terpasang, 13 §3.3 butir 4); QG-30 (Android) paling lambat sebelum GR-4 (14 §3.8) |
 | Tanda awal | VL-03 bulan pertama "tidak" dari salah satu; VL-02 turun; baris "belum dikonfirmasi" menumpuk di tempat uang satu pemegang (dibaca di tingkat rumah tangga); VL-01 tetap memperlihatkan pertanyaan "sisa berapa" seperti di VL-00 |
 | Risiko sisa | K Sedang, D Tinggi. Aplikasi tidak dapat memaksa orang mencatat dan memang tidak boleh menekan (PG-06). Bila VL-03 gagal, 13 §6.2: FS-2 diperpanjang dan model "dua pencatat" ditinjau ulang |
-| Sumber | Brief §1.1 KS-1, KS-2; brief §14; A-19, A-25; Q-211, Q-218; 03 §2.1; 13 §3.2, §6.2; SCN-27 |
+| Sumber | Brief §1.1 KS-1, KS-2; brief §14; A-19, A-25; Q-211, Q-218; keputusan 42; 03 §2.1; 13 §3.2, §6.2, VL-07; SCN-27 |
 
 #### RISK-19 — Usaha mencatat terlalu tinggi bagi pencatat yang pelupa
 
@@ -209,7 +210,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | Brief §1.1: "The main recorder is forgetful, so entry must take seconds and tolerate late entry". Usaha berulang Tier 1 diperkirakan 7 sampai 29 tindakan singkat per orang per minggu (A-29 **[Asumsi]**). Bila mencatat lebih lama daripada membayar, catatan terlewat (RISK-20). Sebabnya: banyak jenis peristiwa (belanja, tarik tunai, serah terima, dompet campuran), banyak tempat uang dan kategori, layar isian yang berat, cold start lambat, jaringan buruk |
 | Mitigasi | ES §3: paling banyak 3 ketukan sesudah layar isian terbuka, tersimpan lokal seketika, cold start ≤ 2 detik (`[DEFAULT]`, dikukuhkan ADR sesudah diukur); satu tombol Catat (08); isian bawaan dari entri terakhir (IDEA-02, FS-1); pengingat tagihan dan pos rutin (IDEA-03); entri terlambat diterima dengan tanggal kejadiannya (07 §3.11); pencatatan offline-first (ADR-018); uji kecepatan tiga alur inti di perangkat pilot sebelum GR-2 (13 §3.1) |
 | Pemilik mitigasi | `ux-designer`; `ios-dev`; `android-dev`; `qa` |
-| Harus ada pada | FS-1 (uji kecepatan); GR-2 butir 5 (ES §3 diukur di iPhone 13 dan Galaxy A55) |
+| Harus ada pada | FS-1 (uji kecepatan); GR-2 butir 5 (ES §3 diukur di iPhone 13 dan iPad mini 7); QG-30 (Android) untuk Galaxy A55 (14 §5.3) |
 | Tanda awal | VL-07: ketukan dan waktu di atas ES §3, atau momen yang dilewati karena "terlalu lama"; keluhan seperti SCN-27 ("Capek mencatat") |
 | Risiko sisa | K Sedang, D Tinggi. Sasaran ES §3 tetap `[DEFAULT]` sampai diukur; pembanding pesaing (R-02) belum diuji |
 | Sumber | Brief §1.1, §14; ES §3; A-19, A-29; 04 §6; 13 §3.1, VL-07; SCN-27 |
@@ -322,14 +323,10 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 
 | | |
 |---|---|
-| Penilaian | Produk · K **Sedang** · D **Tinggi** · **P2** |
-| Uraian dan sebab | Platform yang dibangun lebih dulu adalah keputusan pemilik produk saat fase bangun dimulai (`CLAUDE.md`; Q-37). Siapa memakai perangkat mana belum diketahui (Q-211). Urutan yang menunda platform pasangan yang bukan pemrakarsa memperbesar RISK-18; urutan iOS lebih dulu tanpa Mac memperbesar RISK-01 |
-| Mitigasi | Dokumen ini **tidak memberi putusan**; tradeoff-nya (13 §3.2; ADR-022 butir 4): **A, bersamaan**: GR-2 paling awal; dua pembangun sekaligus; pekerjaan UI iOS harian sejak awal, yang memicu Mac bulanan atau Mac sendiri. **B, Android dulu**: lingkaran kerja penuh di Linux, APK langsung ke Galaxy A55, pemicu Mac tertunda; GR-2 menunggu iOS. **C, iOS dulu**: iPhone 13 dan iPad mini 7 dipakai dengan data uji lebih dulu; Mac hampir pasti diperlukan sejak awal; GR-2 menunggu Android. Pada ketiganya server dan kontrak dibangun lebih dulu atau bersamaan (ADR-013), dan data nyata tidak dimulai di satu platform (13 §3.2) |
-| Pemilik mitigasi | Pemilik produk (keputusan); `architect` (14, urutan workstream) |
-| Harus ada pada | GR-1 |
-| Tanda awal | Q-211 belum terjawab saat GR-1 |
-| Risiko sisa | Bergantung pilihan; tidak ada pilihan tanpa harga |
-| Sumber | `CLAUDE.md` "Deferred on purpose"; Q-37, Q-211; 13 §3.2; ADR-022; 09 §6 |
+| Penilaian | **Ditutup** 12 November 2026 (§9). Penilaian sebelumnya: Produk · K Sedang · D Tinggi · P2. Pengenal tidak dipakai ulang |
+| Dasar penutupan | Keputusan 42 (17): iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), pilot dengan data nyata di iPhone 13 istri dan iPad mini 7 pemilik produk, Android sesudah GR-2 paling lambat sebelum GR-4 (bawaan lead **[Usulan]**). Siapa memakai perangkat mana kini diketahui (Q-211 terjawab). Urutan kerjanya di 14 §3.4 dan §3.8 |
+| Harga pilihan itu, dinilai di risiko lain | RISK-01 (pemicu Mac kemungkinan besar di awal FS-1; 14 §9); RISK-18 (belanja pemilik produk di luar rumah tercatat belakangan dari iPad sampai Android tersedia); RISK-91 (pengalaman Android teruji belakangan, dekat beta) |
+| Sumber | Keputusan 42; 17 K-66; Q-37, Q-211; 13 §3.2, §3.4; 14 §3.4, §3.8 |
 
 #### RISK-29 — Chat rumah tangga tidak dipakai
 
@@ -687,12 +684,12 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Teknis · K **Tinggi** · D **Sedang** · **P2** |
 | Uraian dan sebab | Pengembangan di Linux; pratinjau SwiftUI, simulator, dan debugger hanya di macOS. Dengan ADR-022 opsi A setiap perubahan UI iOS diuji lewat build Xcode Cloud lalu TestFlight (W-28) |
-| Mitigasi | ADR-022: kode non-UI sebagai paket Swift yang diuji di Linux (toolchain Swift di Linux **[Terverifikasi]**, 18 §5.2.7.4; perilaku API Foundation per dependensi **[Perlu validasi]**); pemicu naik ke Mac sewaan bulanan (USD 149–164 **[Terverifikasi]**, Scaleway EUR 149 **[Perlu validasi]**; memulihkan pratinjau dan simulator, tanpa debugger di iPhone fisik) atau Mac mini M6 sendiri (16 GB/512 GB, konfigurasi minimum usulan `researcher`, Rp21.499.000 **[Perlu validasi]**; satu-satunya yang memberi debugger di perangkat pilot) saat UI iOS dikerjakan harian (ADR-022 butir 4; 18 §5.2.7). Titik impas membeli terhadap menyewa sekitar 7,1 sampai 7,9 bulan untuk konfigurasi itu (14 §9). xtool tidak dipakai sampai L-31 dijawab |
+| Mitigasi | Sejak keputusan 42 iOS dan iPadOS satu-satunya platform UI di FS-1, jadi pemicu Mac kemungkinan besar terjadi di awal FS-1 dan keputusan membeli atau menyewa praktis jatuh di GR-1 (14 §9) **[Asumsi]**. ADR-022: kode non-UI sebagai paket Swift yang diuji di Linux (toolchain Swift di Linux **[Terverifikasi]**, 18 §5.2.7.4; perilaku API Foundation per dependensi **[Perlu validasi]**); pemicu naik ke Mac sewaan bulanan (USD 149–164 **[Terverifikasi]**, Scaleway EUR 149 **[Perlu validasi]**; memulihkan pratinjau dan simulator, tanpa debugger di iPhone fisik) atau Mac mini M6 sendiri (16 GB/512 GB, konfigurasi minimum usulan `researcher`, Rp21.499.000 **[Perlu validasi]**; satu-satunya yang memberi debugger di perangkat pilot) saat UI iOS dikerjakan harian (ADR-022 butir 4; 18 §5.2.7). Titik impas membeli terhadap menyewa sekitar 7,1 sampai 7,9 bulan untuk konfigurasi itu (14 §9). xtool tidak dipakai sampai L-31 dijawab |
 | Pemilik mitigasi | Pemilik produk (pemicu Mac); `ios-dev` |
-| Harus ada pada | GR-1 (bersama RISK-28) |
+| Harus ada pada | GR-1; awal FS-1 |
 | Tanda awal | Pekerjaan UI iOS menjadi harian; waktu tunggu build cloud melebihi waktu kerja yang wajar (ADR-022 butir 4) |
 | Risiko sisa | K Rendah, D Rendah sesudah Mac tersedia |
-| Sumber | 09.4 §5, §9; ADR-022; W-28; L-31; RISK-28 |
+| Sumber | 09.4 §5, §9; ADR-022; W-28; L-31; keputusan 42; 14 §9 |
 
 #### RISK-02 — Pustaka 0.x berubah tidak kompatibel
 
@@ -806,7 +803,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Uraian dan sebab | `ModalBottomSheet` bertanda eksperimental di Material 3 1.4.0, dan `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan (09 §9 **[Terverifikasi]**) |
 | Mitigasi | Dipatok ke 1.4.0; jalan mundur dialog layar penuh (ADR-012 butir 5; ADR-023 butir 5); uji UI lembar Catat dijalankan ulang setiap naik versi |
 | Pemilik mitigasi | `android-dev` |
-| Harus ada pada | FS-1 |
+| Harus ada pada | Jalur Android (14 §3.8) |
 | Tanda awal | Catatan rilis 1.5.0 |
 | Risiko sisa | K Sedang, D Rendah |
 | Sumber | 09.4 §9; ADR-012, ADR-023; 08 §17 |
@@ -830,7 +827,7 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Teknis · K **Tinggi** · D **Sedang** · **P2** |
 | Uraian dan sebab | Pemilik produk memutuskan UI native penuh per platform (Swift dan Kotlin; Q-34), jadi setiap layar dibangun dua kali. Tier 1 kini 55 fitur dan 198 FR Must (`_progress.md`). Brief §1 tidak memberi tenggat dan lebih memilih cakupan terkecil yang dipakai harian. Risikonya GR-2 menjauh sampai motivasi turun, atau tekanan memotong uji dan keamanan Tier 1, yang dilarang (`CLAUDE.md` "Instruction priority" butir 3) |
-| Mitigasi | Semua aturan sekali di server, sehingga klien tipis (ADR-013); tipe klien dibangkitkan dari kontrak (ES §2); layar dari komponen design system (ES §2); fitur Tier 2 tidak menahan GR-2 (13 §3.2); urutan platform (RISK-28); urutan pekerjaan di dalam Tier 1 di 14 |
+| Mitigasi | Semua aturan sekali di server, sehingga klien tipis (ADR-013); tipe klien dibangkitkan dari kontrak (ES §2); layar dari komponen design system (ES §2); fitur Tier 2 tidak menahan GR-2 (13 §3.2); satu platform UI sampai GR-2 dan Android sebagai jalur sendiri sesudahnya (keputusan 42; 14 §3.4, §3.8); urutan pekerjaan di dalam Tier 1 di 14 |
 | Pemilik mitigasi | Pemilik produk; `architect` (14); lead |
 | Harus ada pada | GR-1 |
 | Tanda awal | Alur ujung ke ujung pertama belum terpasang di perangkat pilot jauh sesudah FS-1 dimulai (14 menetapkan titik ukurnya) |
@@ -843,9 +840,9 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Teknis · K **Sedang** · D **Sedang** · **P3** |
 | Uraian dan sebab | Brief §1 menuntut cold start seketika dan aplikasi ringan; ES §3 menetapkan sasaran `[DEFAULT]`. Galaxy A55 adalah perangkat pilot dengan kinerja paling rendah **[Asumsi]** |
-| Mitigasi | Pengukuran di iPhone 13 dan Galaxy A55 sebelum GR-2, dikukuhkan atau diubah lewat ADR (ES §3; 13 §3.3 butir 5); tanpa kerja jaringan atau disk di thread UI, daftar terpaginasi, indeks untuk setiap kueri layar (ES §3) |
+| Mitigasi | Pengukuran di iPhone 13 dan iPad mini 7 sebelum GR-2, dikukuhkan atau diubah lewat ADR (ES §3; 13 §3.3 butir 5); di Galaxy A55 sebelum QG-30 (Android), dengan ADR yang sama direvisi bila perlu (14 §4.10); tanpa kerja jaringan atau disk di thread UI, daftar terpaginasi, indeks untuk setiap kueri layar (ES §3) |
 | Pemilik mitigasi | `ios-dev`; `android-dev`; `backend-dev` |
-| Harus ada pada | GR-2 |
+| Harus ada pada | GR-2 (iOS dan iPadOS); QG-30 (Android) |
 | Tanda awal | Pengukuran pertama di perangkat |
 | Risiko sisa | K Rendah, D Sedang |
 | Sumber | Brief §1; ES §3; 09.4 §4 |
@@ -869,9 +866,9 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 |---|---|
 | Penilaian | Teknis · K **Rendah** · D **Sedang** · **P3** |
 | Uraian dan sebab | Pilot Android memasang APK langsung tanpa Play (09.4 §5). Bila kunci tanda tangan hilang, pembaruan tidak dapat dipasang di atas aplikasi lama; memasang ulang menghapus antrean catatan yang belum terkirim |
-| Mitigasi | Kunci disimpan offline oleh pemilik produk dan sebagai rahasia CI (09.4 §5) |
+| Mitigasi | Kunci disimpan offline oleh pemilik produk dan sebagai rahasia CI (09.4 §5), dibuat sebelum APK pertama (10 §4.3 SEC-42; 14 §3.8 A1) |
 | Pemilik mitigasi | `android-dev`; pemilik produk |
-| Harus ada pada | FS-1 |
+| Harus ada pada | Jalur Android langkah A1 (14 §3.8) |
 | Tanda awal | — |
 | Risiko sisa | K Rendah, D Rendah |
 | Sumber | 09.4 §5 |
@@ -888,6 +885,19 @@ Satu baris per risiko. Kolom "Harus ada pada" adalah fase atau gerbang paling la
 | Tanda awal | Kegagalan job berulang |
 | Risiko sisa | K Rendah, D Rendah |
 | Sumber | Brief §14, §5O; ADR-018, ADR-019, ADR-022, ADR-026; A-05 |
+
+#### RISK-91 — Android menyusul: pengalaman Android teruji belakangan
+
+| | |
+|---|---|
+| Penilaian | Teknis · K **Sedang** · D **Tinggi** · **P2** (baru, keputusan 42) |
+| Uraian dan sebab | Keputusan 42: pilot dengan data nyata di iOS dan iPadOS; Android dibangun sesudah GR-2 untuk Galaxy A55 pemilik produk, paling lambat sebelum GR-4 (bawaan lead **[Usulan]**). Akibatnya: (1) layar Compose, kunci aplikasi Android, pengecualian cadangan (SEC-46), FCM, dan kinerja di Galaxy A55, perangkat pilot dengan kinerja paling rendah **[Asumsi]** (RISK-54), pertama kali dipakai sungguh-sungguh jauh sesudah iOS; (2) bila jalur Android selesai dekat GR-4, pemakaian Android dengan data nyata sebelum penguji beta (sekurangnya 14 penguji Android bila akun Play pribadi, 14 §6.7) singkat atau tidak ada, jadi beta menjadi uji Android yang sebenarnya; (3) jalur Android bersaing dengan gelombang Tier 2 untuk waktu tim yang sama (RISK-53); (4) aplikasi Android bergabung ke rumah tangga yang sudah berisi data nyata berbulan-bulan, jadi potret awal dan sinkron pertamanya menghadapi volume yang tidak dialami iOS saat GR-2. Bila jalur itu tergelincir, GR-4 menunggu (14 §3.8) |
+| Mitigasi | Satu server, satu kontrak, semua aturan di server (ADR-013), jadi Android tidak membawa aturan baru dan `buf breaking` menjaga kontrak sejak FS-1; vektor emas Kotlin lulus atas seluruh berkas yang ada saat modul pertama ditambahkan (14 §4.5, QG-06); **QG-30 (Android)** sebelum APK memakai data nyata: setiap AC Tier 1 yang perlu perangkat, 38 skenario, daftar 10 §4.3, ES §3 di Galaxy A55, tata letak 08 §16.4, potret awal atas rumah tangga sintetis seukuran data pilot **[Usulan]** (14 §5.3); QG-31 mensyaratkan QG-30 (Android) dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); waktu mulai jalur Android diputuskan pemilik produk di GR-2 dan dapat dimajukan bila RISK-18 menuntutnya (13 §3.2) |
+| Pemilik mitigasi | Pemilik produk (jadwal); `android-dev`; `qa` |
+| Harus ada pada | QG-30 (Android); paling lambat GR-4 |
+| Tanda awal | Jalur Android belum dimulai saat GR-3; temuan QG-30 (Android) di sinkron, potret awal, atau kinerja |
+| Risiko sisa | K Rendah, D Sedang. Lamanya pemakaian Android di pilot bergantung jadwal; bila singkat, beta adalah uji Android sesungguhnya, dengan pagar QG-31 yang sama |
+| Sumber | Keputusan 42; 17 K-66; 13 §3.2, §3.4, GR-4 butir 8; 14 §3.8, §5.3, §6.7; 10 §4.3; RISK-53, RISK-54 |
 
 ### 3.6 Bisnis
 
@@ -1229,12 +1239,13 @@ Masukan bagi quality gate dokumen 14. Kolom kanan menyebut risiko yang mitigasin
 
 | Gerbang | Yang harus ada | Risiko |
 |---|---|---|
-| **GR-1** Mulai bangun | Urutan platform diputuskan bersama Q-211; keputusan Mac saat pemicu ADR-022 butir 4 terjadi (pada urutan A dan C sejak FS-1 langkah 1, praktis bersamaan dengan GR-1; 14 §9); urutan pekerjaan Tier 1 di 14; versi dipatok (ES §8) | RISK-01, RISK-28, RISK-53, RISK-02 |
-| **FS-1** Bangun Tier 1 | Semua uji invarian dan contoh memblokir merge; uji isolasi, privasi, log, payload; uji kecepatan alur inti; gerbang contoh layar 08 §19.8; pekerjaan kalender build TestFlight; deskriptor rating usia sebelum unggahan pertama; pembungkus SQLite dinilai di minggu pertama | RISK-09, RISK-13, RISK-17, RISK-19, RISK-30, RISK-33, RISK-38, RISK-43, RISK-47, RISK-48, RISK-49, RISK-52, RISK-55, RISK-56, RISK-57, RISK-64 |
-| **GR-2** Data nyata | Sembilan butir 10 §4.1 (W-31: tanpa butir advokat), dengan butir 3 (SEC-109 (b)) sudah sebelum build TestFlight pertama dipasang (14 QG-25); semua AC Tier 1 lulus, termasuk FR-FAM-013/AC-12 salinan swalayan (SEC-107); kedua platform terpasang; ES §3 diukur; runbook ada; VL-00 dicatat; Q-213 dijawab sebelum GR-2 **[Usulan]** (§11) | RISK-03 sampai RISK-06, RISK-10, RISK-11, RISK-14, RISK-18, RISK-24, RISK-26, RISK-35, RISK-38 sampai RISK-42, RISK-44 sampai RISK-46, RISK-54, RISK-66, RISK-68 |
+| **GR-1** Mulai bangun | Urutan platform sudah diputuskan (keputusan 42); keputusan Mac saat pemicu ADR-022 butir 4 terjadi, kemungkinan besar di awal FS-1, praktis bersamaan dengan GR-1 (14 §9); urutan pekerjaan Tier 1 di 14; versi dipatok (ES §8) | RISK-01, RISK-53, RISK-02 |
+| **FS-1** Bangun Tier 1 | Semua uji invarian dan contoh memblokir merge; uji isolasi, privasi, log, payload; uji kecepatan alur inti; gerbang contoh layar 08 §19.8; pekerjaan kalender build TestFlight; deskriptor rating usia sebelum unggahan pertama; pembungkus SQLite dinilai di minggu pertama. Mitigasi yang dikerjakan `android-dev` jatuh di jalur Android, bukan di FS-1 (14 §3.8) | RISK-09, RISK-13, RISK-19, RISK-30, RISK-33, RISK-38, RISK-43, RISK-47, RISK-48, RISK-49, RISK-52, RISK-55, RISK-57, RISK-64 |
+| **GR-2** Data nyata | Sepuluh butir 10 §4.1 (W-31: tanpa butir advokat), dengan butir 3 (SEC-109 (b)) sudah sebelum build TestFlight pertama dipasang (14 QG-25) dan butir 10 (iPad mini 7 yang mungkin dipegang orang lain; SEC-59) tercatat; semua AC Tier 1 lulus, termasuk FR-FAM-013/AC-12 salinan swalayan (SEC-107); iPhone 13 dan iPad mini 7 terpasang dan lulus 08 §16.4 baris "Sebelum GR-2"; ES §3 diukur; runbook ada; VL-00 dicatat; Q-213 dijawab sebelum GR-2 **[Usulan]** (§11) | RISK-03 sampai RISK-06, RISK-10, RISK-11, RISK-14, RISK-18, RISK-24, RISK-26, RISK-35, RISK-38 sampai RISK-42, RISK-44 sampai RISK-46, RISK-54, RISK-66, RISK-68 |
+| **Jalur Android** (sesudah GR-2, paling lambat sebelum GR-4) | QG-30 (Android) sebelum APK memakai data nyata: daftar 10 §4.3, AC dan skenario di Galaxy A55, ES §3, vektor emas Kotlin, kunci APK (14 §3.8, §5.3). Bagian Android dari mitigasi RISK-14, RISK-41, RISK-48 berlaku di sini | RISK-14, RISK-17, RISK-18, RISK-41, RISK-48, RISK-54, RISK-56, RISK-91 |
 | **FS-2** Pilot berjalan | VL-01 sampai VL-10; build iOS paling lambat 90 hari sesudah unggahan sebelumnya, sasaran 60 (ADR-022 butir 1; 80 hari hanya bila Q-219 disetujui); risiko Tier 2 per gelombang | RISK-07, RISK-20, RISK-21, RISK-22, RISK-23, RISK-27, RISK-31, RISK-34, RISK-37, RISK-52, RISK-73 sampai RISK-80 |
 | **GR-3** Evaluasi | Tabel keputusan 13 §6.2; VL-08 tanpa temuan menghalangi; VL-10 nol | RISK-18, RISK-19, RISK-20, RISK-25, RISK-26, RISK-29, RISK-79 |
-| **GR-4** Pengguna luar pertama | L-01, L-14, L-24 dijawab; PSE bila wajib; butir 10 §4.2: SEC-36 dengan log hanya-menambah di luar VPS dan SEC-39 (c) publik, SEC-34 teks umum dan SEC-139 versi publik, SEC-25, SEC-84, SEC-147 bila wajib; SEC-153 (d), SEC-154 sisanya, SEC-142, SEC-143; rating usia; pengelola bukan anggota rumah tangga beta; email keluar sandbox; uji isolasi dengan banyak rumah tangga (14 QG-31) | RISK-06, RISK-11, RISK-12, RISK-16, RISK-40, RISK-44, RISK-65, RISK-68, RISK-69, RISK-70 |
+| **GR-4** Pengguna luar pertama | QG-30 (Android) lulus dan APK terpasang sebelum jalur Play dibuka (13 GR-4 butir 8); L-01, L-14, L-24 dijawab; PSE bila wajib; butir 10 §4.2: SEC-36 dengan log hanya-menambah di luar VPS dan SEC-39 (c) publik, SEC-34 teks umum dan SEC-139 versi publik, SEC-25, SEC-84, SEC-147 bila wajib; SEC-153 (d), SEC-154 sisanya, SEC-142, SEC-143; rating usia; pengelola bukan anggota rumah tangga beta; email keluar sandbox; uji isolasi dengan banyak rumah tangga (14 QG-31) | RISK-06, RISK-11, RISK-12, RISK-16, RISK-40, RISK-44, RISK-65, RISK-68, RISK-69, RISK-70, RISK-91 |
 | **FS-3 dan GR-5** Rilis publik | Butir L "tahap publik"; aturan langganan (SEC-156); R-15, R-16; wawancara dan beta; tinjauan toko; SEC-18, SEC-45; uji penetrasi pihak luar SEC-157 dengan temuan tinggi dan kritis diperbaiki (14 QG-32) | RISK-16, RISK-58 sampai RISK-63, RISK-67, RISK-71, RISK-72 |
 | **FS-4 sampai FS-8** | Dinilai saat diangkat, kecuali RISK-83 yang sudah dinilai (§5); pencegahannya Tier 1 dan mitigasinya beta (GR-5) | RISK-81 sampai RISK-90 |
 
@@ -1245,6 +1256,7 @@ Masukan bagi quality gate dokumen 14. Kolom kanan menyebut risiko yang mitigasin
 | ID | Keadaan | Dasar |
 |---|---|---|
 | RISK-15 | **Ditutup.** Pemilik produk menyetujui tegas pengecualian ES §2 untuk tiga bantuan isian (09-F A, checkpoint S4). Pengenal tidak dipakai ulang | 09.4 §9; 09 §7; ADR-013 |
+| RISK-28 | **Ditutup.** Pemilik produk memutuskan urutan dan platform pilot (keputusan 42); harga pilihannya dinilai di RISK-01, RISK-18, RISK-91. Pengenal tidak dipakai ulang | Keputusan 42; 17 K-66; Q-37, Q-211 |
 | RISK-11 | **Diterima dengan syarat** untuk pilot | Keputusan 25; 10-F A; TM-12 |
 | RISK-34 | **Diterima** (risiko sisa) | 10-A A, diputuskan pemilik produk sendiri; W-18 |
 | RISK-36 | **Diterima** (risiko sisa) | 10-E A, S4-9 (i) A, diputuskan pemilik produk sendiri; W-34 |
@@ -1284,7 +1296,7 @@ Penerimaan ini tidak menutup kemungkinan pemilik produk membukanya kembali di ch
 | A | A-05 → 57 · A-16 → 66 · A-17, A-25 → 18, 25 · A-19, A-29 → 19 · A-20 → 21 · A-28, A-32, A-34 → 22 · A-37, A-40 → 27, 26 · A-38 → 74 · A-41 → 60 · A-42 → 62 |
 | D (Pagar) | D-98, D-99 → 38 · D-102 → 41, 48 · D-104 → 45 · D-105, D-106 → 39 · D-107 → 14, 40, 41 · D-108 → 22, 73 · D-110 → 76 · D-112 → 21 · D-113 → 51 · D-114 → 41, 46 |
 | K | K-58 → 16 · K-61 → 34 · K-62 → 06 |
-| Q | Q-37, Q-211 → 28 · Q-213 → 26 · Q-216 → 58 · Q-217 → 63 · Q-218 → 18, 25 · Q-210 → 88 |
+| Q | Q-37, Q-211 → 28 (ditutup; keduanya terjawab keputusan 42), 18, 91 · Q-213 → 26 · Q-216 → 58 · Q-217 → 63 · Q-218 → 18, 25 · Q-210 → 88 |
 
 ---
 
@@ -1307,10 +1319,10 @@ Dokumen ini tidak menyunting dokumen lain dan tidak membuat persyaratan baru.
 
 | # | Angka | Letak |
 |---|---|---|
-| 1 | 90 pengenal (RISK-01 sampai RISK-90): 1 ditutup, 89 terbuka; 71 berkedalaman penuh, 8 Tier 2, 10 Tier 3 | §2, §4, §5 |
-| 2 | Per kategori (terbuka): Produk 16, UX 6, Keamanan dan privasi 21, Keuangan 6, Teknis 20, Bisnis 8, Hukum 12; jumlah 89 | §2, §4, §5 |
+| 1 | **Diubah (keputusan 42).** 91 pengenal (RISK-01 sampai RISK-91): 2 ditutup (RISK-15, RISK-28), 89 terbuka; 71 berkedalaman penuh (RISK-28 keluar, RISK-91 masuk), 8 Tier 2, 10 Tier 3 | §2, §4, §5 |
+| 2 | **Diubah (keputusan 42).** Per kategori (terbuka): Produk 15, UX 6, Keamanan dan privasi 21, Keuangan 6, Teknis 21, Bisnis 8, Hukum 12; jumlah 89 | §2, §4, §5 |
 | 3 | **Diubah.** Prioritas berkedalaman penuh: P1 13, P2 26, P3 32 (jumlah 71; RISK-59 dari P2 ke P3, K Rendah · D Tinggi); Tier 2: P2 4, P3 4 | §1.1, §2, §3.6 RISK-59, §4 |
-| 4 | Setiap sel peta §1.1 cocok dengan K dan D di §2, dan prioritasnya cocok dengan matriks §0 (RISK-59 kini di sel Tinggi × Rendah) | §0, §1.1, §2 |
+| 4 | **Diubah (keputusan 42).** Setiap sel peta §1.1 cocok dengan K dan D di §2, dan prioritasnya cocok dengan matriks §0 (RISK-59 di sel Tinggi × Rendah; sel Tinggi × Sedang tetap 19 risiko: RISK-28 keluar, RISK-91 masuk). Prioritas tidak berubah: P1 13, P2 26, P3 32 | §0, §1.1, §2 |
 | 5 | Tanda Pagar: 21 risiko (RISK-11, 14, 21, 31, 34 sampai 41, 46, 51, 63, 68, 73, 76, 77, 78, 80) | §1, §2, §4 |
 | 6 | **Diubah.** TestFlight: berlaku 90 hari sejak unggahan, sasaran 60 (ADR-022 butir 1); usulan 80 < 90 (ADR-028 butir 4; Q-219) | §3.5 RISK-52; §8 |
 | 7 | Biaya pilot Rp260.667 + USD 9,57 dikutip dari 09.4 §7.1 (sudah dihitung ulang di S4) | RISK-62 |
@@ -1325,3 +1337,4 @@ Dokumen ini tidak menyunting dokumen lain dan tidak membuat persyaratan baru.
 |---|---|---|
 | 12 November 2026 | S5 fase B | Versi pertama. RISK-01 sampai RISK-17 diambil alih dari 09.4 §9 dengan pengenal tetap; RISK-18 sampai RISK-90 baru. Belum ditinjau `critic` |
 | 12 November 2026 | S5 fase D | CS5-A-03 (irama: ADR-022 butir 1 berlaku, 80 hari usulan Q-219), A-07 (RLS sejak pilot di RISK-44), A-08 (RISK-01 harga Mac dari 18 §5.2.7), A-11 (RISK-83 dinilai; "unclear money ownership" dipetakan eksplisit ke RISK-49), A-14 (RISK-52 label perilaku aplikasi terpasang), A-18 (peta §10.2: K-61, L-06, W-31), A-21 (RISK-27 kalimat Ramadan), CS5-B-03 (Q-213 sebelum GR-2 [Usulan]); tahan tulis di §1 dan RISK-47; 10 §4.2 di §8 GR-4, RISK-11, RISK-40; SEC-138 di RISK-46; SEC-156 di RISK-63 dan §6.1; SEC-157 di §8; RISK-79 kolom tanda awal dibatasi seperti 13 §6.2. Tinjauan ulang `critic` A2: RISK-27 tanggal Idulfitri 1448 H terverifikasi; RISK-59 dinilai ulang dengan hasil R-15 (P2 → P3); §1.1, §8, §12 menyebut RISK-83 yang sudah dinilai |
+| 12 November 2026 | Keputusan 42 | RISK-28 ditutup (§9); **RISK-91 baru** (Android menyusul, P2); RISK-18 memuat catatan terlambat dari iPad sampai Android tersedia (13 §3.2; 17 keputusan 42); §1 baris 1 tanpa "kedua platform"; RISK-01, RISK-17, RISK-19, RISK-53, RISK-54, RISK-56 menurut jalur Android 14 §3.8 dan QG-30 (Android); §8 GR-2 sepuluh butir 10 §4.1, baris "Jalur Android" baru, GR-4 dengan 13 GR-4 butir 8; §10.2 Q-37, Q-211; §12 butir 1, 2, 4 |

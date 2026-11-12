@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `product-analyst` |
 | Tahap | S5 — Rencana dan sintesis, fase A (12 November 2026; izin pemilik produk "gas", `_progress.md` "S5 dimulai") |
-| Status | Direvisi di S5 fase D atas tinjauan `critic` S5 (A, B) dan permintaan 14 §12.2, 15 §11; ditinjau ulang `critic` (B2), temuannya diperbaiki. Semua angka §11, termasuk butir 8 dan 9, dihitung ulang lead dan cocok (`_progress.md`) |
+| Status | **Sesudah S5: keputusan 42** (iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 dan iPad mini 7; 17 keputusan 42) diterapkan di §1, §3.2 sampai §3.4, §6.4, §7.4, §12; belum ditinjau `critic`. Sebelumnya: direvisi di S5 fase D atas tinjauan `critic` S5 (A, B) dan permintaan 14 §12.2, 15 §11; ditinjau ulang `critic` (B2), temuannya diperbaiki. Semua angka §11, termasuk butir 8 dan 9, dihitung ulang lead dan cocok (`_progress.md`) |
 | Sumber yang mengikat | Brief §0.3, §1 (Pilot devices, First users, Target time to MVP, Monthly infrastructure budget, Business model, Money movement scope), §1.1 (tujuan, masalah inti, tier, kriteria sukses, pagar), §13, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §5, §6, §9; dokumen 02, 03, 04, 05, 08 §19.8, 09 (indeks §6, berkas 04 §5–§7), 10 (indeks §3, §4, §4.1), 11, 12, 17, 18 |
 | Dipakai oleh | 14 dan 15 (`architect`), 16 dan 01 (lead), tabel keterlacakan [05 §6](05-functional-requirements.md#6-tabel-keterlacakan) |
 
@@ -34,8 +34,8 @@
 | Fase | Nama | Fase brief §13 | Isi | Kriteria keluar (gerbang) |
 |---|---|---|---|---|
 | **FS-0** | Validasi sebelum dan selama membangun | Phase 0 | Gerbang contoh layar (08 §19.8); uji alur inti di perangkat; garis dasar pilot; wawancara keluarga lain (R-08) berjalan sejajar dengan FS-2 | Contoh layar disetujui kedua pasangan sebelum token dikunci; hasil wawancara masuk GR-5 |
-| **FS-1** | Bangun Tier 1 | Phase 1 (MVP) | 55 fitur Tier 1, 190 FR Must, di iOS dan Android, dengan data uji | **GR-2 Data nyata**: sembilan butir 10 §4.1, semua AC Tier 1 lulus, kedua platform terpasang di perangkat pilot |
-| **FS-2** | Pilot berjalan | Phase 1 (MVP) | Tier 1 dengan data nyata oleh kedua pasangan; 18 fitur Tier 2 menyusul bertahap; ukuran VL-01 sampai VL-10 | **GR-3 Evaluasi tiga bulan**: KS-1 sampai KS-4 terpenuhi, pemakaian harian bertahan, tanpa kegagalan invarian |
+| **FS-1** | Bangun Tier 1 | Phase 1 (MVP) | 55 fitur Tier 1, 190 FR Must, di iOS dan iPadOS (satu aplikasi SwiftUI), dengan data uji | **GR-2 Data nyata**: sepuluh butir 10 §4.1, semua AC Tier 1 lulus, aplikasi terpasang di iPhone 13 istri dan iPad mini 7 pemilik produk (keputusan 42) |
+| **FS-2** | Pilot berjalan | Phase 1 (MVP) | Tier 1 dengan data nyata oleh kedua pasangan; 18 fitur Tier 2 menyusul bertahap; klien Android untuk Galaxy A55 menyusul, paling lambat sebelum GR-4 (§3.4); ukuran VL-01 sampai VL-10 | **GR-3 Evaluasi tiga bulan**: KS-1 sampai KS-4 terpenuhi, pemakaian harian bertahan, tanpa kegagalan invarian |
 | **FS-3** | Persiapan tahap publik dan beta tertutup | Phase 2 | Butir "Wajib sebelum tahap publik" 10 §4; advokat; PSE; toko; langganan rumah tangga; beta tertutup sekurangnya 5 rumah tangga, lebih banyak bila akun Play pribadi memerlukan 12 penguji Android selama 14 hari (§6.4) | **GR-4 Pengguna luar pertama** (di awal fase) dan **GR-5 Rilis publik** (di akhir) |
 | **FS-4** | Tahap publik untuk pasangan | Phase 2 | MVP yang sama untuk rumah tangga dua dewasa (dan satu dewasa) di Indonesia | Dipakai rumah tangga di luar pilot dengan pola yang sama dengan GR-3; pemicu FS-5 sampai FS-8 |
 | **FS-5** | Struktur keluarga lain | Phase 2–3 | Banyak rumah tangga per orang, tanggungan dan wali, preset lain, lebih dari dua dewasa | Dijadwalkan bila pemicunya terpenuhi (§3.8) |
@@ -50,6 +50,8 @@ flowchart LR
     FS0["FS-0<br/>Validasi"] -.-> FS1
     FS1 --> GR2{{"GR-2<br/>Data nyata"}}
     GR2 --> FS2["FS-2<br/>Pilot berjalan<br/>Tier 1 + Tier 2 bertahap"]
+    GR2 -. "sesudah GR-2" .-> AND["Klien Android<br/>(Galaxy A55)"]
+    AND -. "paling lambat" .-> GR4
     FS0 -. "wawancara R-08<br/>sejajar FS-2" .-> GR5
     FS2 --> GR3{{"GR-3<br/>Evaluasi 3 bulan"}}
     GR3 -- "perpanjang / ubah bentuk" --> FS2
@@ -121,21 +123,20 @@ Urutan **di dalam** satu fase memakai empat pertimbangan, dalam urutan ini: kete
 |---|---|---|
 | 1 | Pemilik produk menyatakan fase perencanaan selesai (`CLAUDE.md` "Current phase") | Pemilik produk |
 | 2 | Agen tim bangun dibuat lead sesudah stack disetujui di S4 (`CLAUDE.md` "Build team") | Lead |
-| 3 | **Platform yang dibangun lebih dulu diputuskan** (Q-37; `CLAUDE.md` "Deferred on purpose") | Pemilik produk; pilihan di bawah, **tidak diputuskan di sini** |
+| 3 | Platform yang dibangun lebih dulu: **diputuskan, iOS dan iPadOS** (Q-37 selesai; 17 keputusan 42) | Pemilik produk; sudah diputuskan |
 
-**Pilihan platform lebih dulu** (bahan untuk Q-37, dengan saran tim di bawah tabel; bukan keputusan). Brief §1: "Both spouses must be able to use the app, so the pilot needs iOS and Android". Di ketiga pilihan, server dan kontrak dibangun lebih dulu atau bersamaan karena semua aturan ada di server (ADR-013); urutan teknisnya per pilihan di 14 §3.4.
+**Platform: diputuskan pemilik produk sendiri** (17 keputusan 42, 12 November 2026), kata-katanya: "a saja karena saya ada ipad dan iphone jadi saya bisa pake ipad bener gaa?" dan "ios ipad yang bakalan dipakai pilot ya".
 
-| Pilihan | Yang terjadi | Akibat pada GR-2 | Biaya dan gesekan |
-|---|---|---|---|
-| A — Keduanya bersamaan (`ios-dev` dan `android-dev` sejajar) | Dua klien dibangun bersama di atas kontrak yang sama | GR-2 paling awal | Dua pembangun bekerja sekaligus; pekerjaan UI iOS harian sejak awal, yang menurut 09.4 §5 butir 5 memicu Mac bulanan (sekitar EUR 149 **[Perlu validasi]**) atau Mac mini sendiri |
-| B — Android dulu | Lingkaran kerja di Linux tanpa CI macOS; APK dipasang langsung ke Galaxy A55 (09.4 §5) | GR-2 menunggu iOS selesai | Pemicu Mac tertunda sampai iOS dikerjakan |
-| C — iOS dulu | iPhone 13 dan iPad mini 7 dapat dipakai dua orang dengan data uji sebelum Android siap | GR-2 menunggu Android selesai | 09 §6: "Bila iOS lebih dulu, ADR-022 butir 4 cenderung naik ke Mac bulanan" (**[Usulan]** `architect`). iPad bukan ponsel yang dibawa saat belanja **[Asumsi]** |
+| Hal | Yang berlaku |
+|---|---|
+| Dibangun lebih dulu | iOS dan iPadOS, satu aplikasi SwiftUI, lewat Xcode Cloud dan TestFlight internal (keputusan 32); Mac disewa sekali untuk penyiapan, beli atau sewa bulanan menurut ADR-022 butir 4. Server dan kontrak lebih dulu atau bersamaan, karena semua aturan ada di server (ADR-013); urutan teknisnya di 14 §3.4 |
+| Pilot dengan data nyata | iPhone 13 istri (pencatat utama) dan iPad mini 7 pemilik produk. GR-2 tidak menunggu Android |
+| Android (Kotlin; keputusan stack tetap) | **[Usulan]** lead, dapat diubah pemilik produk: dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, di dalam pilot bila waktu memungkinkan, **paling lambat sebelum GR-4** (§3.4) |
+| Brief §1 "Pilot devices" | "the pilot needs iOS and Android" tidak lagi menjadi syarat data nyata; keputusan menang (17 K-66). Maksudnya, kedua pasangan dapat memakai aplikasi, tetap terpenuhi |
 
-Satu hal yang memengaruhi pilihan dan belum diketahui: **siapa memakai perangkat mana** (03 §2.1 "Perangkat: tidak dinyatakan"). Platform yang dipakai pasangan yang bukan pemrakarsa aplikasi layak mendapat kehalusan paling banyak, karena dialah ujian adopsi (03 §2.1 akibat 2; A-25). Ditanyakan di 17 (Q-211).
+**Riwayat pilihan, singkat.** Draf S5 menyajikan tiga pilihan untuk Q-37: keduanya bersamaan, Android dulu, iOS dulu. Saran tim fase D adalah B (Android dulu: siklus kerja di Linux, Mac tertunda), disertai usulan bahwa data nyata tidak dimulai dengan satu platform. Saran B **digantikan** keputusan 42 setelah dua fakta yang belum diketahui saat itu (Q-211): istri tidak memakai Android, dan dialah yang sering mencatat. Usulan "tidak dengan satu platform" juga digantikan; alasannya (PRN-01, KS-1: kedua orang mencatat dan melihat angka yang sama sejak data nyata) tetap terpenuhi, karena kedua pasangan memakai aplikasi iOS yang sama.
 
-**Saran tim [Usulan]: B, Android dulu.** Keputusannya tetap pemilik produk saat fase bangun dimulai (`CLAUDE.md` "Deferred on purpose"; Q-37). Alasannya: (1) siklus kerja paling cepat, karena seluruhnya di Linux dengan emulator dan APK langsung ke Galaxy A55, sesuai mesin kerja yang ada (14 §3.4; 09.4 §5); (2) Mac bulanan tidak diperlukan sampai layar SwiftUI dimulai, sedangkan paket Swift non-UI dikerjakan sejajar dan diuji di Linux (ADR-022 butir 3, butir 4); (3) satu jalur per waktu sesuai waktu pemilik produk untuk menguji di perangkat nyata (ES §9 butir 5; 14 §3.4); (4) A tidak mempercepat apa yang paling penting, karena semua aturan di server (ADR-013) dan GR-2 tetap menunggu kedua platform. Risikonya, pengalaman iOS diuji paling akhir. Bila Q-211 menunjukkan bahwa pasangan yang menjadi ujian adopsi memakai iPhone, layar SwiftUI dimulai lebih awal dari langkah 7 (14 §3.4 mengizinkannya); urutan B tetap.
-
-**Usulan atas pilihan B dan C:** data nyata **tidak** dimulai dengan satu platform, sekalipun satu platform selesai jauh lebih dulu. Alasannya PRN-01 dan KS-1: nilai produk adalah kedua orang melihat angka yang sama tanpa bertanya; satu pasangan yang mencatat sendirian di satu platform menguji hal lain dan merusak garis dasar KS-2. Masa satu platform dipakai dengan data uji.
+**Risiko sisa.** Sampai Android tersedia, pemilik produk mencatat pengeluarannya di luar rumah belakangan dari iPad, karena iPad bukan perangkat yang dibawa saat berbelanja **[Asumsi]**. Entri terlambat diterima (PRN-06; 07 §3.11), tetapi catatan yang tertunda memperbesar 15 RISK-18 dan membuat angka utama tertinggal sampai catatan itu masuk. Yang meredamnya: pemilik produk menyatakan "saya jarang kemana-mana", dan VL-07 butir (2) menanyakan momen yang terlewat di minggu kedua; bila momen yang terlewat terutama pengeluaran pemilik produk di luar rumah, Android dinaikkan urutannya di dalam FS-2 **[Usulan]**.
 
 **FS-1 berisi** semua fitur Tier 1 (§4.1) dan konsep dokumen 11 yang menjadi kriteria penerimaan FR induk Tier 1 (IDEA-01, IDEA-02, IDEA-03; THR yang diberikan; 05 §6). Tidak ada fitur Tier 2 yang menahan GR-2.
 
@@ -156,11 +157,11 @@ Satu-satunya gerbang yang menyangkut keselamatan data orang yang bukan pemilik p
 
 | # | Syarat | Rujukan |
 |---|---|---|
-| 1 | Sembilan butir 10 §4.1, dicentang bertanggal di runbook pilot: persyaratan "Pilot" dokumen 10 lulus uji; istri membaca sendiri pemberitahuan pengelola dan pengakuannya tercatat (keputusan 25; 10-F A); catatan persetujuan uji (SEC-109 (b); sudah wajib sebelum build TestFlight pertama dipasang, §3.2); DPIA dan catatan prosesor (Q-208, diterima atas saran lead); kebijakan privasi versi pilot; rencana insiden; penyedia hosting dipilih dengan pernyataan letak data; pemulihan cadangan diuji; SAPA 129 terverifikasi atau tidak ditampilkan | 10 §4.1 |
+| 1 | Sepuluh butir 10 §4.1 (butir 10 baru sejak keputusan 42), dicentang bertanggal di runbook pilot: persyaratan "Pilot" dokumen 10 lulus uji; istri membaca sendiri pemberitahuan pengelola dan pengakuannya tercatat (keputusan 25; 10-F A); catatan persetujuan uji (SEC-109 (b); sudah wajib sebelum build TestFlight pertama dipasang, §3.2); DPIA dan catatan prosesor (Q-208, diterima atas saran lead); kebijakan privasi versi pilot; rencana insiden; penyedia hosting dipilih dengan pernyataan letak data; pemulihan cadangan diuji; SAPA 129 terverifikasi atau tidak ditampilkan; pemilik produk ditanya apakah iPad mini 7 dipegang orang lain dan apakah sidik jari orang lain terdaftar di Touch ID-nya (iPad mini 7 memakai Touch ID di tombol atas, **[Terverifikasi]** 18 §2.12.9), jawabannya dicatat (SEC-59 (e) **[Usulan]** `security-privacy`; kunci aplikasi tetap pilihannya, SEC-19). Bagian khusus Android (10 §4.3) bukan syarat GR-2 | 10 §4.1 |
 | 2 | Setiap kriteria penerimaan Tier 1 punya uji otomatis yang menyebut ID-nya dan lulus | ES §6; 05 |
 | 3 | Uji invarian 07 dan 06, dan setiap contoh terhitung 07 sebagai uji yang dapat dijalankan, lulus | ES §5 |
-| 4 | Aplikasi terpasang di iPhone 13 (TestFlight internal) dan Galaxy A55 (APK), dan tata letaknya diperiksa di iPad mini 7 | Brief §1; 09.4 §5 |
-| 5 | Sasaran ES §3 diukur di iPhone 13 dan Galaxy A55, dan angkanya dikukuhkan atau diubah lewat ADR | ES §3 |
+| 4 | Aplikasi terpasang lewat TestFlight internal di iPhone 13 istri dan iPad mini 7 pemilik produk. Setiap alur Tier 1 yang dipakai pemilik produk (08 §16.2) lulus uji tata letak di iPad mini 7 menurut 08 §16.4 baris "Sebelum GR-2" (potret, lanskap, jendela berdampingan *compact* dan *regular*, jendela yang diubah ukurannya di tengah alur). Android tidak disyaratkan | Keputusan 42; 17 K-66; 08 §16.2, §16.4; 09.4 §5 |
+| 5 | Sasaran ES §3 diukur di iPhone 13 dan iPad mini 7 (perangkat harian pemilik produk), dan angkanya dikukuhkan atau diubah lewat ADR. Galaxy A55 diukur sebelum klien Android memegang data nyata (§3.4). Bunyi ES §3 ("pilot phones (iPhone 13, Galaxy A55)") belum diubah: 17 K-67 | ES §3; 14 QG-30 butir 4; keputusan 42 |
 | 6 | Gerbang contoh layar 08 §19.8 sudah dilewati | §3.1 |
 | 7 | Garis dasar VL-00 sudah dicatat | §6.1 |
 
@@ -182,6 +183,8 @@ Satu-satunya gerbang yang menyangkut keselamatan data orang yang bukan pemilik p
 **Rilis dalam pilot.** Build TestFlight berlaku 90 hari sejak diunggah ke TestFlight, bukan sejak dipasang (**[Terverifikasi]** 18 §2.12.6, "All builds uploaded to TestFlight are active for 90 days"), hampir sama dengan jendela tiga bulan. **Yang mengikat:** ADR-022 butir 1, build baru paling lambat setiap 90 hari, sasaran setiap 60 hari; bagian dari jalur Xcode Cloud dan TestFlight internal yang diputuskan pemilik produk sendiri (17 keputusan 32). **Usulan `architect`** (ADR-028 butir 4, Diusulkan): rilis pemeliharaan bila 60 hari tanpa rilis, dan batas keras 80 hari, agar tersisa 10 hari untuk build yang gagal atau tertahan. Usulan itu memperketat aturan yang diputuskan pemilik produk, jadi berlaku hanya bila ia menerimanya (Q-219). Setiap gelombang Tier 2 sekaligus memperbarui build. Jadwal rilisnya di 14 §6.3.
 
 **Anak 12+ di rumah tangga pilot** (Q-186; 03 §4.1). **Tidak ada yang dijadwalkan untuk anak selama pilot** **[Usulan]**: tanpa akun anak dan tanpa profil tanggungan (bawaan dikukuhkan dokumen 10, D-109). Risiko anak memegang ponsel orang tua (PL-03; L-29) sudah dijawab kunci aplikasi Tier 1 (F-FAM-019). Akun dan profil anak menunggu FS-5 dan tinjauan advokat L-08 sampai L-10, L-27 sampai L-30. GR-3 menanyakan sekali apakah pasangan ingin anak tercatat sebagai profil; jawabannya bahan FS-5, bukan perubahan pilot.
+
+**Klien Android di dalam pilot** (**[Usulan]** lead, dapat diubah pemilik produk; 17 keputusan 42). Dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, di dalam FS-2 bila waktu memungkinkan, paling lambat sebelum GR-4, karena beta memakai jalur pengujian Google Play (§6.4) dan rumah tangga beta dapat memakai Android. Ia tidak menahan GR-2 dan tidak menggeser jendela tiga bulan. Server, kontrak, dan aturan sama (ADR-013), jadi tidak ada aturan yang berubah. Sebelum APK memegang data nyata di Galaxy A55, syarat GR-2 yang bergantung pada klien diulang untuk klien itu **[Usulan]**: butir 2 (uji AC Tier 1 yang berjalan di klien, termasuk bagian Android FR-COM-011/AC-10, FR-NTF-005/AC-6 dan AC-7), butir 3 (uji invarian lewat klien), butir 5 (ES §3 di Galaxy A55), dan persyaratan "Pilot" dokumen 10 yang menyangkut klien Android; daftar teknisnya di 14. Selama itu klien Android memakai data uji di staging (ADR-028 butir 1). Bila klien Android selesai sebelum GR-3, VL-07 diulang di Galaxy A55.
 
 **Web dan PC tidak dibangun di pilot.** Keputusan pemilik produk selama S5 (`_progress.md`, "Pertanyaan pemilik produk tentang web", 12 November 2026), kata-katanya: "A aja, catat dulu"; **diterima atas saran lead** (17 keputusan 41). Kandidat klien web ada di §3.8; pertanyaannya Q-210.
 
@@ -211,6 +214,7 @@ Brief §1: "Public launch only after the pilot shows sustained daily use". Defin
 | 5 | Google Play bila dipakai: jenis akun pengembang diputuskan, pribadi atau organisasi (Q-221); akun pengembang (USD 25 sekali, **[Terverifikasi]** 18 §5.1.1); bila akun pribadi yang dibuat sesudah 13 November 2023, rencana *closed testing* dengan sekurangnya 12 penguji yang ikut tanpa putus 14 hari sebelum produksi (**[Terverifikasi]** `architect`, 14 §6.7; syarat itu jatuh di GR-5, ukurannya di §6.4); target API 36 (**[Terverifikasi]** 18 §5.1.1), deklarasi aplikasi kesehatan (18 §2.4), Data safety di luar jalur internal testing (18 §2.4) | SEC-143 |
 | 6 | Email keluar dari sandbox SES, bila S4-2 memilih SES | 09 §6; ADR-026 |
 | 7 | Butir "sebelum tahap publik" yang jatuh sebelum GR-4, karena rumah tangga beta memakai server yang sama dan pengelolanya bukan anggota mereka: SEC-36 dan SEC-39 (c) publik (akses darurat, log keluar dari VPS operator); SEC-34 teks umum dan SEC-139 versi publik; SEC-25 (pemulihan dan ganti email tanpa operator); SEC-84; SEC-147 bila L-14 mewajibkan pendaftaran. Menurut bunyinya sendiri juga di GR-4: SEC-153 (d), SEC-154 (butir 3), SEC-142, SEC-143 (butir 5). SEC-18 faktor kedua dianjurkan bila biayanya kecil. SEC-107 swalayan tidak di sini: dibangun di FS-1 (FR-FAM-013/AC-12), jadi sudah ada sejak GR-2 | 10 §4.2 **[Usulan]** `security-privacy` |
+| 8 | Klien Android memenuhi syarat ulang GR-2 di §3.4 dan terpasang di Galaxy A55, sebelum jalur pengujian Google Play dibuka | Bawaan lead **[Usulan]**, 17 keputusan 42; §3.4 |
 
 **Isi FS-3 sesudah GR-4:**
 
@@ -292,7 +296,7 @@ Alasannya kanonis di 04 §8.1; diulang satu baris agar brief §13 ("Will not bui
 ```mermaid
 flowchart TB
     subgraph Keputusan_pemilik["Keputusan pemilik produk"]
-        Q37["Q-37 platform lebih dulu"]
+        Q37["Q-37 platform lebih dulu:<br/>iOS dan iPadOS (keputusan 42)"]
         S42["S4-2 hosting, cadangan, email"]
         Q213["Q-213 definisi pemakaian bertahan"]
         BM["Model bisnis (Q-36): harga dan isi Plus"]
@@ -402,7 +406,7 @@ Menjawab brief §13 Phase 0 dan R-08. Tidak memerlukan aplikasi terpasang.
 
 Rumah tangga di luar pilot, sesudah GR-4, sekurangnya 8 minggu **[Usulan]**, dengan ukuran yang sama dengan VL-01 sampai VL-09 dan percakapan akhir bulan yang sama. Pengujian pagar yang sebenarnya terjadi di sini, karena pengelola server bukan anggota rumah tangga mereka (glosarium *Pengelola server*). Distribusi lewat TestFlight eksternal dan jalur *closed testing* Google Play, bukan APK langsung **[Usulan]**.
 
-**Ukuran beta** **[Usulan]**. Untuk validasi, sekurangnya 5 rumah tangga. Syarat Play mungkin lebih besar: akun pengembang **pribadi** yang dibuat sesudah 13 November 2023 memerlukan sekurangnya 12 penguji yang ikut tanpa putus 14 hari di *closed testing* sebelum rilis produksi (**[Terverifikasi]** `architect`, 14 §6.7; apakah akun organisasi dikecualikan **[Perlu validasi]**, permintaan ke `researcher` di 14 §12.2). Yang dihitung adalah orang dewasa yang memakai perangkat ber-Google Play, bukan rumah tangga (18 §2.4 butir 6 **[Usulan]** `researcher`; Google tidak menyatakan eksplisit bahwa penguji harus memakai Android): rumah tangga dua dewasa yang keduanya Android menyumbang dua penguji, rumah tangga campuran (satu iPhone, satu Android) satu, rumah tangga yang keduanya iPhone nol. Karena itu, bila akunnya pribadi, jumlah rumah tangga ditetapkan dari jumlah pemakai Android, bukan sebaliknya: rekrut sampai **sekurangnya 14 penguji Android** (12 ditambah 2 cadangan bila ada yang keluar sebelum 14 hari habis) **[Usulan]**, tanpa batas atas 10 rumah tangga. 14 hari itu jatuh di dalam 8 minggu beta. Jenis akun ditanyakan sebelum GR-4 (Q-221).
+**Ukuran beta** **[Usulan]**. Untuk validasi, sekurangnya 5 rumah tangga. Syarat Play mungkin lebih besar: akun pengembang **pribadi** yang dibuat sesudah 13 November 2023 memerlukan sekurangnya 12 penguji yang ikut tanpa putus 14 hari di *closed testing* sebelum rilis produksi (**[Terverifikasi]** `architect`, 14 §6.7; apakah akun organisasi dikecualikan **[Perlu validasi]**, permintaan ke `researcher` di 14 §12.2). Yang dihitung adalah orang dewasa yang memakai perangkat ber-Google Play, bukan rumah tangga (18 §2.4 butir 6 **[Usulan]** `researcher`; Google tidak menyatakan eksplisit bahwa penguji harus memakai Android): rumah tangga dua dewasa yang keduanya Android menyumbang dua penguji, rumah tangga campuran (satu iPhone, satu Android) satu, rumah tangga yang keduanya iPhone nol. Karena itu, bila akunnya pribadi, jumlah rumah tangga ditetapkan dari jumlah pemakai Android, bukan sebaliknya: rekrut sampai **sekurangnya 14 penguji Android** (12 ditambah 2 cadangan bila ada yang keluar sebelum 14 hari habis) **[Usulan]**, tanpa batas atas 10 rumah tangga. 14 hari itu jatuh di dalam 8 minggu beta. Jenis akun ditanyakan sebelum GR-4 (Q-221); keputusan 42 tidak mengubahnya, karena klien Android hadir paling lambat sebelum GR-4 (GR-4 butir 8). Rumah tangga pilot sendiri, bila tetap di beta, menyumbang paling banyak satu penguji Android (pemilik produk di Galaxy A55).
 
 GR-5 mensyaratkan: tidak ada temuan menghalangi VL-08; VL-10 nol; sebagian besar rumah tangga beta memenuhi VL-01 di bulan kedua; bila akun Play pribadi, syarat 12 penguji × 14 hari sudah dipenuhi. Rumah tangga beta pertama baru masuk sesudah butir 10 §4.2 terpenuhi (GR-4 butir 7).
 
@@ -477,7 +481,7 @@ Bacaan `researcher` **[Usulan]**: komisi efektif sekitar 15% di kedua toko bagi 
 | Kriteria | Freemium per rumah tangga | Langganan keluarga (tanpa tingkat gratis; hanya uji coba) | Beli sekali |
 |---|---|---|---|
 | Menutup biaya berulang (server, sinkron, chat, pembaruan OS) | Ya, dari rumah tangga yang membayar | Ya | **Tidak**: pendapatan sekali untuk biaya yang tidak pernah berhenti **[Usulan]** |
-| Pasangan kedua dapat bergabung tanpa dinding bayar | Ya, bila inti gratis | Hanya selama uji coba | Bergantung apakah pembelian di satu toko dikenali di toko lain; rumah tangga pilot sendiri memakai iPhone dan Android (brief §1). Cara tokonya **[Perlu validasi]** (R-15) |
+| Pasangan kedua dapat bergabung tanpa dinding bayar | Ya, bila inti gratis | Hanya selama uji coba | Bergantung apakah pembelian di satu toko dikenali di toko lain; rumah tangga pilot sendiri memiliki iPhone, iPad, dan Android (brief §1; keputusan 42). Cara tokonya **[Perlu validasi]** (R-15) |
 | Simetri (PRN-09) | Ya, bila hak melekat pada rumah tangga dan pembayar tidak mendapat apa pun selain status langganan | Sama | Sama |
 | Tidak mengunci catatan | Ya: inti tetap gratis, jadi berhentinya langganan hanya menghapus tambahan | Berisiko: sesudah langganan berhenti, apa yang terjadi pada catatan harus dirancang agar tidak menjadi sandera | Ya |
 | Kecocokan dengan pasar Indonesia yang terlihat | Pola SakuSaku (dasar gratis, Pro tahunan murah) | Pola MoneyKita (bulanan, pasangan ikut) | Tidak ada pembanding di 18 |
@@ -519,7 +523,7 @@ Bacaan `researcher` **[Usulan]**: komisi efektif sekitar 15% di kedua toko bagi 
 | 16 atau 17 Januari 2027 (hitungan peneliti atas salinan teks); 15 Januari 2027 menurut metadata Hukumonline | PP 33/2026 mulai berlaku | Tidak mengubah GR-2: DPIA sudah wajib sebelum data nyata (Q-208) | **[Perlu validasi]** (17 R-01; salinan teks belum dicocokkan dengan pindaian resmi) |
 | 10–11 Maret 2027 (libur nasional); cuti bersama 9, 12, 15 Maret | Idulfitri 1448 H (SKB tiga menteri, Setneg 15 September 2026); awal Ramadan belum ditetapkan Menteri Agama, perkiraan 8 atau 9 Februari 2027 | (1) Bila FS-2 mencakupnya: templat IDEA-08 dilepas sebelum Ramadan; THR dan angpau sudah Tier 1 (FR-FIN-040/AC-14); bulan itu ujian KS-4 (§6.1). (2) Bila FS-2 dimulai sesudahnya: IDEA-08 keluar dari pilot dan dijadwalkan sebelum Ramadan berikutnya atau di FS-4 | Idulfitri dan cuti bersama **[Terverifikasi]** 18 §2.14 (halaman Setneg; naskah SKB tidak dibuka); awal Ramadan **[Asumsi]** (11 §11 butir 2; A-37; R-18) |
 | 90 hari sesudah setiap unggahan | Build TestFlight kedaluwarsa | Build baru paling lambat setiap 90 hari sejak unggahan sebelumnya, sasaran 60 (ADR-022 butir 1, keputusan 32); usulan batas keras 80 hari (ADR-028 butir 4, Q-219) (§3.4) | **[Terverifikasi]** 18 §2.12.6 |
-| 31 Agustus 2026 (sudah lewat) | Google Play: aplikasi baru wajib menargetkan API 36 | Berlaku di GR-4 bila Play dipakai; pilot memakai APK | **[Terverifikasi]** 18 §5.1.1 |
+| 31 Agustus 2026 (sudah lewat) | Google Play: aplikasi baru wajib menargetkan API 36 | Berlaku di GR-4 bila Play dipakai; di pilot, klien Android (sesudah GR-2) dipasang sebagai APK | **[Terverifikasi]** 18 §5.1.1 |
 
 ---
 
@@ -576,11 +580,13 @@ Q-210 (klien web untuk tahap publik) beserta catatan keputusan web; Q-211 (siapa
 
 **Fase D:** Q-219 (memperketat irama rilis ke 80 hari, ADR-028 butir 4); Q-220 (arti "pas mau deploy" untuk S4-2); Q-221 (jenis akun Google Play); Q-222 (siapa mengoperasikan server bila pemilik produk berhalangan lama).
 
+**Sesudah S5:** keputusan 42; Q-37 selesai; Q-211 terjawab; A-19 diperbarui; K-66 (brief §1 "Pilot devices"); K-67 (ES §3); Q-223 (kalimat tablet di tablet Android).
+
 ### 12.2 Permintaan kepada pemilik dokumen lain (lewat lead)
 
 | Kepada | Permintaan |
 |---|---|
-| `architect` (14) | Urutan workstream yang memungkinkan GR-2 menurut ketiga pilihan Q-37; daftar teknis GR-2 (§3.3 butir 2–5) sebagai quality gate; irama rilis pilot menurut ADR-022 butir 1 (draf pertama meminta ≤ 80 hari; kini usulan ADR-028, Q-219); hak akses Plus per rumah tangga di server dan penagihan toko dua platform di FS-3; jalur beta (TestFlight eksternal, jalur pengujian Play) |
+| `architect` (14) | Urutan workstream yang memungkinkan GR-2 dengan iOS dan iPadOS saja (keputusan 42; semula menurut ketiga pilihan Q-37), lalu klien Android sesudah GR-2 dengan daftar teknis syarat ulang §3.4 sebelum APK memegang data nyata; daftar teknis GR-2 (§3.3 butir 2–5) sebagai quality gate; irama rilis pilot menurut ADR-022 butir 1 (draf pertama meminta ≤ 80 hari; kini usulan ADR-028, Q-219); hak akses Plus per rumah tangga di server dan penagihan toko dua platform di FS-3; jalur beta (TestFlight eksternal, jalur pengujian Play) |
 | `architect` (fase D) | (1) ADR-028 butir 4 dan 14 §6.3, QG-23: hitungan 80 hari dari unggahan ke TestFlight, bukan dari pemasangan (18 §2.12.6). (2) 15 RISK-79 kolom pemantauan "ada tidaknya objeknya": dibatasi ke objek yang terlihat keduanya dan jawaban pemakai sendiri (§6.2) |
 | `architect` (15) | Risiko: bias validasi pilot yang dijalankan satu pasangan (§6.5); build TestFlight kedaluwarsa; platform lebih dulu; kesediaan membayar dan komisi toko belum diketahui; Lebaran di jendela pilot; definisi "pemakaian bertahan" |
 | `architect` (06/09) | Aturan langganan §7.5 (a)–(d): apakah memerlukan baris di 06 (Plus tidak memberi peran atau wewenang; tidak lintas rumah tangga) |
@@ -592,7 +598,7 @@ Q-210 (klien web untuk tahap publik) beserta catatan keputusan web; Q-211 (siapa
 
 ### 12.3 Yang tidak diputuskan dokumen ini
 
-Platform yang dibangun lebih dulu (Q-37), penyedia hosting dan email (S4-2), harga dan isi Plus (Q-36, Q-216), definisi akhir pemakaian bertahan (Q-213), irama rilis 80 hari (Q-219), arti penundaan S4-2 (Q-220), jenis akun Play (Q-221), pengganti pengelola server (Q-222), uji prototipe dan wawancara terhadap Q-209 (Q-215; sebelum wawancara pertama; **Pagar**), dan keputusan lanjut di GR-3 dan GR-5 adalah keputusan pemilik produk.
+Penyedia hosting dan email (S4-2), kapan tepatnya Android dibangun di antara GR-2 dan GR-4 (bawaan lead, dapat diubah; Q-37 sendiri sudah diputuskan, keputusan 42), harga dan isi Plus (Q-36, Q-216), definisi akhir pemakaian bertahan (Q-213), irama rilis 80 hari (Q-219), arti penundaan S4-2 (Q-220), jenis akun Play (Q-221), pengganti pengelola server (Q-222), uji prototipe dan wawancara terhadap Q-209 (Q-215; sebelum wawancara pertama; **Pagar**), dan keputusan lanjut di GR-3 dan GR-5 adalah keputusan pemilik produk.
 
 ### 12.4 Riwayat
 
@@ -600,3 +606,4 @@ Platform yang dibangun lebih dulu (Q-37), penyedia hosting dan email (S4-2), har
 |---|---|
 | 12 November 2026 | Draf pertama (S5 fase A) |
 | 12 November 2026 | S5 fase D atas `critic` S5 A (A-03, A-05, A-06, A-07) dan B (B-02 sampai B-06, B-08, B-09, B-12 sampai B-14), 14 §12.2, 15 §11: irama rilis (ADR-022 butir 1 mengikat, ADR-028 usulan, Q-219); S4-2 **[Usulan]** dan Q-220; SEC-109 (b) sebelum TestFlight pertama; RLS keluar dari daftar FS-3; syarat penguji Play dan ukuran beta, Q-221; Q-213 sebelum GR-2; ukuran "fitur Tier 2 tidak dipakai" tanpa data yang tidak terlihat keduanya; VL-10 memicu tahan tulis; saluran jawaban VL-08; klien web tanpa batas waktu; `T-N` menjadi `TB-N`; IDEA-15, IDEA-19 masuk T2-3; biaya pilot dengan PPN dan email. Susulan atas 10 §4.2, §7.4: batas sumber ukuran validasi (§6.1; VL-02 hanya entri yang terbaca keduanya); GR-4 butir 7 (butir 10 §4.2); daftar keamanan FS-3 menjadi sisa sebelum GR-5 (dengan SEC-157); F-FIN-023 dari FS-3 ke "Menunggu bukti" (SEC-107 dipenuhi FR-FAM-013/AC-12); Q-215 dengan syarat `security-privacy`. Susulan atas 18 (§1.5, §2.4, §2.13, §2.14): penguji Play dihitung per orang dewasa; tabel toko §7.2 dan aturan (e) tanpa Family Sharing; tanggal Idulfitri 1448 H. Atas `critic` B2: FR-FAM-013/AC-12 di FS-1, jadi SEC-107 keluar dari GR-4 butir 7; Q-215 di §12.3; saran tim untuk Q-37 (§3.2, B Android dulu) |
+| 12 November 2026 | Sesudah S5, keputusan 42 (17): §3.2 pilihan platform diganti keputusan (iOS dan iPadOS lebih dulu; saran B dan usulan "tidak dengan satu platform" digantikan, riwayat singkat; risiko sisa pencatatan dari iPad, 15 RISK-18); §1 baris FS-1, FS-2 dan diagram (klien Android sesudah GR-2); GR-1 butir 3; GR-2 butir 1 (sepuluh butir 10 §4.1, termasuk SEC-59 (e)), butir 4 (tata letak iPad mini 7 menurut 08 §16.4) dan 5, tanpa Android; §3.4 klien Android di dalam pilot dengan syarat ulang GR-2 sebelum data nyata di Galaxy A55; GR-4 butir 8; §5 diagram; §6.4 dan Q-221 tetap sebelum GR-4; §7.4, §8; §12. Atas `critic`: CR42-08 Touch ID iPad di GR-2 butir 1, kini **[Terverifikasi]** 18 §2.12.9; CR42-09 GR-2 butir 5 tanpa label usulan, mengikuti 14 QG-30 butir 4, bunyi ES §3 di 17 K-67 |

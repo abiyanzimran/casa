@@ -624,7 +624,7 @@ Empat kebutuhan di bawah diminta dokumen 10 §7 dan semuanya ditandai 10 §4 "wa
 | Tier / MoSCoW | 1 / Must |
 | Masalah (brief §1.1) | `PAGAR`: ponsel yang terbuka dipegang orang lain, termasuk anak 12 tahun ke atas di rumah tangga pilot (dokumen 17 Q-186); brief §8 "device lost or stolen" |
 | Aktor dan izin | Pemilik akun di perangkatnya sendiri |
-| Aturan acuan | 10.1 SEC-13, SEC-14, SEC-19, SEC-20; 10.2 SEC-54; 08 §12.3, §9.1 |
+| Aturan acuan | 10.1 SEC-13, SEC-14, SEC-19, SEC-20; 10.2 SEC-54, SEC-59 (b); 08 §12.3, §9.1 |
 | Business rule | BR-FAM-022 |
 | Kedudukan | **[Usulan]** `security-privacy` S4, Pilot (10 §4 "Autentikasi dan sesi"). Angka 1 menit, 6 digit, dan 5 kali salah **[Asumsi]** |
 
@@ -641,6 +641,7 @@ Kunci aplikasi mati secara bawaan dan ditawarkan sekali saat mulai memakai. Ia h
 - **AC-7** — *Given* aplikasi di pengalih aplikasi sistem, *When* pratinjaunya tampil, *Then* isinya selalu tertutup, juga bila kunci mati (10.1 SEC-20).
 - **AC-8** — *Given* kunci menyala dan pemilik menekan pintasan ikon aplikasi "Catat belanja" atau "Uang masuk", *When* pintasan dibuka, *Then* kunci diminta lebih dulu, sebelum lembar catat dan sebelum angka apa pun, termasuk sisa anggaran (10.2 SEC-54; FR-FIN-040/AC-15).
 - **AC-9** — *Given* anggota lain di rumah tangga yang sama, *When* ia membuka layar mana pun atau API mana pun, *Then* ia tidak dapat mengetahui apakah pasangannya memakai kunci aplikasi.
+- **AC-10** — *Given* aplikasi berjalan di iPad (pemilik produk di iPad mini 7, 17 keputusan 42), *When* tawaran kunci aplikasi saat mulai memakai tampil (AC-1), *Then* tawaran itu memuat kalimat bahwa tablet sering dipegang orang lain dan bahwa sidik jari siapa pun yang sudah terdaftar di tablet itu membuka aplikasi bila biometrik dipakai, dan menawarkan pilihan kode saja tanpa biometrik; kunci tetap mati secara bawaan, hanya pemiliknya yang menyalakannya, dan di iPhone kalimat tablet itu tidak tampil (10.2 SEC-59 (b) **[Usulan]** `security-privacy`; kata layarnya milik 08).
 
 **Dua arah.** Simetris; setiap orang mengatur kuncinya sendiri dan tidak ada yang dapat mewajibkan, mematikan, atau melihat kunci orang lain.
 

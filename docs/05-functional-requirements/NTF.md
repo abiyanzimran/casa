@@ -187,7 +187,7 @@ Tak satu pun dari keempatnya `perlu_tanggapan`, jadi tidak terhitung jendela 6 j
 | Tier / MoSCoW | 1 / Must |
 | Masalah (brief §1.1) | `PAGAR` (privasi dari siapa pun yang melihat ponsel, termasuk pasangan); PRN-08 |
 | Aktor dan izin | Pemilik perangkat |
-| Aturan acuan | 06 §11.1 "Isi layar kunci" (SP-07, SP-46, kabar N-28), §16.8 (N-23), P-32 |
+| Aturan acuan | 06 §11.1 "Isi layar kunci" (SP-07, SP-46, kabar N-28), §16.8 (N-23), P-32; 10.2 SEC-59 (c) (permukaan sistem di luar aplikasi) |
 | Business rule | BR-NTF-005 |
 | Kedudukan | D-34 (Pagar, lewat "lanjut"); rumusan akhir **[Dok. 10]** (S4). N-23 dan N-28 (bentuk (a), S3-8 (vii), diterima lewat "lanjut"): lihat BR-NTF-005 |
 
@@ -197,6 +197,8 @@ Tak satu pun dari keempatnya `perlu_tanggapan`, jadi tidak terhitung jendela 6 j
 - **AC-3** — *Given* butir berprioritas `ringkasan`, *When* dibuat, *Then* tidak tampil sendiri-sendiri di layar kunci.
 - **AC-4** — *Given* B menyalakan rincian di perangkatnya, *When* B menerima N-23 dari A, *Then* layar kunci tetap teks umum kelas `kabar` ("Ada kabar baru"), tanpa nama A dan tanpa isi pesan (06 §16.8; P-24; S3-8 (vii) bentuk (a), diterima lewat "lanjut").
 - **AC-5** — *Given* bentuk (a) (S3-8 (vii), diterima lewat "lanjut", 12 November 2026), *When* B menerima N-28 atas status A dan, pada waktu lain, N-04 atas permintaan B, *Then* teks layar kunci, kanal atau kategori notifikasi, dan bentuk payload keduanya identik ("Ada kabar baru"), tanpa nama, jenis peristiwa, atau isi; kata-kata menenangkan dan saran tampil hanya sesudah ponsel dibuka (06 §11.1 "Isi layar kunci", §13.6 "Layar kunci"; SP-46). Cabang semula untuk alternatif (b) tidak berlaku karena (b) tidak dipilih.
+- **AC-6** — *Given* rumah tangga dengan entri, kategori, pihak, dan objek uji yang berisi nama kategori, jumlah, dan nama pihak, di iPhone, iPad, dan (sesudah dibangun) Android, *When* nama kategori, jumlah, atau nama pihak itu dicari di pencarian sistem (Spotlight di iOS dan iPadOS, pencarian perangkat di Android), dan saran sistem (saran Siri, donasi App Intents) diperiksa sesudah alur catat, serah terima, dan permintaan dijalankan, *Then* tidak ada hasil pencarian dari aplikasi dan tidak ada saran atau tindakan yang memuat nama, jumlah, kategori, atau judul objek; aplikasi tidak mengindeks lewat Core Spotlight dan tidak membuat `NSUserActivity` yang dapat dicari (10.2 SEC-59 (c) **[Usulan]** `security-privacy`).
+- **AC-7** — *Given* aplikasi terbuka di layar mana pun, termasuk objek dengan judul dan jumlah, *When* judul jendela atau scene tampil di pengalih aplikasi, tampilan jendela multitasking iPadOS, atau daftar tugas Android, *Then* judulnya hanya nama tujuan navigasi (misalnya "Catat", "Chat"), tanpa nama, jumlah, kategori, atau judul objek (10.2 SEC-59 (c); pratinjau isi pengalih aplikasi tetap tertutup menurut FR-FAM-021/AC-7). Bagian Android AC-6 dan AC-7 lulus sebelum klien Android memegang data nyata (13 §3.4); bagian iOS dan iPadOS sebelum GR-2.
 
 **Dua arah.** Simetris.
 

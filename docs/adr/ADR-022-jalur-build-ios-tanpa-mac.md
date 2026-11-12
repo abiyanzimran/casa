@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, Xcode Cloud + TestFlight internal + sewa Mac sekali (S4-3 (i) A). Kata-katanya: "#S4-3: A Xcode Cloud + sewa Mac sekali - A iOS 26, Android 10" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama; dikukuhkan dengan "lanjut"). Pemicu naik ke B atau C (butir 4) tetap berlaku |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; fakta dan catatan S5) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; fakta dan catatan S5; catatan keputusan 42) |
 | Pengusul | `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §12](../09-technical-architecture/01-pilihan-teknologi.md); [09.4 §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -62,3 +62,12 @@ Keputusan ADR ini tidak berubah. Yang ditambahkan:
 - **Butir 4, membeli atau menyewa:** menurut hitungan `researcher` (18 §5.2.7.6, **[Usulan]**, dihitung ulang lead), membeli Mac mini impas terhadap sewa bulanan sesudah sekitar **7,1 sampai 7,9 bulan** untuk 16 GB/512 GB (konfigurasi minimum usulan `researcher`); 5,8 sampai 6,4 bulan untuk 16 GB/256 GB (8,8 bulan terhadap sewa berkomitmen 12 bulan); 5,5 sampai 6,2 bulan untuk 24 GB/512 GB. Nilai jual kembali, pajak, dan biaya kartu tidak dihitung. Hanya Mac sendiri di jaringan rumah yang memberi debugger di perangkat pilot. Keputusan B atau C tetap pada pemilik produk **saat pemicu butir 4 terjadi**; pada urutan platform A dan C itu sejak FS-1 langkah 1, sehingga praktis bersamaan dengan pilihan platform pertama (14 §3.4, §9).
 - **Konsekuensi, jalur D:** bila Xcode Cloud bermasalah, jalur D tetap jalan mundur seperti tertulis di Konsekuensi, dan dijalankan sebagai **pemeriksaan wajib sebelum merge**, tidak pernah sesudah merge (ES §7; 14 §5.1). Biayanya USD 0,062 per menit **[Terverifikasi]** (18 §5.2), dipotong dari jatah GitHub yang sama dengan CI Linux. Jalan mundur yang menggabungkan perubahan iOS sebelum pemeriksaannya lulus tidak dipakai; bila suatu saat diperlukan, ia memerlukan ADR baru yang disetujui pemilik produk.
 - Fakta Konteks diperbarui dari 18 §5.2.7 (harga Mac mini M6, Mac sewaan, AWS, Swift di Linux).
+
+## Catatan keputusan 42 (12 November 2026)
+
+Keputusan ADR ini tidak berubah. Yang dicatat:
+
+- **Platform pertama sudah diputuskan** (butir 4 kalimat kedua): iOS dan iPadOS lebih dulu, dan pilot dengan data nyata berjalan di iPhone 13 dan iPad mini 7; Android sesudah GR-2 (keputusan 42; ADR-012 catatan urutan platform). Kalimat Konsekuensi "Android sebagai platform pertama meringankan beban ini" kini hanya riwayat tradeoff.
+- **Pemicu butir 4 kemungkinan besar terjadi di awal FS-1.** iOS dan iPadOS satu-satunya platform UI sampai GR-2, dan layar SwiftUI dikerjakan sejak FS-1 langkah 1 (14 §3.3, §3.4), jadi pekerjaan UI iOS menjadi harian sejak awal **[Asumsi]**. Ini **catatan, bukan keputusan**: B (Mac sewaan bulanan) atau C (Mac mini sendiri) tetap diputuskan pemilik produk saat pemicu terjadi, praktis di GR-1. Aturan keputusan usulan dan titik impasnya di 14 §9.
+- **Sewa sekali untuk penyiapan (butir 2)** adalah sewa bertarif per jam dengan minimum 24 jam berturut-turut, bukan sewa sebulan (18 §5.2.7.2: minimum 24 jam **[Terverifikasi]**; 24 × EUR 0,22 = EUR 5,28 **[Perlu validasi]** harga). Bila pemilik produk sudah memilih B atau C sebelum penyiapan, sewa sekali itu tidak diperlukan, karena penyiapan dikerjakan di Mac bulanan atau Mac sendiri **[Usulan]**.
+- Android tidak memerlukan Mac; datangnya Android sesudah GR-2 tidak mengubah butir mana pun di ADR ini.

@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | Lead |
 | Tahap | S5 — Rencana dan sintesis, fase C (12 November 2026) |
-| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); temuan diperbaiki |
+| Status | Ditinjau `critic` (S5 B, lalu tinjauan ulang B2, 12 November 2026); direvisi untuk keputusan 42 dan ditinjau `critic` lagi (12 November 2026); temuan diperbaiki |
 | Sumber yang mengikat | Brief §0.3, §1, §1.1, §16 (baris 16: "MVP, architecture, critical decisions, deferred decisions, features to reconsider, top opportunities"); `CLAUDE.md`; keputusan pemilik produk di [17](17-open-questions-assumptions.md) dan [_progress.md](_progress.md) |
 | Merangkum | 02 sampai 15 dan 18. Dokumen ini tidak menetapkan aturan, persyaratan, atau keputusan baru; setiap butir menunjuk sumbernya |
 | Dipakai oleh | [01](01-executive-summary.md) |
@@ -23,10 +23,10 @@
 
 1. **Bangun MVP yang menjawab satu pertanyaan lebih dulu:** "sisa uang berapa, dan siapa yang memegang" bisa dijawab kedua pasangan dari aplikasi tanpa saling bertanya (brief §1.1 kriteria sukses 1; PRN-01). Seluruh Tier 1 melayani pertanyaan itu, permintaan dan persetujuan yang mendahului pengeluaran, dan chat rumah tangga tempat keduanya dibahas.
 2. **Pertahankan arsitektur yang sudah diputuskan** (kedudukan per lapisan di §3): aplikasi native per platform (SwiftUI; Jetpack Compose Material 3), stack diputuskan pemilik produk; satu server Go (keputusan 29) dengan PostgreSQL di server di Indonesia (keputusan 10; bentuk basis data diterima lewat "lanjut", D-99); semua aturan uang dan persetujuan hanya di server (keputusan 30; ADR-013); dan pencatatan yang tidak pernah dihalangi jaringan (PRN-06).
-3. **Masuk ke data nyata hanya lewat gerbang GR-2** (13 §3.3; 14 QG-30): semua kriteria penerimaan Tier 1 lulus sebagai uji bernama, sembilan butir 10 §4.1 selesai, dan aplikasi terpasang di ponsel kedua pasangan.
+3. **Masuk ke data nyata hanya lewat gerbang GR-2** (13 §3.3; 14 QG-30): semua kriteria penerimaan Tier 1 lulus sebagai uji bernama, sepuluh butir 10 §4.1 selesai, dan aplikasi terpasang di iPhone 13 istri dan iPad mini 7 pemilik produk; Android tidak ditunggu (keputusan 42).
 4. **Ukur pilot dengan ukuran yang tidak mengawasi siapa pun** (13 §6; VL-00 sampai VL-10), lalu putuskan di GR-3 sesudah tiga bulan apakah lanjut ke tahap publik.
 5. **Untuk tahap publik:** freemium per rumah tangga dengan satu langganan rumah tangga (Plus) **[Usulan]** (13 §7.5); advokat, pendaftaran PSE, dan beta tertutup lebih dulu (GR-4, GR-5).
-6. **Keputusan berikutnya ada pada pemilik produk** (§5, §9). Yang terdekat: platform yang dibangun lebih dulu, Mac sewa atau beli, hosting dan email (S4-2), jenis akun Google Play, dan usulan tinjauan keamanan sebelum data nyata dan sebelum pengguna luar pertama.
+6. **Keputusan berikutnya ada pada pemilik produk** (§5, §9). Yang terdekat: Mac sewa atau beli, hosting dan email (S4-2), jenis akun Google Play, dan usulan tinjauan keamanan sebelum data nyata dan sebelum pengguna luar pertama.
 
 ---
 
@@ -94,6 +94,7 @@ Dicatat agar tidak ditanyakan ulang. Rincian dan kata-kata pemilik produk di 17.
 | 13 | Aplikasi menyapa dengan "kamu" | Rumusan lead yang dikukuhkan lewat "lanjut" (S4-10 (iv)) | 08 |
 | 14 | Web atau PC tidak dibangun di pilot | Diterima atas saran lead (keputusan 41) | 13 §3.8; Q-210 |
 | 15 | Ambang dibuat, diubah, dan diakhiri hanya dengan persetujuan semua pihak, di setiap rumah tangga, pilot dan publik | **Diputuskan pemilik produk**, berlawanan dengan saran B dan bawaan C tim (keputusan 39, S4-9 (i)). Risiko sisa yang diterimanya: satu pihak dapat mempertahankan ambang atas pihak lain tanpa batas waktu dengan tidak menyetujui perubahan atau pengakhirannya, berlaku sama bagi setiap pihak (W-34, Pagar) | 17 keputusan 39, W-34 |
+| 16 | Pilot di iOS dan iPadOS: istri di iPhone 13, pemilik produk di iPad mini 7; iOS dan iPadOS dibangun lebih dulu dan data nyata tidak menunggu Android. Android (Kotlin) untuk Galaxy A55 pemilik produk menyusul sesudah GR-2, paling lambat sebelum GR-4 **[Usulan]** lead | **Diputuskan pemilik produk** di luar checkpoint, sesudah S5 (keputusan 42; menjawab Q-37). Berbeda dengan brief §1 "Pilot devices" dan "Phones come first" (K-66). Risiko sisa: pengeluaran pemilik produk di luar rumah dicatat belakangan dari iPad sampai Android terpasang | 17 keputusan 42, K-66; 13 §3.2; 15 RISK-18 |
 
 ---
 
@@ -101,8 +102,7 @@ Dicatat agar tidak ditanyakan ulang. Rincian dan kata-kata pemilik produk di 17.
 
 | Keputusan | Kapan | Bahan yang sudah ada | Siapa |
 |---|---|---|---|
-| **Platform yang dibangun lebih dulu** | Awal fase bangun (`CLAUDE.md`) | Tiga pilihan beserta urutan kerja masing-masing. Saran tim **[Usulan]**: Android lebih dulu, karena siklus kerjanya di Linux paling cepat dan sewa Mac tertunda sampai layar SwiftUI dimulai; GR-2 tetap menunggu kedua platform (13 §3.2, Q-37; 14 §3.4). Kedua pasangan harus dapat memakai aplikasi sejak data nyata (brief §1) | Pemilik produk |
-| **Mac: sewa bulanan atau beli Mac mini** | Saat kerja UI iOS menjadi harian (ADR-022 butir 4) | Mac mini M6 16/512 GB, konfigurasi minimum yang disarankan `researcher`, Rp21.499.000 **[Perlu validasi]**; sewa sekitar USD 149 atau EUR 149 per bulan; titik impas untuk 16/512 GB sekitar 7,1 sampai 7,9 bulan, untuk 16/256 GB sekitar 5,8 sampai 6,4 bulan (8,8 bulan terhadap sewa berkomitmen 12 bulan) **[Usulan]** (18 §5.2.7.6); hanya Mac sendiri memberi debugger di iPhone 13 dan iPad mini 7 (18 §5.2.7; 14 §9) | Pemilik produk |
+| **Mac: sewa bulanan atau beli Mac mini** | Saat kerja UI iOS menjadi harian (ADR-022 butir 4). Karena iOS dan iPadOS satu-satunya platform UI sampai GR-2 (keputusan 42), saat itu kemungkinan datang di awal FS-1 | Mac mini M6 16/512 GB, konfigurasi minimum yang disarankan `researcher`, Rp21.499.000 **[Perlu validasi]**; sewa sekitar USD 149 atau EUR 149 per bulan; titik impas untuk 16/512 GB sekitar 7,1 sampai 7,9 bulan, untuk 16/256 GB sekitar 5,8 sampai 6,4 bulan (8,8 bulan terhadap sewa berkomitmen 12 bulan) **[Usulan]** (18 §5.2.7.6); hanya Mac sendiri memberi debugger di iPhone 13 dan iPad mini 7 (18 §5.2.7; 14 §9) | Pemilik produk |
 | **Hosting, cadangan, email (S4-2)** | "nanti aja pas mau deploy" (keputusan 31). Apakah itu deploy server uji pertama (14 FS-1 langkah 1) atau deploy pertama yang memuat data nyata (13) ditanyakan di Q-220, sebelum FS-1 langkah 1 selesai | ADR-020, ADR-026 (Diusulkan); harga dan pihak kontrak dicek ulang saat itu | Pemilik produk |
 | **Batas rilis iOS** | Sebelum build iOS pertama (FS-1) | ADR-022 butir 1 mengikat: paling lambat 90 hari sejak unggah ke TestFlight, sasaran 60 (keputusan 32). ADR-028 butir 4 mengusulkan batas keras 80 hari dengan rilis pemeliharaan di 60 hari **[Usulan]** (Q-219) | Pemilik produk |
 | **Jenis akun Google Play** (pribadi atau organisasi) | Sebelum GR-4 | Akun pribadi baru wajib closed testing dengan sedikitnya 12 penguji selama 14 hari sebelum produksi (14 §6.7; 18 §2.4 **[Terverifikasi]**). Bahwa hanya pemakai Android yang dihitung adalah bacaan `researcher` **[Usulan]**, karena Google tidak menyatakannya terang; ukuran beta di 13 §6.4 bergantung pada jawabannya. Akun organisasi wajib bagi kategori "Financial products and services" dan "Health apps" dan memerlukan nomor D-U-N-S; apakah Family OS termasuk, dan apakah akun organisasi bebas dari syarat 12 penguji, **[Perlu validasi]** | Pemilik produk (Q-221) |
@@ -151,9 +151,9 @@ Dasar pembedaannya [18 §1.4](18-market-research.md#14-peluang-pembedaan-positio
 
 ## 8. Risiko yang paling menentukan
 
-Register lengkapnya di [15](15-risk-assessment.md) (RISK-01 sampai RISK-90). Lima kelompok yang dapat menggagalkan tujuan (15 §1):
+Register lengkapnya di [15](15-risk-assessment.md) (RISK-01 sampai RISK-91). Lima kelompok yang dapat menggagalkan tujuan (15 §1):
 
-1. **Hanya satu pasangan mencatat, mencatat terlalu lama, atau catatan terlewat** (RISK-18 sampai RISK-20). Penawarnya: data nyata dimulai di kedua platform, tiga ketukan, entri terlambat diterima, rekonsiliasi kas.
+1. **Hanya satu pasangan mencatat, mencatat terlalu lama, atau catatan terlewat** (RISK-18 sampai RISK-20). Penawarnya: data nyata dimulai di perangkat kedua pasangan (iPhone istri, pencatat utama; iPad pemilik produk, keputusan 42), tiga ketukan, entri terlambat diterima, rekonsiliasi kas.
 2. **Angka uang salah** (RISK-47, RISK-48). Penawarnya: setiap invarian 06 dan 07 sebagai uji yang memblokir merge, kunci idempotensi, satu transaksi per perintah; bila pemeriksaan invarian harian tidak nol, server berhenti menerima tulisan baru lewat *tahan tulis* sampai penyebabnya diperbaiki, sementara ponsel tetap menyimpan catatan di antrean dan perintah pelindung tetap berlaku seketika (ADR-028 butir 3, masih Diusulkan; SEC-151; PRN-06).
 3. **Aplikasi menjadi alat kendali antaranggota** (RISK-11, RISK-35, RISK-38, RISK-40). Penawarnya: pagar 06 sebagai uji, simetri per peran, keluar dengan aman tanpa persetujuan siapa pun, halaman Bantuan tanpa jejak.
 4. **Keputusan GR-3 atas bukti lemah**, karena pilot satu rumah tangga dijalankan salah satu pasangan yang juga pengelola server (RISK-25). Penawarnya: pertanyaan tentang aplikasi, bukan tentang pasangan; beta dengan pengelola yang bukan anggota.
@@ -184,3 +184,4 @@ Butir ini menyangkut `CLAUDE.md`, jadi **tidak diterapkan tanpa persetujuan pemi
 |---|---|
 | 12 November 2026 | Draf pertama (lead, S5 fase C) |
 | 12 November 2026 | Perbaikan atas `critic` S5 B (CS5-B-01 kedudukan keputusan) dan tinjauan ulang B2 (CR5-B-01, CR5-B-05, CR5-B-06, CR5-B-07, CR5-B-13): §1 butir 2 per keputusan bernomor; §4 baris 15 keputusan 39 dan W-34; §5 Q-215, syarat akun Play berlabel, kutipan keputusan 31 persis; salinan data sendiri (FR-FAM-013/AC-12) dibangun di FS-1 menurut ketetapan lead, jadi keluar dari daftar sebelum GR-4; §8 status ADR-028 |
+| 12 November 2026 | Keputusan 42 (pilot di iOS dan iPadOS; Android menyusul): §1 butir 3 dan 6, §4 baris 16, §5 baris platform dihapus dan waktu keputusan Mac, §8 butir 1 |

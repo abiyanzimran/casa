@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Butir 1: Diputuskan pemilik produk** (12 November 2026): "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). **Butir 2 sampai 6: Diterima** pemilik produk di checkpoint S4, 12 November 2026: butir 2 dan 3 lewat S4-3 (ii) A (iOS dan iPadOS 26; Android 10); butir 5 lewat S4-1 (iii) A (kalimat ADR-023 masuk ES §8); butir 4 dan 6 lewat "lanjut" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan urutan platform sesudah S5) |
 | Pengusul | Butir 1: matriks `researcher` (18 §5.1), diputuskan pemilik produk. Butir 2 sampai 6: `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §2, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-013](ADR-013-logika-bersama-hanya-di-server.md); [ADR-023](ADR-023-kebijakan-versi-0x.md) butir 5 |
@@ -67,7 +67,16 @@ Untuk API eksperimental di dalam artefak stabil (lembar Catat di Android memakai
    - (c) **`ListDetailPaneScaffold`** tidak dipakai di pilot, karena perangkat Android pilot adalah ponsel (Galaxy A55). Navigasi memakai `NavigationSuiteScaffold`, yang stabil di 1.4.0.
    - (d) **`SwipeToDismissBox`** stabil di 1.4.0 dan boleh dipakai tanpa butir ADR-023.
    - (e) Setiap API eksperimental lain memerlukan butir ADR-023 baru sebelum dipakai.
-6. **Yang tetap terbuka** (tidak diputuskan ADR ini): platform mana yang dibangun lebih dulu, yang menjadi keputusan pemilik produk saat fase bangun dimulai (`CLAUDE.md`). Letak logika bersama sudah diputuskan di ADR-013 (diterima di checkpoint S4, S4-1 (ii) A).
+6. **Yang tetap terbuka** (tidak diputuskan ADR ini): platform mana yang dibangun lebih dulu, yang menjadi keputusan pemilik produk saat fase bangun dimulai (`CLAUDE.md`). Letak logika bersama sudah diputuskan di ADR-013 (diterima di checkpoint S4, S4-1 (ii) A). *Sudah dijawab pemilik produk: lihat catatan di bawah.*
+
+## Catatan urutan platform (12 November 2026, sesudah S5)
+
+Bukan perubahan keputusan ADR ini; mencatat jawaban atas butir 6.
+
+- **Keputusan 42** (17; `_progress.md`): "ios ipad yang bakalan dipakai pilot ya". iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), dan pilot dengan data nyata berjalan di iOS dan iPadOS: istri di iPhone 13 (pencatat utama), pemilik produk di iPad mini 7. GR-2 tidak menunggu Android. Bawaan lead **[Usulan]**, dapat diubah pemilik produk: Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4. Brief §1 "Pilot devices" ("the pilot needs iOS and Android") digantikan (17 K-66).
+- **Butir 1 tetap:** Android tetap Kotlin dan Compose Material 3, dan tetap dirancang penuh; yang berubah hanya waktu bangunnya (14 §3.8). Tim bangun tetap `ios-dev` dan `android-dev` terpisah; `android-dev` mulai bekerja saat jalur Android dimulai.
+- **Butir 2 dan 3 tetap.** Butir 5 berlaku sejak jalur Android dimulai; versi Compose Material 3 diperiksa ulang saat itu (ES §8), dan bila 1.5.0 sudah stabil, butir 5 (a) memilihnya. Butir 5 (c) tetap: perangkat Android pilot adalah ponsel.
+- **Akibat:** pekerjaan UI hanya SwiftUI di FS-1, sehingga pemicu Mac ADR-022 butir 4 kemungkinan besar terjadi di awal FS-1 (ADR-022 catatan keputusan 42; 14 §9). Risiko yang dibawa urutan ini: RISK-01, RISK-18, RISK-91 (15).
 
 ## Konsekuensi
 

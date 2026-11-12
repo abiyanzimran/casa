@@ -4,7 +4,7 @@
 |---|---|
 | Pemilik | `architect` |
 | Tahap | S5 — Rencana dan sintesis (12 November 2026; izin pemilik produk "gas", [_progress.md](_progress.md) "S5 dimulai") |
-| Status | Revisi S5 fase D sesudah tinjauan `critic` A (CS5-A-01 sampai CS5-A-22). Angka §11 dihitung ulang lead dengan skrip sebelum revisi; angka yang berubah di revisi ini ditandai di §11 untuk dihitung ulang |
+| Status | Revisi S5 fase D sesudah tinjauan `critic` A (CS5-A-01 sampai CS5-A-22), lalu revisi keputusan 42 (urutan dan platform pilot, 12 November 2026). Angka §11 dihitung ulang lead dengan skrip sebelum revisi; angka yang berubah ditandai di §11 untuk dihitung ulang |
 | Sumber yang mengikat | Brief §1 (baris Engineering standards, Pilot devices, Build environment, Team size, Monthly infrastructure budget), §1.1, §16; `CLAUDE.md` ("Build team", "Deferred on purpose"); `ENGINEERING-STANDARDS.md` (ES) seluruhnya; [13](13-product-roadmap.md) (FS, GR, VL, §3, §7.5, §12.2); [09](09-technical-architecture.md) dan keempat berkasnya; ADR-012 sampai ADR-028; [10](10-security-privacy.md) §4, §4.1, §5; [07](07-financial-domain.md) INV-01 sampai INV-41 dan contoh terhitung; [06](06-activity-approval-architecture.md) INV-A01 sampai INV-A53, PG-01 sampai PG-15; [05](05-functional-requirements.md) §6; [12](12-scenarios.md) §2; [08](08-ux-ui-strategy.md) §15, §16.4, §19.8 |
 | Dipakai oleh | Agen tim bangun (`CLAUDE.md` "Build team"), lead (16, 01), [15](15-risk-assessment.md) |
 
@@ -14,7 +14,7 @@
 
 - **Yang ditetapkan dokumen ini:** alat per stack di atas ES, workstream dan urutan kerjanya, strategi pengujian, gerbang mutu, strategi rilis, dan operasi. **Yang tidak:** urutan fase dan gerbang produk (13), aturan uang (07), aturan alur (06), persyaratan keamanan (10), stack dan arsitektur (09 dan ADR), risiko (15).
 - **ES diadopsi utuh** (brief §1). Dokumen ini tidak mengulang aturannya; ia merujuk per bagian (§2.1) dan hanya menambah yang khas stack.
-- **Platform yang dibangun lebih dulu tidak diputuskan di sini** (`CLAUDE.md` "Deferred on purpose"; 13 Q-37, Q-211). §3.4 memberi urutan kerja untuk ketiga pilihan 13 §3.2.
+- **Platform yang dibangun lebih dulu diputuskan pemilik produk** (keputusan 42, 12 November 2026, di 17; menjawab Q-37): iOS dan iPadOS lebih dulu, dan pilot dengan data nyata berjalan di iOS dan iPadOS (istri di iPhone 13 sebagai pencatat utama, pemilik produk di iPad mini 7). GR-2 tidak menunggu Android. Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4 (bawaan lead **[Usulan]**). Ini menggantikan baris brief §1 "Pilot devices" ("the pilot needs iOS and Android"); perbedaannya dicatat di 17 K-66. §3.4 dan §3.8 memuat urutan kerjanya.
 - **Versi.** Nomor versi yang disebut adalah yang terlihat dan tercatat di 09 §9 atau 18 pada 12 November 2026. Versi yang dipasang dicek live saat dipasang (ES §8); nomor di sini bukan izin memakainya.
 - **Label bukti** mengikuti [README](README.md#label-bukti). Seluruh rancangan di sini **[Usulan]** `architect`, kecuali yang diberi label lain atau yang dikutip dari keputusan yang sudah diterima.
 - **Pengenal baru** (diminta ke lead untuk README, §12): `WS-N` workstream; `QG-NN` gerbang mutu. Pengenal lain dipakai menurut README.
@@ -27,13 +27,13 @@
 |---|---|
 | Aturan | ES diadopsi utuh; alat per bahasa menurut ADR-025 dan ADR-023 (§2) |
 | Workstream | Tujuh: server, iOS, Android, sistem desain, operasi, keamanan dan privasi, QA (§3). Server memimpin satu langkah di depan klien, karena semua aturan di server (ADR-013) |
-| FS-1 | Tujuh langkah dari fondasi sampai GR-2 (§3.3); urutan klien per pilihan platform A, B, atau C (§3.4) |
-| Pengujian | Hampir seluruh bukti kebenaran ada di server Go terhadap PostgreSQL nyata: setiap INV dan INV-A sebagai uji properti, setiap contoh terhitung dan setiap AC Tier 1 sebagai uji bernama ID-nya. Klien diuji untuk bantuan isian (vektor emas), antrean, sinkron, tampilan, aksesibilitas, dan tata letak. `qa` membuktikan AC Tier 1 di tiga perangkat pilot (§4) |
-| Gerbang | Per perubahan QG-01 sampai QG-12; per rilis QG-20 sampai QG-24; sekali sebelum build TestFlight pertama dipasang QG-25; gerbang fase QG-30 (GR-2), QG-31 (GR-4), QG-32 (GR-5) (§5) |
-| Rilis | Android: APK bertanda tangan langsung ke Galaxy A55. iOS: Xcode Cloud ke TestFlight internal. Staging di VPS yang sama sejak GR-2. Build iOS baru paling lambat 90 hari sesudah unggahan sebelumnya, sasaran 60 (ADR-022 butir 1, keputusan pemilik produk); batas 80 hari hanya usulan ADR-028 butir 4. Tanpa feature flag (§6; ADR-028) |
+| FS-1 | Tujuh langkah dari fondasi sampai GR-2 (§3.3); klien di FS-1 hanya iOS dan iPadOS, dengan tata letak iPhone dan iPad sejak langkah 1 (keputusan 42; §3.4). Android menyusul sesudah GR-2 lewat jalur Android (§3.8) |
+| Pengujian | Hampir seluruh bukti kebenaran ada di server Go terhadap PostgreSQL nyata: setiap INV dan INV-A sebagai uji properti, setiap contoh terhitung dan setiap AC Tier 1 sebagai uji bernama ID-nya. Klien diuji untuk bantuan isian (vektor emas), antrean, sinkron, tampilan, aksesibilitas, dan tata letak. `qa` membuktikan AC Tier 1 di iPhone 13 dan iPad mini 7 sebelum GR-2, dan di Galaxy A55 sebelum Android memakai data nyata (QG-30 (Android)) (§4) |
+| Gerbang | Per perubahan QG-01 sampai QG-12; per rilis QG-20 sampai QG-24; sekali sebelum build TestFlight pertama dipasang QG-25; gerbang fase QG-30 (GR-2), QG-30 (Android) sebelum Android memakai data nyata, QG-31 (GR-4), QG-32 (GR-5) (§5) |
+| Rilis | iOS dan iPadOS: Xcode Cloud ke TestFlight internal. Android (sesudah GR-2): APK bertanda tangan langsung ke Galaxy A55. Staging di VPS yang sama sejak GR-2. Build iOS baru paling lambat 90 hari sesudah unggahan sebelumnya, sasaran 60 (ADR-022 butir 1, keputusan pemilik produk); batas 80 hari hanya usulan ADR-028 butir 4. Tanpa feature flag (§6; ADR-028) |
 | Operasi | Satu biner, satu PostgreSQL, pgBackRest ke VPS kedua di Indonesia; uji pulih bulanan; pemeriksaan invarian harian; rotasi rahasia tanpa rilis; batas biaya `AI` USD 3 per pembangunan dan USD 10 per bulan; penyedia menunggu S4-2 (§7) |
 | Tahap publik | Hak akses Plus per rumah tangga di server, penagihan toko dua platform: dirancang (§8), dibangun di FS-3 |
-| Mac | Pemicu ADR-022 butir 4 per pilihan platform; membeli impas terhadap menyewa bulanan sekitar 7,1 sampai 7,9 bulan untuk Mac mini 16 GB/512 GB yang diusulkan `researcher` (5,8 sampai 6,4 untuk 16 GB/256 GB; 18 §5.2.7.6); hanya Mac sendiri memberi debugger di perangkat pilot; keputusan pemilik produk saat pemicu terjadi (§9) |
+| Mac | Karena iOS dan iPadOS satu-satunya platform UI di FS-1, pemicu ADR-022 butir 4 kemungkinan besar terjadi di awal FS-1 (catatan, bukan keputusan); membeli impas terhadap menyewa bulanan sekitar 7,1 sampai 7,9 bulan untuk Mac mini 16 GB/512 GB yang diusulkan `researcher` (5,8 sampai 6,4 untuk 16 GB/256 GB; 18 §5.2.7.6); hanya Mac sendiri memberi debugger di perangkat pilot; keputusan pemilik produk saat pemicu terjadi (§9) |
 
 ---
 
@@ -45,7 +45,7 @@
 |---|---|
 | §1 Clean code | Formatter dan linter per bahasa di §2.2 sebagai QG-01. Komentar yang mengutip ID aturan pada setiap aturan uang dan API publik diperiksa `code-reviewer` (QG-08) |
 | §2 Tanpa duplikasi | Satu sumber aturan: server Go (ADR-013). Pengecualian tiga bantuan isian dijaga vektor emas (§4.5, QG-06). Kontrak satu sumber dan tipe klien di-generate (QG-04). Pemeriksa duplikasi PMD CPD (QG-02). Komponen sistem desain tidak boleh disalin (WS-4, QG-09) |
-| §3 Kinerja | Sasaran `[DEFAULT]` diukur di iPhone 13 dan Galaxy A55, lalu dikukuhkan atau diubah lewat ADR sebelum GR-2 (§4.10, QG-30) |
+| §3 Kinerja | Sasaran `[DEFAULT]` diukur di iPhone 13 dan iPad mini 7, lalu dikukuhkan atau diubah lewat ADR sebelum GR-2 (§4.10, QG-30); di Galaxy A55 sebelum QG-30 (Android) |
 | §4 Keamanan dan privasi | Persyaratan dokumen 10 diuji menurut kolom tenggatnya (§4.8); uji isolasi lintas rumah tangga dibangkitkan untuk setiap kueri (QG-05) |
 | §5 Kebenaran uang | Setiap INV di 07 dan setiap contoh terhitung adalah uji yang memblokir merge (§4.3, §4.4, QG-05) |
 | §6 Pengujian | TDD; setiap AC Tier 1 punya uji bernama ID-nya; uji properti untuk logika uang dan persetujuan; uji flaky diperbaiki atau dihapus dalam minggu yang sama (§4) |
@@ -102,7 +102,7 @@ Peran mengikuti tabel "Build team" `CLAUDE.md`; tidak ada peran baru. Agen tim b
 |---|---|---|---|---|
 | WS-1 | Server dan kontrak | `backend-dev` | Biner Go, modul 09.2 §1, skema dan migrasi, kontrak Protobuf, `Sync` dan SSE, pekerjaan latar, push, `AI` R1 (Tier 2), uji domain, invarian, AC, isolasi, privasi, vektor emas | Server yang menegakkan 06 dan 07; berkas vektor emas; kode hasil generate untuk Swift dan Kotlin |
 | WS-2 | Aplikasi iOS dan iPadOS | `ios-dev` | Paket Swift non-UI (klien Connect, antrean dengan jeda urungkan, sinkron, penyimpanan lokal, bantuan isian), layar SwiftUI, kunci aplikasi, proteksi berkas (ADR-024) | Build TestFlight internal |
-| WS-3 | Aplikasi Android | `android-dev` | Modul Kotlin non-UI (setara WS-2), layar Compose Material 3, kunci aplikasi, pengecualian cadangan dan transfer (ADR-024) | APK bertanda tangan |
+| WS-3 | Aplikasi Android | `android-dev` | Modul Kotlin non-UI (setara WS-2), layar Compose Material 3, kunci aplikasi, pengecualian cadangan dan transfer (ADR-024). Dimulai sesudah GR-2 (keputusan 42; §3.8) | APK bertanda tangan |
 | WS-4 | Sistem desain | `ux-designer` bersama `ios-dev` dan `android-dev` | Token arah C (08 §19), komponen per pola di atas komponen native (08 §17.4), gerbang contoh layar (08 §19.8), tinjauan setiap layar | Satu set komponen per platform; catatan tinjauan per layar |
 | WS-5 | Operasi | `backend-dev` menyiapkan; pengelola server (pemilik produk) menjalankan | VPS, TLS, systemd, cadangan dan uji pulih, pemantauan, runbook, rotasi rahasia, staging (ADR-028), kalender operasi | Runbook pilot dengan daftar 10 §4.1 bertanggal |
 | WS-6 | Keamanan dan privasi | Tidak ada peran tersendiri **[Usulan]**: setiap SEC dikerjakan pemilik komponennya menurut 09.4 §8, diperiksa `code-reviewer`, dibuktikan `qa` | Persyaratan dokumen 10 menurut kolom tenggatnya; dokumen DPIA, catatan prosesor, kebijakan privasi, rencana insiden (10 §4.1 butir 4 sampai 6) ditulis tim sendiri (Q-208) | Uji SEC hijau; dokumen 10 §4.1 tersimpan |
@@ -115,46 +115,47 @@ Peran mengikuti tabel "Build team" `CLAUDE.md`; tidak ada peran baru. Agen tim b
 | WS | FS-0 | FS-1 | GR-2 | FS-2 | FS-3 | FS-4 sampai FS-8 |
 |---|---|---|---|---|---|---|
 | WS-1 Server | — | Langkah 1 sampai 7 (§3.3), memimpin klien satu langkah | Uji invarian, AC, SEC "Pilot" hijau; basis data dikosongkan dan dibuat ulang | Modul Tier 2 per gelombang T2-1 sampai T2-3; `ai` R1 dengan batas biaya | SEC "Wajib sebelum tahap publik" sisi server (SEC-08 dan SEC-107 sudah sejak pilot, SEC-18, SEC-25, SEC-36, SEC-105 tautan web); hak akses Plus (§8); `CLIENT_UPGRADE_REQUIRED` (ADR-028 butir 5) | Pemicu skala 09 §6 dan 09.4 §7.2 |
-| WS-2 iOS | Contoh layar arah C bersama WS-4 | Menurut pilihan platform (§3.4) | Terpasang di iPhone 13 lewat TestFlight internal; tata letak diperiksa di iPad mini 7 | Layar Tier 2 per gelombang | SEC-153 (d), SEC-154 sisanya sebelum TestFlight eksternal; StoreKit (§8) | Desain tablet khusus (Tier 3) bila pemicunya ada |
-| WS-3 Android | Contoh layar arah C bersama WS-4 | Menurut pilihan platform (§3.4) | APK di Galaxy A55 | Layar Tier 2 per gelombang | Jalur Play (§6.7), Play Billing (§8) | Sama |
+| WS-2 iOS | Contoh layar arah C bersama WS-4 | Mengikuti server langkah 1 sampai 7 (§3.3, §3.4); setiap layar siap iPhone dan iPad | Terpasang di iPhone 13 dan iPad mini 7 lewat TestFlight internal; keduanya perangkat data nyata | Layar Tier 2 per gelombang | SEC-153 (d), SEC-154 sisanya sebelum TestFlight eksternal; StoreKit (§8) | Desain tablet khusus (Tier 3) bila pemicunya ada |
+| WS-3 Android | Contoh layar arah C bersama WS-4 | — | — (tidak menahan GR-2; keputusan 42) | Jalur Android (§3.8) sampai QG-30 (Android), lalu APK di Galaxy A55 dengan data nyata; layar Tier 2 per gelombang | Jalur Play (§6.7), Play Billing (§8); QG-30 (Android) sudah lulus sebelum GR-4 | Sama |
 | WS-4 Sistem desain | Gerbang contoh layar 08 §19.8 sebelum token dibekukan | Token dan komponen sebelum layar pertama; tinjauan setiap layar | Gerbang 08 §19.8 sudah lewat (13 §3.3 butir 6) | Tinjauan layar Tier 2 | Kata layar status Plus tanpa nama pembayar (13 §12.2) | — |
 | WS-5 Operasi | — | Server uji dan TLS di langkah 1 **[Usulan]**, bergantung pada S4-2 (§7.8); cadangan di langkah 7; staging di langkah 7 | Daftar 10 §4.1 butir 7, 8 dicentang; staging hidup | Kalender operasi (§7.7) | SES keluar sandbox bila dipilih; penyedia diperbesar menurut 09.4 §7.2 | Penyeimbang beban, replika (09 §6) |
 | WS-6 Keamanan | — | SEC kolom "Pilot" per komponen | Daftar 10 §4.1 lengkap | SEC Tier 2 (SEC-57, SEC-62, SEC-68, SEC-120 sampai SEC-136, SEC-155) bersama fiturnya | SEC kolom "Wajib sebelum tahap publik"; advokat (GR-4) | ADR E2EE (10-D A) sebelum tahap publik |
-| WS-7 QA | Uji kecepatan alur inti (13 §3.1) begitu alur pertama terpasang | Matriks bukti tumbuh per langkah | Matriks bukti lengkap untuk Tier 1 (QG-30) | Matriks per gelombang; VL-07 (ukuran ketukan) | Beta tertutup: daftar periksa per rumah tangga beta tidak membaca data mereka | Sama |
+| WS-7 QA | Uji kecepatan alur inti (13 §3.1) begitu alur pertama terpasang | Matriks bukti tumbuh per langkah | Matriks bukti lengkap untuk Tier 1 di iPhone 13 dan iPad mini 7 (QG-30) | Matriks per gelombang; VL-07 (ukuran ketukan) | Beta tertutup: daftar periksa per rumah tangga beta tidak membaca data mereka | Sama |
 
 ### 3.3 Urutan di dalam FS-1
 
-Tujuh langkah. Setiap langkah adalah potongan vertikal: server, kontrak, dan uji lebih dulu, lalu layar di platform yang sedang dikerjakan (§3.4). Isi fitur per langkah mengikuti ketergantungan 04 §5.1; **pemetaan FR Must ke fase tidak berubah** (semua 190 FR Must Tier 1 di FS-1, 05 §6). Langkah adalah urutan, bukan fase baru.
+Tujuh langkah. Setiap langkah adalah potongan vertikal: server, kontrak, dan uji lebih dulu, lalu layar iOS dan iPadOS (§3.4). Android tidak ada di langkah mana pun; pekerjaan Android adalah jalur sendiri sesudah GR-2 (§3.8). Isi fitur per langkah mengikuti ketergantungan 04 §5.1; **pemetaan FR Must ke fase tidak berubah** (semua 190 FR Must Tier 1 di FS-1, 05 §6). Langkah adalah urutan, bukan fase baru.
 
-| Langkah | Server dan kontrak (WS-1) | Klien (WS-2, WS-3) | Sistem desain, operasi, QA | Selesai bila |
+| Langkah | Server dan kontrak (WS-1) | Klien iOS dan iPadOS (WS-2) | Sistem desain, operasi, QA | Selesai bila |
 |---|---|---|---|---|
-| 1. Fondasi | Repositori, CI dengan semua gerbang QG-01 sampai QG-06; kontrak dasar; skema dasar, peran basis data, RLS dipaksakan (09.2 §3), goose; `identity` (akun, sesi, Argon2id, batas laju, pemulihan); `household` (buat rumah tangga, undangan F04, keanggotaan, pemberitahuan pengelola); kerangka `read`, `sync` (umpan per pembaca, kursor, potret awal), `jobs`; pembangkit uji isolasi; rangka uji properti INV dan INV-A; pembangkit vektor emas | Proyek, kode hasil generate, penyimpanan lokal, antrean perintah dengan jeda urungkan, putaran sinkron, masuk dan daftar, buat rumah tangga, undang | WS-4: token dan komponen dasar sesudah gerbang 08 §19.8. WS-5: server uji dan TLS **[Usulan]**, bergantung pada S4-2 (§7.8). iOS: Apple Developer Program, sewa Mac sekali, alur kerja Xcode Cloud pertama (ADR-022 butir 2). WS-6: **catatan persetujuan uji SEC-109 (b) dibaca dan diakui kedua penguji sebelum build TestFlight pertama dipasang** (10 §4.1 butir 3; QG-25) | Dua akun uji di dua perangkat masuk ke satu rumah tangga lewat undangan |
-| 2. Pencatatan inti | `ledger`: entri, baris, tempat uang, serah terima dan konfirmasi custody, koreksi; INV 07 yang menyangkutnya; contoh terhitung yang menyangkutnya; proyeksi Beranda | Lembar Catat dengan tiga bantuan isian dan vektor emas; Beranda; konfirmasi serah terima | WS-7: **uji kecepatan alur inti** (13 §3.1; FS-0) di platform pertama | Belanja tunai tercatat offline, terkirim, terlihat pasangan dengan pemegang yang benar |
+| 1. Fondasi | Repositori, CI dengan semua gerbang QG-01 sampai QG-06; kontrak dasar; skema dasar, peran basis data, RLS dipaksakan (09.2 §3), goose; `identity` (akun, sesi, Argon2id, batas laju, pemulihan); `household` (buat rumah tangga, undangan F04, keanggotaan, pemberitahuan pengelola); kerangka `read`, `sync` (umpan per pembaca, kursor, potret awal), `jobs`; pembangkit uji isolasi; rangka uji properti INV dan INV-A; pembangkit vektor emas | Proyek, kode hasil generate, penyimpanan lokal, antrean perintah dengan jeda urungkan, putaran sinkron, masuk dan daftar, buat rumah tangga, undang | WS-4: token dan komponen dasar sesudah gerbang 08 §19.8. WS-5: server uji dan TLS **[Usulan]**, bergantung pada S4-2 (§7.8). iOS: Apple Developer Program, sewa Mac sekali (tarif per jam, minimal 24 jam; ADR-022 butir 2), alur kerja Xcode Cloud pertama; keputusan pemilik produk atas Mac bila pemicu ADR-022 butir 4 terjadi (§9). WS-6: **catatan persetujuan uji SEC-109 (b) dibaca dan diakui kedua penguji sebelum build TestFlight pertama dipasang** (10 §4.1 butir 3; QG-25) | Dua akun uji di dua perangkat masuk ke satu rumah tangga lewat undangan |
+| 2. Pencatatan inti | `ledger`: entri, baris, tempat uang, serah terima dan konfirmasi custody, koreksi; INV 07 yang menyangkutnya; contoh terhitung yang menyangkutnya; proyeksi Beranda | Lembar Catat dengan tiga bantuan isian dan vektor emas; Beranda; konfirmasi serah terima | WS-7: **uji kecepatan alur inti** (13 §3.1; FS-0) di iPhone 13 (pencatat utama) dan iPad mini 7 | Belanja tunai tercatat offline, terkirim, terlihat pasangan dengan pemegang yang benar |
 | 3. Anggaran, posisi, dan laporan | `budget`: kategori, periode dengan hari mulai, alokasi, jatah dan jadwal penyisihan, pos rutin dan tagihan berulang (N-32, FR-CAL-002), cicilan, utang dan piutang, kiriman keluarga, tabungan sederhana, aset dan kekayaan bersih, ringkasan bulanan; kecocokan kategori (SEC-92) | Layar Uang, tagihan, cicilan, aset, ringkasan | — | Contoh terhitung bagian anggaran dan laporan lulus; ringkasan bulanan memuat empat butir VL-04 |
-| 4. Permintaan dan persetujuan | `request`: state machine 06 §4, penyelesaian §5, ambang dan kesepakatan rumah tangga K01 sampai K06, tanda; `notify`: push APNs dan FCM bertuliskan teks kelas, jam tenang, ringkasan, batas pengingat (PG-06) | Alur permintaan, usul balik, persetujuan satu ketukan; kanal notifikasi; buka dari notifikasi | — | Seluruh INV-A bagian §4 sampai §12 hijau dengan 2 sampai 5 anggota dewasa |
+| 4. Permintaan dan persetujuan | `request`: state machine 06 §4, penyelesaian §5, ambang dan kesepakatan rumah tangga K01 sampai K06, tanda; `notify`: push APNs bertuliskan teks kelas (pengirim FCM dibangun di jalur Android, §3.8), jam tenang, ringkasan, batas pengingat (PG-06) | Alur permintaan, usul balik, persetujuan satu ketukan; kanal notifikasi; buka dari notifikasi | — | Seluruh INV-A bagian §4 sampai §12 hijau dengan 2 sampai 5 anggota dewasa |
 | 5. Chat | `chat`: pesan, kartu objek, tanda terkirim dan dibaca, kehadiran, hub SSE; `files`: JPEG re-encode (SEC-66); sembunyikan untuk saya dan Laporkan bagian pilot (SEC-153 (a) sampai (c), (e); SEC-154 (c)) | Layar Chat, kartu yang menjalankan perintah objeknya | — | INV-A bagian §16 hijau; LM-11 diuji dengan pengacakan `read_state` dan kehadiran |
 | 6. Siklus akun dan data | `lifecycle`: keluar F06 sampai F08, ekspor dengan satu jendela, salinan data milik sendiri secara swalayan (SEC-107; FR-FAM-013/AC-12), penghapusan 90 hari, jurnal penghapusan, hapus akun; daftar sesi dan jejak keamanan; hapus jarak jauh | Kunci aplikasi (SEC-19), halaman Bantuan, daftar sesi, hapus akun, keluar | — | SCN-44 dan SCN-49 lulus ujung ke ujung |
-| 7. Menuju GR-2 | Pengukuran kinerja ES §3; perbaikan dari matriks bukti | Pemeriksaan aksesibilitas dan tata letak (§4.9) | WS-5: pgBackRest dan salinan pelindung, uji pulih, `ops.invariant_check`, `ops.backup_verify`, staging (ADR-028), runbook. WS-6: dokumen 10 §4.1 butir 2, 4 sampai 6, 9 (butir 3 sudah di langkah 1) | QG-30 lulus |
+| 7. Menuju GR-2 | Pengukuran kinerja ES §3; perbaikan dari matriks bukti | Pemeriksaan aksesibilitas dan tata letak di iPhone 13 dan iPad mini 7 (§4.9) | WS-5: pgBackRest dan salinan pelindung, uji pulih, `ops.invariant_check`, `ops.backup_verify`, staging (ADR-028), runbook. WS-6: dokumen 10 §4.1 butir 2, 4 sampai 6, 9, 10 (butir 3 sudah di langkah 1) | QG-30 lulus |
+
+**iPad siap sejak langkah 1, bukan di langkah 7.** iPad mini 7 adalah perangkat harian pemilik produk dengan data nyata sejak GR-2 (keputusan 42), jadi tata letak iPad tidak boleh menjadi pemeriksaan akhir. Setiap layar SwiftUI di langkah 1 sampai 7 dibangun dan ditinjau dalam kelas Ringkas, Sedang, dan Lebar menurut 08 §16.1 dan §16.2 (iPad mini 7 potret, lanskap, jendela sempit), dan dijalankan di iPad mini 7 sebagai bagian ES §9 butir 5 dan QG-09. Rancangan khusus tablet tetap Tier 3 (RISK-90); yang dibangun di FS-1 adalah tata letak adaptif Tier 1 08 §16.
 
 **Mengapa urutan ini.** Langkah 2 adalah alur yang menjawab KS-1 dan yang diukur FS-0, jadi ia datang sebelum apa pun selain fondasi. Anggaran (3) sebelum permintaan (4) karena tanda dan penyelesaian membaca anggaran, jatah, dan ambang (06 §5, §6). Chat (5) sesudah permintaan karena kartu menjalankan perintah objek yang sudah ada (06 §16.4). Siklus akun (6) membutuhkan semua jenis data sudah ada untuk ekspor dan penghapusan.
 
-### 3.4 Urutan kerja menurut pilihan platform
+### 3.4 Urutan kerja yang diputuskan: iOS dan iPadOS lebih dulu
 
-Bahan untuk keputusan pemilik produk di awal fase bangun (Q-37). Usulan tim ada di 13 §3.2 (**[Usulan]** `product-analyst`: B, Android lebih dulu); dokumen ini tidak menambah rekomendasi sendiri, dan keputusannya tetap pada pemilik produk saat fase bangun dimulai (`CLAUDE.md` "Deferred on purpose"). Di ketiga pilihan, server memimpin dan data nyata tidak dimulai sebelum kedua platform lulus QG-30 (13 §3.2, usulan atas pilihan B dan C).
+Pemilik produk memilih iOS lebih dulu (pilihan "a" yang disajikan lead sesudah S5, menjawab Q-37), lalu menetapkan bahwa pilot memakai iOS dan iPadOS: "ios ipad yang bakalan dipakai pilot ya" (keputusan 42, `_progress.md` 12 November 2026; 17 keputusan 42 dan K-66). Fakta perangkat dari jawabannya (menjawab Q-211): istri mencatat paling sering, di iPhone 13; pemilik produk memakai iPad mini 7 dan jarang bepergian; Galaxy A55 milik pemilik produk. Ketiga pilihan di versi sebelumnya bagian ini (bersamaan, Android dulu, iOS dulu) tidak berlaku lagi.
 
-| | A. Keduanya bersamaan | B. Android dulu | C. iOS dulu |
-|---|---|---|---|
-| Urutan | Langkah *n* server selesai, lalu `ios-dev` dan `android-dev` mengerjakan langkah *n* bersamaan sementara server mengerjakan *n* + 1 | `android-dev` mengikuti server langkah demi langkah. `ios-dev` sejak langkah 1 hanya mengerjakan paket Swift non-UI yang diuji di Linux (ADR-022 butir 3); layar SwiftUI dimulai sesudah Android mencapai langkah 7, atau lebih awal bila pemilik produk memutuskan | `ios-dev` mengikuti server langkah demi langkah. `android-dev` sejak langkah 1 hanya mengerjakan modul Kotlin non-UI; layar Compose dimulai sesudah iOS mencapai langkah 7, atau lebih awal |
-| Uji kecepatan alur inti (FS-0) | Di kedua platform sesudah langkah 2 | Di Galaxy A55 sesudah langkah 2; di iPhone sesudah iOS mencapai langkah 2 | Di iPhone 13 sesudah langkah 2; di Galaxy A55 menyusul |
-| Pemakaian dengan data uji sebelum GR-2 | Kedua pasangan sejak langkah 2 | Pemilik perangkat Android lebih dulu | Pemilik iPhone lebih dulu; iPad mini 7 bisa dipakai pasangan yang lain, tetapi bukan ponsel yang dibawa saat belanja **[Asumsi]** (13 §3.2) |
-| GR-2 | Paling awal | Menunggu layar iOS selesai | Menunggu layar Android selesai |
-| Pemicu Mac (ADR-022 butir 4) | Sejak langkah 1: UI iOS dikerjakan harian | Saat layar SwiftUI dimulai; sebelum itu tidak ada pekerjaan UI iOS | Sejak langkah 1; ADR-022 butir 4: "Bila iOS dibangun lebih dulu, B atau C hampir pasti diperlukan sejak awal" |
-| Siklus kerja pada platform pertama | Dua siklus sekaligus; siklus iOS lambat tanpa Mac | Paling cepat: Linux, emulator KVM, APK langsung ke Galaxy A55 (09.4 §5) | Bergantung pada Mac sejak awal; tanpa Mac setiap perubahan UI lewat Xcode Cloud dan TestFlight |
-| Waktu pemilik produk | Dua jalur dijalankan di perangkat nyata per tugas (ES §9 butir 5) sekaligus **[Asumsi]**: beban review dan uji perangkat paling tinggi | Satu jalur per waktu | Satu jalur per waktu |
-| Risiko utama | Beban review dan uji perangkat; Mac sejak awal | Pengalaman iOS diuji paling akhir; bila pasangan yang memakai iPhone adalah "ujian adopsi" (03 §2.1; Q-211), ujian itu datang terlambat | Sama, terbalik: pengalaman Android diuji paling akhir |
-| Yang tidak berubah | Server dan kontrak satu; vektor emas berjalan di kedua platform sejak bantuan isian ada; QG-30 menuntut kedua platform | Sama | Sama |
+| Hal | Ketetapan |
+|---|---|
+| Urutan di FS-1 | `ios-dev` mengikuti server langkah demi langkah (§3.3). Paket Swift non-UI diuji di Linux (ADR-022 butir 3); layar SwiftUI dikerjakan sejak langkah 1 |
+| Android di FS-1 | Tidak ada: tanpa modul Kotlin, tanpa job CI Android, tanpa pengirim FCM. Kontrak tetap dirancang untuk semua klien (ADR-013), dan `buf breaking` menjaganya sejak langkah 1 |
+| Uji kecepatan alur inti (FS-0) | Di iPhone 13 dan iPad mini 7 sesudah langkah 2; di Galaxy A55 di jalur Android (§3.8) |
+| Pemakaian dengan data uji sebelum GR-2 | Kedua pasangan sejak langkah 2, di perangkat yang akan mereka pakai untuk data nyata |
+| GR-2 | Tidak menunggu Android. QG-30 menuntut iPhone 13 dan iPad mini 7 (§5.3) |
+| Pemicu Mac (ADR-022 butir 4) | Kemungkinan besar di awal FS-1, karena pekerjaan UI hanya SwiftUI (§9) |
+| Android | Jalur sendiri sesudah GR-2, paling lambat sebelum GR-4 (§3.8) |
+| Yang tidak berubah | Satu server dan satu kontrak; semua aturan di server (ADR-013); Kotlin dan Compose tetap stack Android (ADR-012 butir 1) |
 
-**Satu hal yang memengaruhi pilihan dan belum diketahui** (13 §3.2): siapa memakai perangkat mana (Q-211). Hal teknis yang perlu diketahui pemilik produk saat memilih: pada B dan C, kode non-UI platform kedua dibangun lebih awal, sehingga yang tertinggal hanya layar; layar adalah bagian yang paling bergantung pada Mac (iOS) atau emulator (Android).
+**Yang dibayar dengan pilihan ini** (dinilai di 15): siklus UI iOS tanpa Mac lambat sejak hari pertama (RISK-01); belanja pemilik produk di luar rumah baru tercatat saat ia kembali ke iPad sampai Android tersedia (RISK-18); pengalaman Android pertama diuji jauh sesudah iOS, dekat beta (RISK-91).
 
 ### 3.5 FS-2: gelombang Tier 2
 
@@ -164,7 +165,7 @@ Bahan untuk keputusan pemilik produk di awal fase bangun (Q-37). Usulan tim ada 
 | T2-2 | `ai` R1: pembangunan kumpulan kalimat, pemilih di server lewat `read`, penghitung biaya | FR-AI-005 sampai FR-AI-009 (F-AI-005 lebih dulu); SEC-120, SEC-121, SEC-123 sampai SEC-136; batas USD 3 per pembangunan dan USD 10 per bulan (SEC-127); saklar mati (SEC-128) |
 | T2-3 | `shopping`, `maintenance`, `plan`, pengingat rutinitas | INV-A bagian §13 yang menyangkut; FR untuk IDEA-15, IDEA-19 ditulis dulu (13 §3.4) |
 
-Setiap gelombang adalah satu rilis kedua platform (§6.3). Uji INV dan INV-A seluruhnya berjalan pada setiap perubahan, termasuk yang Tier 2, karena modul Tier 2 berbagi tabel Peristiwa, notifikasi, dan umpan.
+Setiap gelombang adalah satu rilis untuk setiap klien yang sudah memakai data nyata (§6.3); gelombang yang dilepas sebelum Android bergabung dibangun ulang di Android di dalam jalur Android (§3.8). Uji INV dan INV-A seluruhnya berjalan pada setiap perubahan, termasuk yang Tier 2, karena modul Tier 2 berbagi tabel Peristiwa, notifikasi, dan umpan.
 
 ### 3.6 FS-3: pekerjaan teknis sebelum tahap publik
 
@@ -183,7 +184,7 @@ Setiap gelombang adalah satu rilis kedua platform (§6.3). Uji INV dan INV-A sel
 
 ```mermaid
 flowchart TB
-    GR1{{"GR-1 Mulai bangun<br/>(Q-37 platform pertama)"}} --> L1["Langkah 1 Fondasi"]
+    GR1{{"GR-1 Mulai bangun<br/>(iOS dan iPadOS lebih dulu,<br/>keputusan 42)"}} --> L1["Langkah 1 Fondasi"]
     S42["S4-2 hosting, cadangan, email<br/>(keputusan pemilik produk;<br/>waktunya terbuka, §7.8)"] -.-> L1
     S42 --> GR2
     APL["Apple Developer Program<br/>+ sewa Mac sekali"] --> L1
@@ -196,13 +197,35 @@ flowchart TB
     L4 --> L5["Langkah 5 Chat"]
     L5 --> L6["Langkah 6 Siklus<br/>akun dan data"]
     L6 --> L7["Langkah 7 Menuju GR-2"]
-    MAC["Pemicu Mac<br/>(ADR-022 butir 4; §9)"] -.-> L2
+    MAC["Pemicu Mac<br/>(ADR-022 butir 4; §9)"] -.-> L1
     DOC["DPIA, catatan prosesor,<br/>kebijakan privasi, rencana insiden"] --> GR2
     L7 --> GR2{{"GR-2 Data nyata<br/>(QG-30)"}}
     FS0 --> GR2
     GR2 --> W1["T2-1"] --> W2["T2-2"] --> W3["T2-3"]
     KEY["Kunci API Claude"] --> W2
+    GR2 --> AND["Jalur Android A1 sampai A4<br/>(§3.8)"]
+    AND --> QGA{{"QG-30 (Android)<br/>APK memakai data nyata"}}
+    QGA --> GR4{{"GR-4<br/>(paling lambat)"}}
 ```
+
+### 3.8 Jalur Android sesudah GR-2
+
+Bawaan lead **[Usulan]** dalam keputusan 42, dapat diubah pemilik produk: Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk, di dalam pilot bila waktu memungkinkan, paling lambat sebelum GR-4. Stack tetap Kotlin dan Compose Material 3 (ADR-012).
+
+**Letaknya: workstream tersendiri (WS-3), bukan langkah di dalam FS-2** **[Usulan]** `architect`. Alasannya: FS-2 adalah gelombang Tier 2 dengan rilis dan pengukuran VL-nya sendiri (13 §3.4), sedangkan jalur Android membangun ulang seluruh klien Tier 1 ditambah gelombang yang sudah dilepas. Menjadikannya langkah FS-2 akan menahan gelombang Tier 2 di belakang Android, atau sebaliknya. Sebagai workstream, ia berjalan sejajar dengan FS-2 dan selesai di gerbangnya sendiri. **Kapan dimulai di antara gelombang** T2-1 sampai T2-3 adalah keputusan pemilik produk di GR-2, karena dengan tim satu sampai tiga orang keduanya bersaing untuk waktu yang sama (RISK-53).
+
+| Langkah | Isi | Selesai bila |
+|---|---|---|
+| A1. Fondasi Android | Proyek, kode hasil generate Kotlin, job CI Android (ktlint, Android Lint, OSV-Scanner, uji unit, uji Compose di emulator), kunci tanda tangan APK dibuat dan disimpan (§7.5), pengirim FCM di server dan akun layanan FCM (§7.5); aplikasi staging `applicationIdSuffix` (§6.1) | Uji vektor emas Kotlin lulus di CI terhadap berkas yang sama dengan Swift (§4.5); masuk ke staging dari Galaxy A55 |
+| A2. Tier 1 Android | Modul non-UI dan layar Compose untuk langkah 1 sampai 6 §3.3, dalam urutan yang sama, di atas server yang sudah ada | Setiap AC Tier 1 yang perlu perangkat lulus di Galaxy A55 di aplikasi staging (§4.11) |
+| A3. Gelombang yang sudah dilepas | Layar Tier 2 dari gelombang yang sudah ada di produksi saat A2 selesai | Pagar Must bersyarat gelombang itu lulus di Android (§3.5) |
+| A4. Menuju data nyata | Pengukuran ES §3 di Galaxy A55; aksesibilitas dan tata letak Android (§4.9); potret awal dan sinkron pertama atas rumah tangga sintetis seukuran data pilot saat itu **[Usulan]** | QG-30 (Android) lulus (§5.3); APK pilot dipasang di Galaxy A55 dengan akun pemilik produk yang sudah ada |
+
+**Akibat bagi gerbang dan CI.** Sebelum A1, QG-06 hanya menjalankan vektor emas di Swift, dan kode hasil generate Kotlin tidak dibangkitkan; sejak A1 keduanya wajib di setiap perubahan (§4.5, §4.6). Sejak A1, gelombang Tier 2 baru juga dibangun di Android sebelum rilisnya, atau ditambahkan ke A3 bila Android belum bergabung dengan data nyata. Server tidak berubah karena Android datang: semua aturan sudah di server (ADR-013), dan klien Android hanya pemakai kontrak yang sama.
+
+**Terbuka untuk jalur Android: SEC-20 di API 29 sampai 32** (10 §4.3; 10 §7.6 permintaan (3)). `setRecentsScreenshotEnabled` baru ada sejak API 33 dan hanya mengosongkan pratinjau Recents **[Terverifikasi]**; `FLAG_SECURE` memblokir tangkapan layar **[Terverifikasi]**; bahwa `FLAG_SECURE` juga mengosongkan pratinjau Recents hanya tersirat **[Perlu validasi]**, dan API resmi lain untuk API 29 sampai 32 tidak ditemukan **[Perlu validasi]** (18 §2.12.8). Pilihannya: `FLAG_SECURE` hanya di API 29 sampai 32 (usulan `security-privacy` **[Usulan]**), atau pratinjau Recents terbuka di API itu. Galaxy A55 tidak terkena, karena berjalan di atas API 33 **[Asumsi]**, jadi pilihan ini tidak menahan QG-30 (Android). Ia diputuskan lewat ADR di jalur Android, paling lambat sebelum tahap publik, sesudah butir [Perlu validasi] diperiksa di halaman resmi.
+
+**Bila jalur Android tidak selesai sebelum GR-4,** GR-4 menunggu, karena beta Play (§6.7) dan rumah tangga beta yang memakai Android memerlukannya (RISK-91). Menunda Android sampai tahap publik bukan bawaan; itu keputusan pemilik produk yang dicatat di 17.
 
 ---
 
@@ -214,6 +237,7 @@ flowchart TB
 2. **Klien diuji untuk apa yang ia kerjakan:** tiga bantuan isian (vektor emas), antrean dan jeda urungkan, sinkron dan potret awal, penyimpanan dan pembuangan lokal, tampilan, aksesibilitas, tata letak, kunci aplikasi, dan proteksi data di perangkat.
 3. **Setiap uji menyebut ID yang dibuktikannya** di namanya: `FR-FIN-040/AC-14`, `INV-09`, `INV-A33`, `CTH-21`, `SCN-01`, `SEC-96`, `PG-14`. Bentuk nama per bahasa ditetapkan `code-reviewer` di minggu pertama; pemeriksa ID (§4.13) membaca bentuk itu.
 4. **Lapisan, alat, dan tempat berjalannya kanonis di 09.4 §4** dan tidak diulang. Bagian ini menetapkan apa yang membuktikan apa, dan apa yang ditambahkan.
+5. **Bagian Android dari setiap baris §4 berlaku sejak jalur Android langkah A1** (§3.8; keputusan 42). Sebelum itu, "kedua platform" dan "Swift dan Kotlin" di bagian ini dibaca sebagai iOS dan iPadOS saja; tidak ada gerbang yang dihapus, hanya pemakai keduanya yang belum ada.
 
 ### 4.2 Apa membuktikan apa
 
@@ -247,14 +271,14 @@ Rancangan uji properti kanonis di 09.4 §4 (baris "Invarian keuangan" dan "Invar
 | Bersamaan | Perintah dari beberapa goroutine di bawah `SERIALIZABLE` dibandingkan dengan hasil berurutan (INV-23); `-race` menyala |
 | Penyusutan dan benih | Benih acak dicetak di setiap kegagalan dan dapat diulang. Kegagalan yang sudah disusutkan disimpan sebagai uji contoh tetap (ES §6: perbaikan dimulai dengan uji yang mereproduksi) |
 | Jumlah kasus | Per perubahan: jumlah yang selesai di bawah anggaran waktu CI 15 menit (09.4 §7.1) **[Asumsi]**; mingguan: putaran panjang terjadwal dengan benih baru. Kegagalan putaran panjang diperlakukan sama dengan kegagalan per perubahan |
-| Anggaran CI | 15 menit adalah **jumlah menit tertagih semua job Linux per push**, bukan per job: 09.4 §7.1 menghitung sekitar 100 push × 15 menit = 1.500 menit × USD 0,006 = USD 9 dari jatah Free USD 12 (tarif **[Terverifikasi]** 18 §5.2; jumlah push **[Asumsi]**). Uji properti, uji Compose di emulator pada dua skala huruf (§4.9), dan job lain berbagi anggaran itu. Apakah semuanya muat **belum diketahui** sampai diukur di bulan pertama fase bangun. Bila tidak muat: uji emulator hanya berjalan pada perubahan yang menyentuh `android/`, `proto/`, atau berkas vektor emas, dan sebagian kasus properti pindah ke putaran mingguan; tidak ada gerbang yang dihapus. Bila tetap melewati jatah, selisihnya dibayar per menit dan dicatat di §7.6 |
+| Anggaran CI | 15 menit adalah **jumlah menit tertagih semua job Linux per push**, bukan per job: 09.4 §7.1 menghitung sekitar 100 push × 15 menit = 1.500 menit × USD 0,006 = USD 9 dari jatah Free USD 12 (tarif **[Terverifikasi]** 18 §5.2; jumlah push **[Asumsi]**). Uji properti, uji Compose di emulator pada dua skala huruf (§4.9; sejak langkah A1), dan job lain berbagi anggaran itu. Di FS-1 tidak ada job Android, jadi angka itu batas atas FS-1 **[Asumsi]**; anggaran diukur ulang saat job Android ditambahkan. Apakah semuanya muat **belum diketahui** sampai diukur di bulan pertama fase bangun. Bila tidak muat: uji emulator hanya berjalan pada perubahan yang menyentuh `android/`, `proto/`, atau berkas vektor emas, dan sebagian kasus properti pindah ke putaran mingguan; tidak ada gerbang yang dihapus. Bila tetap melewati jatah, selisihnya dibayar per menit dan dicatat di §7.6 |
 | Bersyarat | INV-A Tier 2 diuji sejak modulnya ada; sebelum itu, pemeriksanya tetap berjalan atas data Tier 1 bila berlaku |
 
 ### 4.4 Contoh terhitung dan skenario
 
 - **Contoh terhitung.** Setiap `CTH-NN` di 07 (termasuk varian berhuruf, misalnya CTH-03b) adalah satu uji tabel dengan angka yang sama persis. Daftarnya diambil dengan `grep` (§4.13); contoh baru di 07 tanpa uji membuat QG-06 gagal.
 - **Skenario.** 38 skenario bertier 1 di 12 §2 (semua kecuali SCN-03, SCN-16, SCN-17 yang Tier 3, dan SCN-07, SCN-08, SCN-09, SCN-10, SCN-18, SCN-39, SCN-40, SCN-41 yang Tier 2) menjadi uji ujung ke ujung tingkat API di FS-1: aktor, urutan perintah, dan akibat uang menurut skenarionya, termasuk baris "Dua arah". Bagian Tier 1 dari SCN-08, SCN-18, dan SCN-41 (bertanda "+1" di 12 §2) diuji di FS-1 juga. Skenario Tier 2 diuji bersama gelombangnya. Skenario Tier 3 tidak diuji.
-- **Di perangkat.** Sebelum GR-2, `qa` menjalankan setiap skenario Tier 1 sekali di iPhone 13 dan Galaxy A55 dengan dua akun, dan menandai di matriks bukti (§4.11). Skenario yang menyangkut layar besar (tata letak, panel) dijalankan juga di iPad mini 7.
+- **Di perangkat.** Sebelum GR-2, `qa` menjalankan setiap skenario Tier 1 sekali di iPhone 13 dan iPad mini 7 dengan dua akun, yaitu pasangan perangkat yang memakai data nyata (keputusan 42), dan menandai di matriks bukti (§4.11). Di Galaxy A55 hal yang sama dijalankan sebelum QG-30 (Android) (§3.8 langkah A2).
 
 ### 4.5 Vektor emas bantuan isian
 
@@ -264,16 +288,16 @@ Pengecualian ES §2 (ADR-013 butir 3; S4-1 (ii) A).
 |---|---|
 | Sumber | Uji Go membangkitkan berkas vektor (masukan dan hasil yang diharapkan) dari acuan: fungsi INV-02 untuk selisih baris, fungsi acuan Go untuk "bagi rata" (sisa pada baris pertama), aturan protovalidate untuk bentuk masukan |
 | Isi | Kasus batas yang dipilih tangan (nol baris, satu baris, sisa bagi, jumlah terbesar `int64`, angka negatif, teks di batas panjang, karakter gabungan untuk panjang teks) ditambah kasus acak dengan benih tetap. Berkas berversi di repositori |
-| Pemakai | Uji unit Swift (paket non-UI) dan Kotlin (modul non-UI) membaca berkas yang sama |
-| Gerbang | Berkas yang berubah tanpa uji klien yang lulus di kedua platform memblokir merge (QG-06). Berkas yang dibangkitkan ulang harus identik dengan yang di repositori (perubahan acuan tanpa memperbarui vektor gagal) |
+| Pemakai | Uji unit Swift (paket non-UI) sejak FS-1 dan Kotlin (modul non-UI) sejak langkah A1 (§3.8) membaca berkas yang sama |
+| Gerbang | Berkas yang berubah tanpa uji klien yang lulus di setiap klien yang ada memblokir merge (QG-06). Saat modul Kotlin pertama ditambahkan, ia lulus atas seluruh berkas yang ada saat itu, bukan hanya kasus baru. Berkas yang dibangkitkan ulang harus identik dengan yang di repositori (perubahan acuan tanpa memperbarui vektor gagal) |
 | Batas | Hanya tiga bantuan itu. Bantuan isian keempat memerlukan ADR baru dengan persetujuan pemilik produk (ES §2) |
 
 ### 4.6 Kontrak
 
 - `buf lint` dan `buf breaking` terhadap cabang utama pada setiap perubahan (QG-04).
-- Kode hasil generate untuk Go, Swift, dan Kotlin dibangkitkan ulang di CI dan harus identik dengan yang di repositori.
+- Kode hasil generate untuk Go dan Swift (dan Kotlin sejak langkah A1) dibangkitkan ulang di CI dan harus identik dengan yang di repositori.
 - Uji AC berjalan lewat klien Connect Go hasil generate terhadap server uji, jadi kontrak teruji dari sisi pemanggil.
-- **Uji klien terhadap server nyata.** Uji instrumen Android di emulator CI menjalankan alur langkah 2 terhadap biner server yang berjalan di mesin CI yang sama. Untuk iOS, Xcode Cloud tidak menjalankan biner Go, jadi alur yang sama dijalankan `qa` di perangkat terhadap staging sebelum setiap rilis (QG-21) **[Usulan]**.
+- **Uji klien terhadap server nyata.** Xcode Cloud tidak menjalankan biner Go, jadi alur langkah 2 dijalankan `qa` di perangkat iOS terhadap staging sebelum setiap rilis (QG-21) **[Usulan]**. Karena di FS-1 tidak ada uji instrumen Android yang dapat memakai biner server di mesin CI, paket Swift non-UI menjalankan alur yang sama terhadap biner server di CI Linux, bila klien Connect Swift dapat dibangun di Linux **[Perlu validasi]**, dinilai `ios-dev` minggu pertama bersama RISK-13 **[Usulan]**. Sejak langkah A1, uji instrumen Android di emulator CI menjalankan alur itu juga.
 - Nilai per jenis perintah yang dibaca klien, misalnya `hold_seconds` jeda urungkan, ada di kontrak (ADR-013 butir 4). Uji kontrak: setiap jenis perintah pelindung (SEC-151 (1) sampai (7)) membawa `hold_seconds = 0` dan tanda `protective`; `protective` selalu disertai `hold_seconds = 0` (09 berkas 03 §1; ADR-028 butir 3).
 
 ### 4.7 Offline dan sinkron
@@ -312,12 +336,12 @@ Setiap SEC berkolom "Pilot" di 10 §4 punya uji menurut kolom "Cara menguji" ber
 | Otomatis Android | Uji Compose memeriksa semantik (label, tindakan kustom pada kartu) dan ukuran sasaran sentuh pada empat tujuan navigasi dan lembar Catat; dijalankan pada skala huruf 100% dan 200% | Emulator CI |
 | Otomatis iOS | XCUITest pada layar yang sama dengan Dynamic Type terbesar; audit aksesibilitas bawaan XCUITest bila tersedia di versi Xcode yang dipakai **[Perlu validasi]** saat dibangun | Xcode Cloud |
 | Manual | VoiceOver dan TalkBack melewati tiga alur inti (catat belanja, serah terima dan konfirmasi, ajukan dan setujui permintaan) per rilis | Perangkat (`qa`) |
-| Tata letak | Daftar uji 08 §16.4: iPhone 13; Galaxy A55; iPad mini 7 potret, lanskap, jendela sempit; emulator foldable, tablet 8 dan 10,5 inci, tabletop, buku, dua layar berengsel; pada setiap ukuran teks 200%, tema gelap dan terang, luring. Otomatis: uji Compose pada kelas ukuran Ringkas, Sedang, Lebar untuk empat tujuan navigasi (unsur utama tampil, jumlah uang tidak terpotong). Sisanya manual per rilis | 08 §16.4; brief §10.3 |
+| Tata letak | Daftar uji 08 §16.4 per baris waktunya: baris "Sebelum GR-2" (iPhone 13; iPad mini 7 potret, lanskap, jendela berdampingan *compact* dan *regular*, jendela yang diubah ukurannya di tengah alur, untuk setiap alur 08 §16.2) untuk QG-30; baris "Sebelum aplikasi Android memakai data nyata" (Galaxy A55; emulator foldable, tablet 8 dan 10,5 inci, tabletop, buku, dua layar berengsel) untuk QG-30 (Android); pada setiap ukuran teks 200%, tema gelap dan terang, luring. Otomatis: uji Compose pada kelas ukuran Ringkas, Sedang, Lebar untuk empat tujuan navigasi (unsur utama tampil, jumlah uang tidak terpotong). Sisanya manual per rilis | 08 §16.4; brief §10.3 |
 | Kontras | Pasangan token dicek dengan skrip saat token dibuat (08 §19.11); token tidak berubah tanpa cek ulang | 08 §19.3 |
 
 ### 4.10 Kinerja
 
-- Sasaran ES §3 diukur di iPhone 13 dan Galaxy A55 (cold start, ketukan mencatat, frame) dan di VPS pilot (p95 baca dan tulis dari histogram `expvar`, 09.4 §3) dengan data rumah tangga sintetis setahun **[Asumsi]** (09.4 §4). Hasil dan ADR yang mengukuhkan atau mengubah angka `[DEFAULT]` menjadi syarat QG-30 (13 §3.3 butir 5).
+- Sasaran ES §3 diukur di iPhone 13 dan iPad mini 7 (cold start, ketukan mencatat, frame) dan di VPS pilot (p95 baca dan tulis dari histogram `expvar`, 09.4 §3) dengan data rumah tangga sintetis setahun **[Asumsi]** (09.4 §4). Hasil dan ADR yang mengukuhkan atau mengubah angka `[DEFAULT]` menjadi syarat QG-30 (13 §3.3 butir 5). Di Galaxy A55, perangkat pilot dengan kinerja paling rendah **[Asumsi]** (RISK-54), pengukuran yang sama menjadi syarat QG-30 (Android); bila hasilnya tidak memenuhi angka yang sudah dikukuhkan, ADR yang sama direvisi sebelum APK memakai data nyata.
 - Sesudah GR-2: diukur ulang di setiap gelombang Tier 2 (QG-22) dan di VL-07 (13 §6.1). Klaim kinerja di perubahan apa pun membawa pengukurannya (ES §3; QG-10).
 - Uji kinerja dijalankan saat staging diam (ADR-028 konsekuensi).
 
@@ -330,7 +354,7 @@ Setiap SEC berkolom "Pilot" di 10 §4 punya uji menurut kolom "Cara menguji" ber
 | ID | `FR-…/AC-n` (semua Tier 1, dan Must bersyarat yang fiturnya dibangun) |
 | Uji otomatis | Nama uji yang menyebut ID itu (dibaca pemeriksa ID, §4.13) |
 | Perlu perangkat | Ya bila AC menyebut tampilan, ketukan, teks layar, notifikasi di perangkat, kunci, atau data lokal |
-| iPhone 13 / Galaxy A55 / iPad mini 7 | Tanggal, build, dan hasil; iPad hanya untuk AC tata letak |
+| iPhone 13 / iPad mini 7 / Galaxy A55 | Tanggal, build, dan hasil. iPad mini 7 untuk **setiap** AC yang perlu perangkat, bukan hanya tata letak, karena ia perangkat data nyata pemilik produk (keputusan 42). Kolom Galaxy A55 diisi di jalur Android (§3.8) |
 | Catatan | Temuan dan perubahan yang memperbaikinya |
 
 Matriks dibangkitkan dari daftar AC (`grep` 05) dan nama uji, lalu kolom perangkat diisi `qa`. **Data uji saja**: `qa` tidak pernah memakai rumah tangga pilot nyata; sesudah GR-2 semua uji perangkat berjalan di aplikasi staging terhadap instans staging (ADR-028).
@@ -361,7 +385,7 @@ Matriks dibangkitkan dari daftar AC (`grep` 05) dan nama uji, lalu kolom perangk
 | QG-03 | Pemindaian kerentanan bersih; dependensi baru membawa alasan, lisensi, dan pemeliharaan | govulncheck, OSV-Scanner, Dependabot (gerbang Swift menurut ADR-025 butir 2) | ES §4, §8 |
 | QG-04 | Kontrak: `buf lint`, `buf breaking`; kode hasil generate identik | `buf` | ES §2; ADR-013; ADR-028 butir 5 |
 | QG-05 | Semua uji lulus: domain, INV, INV-A, PG, CTH, AC, skenario API, isolasi, privasi, payload push, log, migrasi naik-turun-naik dan biner lama di atas skema baru, arsitektur (impor lintas modul; tanpa `UPDATE`/`DELETE` atas tabel inti uang), uji klien | CI Linux; Xcode Cloud | ES §5, §6, §7; 09.4 §4 |
-| QG-06 | Vektor emas lulus di Swift dan Kotlin; pemeriksa ID (§4.13) | CI Linux; Xcode Cloud | ES §2; ADR-013 |
+| QG-06 | Vektor emas lulus di Swift, dan di Kotlin sejak jalur Android langkah A1 (§3.8); pemeriksa ID (§4.13) | CI Linux; Xcode Cloud | ES §2; ADR-013 |
 | QG-07 | Cabang per tugas; satu perubahan satu hal; pesan commit menyebut ID | `code-reviewer` | ES §7 |
 | QG-08 | Review dua lintasan: (1) memenuhi kebutuhan yang dikutip, (2) kode sehat menurut ES; temuan diselesaikan | `code-reviewer` | `CLAUDE.md`; ES §7 |
 | QG-09 | Setiap layar baru atau berubah ditinjau terhadap 08 dan pedoman platform; komponen dari sistem desain, tidak disalin | `ux-designer` | `CLAUDE.md`; ES §2 |
@@ -378,7 +402,7 @@ Matriks dibangkitkan dari daftar AC (`grep` 05) dan nama uji, lalu kolom perangk
 | QG | Gerbang | Pelaku |
 |---|---|---|
 | QG-20 | Semua QG per perubahan hijau pada tag rilis; pemeriksa ID tanpa ID kosong di cakupan rilis | CI |
-| QG-21 | Matriks bukti (§4.11) lengkap untuk cakupan rilis di tiga perangkat, di aplikasi staging; aksesibilitas manual dan tata letak (§4.9) | `qa` |
+| QG-21 | Matriks bukti (§4.11) lengkap untuk cakupan rilis di setiap perangkat yang memakai data nyata (iPhone 13 dan iPad mini 7; Galaxy A55 sejak QG-30 (Android)), di aplikasi staging; aksesibilitas manual dan tata letak (§4.9) | `qa` |
 | QG-22 | Migrasi rilis dijalankan di staging lebih dulu; titik pulih bernama dibuat sebelum migrasi produksi (§6.4); ukuran ES §3 tidak mundur | `backend-dev`; `qa` |
 | QG-23 | Rilis berikutnya dijadwalkan paling lambat 90 hari sesudah build iOS terakhir **diunggah** ke TestFlight, sasaran 60 (ADR-022 butir 1, keputusan pemilik produk; 18 §2.12.6). Batas 80 hari hanya bila usulan ADR-028 butir 4 disetujui (Q-219) (§6.3) | Pengelola server |
 | QG-24 | Catatan rilis menyebut FR, ADR, dan migrasi; tidak memuat data rumah tangga | `backend-dev` |
@@ -390,22 +414,35 @@ Matriks dibangkitkan dari daftar AC (`grep` 05) dan nama uji, lalu kolom perangk
 
 | # | Syarat | Sumber |
 |---|---|---|
-| 1 | Setiap AC Tier 1 punya uji otomatis bernama ID-nya dan lulus; matriks bukti lengkap di tiga perangkat | 13 §3.3 butir 2; ES §6 |
+| 1 | Setiap AC Tier 1 punya uji otomatis bernama ID-nya dan lulus; matriks bukti lengkap di iPhone 13 dan iPad mini 7 (keputusan 42) | 13 §3.3 butir 2; ES §6 |
 | 2 | Uji INV-01 sampai INV-41, setiap INV-A01 sampai INV-A53 **yang berlaku untuk Tier 1** (INV-A bersyarat Tier 2 menyusul gelombangnya, §4.3 baris "Bersyarat"), PG-01 sampai PG-14, dan setiap contoh terhitung 07 lulus; putaran panjang mingguan terakhir bersih | 13 §3.3 butir 3; ES §5 |
-| 3 | Aplikasi terpasang di iPhone 13 (TestFlight internal) dan Galaxy A55 (APK); tata letak diperiksa di iPad mini 7 | 13 §3.3 butir 4 |
-| 4 | Sasaran ES §3 diukur di kedua ponsel dan VPS; ADR yang mengukuhkan atau mengubah angka `[DEFAULT]` ditulis | 13 §3.3 butir 5 |
+| 3 | Aplikasi terpasang di iPhone 13 dan iPad mini 7 (TestFlight internal), keduanya perangkat data nyata; tata letak lulus 08 §16.4 baris "Sebelum GR-2" (setiap alur 08 §16.2 di iPad mini 7 potret, lanskap, jendela berdampingan, dan jendela yang diubah ukurannya). Android tidak disyaratkan (keputusan 42) | 13 §3.3 butir 4; 08 §16.4 |
+| 4 | Sasaran ES §3 diukur di iPhone 13, iPad mini 7, dan VPS; ADR yang mengukuhkan atau mengubah angka `[DEFAULT]` ditulis | 13 §3.3 butir 5 |
 | 5 | 38 skenario Tier 1 lulus sebagai uji API dan sekali di perangkat | §4.4 |
-| 6 | Semua SEC kolom "Pilot" lulus ujinya (10 §4.1 butir 1) | 10 §4 |
+| 6 | Semua SEC kolom "Pilot" lulus ujinya di server, iPhone 13, dan iPad mini 7 (10 §4.1 butir 1); bagian khusus Android (10 §4.3) tidak termasuk, dan diuji di QG-30 (Android) | 10 §0, §4, §4.3 |
 | 7 | Uji pulih cadangan, SEC-96, SEC-97 lulus (10 §4.1 butir 8); `ops.invariant_check` dan `ops.backup_verify` berjalan terjadwal dan pernah terbukti menandai operator | 09.4 §6 |
 | 8 | Penyedia hosting dan cadangan sudah dipilih dengan pernyataan letak data (10 §4.1 butir 7; S4-2) | ADR-020 |
 | 9 | Staging hidup; basis data produksi dikosongkan dan dibuat ulang dari migrasi; tidak ada data uji di produksi. **Pemisahan staging teruji:** sebagai peran basis data staging, sambung ke basis data produksi ditolak, dan sebaliknya; pindai konfigurasi kedua instans: sama kecuali alamat, basis data, dan rahasia; akun uji staging hanya beralamat domain uji | ADR-028 butir 1; 10 §7.4 |
 | 10 | Runbook berisi: deploy, migrasi, rollback, pulih, rotasi rahasia, tahan tulis, insiden | §7 |
+| 11 | iPad mini 7 sebagai tablet yang mungkin dipakai bersama: uji SEC-59 **[Usulan]** `security-privacy` (persyaratan iPhone berlaku sama di iPad; kalimat tablet di tawaran kunci aplikasi; SEC-59 (c): tanpa Core Spotlight, `NSUserActivity` yang dapat dicari, donasi App Intents berisi data, dan judul scene berisi data) lulus di iPad mini 7 dan iPhone 13. Butir ini menjawab 10 §7.6 permintaan (2); jawaban pemilik produk atas 10 §4.1 butir 10 (apakah iPad dipegang orang lain, apakah sidik jari orang lain terdaftar) tercatat di runbook. Menyalakan kunci aplikasi tetap pilihannya (SEC-19) | 10 §4.1 butir 10; SEC-59 |
 
-Butir non-teknis GR-2 (10 §4.1 butir 2, 4 sampai 6, 9; gerbang contoh layar; VL-00) dicentang di runbook yang sama, tetapi milik 13 dan 10. Butir 3 (SEC-109 (b)) sudah dicentang jauh sebelumnya, sebelum build TestFlight pertama dipasang (QG-25), dan diperiksa ulang di sini.
+Butir non-teknis GR-2 (10 §4.1 butir 2, 4 sampai 6, 9, 10; gerbang contoh layar; VL-00) dicentang di runbook yang sama, tetapi milik 13 dan 10. Butir 3 (SEC-109 (b)) sudah dicentang jauh sebelumnya, sebelum build TestFlight pertama dipasang (QG-25), dan diperiksa ulang di sini.
 
-**Masukan risiko.** Kolom "Risiko" 15 §8 per gerbang adalah daftar periksa tambahan QG-30, QG-31, dan QG-32: mitigasi setiap risiko yang disebut di baris gerbangnya harus sudah berlaku saat gerbang dilewati.
+**QG-30 (Android) — sebelum APK pertama dipasang di perangkat yang memuat data nyata** (Galaxy A55 pemilik produk; jalur Android langkah A4, §3.8; sesudah GR-2, paling lambat sebelum GR-4). Bukan gerbang fase baru, melainkan QG-30 yang dijalankan untuk platform Android; butir server (2, 7 sampai 10) sudah lulus di GR-2 dan tetap hijau di setiap perubahan.
 
-**QG-31 — teknis GR-4** (sebelum pengguna luar pertama, 13 §3.6): butir 10 §4.2 lulus ujinya: **SEC-36** akses darurat dengan log hanya-menambah yang **dikirim keluar dari VPS** ke tujuan yang tidak dikuasai operator yang sama, dan SEC-39 (c) publik; SEC-34 teks umum dan SEC-139 versi publik, dipilih per rumah tangga; SEC-25 kode pemulihan; SEC-84; SEC-147 bila jawaban L-14 mewajibkannya; SEC-153 (d) dan SEC-154 sisanya sebelum build pertama ke TestFlight eksternal atau App Store; SEC-142 dan SEC-143 untuk jalur Play; SEC-83 rating usia; prasyarat jalur beta di §6.7 lengkap; SES keluar sandbox bila dipilih; uji isolasi dijalankan dengan banyak rumah tangga (bukan hanya dua) karena beta adalah pertama kalinya ada lebih dari satu rumah tangga nyata di server. RLS (SEC-08) sudah aktif sejak pilot (ADR-016), dan SEC-107 salinan swalayan sudah dibuktikan di QG-30 (FS-1 langkah 6; FR-FAM-013/AC-12). Tujuan log SEC-36 di luar VPS belum dipilih; dipilih lewat ADR di FS-3 dengan syarat brief §1 (tanpa layanan berharga per pemakaian tanpa alasan) **[Usulan]**.
+| # | Syarat | Sumber |
+|---|---|---|
+| A-1 | Setiap AC Tier 1, dan setiap Must bersyarat gelombang yang sudah dilepas, yang perlu perangkat lulus di Galaxy A55, termasuk bagian Android FR-COM-011/AC-10; kolom Galaxy A55 matriks bukti lengkap (§4.11) | 13 §3.4 "Klien Android di dalam pilot" (GR-2 butir 2); QG-30 butir 1; §3.8 A2, A3 |
+| A-2 | Vektor emas Kotlin lulus atas seluruh berkas (QG-06); kode hasil generate Kotlin identik | §4.5, §4.6 |
+| A-3 | Tata letak lulus 08 §16.4 baris "Sebelum aplikasi Android memakai data nyata"; aksesibilitas Android (§4.9) | 08 §16.4 |
+| A-4 | Sasaran ES §3 diukur di Galaxy A55; ADR kinerja dikukuhkan atau direvisi (§4.10) | 13 §3.4 (GR-2 butir 5); ES §3; RISK-54 |
+| A-5 | 38 skenario Tier 1 sekali di Galaxy A55 (§4.4), yaitu invarian ujung ke ujung lewat klien Android; uji properti INV dan INV-A tetap di server dan tidak diulang | 13 §3.4 (GR-2 butir 3); §4.4 |
+| A-6 | **Daftar 10 §4.3 lulus di Galaxy A55:** SEC-15, SEC-19 (a), (b), SEC-20, SEC-42 (kunci tanda tangan APK dan akun layanan FCM), SEC-46 (a) sampai (c), SEC-49, SEC-50, SEC-52, SEC-54, SEC-58, SEC-67, SEC-146, SEC-150 (b) (catatan FCM sebelum token FCM pertama), ditambah setiap SEC kolom "Pilot" lain yang menyangkut klien, diuji di Galaxy A55 (10 §4.3 alinea pertama) | 10 §0, §4.3 |
+| A-7 | Potret awal dan sinkron pertama atas rumah tangga sintetis seukuran data pilot saat itu lulus **[Usulan]**; akun pemilik produk yang sudah ada masuk lewat aplikasi staging lebih dulu | §3.8 A4; RISK-91 |
+
+**Masukan risiko.** Kolom "Risiko" 15 §8 per gerbang adalah daftar periksa tambahan QG-30, QG-30 (Android), QG-31, dan QG-32: mitigasi setiap risiko yang disebut di baris gerbangnya harus sudah berlaku saat gerbang dilewati.
+
+**QG-31 — teknis GR-4** (sebelum pengguna luar pertama, 13 §3.6): **QG-30 (Android) sudah lulus dan APK terpasang di Galaxy A55 sebelum jalur pengujian Google Play dibuka** (13 GR-4 butir 8; 10 §4.2 baris "Daftar §4.3"; §3.8); butir 10 §4.2 lulus ujinya: **SEC-36** akses darurat dengan log hanya-menambah yang **dikirim keluar dari VPS** ke tujuan yang tidak dikuasai operator yang sama, dan SEC-39 (c) publik; SEC-34 teks umum dan SEC-139 versi publik, dipilih per rumah tangga; SEC-25 kode pemulihan; SEC-84; SEC-147 bila jawaban L-14 mewajibkannya; SEC-153 (d) dan SEC-154 sisanya sebelum build pertama ke TestFlight eksternal atau App Store; SEC-142 dan SEC-143 untuk jalur Play; SEC-83 rating usia; prasyarat jalur beta di §6.7 lengkap; SES keluar sandbox bila dipilih; uji isolasi dijalankan dengan banyak rumah tangga (bukan hanya dua) karena beta adalah pertama kalinya ada lebih dari satu rumah tangga nyata di server. RLS (SEC-08) sudah aktif sejak pilot (ADR-016), dan SEC-107 salinan swalayan sudah dibuktikan di QG-30 (FS-1 langkah 6; FR-FAM-013/AC-12). Tujuan log SEC-36 di luar VPS belum dipilih; dipilih lewat ADR di FS-3 dengan syarat brief §1 (tanpa layanan berharga per pemakaian tanpa alasan) **[Usulan]**.
 
 **QG-32 — teknis GR-5** (rilis publik): semua SEC kolom "Wajib sebelum tahap publik" lulus ujinya, termasuk SEC-18 dan SEC-45; **laporan uji penetrasi SEC-157 ada dan setiap temuan tinggi dan kritis berstatus diperbaiki dengan uji ulang**; `CLIENT_UPGRADE_REQUIRED` terpasang; hak akses Plus bila model bisnis diputuskan (§8; SEC-156); lolos tinjauan kedua toko; sasaran ES §3 diukur ulang dengan data beta.
 
@@ -422,15 +459,16 @@ Ketetapan di [ADR-028](adr/ADR-028-lingkungan-dan-irama-rilis-pilot.md) (Diusulk
 | Lokal dan CI | Laptop Linux, GitHub Actions, Xcode Cloud; PostgreSQL 18 di CI; data uji saja | Sama |
 | Instans utama di VPS | Data uji saja; berfungsi sebagai staging; dikosongkan pada GR-2 | Produksi: data nyata rumah tangga pilot |
 | Staging | — | Instans kedua di VPS yang sama, basis data, peran, rahasia, pengguna sistem, dan subdomain sendiri; data uji saja dengan akun beralamat domain uji, tidak pernah data produksi termasuk ekspor dan cadangan yang dipulihkan; peran basis data staging tanpa `CONNECT` ke produksi, dan sebaliknya (diuji QG-30 butir 9); konfigurasi keamanan sama dengan produksi, tanpa titik akhir debug; aplikasi staging hanya menjangkau staging; tidak masuk cadangan (ADR-028 butir 1) |
-| Aplikasi di perangkat | Satu identitas per platform | Aplikasi pilot dan aplikasi staging berdampingan (Android `applicationIdSuffix`; iOS bundle ID kedua lewat TestFlight internal) |
+| Aplikasi di perangkat | Satu identitas per platform | Aplikasi pilot dan aplikasi staging berdampingan (iOS bundle ID kedua lewat TestFlight internal; Android `applicationIdSuffix` sejak jalur Android langkah A1, dengan APK staging saja sampai QG-30 (Android)) |
 
 ### 6.2 Jalur per platform (pilot)
 
 | | Android | iOS dan iPadOS | Server |
 |---|---|---|---|
+| Mulai | Jalur Android langkah A1, sesudah GR-2 (§3.8) | FS-1 langkah 1 | FS-1 langkah 1 |
 | Build | CI Linux, setiap merge (09.4 §5) | Xcode Cloud, setiap merge (staging) dan setiap tag rilis (pilot) | CI Linux, setiap merge |
 | Tanda tangan | Kunci tanda tangan disimpan offline oleh pemilik produk dan sebagai rahasia CI (09.4 §5) | Dikelola Xcode Cloud (ADR-022) | — |
-| Pemasangan | APK langsung ke Galaxy A55, tanpa Play di pilot | TestFlight internal ke iPhone 13 dan iPad mini 7. Pasangan pilot penguji internal dengan peran App Store Connect tersempit yang memberi akses TestFlight internal; usulan **Marketing**, dikukuhkan saat penyiapan **[Perlu validasi]** (ADR-022 butir 1; 10 §7 permintaan (d)) | `familyos migrate`, lalu biner baru dan systemd memulai ulang (09.4 §1) |
+| Pemasangan | APK staging ke Galaxy A55 sejak A1; APK pilot sesudah QG-30 (Android); tanpa Play di pilot | TestFlight internal ke iPhone 13 dan iPad mini 7. Pasangan pilot penguji internal dengan peran App Store Connect tersempit yang memberi akses TestFlight internal; usulan **Marketing**, dikukuhkan saat penyiapan **[Perlu validasi]** (ADR-022 butir 1; 10 §7 permintaan (d)) | `familyos migrate`, lalu biner baru dan systemd memulai ulang (09.4 §1) |
 | Sebelum dipasang ke pilot | Diuji di aplikasi staging (QG-21) | Sama | Migrasi dijalankan di staging lebih dulu (QG-22) |
 
 **Catatan peralihan Android ke Play (FS-3).** APK pilot ditandatangani kunci milik sendiri. Play App Signing dapat memakai kunci tanda tangan APK pilot bila kunci itu diunggah sebelum aplikasi masuk pengujian terbuka atau produksi; sesudah itu Google juga memegang kunci tersebut (18 §5.2.8 (c)). Dengan begitu pembaruan lewat Play dapat terpasang di atas APK pilot. Bila jalan itu tidak dipakai, aplikasi pilot dipasang ulang; karena server adalah sumber kebenaran, yang hilang hanya antrean yang belum terkirim, jadi peralihan dilakukan saat antrean kosong. Diputuskan saat FS-3, bukan sekarang; keputusannya (memakai kunci pilot di bawah Play App Signing atau kunci baru) dicatat di runbook rilis **sebelum unggahan Play pertama**, dan kunci yang dipegang dua pihak itu diperlakukan menurut SEC-42 (10.2).
@@ -439,7 +477,7 @@ Ketetapan di [ADR-028](adr/ADR-028-lingkungan-dan-irama-rilis-pilot.md) (Diusulk
 
 | Hal | Ketetapan |
 |---|---|
-| Satuan rilis | Satu rilis = server + Android + iOS dengan kontrak yang sama, dari satu tag |
+| Satuan rilis | Satu rilis = server + setiap klien yang memakai data nyata, dengan kontrak yang sama, dari satu tag: server + iOS sampai QG-30 (Android), sesudahnya server + iOS + Android. Build Android sebelum QG-30 (Android) hanya ke staging |
 | Di FS-1 | Tidak ada rilis ke data nyata; setiap merge dipasang ke instans utama (data uji) dan ke perangkat |
 | Di FS-2 | Setiap gelombang Tier 2 satu rilis (13 §3.4). Bila tidak ada rilis dalam 60 hari, rilis pemeliharaan. **Yang berlaku:** build iOS baru paling lambat 90 hari sesudah build sebelumnya **diunggah** ke TestFlight, sasaran 60 (ADR-022 butir 1, keputusan pemilik produk, 17 keputusan 32; 18 §2.12.6). **Usulan** ADR-028 butir 4: batas keras 80 hari sejak unggahan, menyisakan 10 hari untuk build yang gagal atau tertahan; berlaku hanya bila pemilik produk menyetujuinya (Q-219) |
 | Perbaikan mendesak | Kapan saja, dengan gerbang yang sama (QG-20 sampai QG-24). Tidak ada jalan pintas di gerbang uji |
@@ -467,7 +505,7 @@ Tidak dibangun di pilot (ADR-028 butir 2): dua pengguna, semua fitur untuk kedua
 
 ### 6.7 Jalur beta di FS-3
 
-Beta tertutup sekurangnya 5 rumah tangga, tanpa batas atas; bila akun Play pribadi, jumlahnya ditetapkan dari sekurangnya 14 penguji Android (12 + 2 cadangan); sekurangnya 8 minggu (13 §6.4 **[Usulan]**). Semua butir hanya sesudah GR-4 (advokat L-01, L-14, L-24; PSE bila wajib).
+Beta tertutup sekurangnya 5 rumah tangga, tanpa batas atas; bila akun Play pribadi, jumlahnya ditetapkan dari sekurangnya 14 penguji Android (12 + 2 cadangan); sekurangnya 8 minggu (13 §6.4 **[Usulan]**). Semua butir hanya sesudah GR-4 (advokat L-01, L-14, L-24; PSE bila wajib), dan jalur Play hanya sesudah QG-30 (Android). Akun pengembang Play (USD 25 sekali) dibuat saat jalur Play disiapkan di FS-3, bukan di pilot: APK pilot tidak memakai Play.
 
 | | TestFlight eksternal | Google Play pengujian tertutup |
 |---|---|---|
@@ -607,7 +645,9 @@ Tidak dibangun di pilot (13 §7: pilot tidak dimonetisasi). Dirancang sekarang k
 
 Jalur resmi iOS tetap Xcode Cloud + TestFlight internal + sewa Mac sekali (ADR-022, diterima, S4-3 (i) A). Tanpa Mac tidak ada pratinjau SwiftUI, simulator, dan debugger di Linux (ADR-022 konteks; 09.4 §5 butir 5).
 
-**Pemicu (ADR-022 butir 4):** pekerjaan UI iOS menjadi harian, atau waktu tunggu build cloud melebihi waktu kerja yang wajar. Kapan itu terjadi bergantung pada pilihan platform (§3.4): pada A dan C sejak FS-1 langkah 1; pada B saat layar SwiftUI dimulai.
+**Sewa sekali untuk penyiapan** (ADR-022 butir 2) bertarif per jam dengan minimum 24 jam berturut-turut, bukan sewa sebulan: Scaleway 24 × EUR 0,22 = EUR 5,28 **[Perlu validasi]** harga; minimum 24 jam **[Terverifikasi]** (18 §5.2.7.2). Bila pemilik produk sudah memilih B atau C sebelum penyiapan, sewa sekali itu tidak diperlukan: penyiapan dikerjakan di Mac bulanan atau Mac sendiri **[Usulan]**.
+
+**Pemicu (ADR-022 butir 4):** pekerjaan UI iOS menjadi harian, atau waktu tunggu build cloud melebihi waktu kerja yang wajar. **Dengan keputusan 42, iOS dan iPadOS satu-satunya platform UI sampai GR-2**, dan layar SwiftUI dikerjakan sejak FS-1 langkah 1 (§3.3, §3.4). Jadi pekerjaan UI iOS menjadi harian sejak awal FS-1, dan pemicu ini kemungkinan besar terjadi di awal FS-1 **[Asumsi]**. Ini catatan, bukan keputusan: membeli (C) atau menyewa bulanan (B) tetap diputuskan pemilik produk.
 
 | | B. Mac sewaan bulanan | C. Mac mini sendiri |
 |---|---|---|
@@ -618,7 +658,7 @@ Jalur resmi iOS tetap Xcode Cloud + TestFlight internal + sewa Mac sekali (ADR-0
 | Lisensi | Sewa Mac fisik khusus satu penyewa tampak sesuai Bagian 3A lisensi macOS **[Usulan]** `researcher`; penyedia selain AWS diperiksa advokat dulu (ADR-022 butir 2; 17 L-31 butir 3; 18 §5.2.7.5) | Tidak ada pertanyaan lisensi |
 | Sesudah fase UI | Berhenti menyewa | Tetap dipakai untuk pembaruan OS tahunan (redesain sistem tiap tahun, 08 §19.7) |
 
-**Usulan aturan keputusan** (pemilik produk yang memutuskan): bila masa UI iOS harian yang diperkirakan lebih panjang daripada titik impas konfigurasi yang akan dibeli (sekitar 7 sampai 8 bulan untuk 16 GB/512 GB; sekitar 6 sampai 6,5 bulan untuk 16 GB/256 GB), atau bila debugger di perangkat pilot dinilai perlu, C; selain itu B. Pada pilihan A dan C (§3.4) masa UI iOS harian mencakup hampir seluruh FS-1, sehingga titik impas lebih mungkin terlewati **[Asumsi]**; pada B hanya masa layar SwiftUI. **Waktu keputusan** (seragam di 14, 15, ADR-022): saat pemicu ADR-022 butir 4 terjadi; pada pilihan A dan C itu sejak FS-1 langkah 1, sehingga praktis bersamaan dengan pilihan platform di GR-1, dan pada B saat layar SwiftUI dimulai.
+**Usulan aturan keputusan** (pemilik produk yang memutuskan): bila masa UI iOS harian yang diperkirakan lebih panjang daripada titik impas konfigurasi yang akan dibeli (sekitar 7 sampai 8 bulan untuk 16 GB/512 GB; sekitar 6 sampai 6,5 bulan untuk 16 GB/256 GB), atau bila debugger di perangkat pilot dinilai perlu, C; selain itu B. Dengan keputusan 42, masa UI iOS harian mencakup seluruh FS-1 dan berlanjut dengan layar Tier 2 di FS-2, sehingga titik impas lebih mungkin terlewati **[Asumsi]**; Android tidak memerlukan Mac dan tidak mengubah hitungan ini. **Waktu keputusan** (seragam di 14, 15, ADR-022): saat pemicu ADR-022 butir 4 terjadi, yaitu kemungkinan besar di awal FS-1, praktis di GR-1.
 
 ---
 
@@ -657,6 +697,7 @@ Jalur resmi iOS tetap Xcode Cloud + TestFlight internal + sewa Mac sekali (ADR-0
 | [09.1 §12](09-technical-architecture/01-pilihan-teknologi.md), [09.4 §5, §7.1](09-technical-architecture/04-operasi-uji-biaya.md) | Harga Mac mini M4 yang basi diganti Mac mini M6 dari 18 §5.2.7; minimum 24 jam **[Terverifikasi]**; harga AWS EC2 Mac; tanpa Mac sewaan di Jakarta; 09.1 §12 butir 3 dan 5 baru |
 | [06](06-activity-approval-architecture.md) revisi kelima belas | **PG-15** baru (§10) untuk aturan langganan 13 §7.5 (a) sampai (d); ringkasan §15.17 |
 | [09](09-technical-architecture.md) indeks | ADR-028 di daftar ADR; catatan harga basi di baris 09-C §7; riwayat |
+| Revisi keputusan 42 | 14 §0, §1, §3.1 sampai §3.5, §3.7, **§3.8 baru** (jalur Android), §4, §5 (**QG-30 (Android)** baru, QG-30 butir 11, QG-31), §6, §9; [ADR-012](adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) catatan urutan platform; [ADR-022](adr/ADR-022-jalur-build-ios-tanpa-mac.md) catatan pemicu dan sewa sekali; 09 indeks §6; 09.1 BT-4; 09.4 §1, §4, §5, §6.1, §7.1; 15 |
 
 ### 12.2 Kepada pemilik dokumen lain (lewat lead)
 
@@ -671,7 +712,7 @@ Jalur resmi iOS tetap Xcode Cloud + TestFlight internal + sewa Mac sekali (ADR-0
 
 ### 12.3 Yang tidak diputuskan dokumen ini
 
-Platform yang dibangun lebih dulu (Q-37; pemilik produk saat fase bangun dimulai), penyedia hosting, cadangan, dan email serta kapan itu jatuh (S4-2; Q-220), Mac sewaan atau milik sendiri (ADR-022 butir 4, saat pemicu terjadi), batas rilis 80 hari (Q-219), jenis akun Play (Q-221), harga dan isi Plus (Q-36, Q-216), tujuan log SEC-36 di luar VPS (FS-3), serta irama rilis tahap publik (FS-3).
+Kapan jalur Android dimulai di antara gelombang Tier 2 (§3.8; pemilik produk di GR-2), SEC-20 di Android API 29 sampai 32 (§3.8; ADR di jalur Android), penyedia hosting, cadangan, dan email serta kapan itu jatuh (S4-2; Q-220), Mac sewaan atau milik sendiri (ADR-022 butir 4, saat pemicu terjadi), batas rilis 80 hari (Q-219), jenis akun Play (Q-221), harga dan isi Plus (Q-36, Q-216), tujuan log SEC-36 di luar VPS (FS-3), serta irama rilis tahap publik (FS-3).
 
 ---
 
@@ -682,3 +723,4 @@ Platform yang dibangun lebih dulu (Q-37; pemilik produk saat fase bangun dimulai
 | 12 November 2026 | Draf pertama (S5) |
 | 12 November 2026 | S5 fase D: CS5-A-01 (perintah pelindung tidak ditahan tahan tulis; uji §4.7; §7.4), A-02 (Xcode Cloud pemeriksaan wajib pull request; tanpa merge sebelum CI), A-03 (irama ADR-022 berlaku, 80 hari usulan, dihitung dari unggahan), A-04 (impas Mac per konfigurasi), A-05 (S4-2 tidak ditetapkan; §7.8), A-06 (QG-25), A-09 (penguji Play hanya Android), A-12, A-13, A-15, A-18, A-22; masukan `security-privacy` (QG-31 menurut 10 §4.2, SEC-157 di QG-32, SEC-156 di §8, SEC-138 di §7.7, syarat staging), `ux-designer`, `product-analyst` |
 | 12 November 2026 | S5 fase D, tinjauan ulang `critic` A2: pemisahan staging diuji di QG-30 butir 9 (`CONNECT` dua arah, pindai konfigurasi, domain email uji); hasil R-15 di §8; SEC-151 memakai tanda `protective` di §4.8; biaya uji penetrasi dirujuk ke SEC-157 dan 18 §2.12.7; sumber Play App Signing 18 §5.2.8 (c) dan SEC-42; uji build Xcode Cloud yang dilewati di langkah 1; permintaan ke `security-privacy` ditutup |
+| 12 November 2026 | Keputusan 42 (iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 dan iPad mini 7; Android sesudah GR-2, paling lambat sebelum GR-4): §3.4 diganti dengan urutan yang diputuskan; §3.8 jalur Android A1 sampai A4 sebagai workstream sejajar FS-2; iPad siap sejak langkah 1 (§3.3); QG-30 untuk iPhone 13 dan iPad mini 7 dengan 08 §16.4 baris "Sebelum GR-2" dan butir 11 (10 §4.1 butir 10, SEC-59); QG-30 (Android) dengan daftar 10 §4.3 dan syarat ulang 13 §3.4; QG-31 dengan 13 GR-4 butir 8; job CI dan vektor emas Kotlin sejak A1; uji klien Swift terhadap biner server di CI Linux **[Usulan]**; §6 waktu Android dan Play; §9 pemicu Mac kemungkinan besar di awal FS-1, sewa sekali per jam minimal 24 jam. Masukan `ux-designer` (08 §16.4), `security-privacy` (10 §0, §4.1 butir 10, §4.3, §7.6: SEC-59 (c) di QG-30 butir 11, SEC-20 API 29 sampai 32 terbuka di §3.8), `product-analyst` (13 §3.4, GR-4 butir 8). Tidak ada angka §11 yang berubah |

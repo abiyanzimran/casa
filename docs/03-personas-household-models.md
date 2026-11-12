@@ -64,7 +64,7 @@ Dokumen ini menjawab tiga hal: siapa pemakai Family OS, bentuk rumah tangga apa 
 | Yang mencatat belanja dapur saat ini | Tidak dinyatakan | Tidak dinyatakan | **[Asumsi]**: yang berbelanja (dokumen 17 §1.1) |
 | "Pencatat utama yang pelupa" | Tidak dinyatakan | Tidak dinyatakan | Brief §1.1 tidak menyebut orangnya (A-19) |
 | Yang mengumumkan jalan-jalan mendadak | Tidak dinyatakan | Tidak dinyatakan | Brief §1.1: yang diinginkan, "either spouse proposes" |
-| Perangkat | Tidak dinyatakan | Tidak dinyatakan | Brief §1: iPhone 13, Galaxy A55, iPad mini 7; siapa memakai yang mana tidak disebut |
+| Perangkat | iPad mini 7 di pilot, untuk memasukkan gaji, membagikannya, dan membaca angka; bukan perangkat yang dibawa saat belanja **[Asumsi]**. Galaxy A55 miliknya, dipakai sesudah klien Android dibangun | iPhone 13 | Pernyataan pemilik produk, 12 November 2026 ("saya jarang kemana-mana input gaji bisa lewat ipad"; "a55 punya saya, tapi yang sering catat istri saya iphone"; "ios ipad yang bakalan dipakai pilot ya"), dokumen 17 keputusan 42 dan Q-211. Sebelumnya baris ini "tidak dinyatakan" |
 | Anak di rumah tangga | Ada anak berusia 12 tahun ke atas; jumlah dan usia tepatnya tidak dinyatakan | (sama; fakta rumah tangga) | Pilihan pemilik produk sendiri di checkpoint S3, 12 November 2026: "Ada anak umur 12+" (dokumen 17 A-31 gugur, Q-186). Selama pilot anak tanpa akun dan tanpa profil **[Usulan]** lead (bagian 4.1) |
 | Peran dan wewenang di aplikasi | Pemilik rumah tangga; setara penuh | Pemilik rumah tangga; setara penuh | Keputusan pemilik nomor 4 |
 | Suasana hati pasangan | Tidak tahu kecuali bertanya | Tidak tahu kecuali bertanya | Brief §1.1 |
@@ -314,7 +314,7 @@ Pertanyaan untuk pemilik produk, dalam bahasa sehari-hari, masing-masing dengan 
 | # | Pertanyaan | Bawaan yang diusulkan |
 |---|---|---|
 | 1 | **Sudah terjawab.** Siapa yang menerima gaji, dan siapa yang membayar cicilan dan tagihan | Pernyataan pemilik produk, 11 November 2026: suami menerima, memegang, dan mencatat gaji, membayar cicilan dan tagihan, lalu menyerahkan sisanya (A-18). Aturan tidak bergantung padanya; yang mengikutinya hanya contoh dan urutan layar |
-| 2 | Siapa di antara kalian yang lebih sering lupa mencatat, dan siapa memakai ponsel yang mana? (A-19) | Tidak diisi; aplikasi dirancang seolah keduanya bisa lupa, dan diuji di kedua ponsel |
+| 2 | Siapa di antara kalian yang lebih sering lupa mencatat? (A-19). **Perangkat sudah terjawab** (dokumen 17 Q-211, keputusan 42): istri di iPhone 13, suami di iPad mini 7, Galaxy A55 milik suami | Lupa: tidak diisi; aplikasi dirancang seolah keduanya bisa lupa. Uji di iPhone 13 dan iPad mini 7 sebelum GR-2, di Galaxy A55 sesudah klien Android dibangun (dokumen 13 §3.3, §3.4) |
 | 2a | **Sudah terjawab.** Apakah istri punya penghasilan sendiri? (A-26) | Pernyataan pemilik produk, 11 November 2026: ya, keduanya berpenghasilan. Jenis dan jumlah penghasilan istri tidak diisi. Contoh terhitung dokumen 07 masih memakai satu penghasilan sebagai ilustrasi; aturan berlaku sama bagi keduanya. Sesudah itu pemilik produk menyatakan irama penghasilannya dan memutuskan bentuk jatah pribadi (dokumen 17, keputusan 14 sampai 17). Kelima butir S2-1 sudah dijawab di checkpoint S2: (i), (ii), (iii) diputuskan pemilik produk sendiri (keputusan 18 sampai 20); (iv), (v) diterima atas saran lead (dokumen 17, kelompok (a) dan (b)) |
 
 Butir terbuka untuk dokumen 17 dan pemilik dokumen lain:

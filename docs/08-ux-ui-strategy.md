@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). Belum ditinjau `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
+| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. Belum ditinjau `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
 | Pemilik | `ux-designer` |
 | Tingkat kedalaman | Tier 1 penuh (brief §1.1); Tier 2 ringkas; Tier 3 daftar saja. Rancangan berlaku untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pemakai pertamanya (brief §1.1, "Tiers set what is built first, not what is designed") |
 | Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1); `_progress.md` |
@@ -65,6 +65,7 @@
 | Layar kunci N-28 "Ada kabar baru" | Bentuk (a), diterima lewat "lanjut" (S3-8 (vii)) | 17 S3-8 |
 | Hanya komponen dan API stabil | Aturan keras: versi stabil terbaru, tanpa alpha, beta, rc, atau API berlabel eksperimental kecuali lewat ADR. Komponen Material 3 Expressive tidak dipakai sampai rilis stabil yang memuatnya terbit (§17.1) | `ENGINEERING-STANDARDS.md` §8 (kalimat ADR-023 dipasang lead sesudah S4-1 (iii) A); ADR-012 butir 4 dan 5; ADR-023 |
 | Versi OS minimum iOS dan iPadOS 26, Android 10 | Diputuskan pemilik produk di checkpoint S4 (S4-3 (ii) A). Status ADR-012 butir 2 diperbarui `architect` | `_progress.md`, "Checkpoint S4" |
+| Platform pilot: iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 (istri, pencatat utama) dan iPad mini 7 (pemilik produk: gaji, pembagiannya, membaca angka); GR-2 tidak menunggu Android | **Keputusan 42**, dinyatakan pemilik produk sendiri; kata-katanya: "ios ipad yang bakalan dipakai pilot ya". Bawaan lead **[Usulan]** yang dapat ia ubah: Android dibangun sesudah GR-2 untuk Galaxy A55 miliknya, paling lambat sebelum GR-4. Berbeda dengan brief §1 baris "Pilot devices" ("the pilot needs iOS and Android") dan baris "Platforms" ("Phones come first"); keputusan menang, perbedaannya dicatat di 17. **Akibat di dokumen ini:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16.2); rancangan Android (Material 3) tidak dikurangi, hanya waktu bangunnya yang mengikuti keputusan | `_progress.md`, "Keputusan pemilik produk: platform pilot (12 November 2026)" |
 
 **Dua batas evidensi.** (1) Saya tidak melihat gambar. Rupa aplikasi rujukan di dokumen ini hanya dikutip dari 18 §4.10.2, tempat `researcher` membuka tangkapan layar App Store sebelas aplikasi keuangan dengan batas yang ia nyatakan sendiri (materi pemasaran pilihan vendor, satu tema, warna disebut dengan mata); di luar itu `researcher` membaca halaman sebagai teks (18 §4.0). (2) Uji langsung aplikasi pesaing (R-02) belum dilakukan, jadi sasaran kecepatan mencatat di §9.1 adalah **[Asumsi]** dari `ENGINEERING-STANDARDS.md` §3 dan dari pola di dokumen 03 §2.4, bukan dari pengukuran.
 
@@ -248,7 +249,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-07 | Undang | Pernyataan sebelum mengundang (FR-FAM-003/AC-1, AC-8; D-90), tombol bagikan dengan teks tanpa nama (SEC-29); pada Tier 2, isian sebutan opsional yang menempel pada undangan dan tidak pernah masuk teks undangan (§7.4; SEC-155 (a), (c)) | F-FAM-002; F-FAM-021 | Lembar bagikan sistem | Sharesheet sistem |
 | LY-08 | Kukuhkan anggota | Email terverifikasi penerima utuh dan nama tampilannya; "pastikan ini email orang yang kamu undang" (SEC-31); pada Tier 2, sebutan yang dibuat di LY-07 tampil di samping nama akun, tidak menggantikannya, dan dapat diubah (§7.4; SEC-155 (d)) | F-FAM-002; F-FAM-021 | Layar dengan tombol "Kukuhkan" dan "Bukan dia" | Sama |
 | LY-09 | Tempat uang pertama | "Di mana uang rumah tangga sekarang?" Tunai, rekening, e-wallet; pemegang; "Uang yang ada saat mulai" (saldo awal, F-FIN-001) | F-FIN-001 | Form berulang "Tambah lagi" | Sama |
-| LY-10 | Tawaran kunci aplikasi | Sekali; mati secara bawaan; kalimat SEC-14 | SEC-19 | Layar dengan "Nyalakan" dan "Nanti" | Sama |
+| LY-10 | Tawaran kunci aplikasi | Sekali; mati secara bawaan; kalimat SEC-14; di iPad ditambah kalimat tablet (§12.3; SEC-59 (b), FR-FAM-021/AC-10) | SEC-19, SEC-59 | Layar dengan "Nyalakan" dan "Nanti" | Sama |
 | **Tujuan utama** | | | | | |
 | LY-20 | Beranda | §6 | F-FIN-002, F-FIN-010, F-REQ-012, F-FIN-015 | Tab, judul besar | Tujuan navigasi, bilah atas |
 | LY-21 | Menunggu | Daftar lengkap: "Menunggu kamu" dan "Menunggu {nama}", masing-masing dengan umur objek (06 §16.2 "Menunggu sejak") | F-REQ-012 | Daftar bersekat | Daftar |
@@ -280,7 +281,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-63 | Laporkan (F-COM-014, S4-7 A) | Pesan atau foto yang dipilih pelapor, teks opsional, tanda terima; di pilot membuka LY-76 dan jalan keluar (§10.7) | SEC-154; 06 §16.12 | Lembar | Lembar bawah (pembungkus yang sama dengan LY-32) |
 | **Saya** | | | | | |
 | LY-70 | Saya | Nama tampilan, foto opsional, daftar ke LY-71 sampai LY-79 | F-FAM-003 | Daftar | Daftar |
-| LY-71 | Siapa melihat apa | Isi SEC-87 (a) sampai (f); sama bagi setiap anggota | FR-FAM-010 | Layar gulir | Sama |
+| LY-71 | Siapa melihat apa | Isi SEC-87 (a) sampai (f); sama bagi setiap anggota. Ditambah (SEC-59 (d)): "Setiap anggota membaca catatan rumah tangga di perangkatnya sendiri. Perangkat itu mungkin juga dipegang orang lain." Tidak menyebut siapa memakai kunci aplikasi (SEC-19) | FR-FAM-010, SEC-59 | Layar gulir | Sama |
 | LY-72 | Notifikasi | Jam tenang, jam ringkasan, rincian di layar kunci tidak ditawarkan (SEC-51), tautan ke setelan sistem | F-NTF-002 sampai 005 | Form | Form |
 | LY-73 | Keamanan | Kunci aplikasi, daftar sesi dan perangkat milik sendiri (SEC-16), ganti kata sandi | SEC-13, 16, 19, 21 | Form | Form |
 | LY-74 | Keanggotaan | Anggota, "sudah keluar" (SEC-56), keluar dengan aman dan masa tenggangnya; pada Tier 2, tiap baris anggota lain membuka LY-87 sebutan (§7.4) | F-FAM-006; F-FAM-021 | Daftar | Daftar |
@@ -299,7 +300,7 @@ Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
 | LY-82 | Daftar belanja | Butir, perkiraan, centang; "Selesai belanja" menjadi pengeluaran (F-SHP-002) | Daftar bersama; perubahan bersamaan (SCN-18) tampil sebagai keadaan terbaru tanpa menyalahkan |
 | LY-83 | Masalah rumah | Laporan dengan foto, menjadi tugas, biaya (F-MNT-001 sampai 003) | Foto lewat pemilih sistem (SEC-67) |
 | LY-84 | Status saya | Suasana hati dari daftar tertutup, alasan opsional, sakit, "Butuh tenang hari ini" (IDEA-19); berbagi | Baris bantuan SEC-133 hanya bagi pemilik status berat; kata IDEA-19 §18.4 |
-| LY-85 | Berbagi status | Penerima dipilih; kalimat SEC-62 sebelum penerima pertama | Default tidak berbagi (brief §5K) |
+| LY-85 | Berbagi status | Penerima dipilih; kalimat SEC-62 sebelum penerima pertama, diikuti (SEC-59 (d)): "{nama} membacanya di perangkatnya sendiri, yang mungkin juga dipegang orang lain." Tidak menyebut apakah penerima memakai kunci aplikasi | Default tidak berbagi (brief §5K) |
 | LY-86 | Pendamping | Ikut serta per fitur dengan kalimat SEC-126; nuansa religi pilihan sendiri | Mati secara bawaan; tidak ada fitur yang menunggu `AI` (PRN-06) |
 | LY-87 | Sebutan anggota | Sebutan yang hanya terlihat oleh pembuatnya untuk satu anggota lain; ubah atau hapus (F-FAM-021) | §7.4. iOS: lembar; Android: lembar bawah (pembungkus LY-32) |
 | — | Saran kata di chat | Baris saran di atas kotak tulis: "Pakai", "Saran lain", "Tutup" (Q-32 pilihan C); pesan terkirim tanpa penanda `AI` (brief §5O keputusan 2) | Tanpa ikon kilau; label kata "Saran kata" **[Usulan]** (§20 baris animasi) |
@@ -590,7 +591,7 @@ Pintasan dari ikon aplikasi tidak menampilkan angka, nama, atau keadaan, sehingg
 
 Belanja berulang di tempat yang sama: **ketik jumlah, satu ketukan Simpan**. Belanja di kategori lain: dua ketukan. Belanja kemarin di kategori lain: tiga. Semua dalam batas `ENGINEERING-STANDARDS.md` §3.
 
-**Sasaran waktu [Asumsi]** (R-02 belum dilakukan, jadi tidak ada pembanding terukur): median kurang dari 8 detik dari ketuk Catat sampai tersimpan untuk belanja berulang, dan kurang dari 15 detik untuk belanja di kategori lain, diukur di iPhone 13 dan Galaxy A55 pada minggu pertama pilot. Bila meleset, yang diubah adalah bawaan isian, bukan jumlah isian wajib.
+**Sasaran waktu [Asumsi]** (R-02 belum dilakukan, jadi tidak ada pembanding terukur): median kurang dari 8 detik dari ketuk Catat sampai tersimpan untuk belanja berulang, dan kurang dari 15 detik untuk belanja di kategori lain, diukur di iPhone 13, perangkat pencatat utama, dan di iPad mini 7 untuk alur pemilik produk (Uang masuk dan pembagiannya, §16.2; 14 §3.3 langkah 2, §3.4 "Uji kecepatan") pada minggu pertama pilot, dan di Galaxy A55 pada minggu pertama aplikasi Android terpasang (keputusan 42, §0). Bila meleset, yang diubah adalah bawaan isian, bukan jumlah isian wajib.
 
 **Tetap sah bila terlambat.** "Pilih tanggal" menerima tanggal kejadian lampau tanpa batas selain saldo awal (07 INV-22). Catatan terlambat tampil di riwayat pada tanggal kejadiannya, dengan keterangan kecil "dicatat 3 hari kemudian" bagi **setiap pembaca catatan itu**, sama siapa pun pencatatnya, berupa **tanggal saja, tidak pernah jam**. Usulan rancangan pertama dokumen ini (hanya bagi pencatat) tidak diterima `security-privacy` (10 indeks §7.2): tanggal pencatatan satu-satunya pagar terhadap catatan yang dimundurkan tanggalnya untuk menghindari jatah atau ambang (06 §6.3 baris 7; 07 §3.4, §3.11, T-26). Tanggalnya dari server lewat jalur baca (06 AT-6); keterangan muncul hanya bila tanggal pencatatan berbeda dari tanggal kejadian. Kata tetap netral, tanpa warna atau ikon peringatan (pemeriksaan 6): "dicatat Kam, 12 Nov" bila lebih dari 7 hari **[Usulan]**.
 
@@ -906,6 +907,7 @@ Biometrik di kedua platform menerima **setiap** sidik jari atau wajah yang terda
 |---|---|---|---|
 | Menyalakan (LY-10 atau LY-73) | Membuat kode aplikasi 6 angka **[Asumsi]**, diketik dua kali. Sesudahnya satu pertanyaan: "Buka juga dengan sidik jari atau wajah?" dengan "Ya" dan "Kode saja"; bawaan tidak ada yang terpilih | Papan angka sistem | Papan angka sistem |
 | Kata layar biometrik (SEC-14) | Tampil sebelum "Ya": "Sidik jari atau wajah siapa pun yang terdaftar di ponsel ini bisa membuka kunci ini. Kalau ponsel ini juga dipakai orang lain, pilih 'Kode saja'." | Face ID atau Touch ID lewat autentikasi lokal sistem | `BiometricPrompt` kelas `BIOMETRIC_STRONG` |
+| Tawaran di iPad (LY-10; SEC-59 (b), FR-FAM-021/AC-10) | Bila aplikasi berjalan di iPad, LY-10 menambah satu paragraf di atas "Nyalakan" dan "Nanti": "Tablet sering dipegang orang lain. Kalau kamu memakai sidik jari, sidik jari siapa pun yang sudah terdaftar di iPad ini bisa membuka aplikasi. Kamu bisa memakai kode saja, tanpa sidik jari." Sesudah "Nyalakan", pilihan "Kode saja" tetap tersedia seperti baris "Menyalakan". Kunci tetap mati secara bawaan dan hanya pemiliknya yang menyalakannya; tidak ada tombol yang terpilih lebih dulu. Paragraf ini **tidak tampil di iPhone** **[Usulan]** kata-katanya | Paragraf hanya bila perangkat iPad (kata, bukan tata letak; pemeriksaan 8) | — (Android tablet: tidak diminta SEC-59 (b); dinilai saat Android dibangun) |
 | Kode aplikasi bukan kode ponsel | Kode milik aplikasi, terpisah dari PIN layar kunci ponsel, karena PIN ponsel sering diketahui pasangan | Tidak memakai kode perangkat sebagai jalan buka | Tidak memakai `DEVICE_CREDENTIAL` |
 | Sidik jari atau wajah di ponsel berubah | Biometrik gugur sendiri; aplikasi meminta kode, lalu menawarkan menyalakan biometrik lagi. Kata: "Daftar sidik jari atau wajah di ponsel ini berubah. Masukkan kode aplikasi untuk lanjut." Tanpa menyebut siapa atau menuduh | Item Keychain dengan `.biometryCurrentSet` (18 §2.12.2) | Kunci Keystore dengan `setInvalidatedByBiometricEnrollment(true)` (bawaan; 18 §2.12.2) |
 | Lupa kode | "Lupa kode" meminta kata sandi akun (LY-77, SEC-13), lalu membuat kode baru. Tidak ada pemulihan lewat anggota lain (SEC-27) | Sama | Sama |
@@ -998,6 +1000,10 @@ Bila izin ditolak: fitur tetap berjalan sejauh mungkin; satu baris di LY-72 "Not
 
 Tata letak khusus tablet dan foldable adalah Tier 3; adaptasi ke setiap lebar adalah syarat sejak hari pertama (brief §1.1, §10.3). Untuk perangkat lipat berlaku bawaan (c) Q-120: kelas ukuran jendela ditambah emulator; tidak ada perangkat lipat sebenarnya di pilot **[Asumsi]**.
 
+**iPad mini 7 siap di GR-2 (keputusan 42, §0).** Brief §1 menulis "Phones come first". Untuk iPad mini 7 saja keputusan 42 menang: pemilik produk memakai iPad itu sebagai perangkat pilotnya dengan data nyata, jadi keadaan Sedang dan Lebar (dan Ringkas di jendela sempit) untuk setiap alur Tier 1 yang ia pakai dirancang di §16.2 dan **lulus daftar uji §16.4 di iPad mini 7 sebelum GR-2**, bukan sesudahnya. Ini bukan tata letak khusus tablet: tiga keadaan §4.2 dan bentuk per layar §16.1 tetap satu-satunya tata letak; yang berubah adalah waktunya dan bahwa ia diuji di perangkat nyata. Tablet Android dan perangkat lipat tidak berubah: adaptif sejak hari pertama, tata letak khusus Tier 3.
+
+**Android.** Seluruh bentuk Android di dokumen ini (Material 3, §4.3, §16.1, §16.3, §17, §19.7) tetap rancangan lengkap. Yang mengikuti keputusan 42 hanya waktu bangunnya: sesudah GR-2, untuk Galaxy A55 milik pemilik produk, paling lambat sebelum GR-4 (bawaan lead **[Usulan]**). Uji Android di §16.4 dan §19.7 dijalankan sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14).
+
 ### 16.1 Per layar
 
 | Layar | Ringkas | Sedang | Lebar |
@@ -1010,12 +1016,41 @@ Tata letak khusus tablet dan foldable adalah Tier 3; adaptasi ke setiap lebar ad
 | Ringkasan bulanan | Satu kolom | Dua kolom tabel | Dua atau tiga kolom tabel (feed, 18 §4.4) |
 | Saya | Daftar | Daftar | List-detail |
 
-### 16.2 iPad mini 7 (perangkat pilot)
+### 16.2 iPad mini 7 (perangkat pilot pemilik produk, siap di GR-2)
 
-- Potret layar penuh: Sedang. Tab bar di atas, dapat menjadi sidebar.
-- Lanskap layar penuh: Lebar. Sidebar dengan butir Uang terbuka; panel Chat dapat dibuka.
-- Jendela yang diubah ukurannya (18 §4.3 "Jendela iPad"): kelas mengikuti jendela; jendela sempit menjadi Ringkas, termasuk tab bar bawah; tidak ada fungsi yang hilang (HIG Layout: yang berubah hanya banyaknya yang tampil, 18 §4.3).
-- Papan ketik terlepas: kotak tulis chat dan lembar catat mengikuti papan ketik yang dilepas (18 §4.7 `followsUndockedKeyboard`).
+**Keadaan menurut jendela, bukan menurut perangkat.** Di iPadOS 26 jendela aplikasi dapat diubah ukurannya dan ditata berdampingan; aplikasi tidak mengatur dan tidak diberi tahu susunan multitasking yang dipilih orang (HIG Multitasking, [S13]). Size class ditetapkan sistem menurut jenis perangkat, susunan jendela, dan keadaan multitasking, dan aplikasi iPadOS dapat berada di setiap kombinasi size class (HIG Layout, [S14]). Jadi satu iPad mini 7 menjalankan ketiga keadaan §4.2:
+
+| Susunan | Keadaan | Navigasi (§4.3) |
+|---|---|---|
+| Potret layar penuh (sekitar 744 pt) | Sedang | Tab bar di atas, dapat menjadi sidebar |
+| Lanskap layar penuh (sekitar 1133 pt) | Lebar | Sidebar dengan butir Uang terbuka; panel Chat dapat dibuka |
+| Jendela berdampingan atau diperkecil: lebar *compact* (misalnya separuh layar potret, sekitar 372 pt **[Asumsi]** hitungan 744 ÷ 2) | Ringkas, sama dengan iPhone 13, termasuk tab bar bawah | §4.3 baris Ringkas |
+| Jendela berdampingan dengan lebar *regular* (misalnya separuh lanskap, sekitar 566 pt **[Asumsi]**; kelasnya ditetapkan sistem) | Sedang atau Ringkas menurut size class yang diberikan sistem, tidak ditebak dari ukuran | §4.3 |
+| Tinggi *compact* (jendela pendek) | Aturan tinggi *compact* §4.2: isi dapat digulir, papan angka tidak menutupi Simpan | — |
+
+Tidak ada fungsi yang hilang di keadaan mana pun (HIG Layout: yang berubah hanya banyaknya yang tampil, 18 §4.3; pemeriksaan 8). **Mengubah ukuran jendela di tengah alur** mengikuti aturan peralihan §16.3: isian Catat setengah jadi, butir terpilih, posisi gulir, dan draf pesan dipulihkan, dan jeda urungkan 5 detik tidak terputus.
+
+**Alur Tier 1 pemilik produk di iPad mini 7.** Setiap baris lulus §16.4 di iPad mini 7 sebelum GR-2 (keputusan 42).
+
+| Alur | Layar | Sedang (potret) | Lebar (lanskap) | Ringkas (jendela sempit) |
+|---|---|---|---|---|
+| Uang masuk (gaji), bagian pribadi | LY-32 jenis Uang masuk; kalimat SEC-88 sebelum simpan (§9.4, §18.3) | Lembar di tengah dengan lebar terbatas (§16.1 baris Catat), tidak pernah selebar layar | Sama | Lembar dari bawah, seperti iPhone 13 |
+| Membagikan uang masuk | LY-33, didorong di dalam lembar yang sama (alur §8.3) | Baris penerima satu kolom, jumlah rata kanan, motif angka bersama pemegangnya (§19.8 unsur 5); "Simpan semua" di bilah lembar; lembar tidak melebar karena barisnya banyak | Sama | Sama dengan iPhone 13 |
+| Uang kita dan siapa memegangnya | LY-20 bagian 2 dan 3, LY-30, LY-31, LY-42 | Beranda dua kolom (§6.3); Uang daftar lalu layar dorong | Beranda dua kolom; Uang `NavigationSplitView`: LY-30 di kiri, LY-31 dan riwayatnya di kanan, LY-42 sebagai kolom ketiga (§16.1) | Satu kolom |
+| Permintaan dan persetujuan | LY-21, LY-50 sampai LY-53, kartu di chat (§10.4) | LY-51 didorong di tumpukan Beranda; tombol jawaban di bawah syarat dalam kolom baca, tidak direntangkan selebar layar (§6.3 butir 3) | Sama, ditambah panel Chat `inspector` yang dapat dibuka di samping LY-51 agar diskusi terbaca bersama syarat (§10.6) | Sama dengan iPhone 13 |
+| Chat | LY-60 | Layar penuh di tujuan Chat; lebar gelembung dibatasi seperti di ponsel, tidak ikut melebar **[Usulan]** | Layar penuh atau panel pendamping (§10.6) | Layar penuh |
+| Notifikasi | Teks layar kunci §11.1; LY-72 | Membuka objeknya dalam dua ketukan paling banyak (§9.2); teks layar kunci sama dengan iPhone (SEC-51) | Sama; bila objeknya tempat uang atau catatan, ia terbuka sebagai butir terpilih di `NavigationSplitView` Uang | Sama |
+| Pengaturan, termasuk "Salinan data saya" | LY-70 sampai LY-77, LY-75 | Daftar lalu layar dorong; isi form dengan lebar baca terbatas | List-detail (§16.1 baris Saya) | Daftar |
+| Autentikasi ulang dan kunci aplikasi | LY-77, §12.3 | Lembar dengan lebar terbatas | Sama | Lembar dari bawah |
+| Membagikan berkas "Salinan data saya" | LY-75 | Lembar bagikan sistem dalam bentuk yang dipilih sistem untuk iPad; tidak ada pemilih berkas buatan sendiri | Sama | Sama |
+
+**Papan angka di iPad.** iPadOS tidak memakai papan angka gaya ponsel seperti iPhone: menurut laporan pengembang di Developer Forums Apple, `numberPad` di iPad dengan iOS 26 dapat berganti ke papan ketik penuh berisi angka dan tanda baca, dan pelapornya mengutip jawaban Apple lewat Feedback Assistant (FB19626136) bahwa itu perilaku yang diharapkan (bukan pernyataan staf Apple di utas itu, yang hanya meminta laporan bug); laporan lain menyebut baris alat papan ketik SwiftUI tidak tampil bersama papan angka ([S15]) **[Perlu validasi]** di iPad mini 7 saat bangun. Karena itu di iPad, tombol "000" dan "Simpan" LY-32 tidak bergantung pada baris aksesori papan ketik: "Simpan" ada di bilah lembar (§9.1 butir 7), dan "000" menjadi tombol di samping isian jumlah. Isian jumlah hanya menerima angka; karakter lain dari papan ketik penuh atau papan ketik fisik tidak masuk ke isian, tanpa pesan galat **[Usulan]**.
+
+**Judul jendela dan permukaan sistem (SEC-59 (c); FR-NTF-005/AC-6, AC-7).** Judul jendela atau scene yang tampil di pengalih aplikasi, tampilan jendela multitasking iPadOS, dan (Android) daftar tugas **hanya nama tujuan navigasi**: "Beranda", "Uang", "Chat", "Saya", atau "Catat" saat lembar catat terbuka. Tidak pernah nama orang, sebutan, nama tempat uang, kategori, jumlah, atau judul objek, juga ketika layar yang terbuka adalah LY-31, LY-42, atau LY-51 yang judul navigasinya memuat nama. iOS dan iPadOS: judul scene ditetapkan dari tujuan, tidak diturunkan dari judul navigasi layar yang terbuka; apakah SwiftUI menurunkan judul jendela dari judul navigasi **[Perlu validasi]** saat bangun, dan bila ya, judul itu ditimpa. Android: label tugas di daftar tugas mengikuti aturan yang sama. Aplikasi tidak mengisi Spotlight atau pencarian perangkat, dan tidak memberi saran Siri atau donasi App Intents yang memuat data; pintasan ikon aplikasi tetap dua butir statis tanpa data (§9.1, SEC-54). Berlaku di iPhone, iPad, dan Android; bagian iOS dan iPadOS diuji sebelum GR-2, bagian Android sebelum QG-30 (Android).
+
+**Papan ketik terlepas:** kotak tulis chat dan lembar catat mengikuti papan ketik yang dilepas (18 §4.7 `followsUndockedKeyboard`).
+
+**Biometrik.** iPad mini 7 memakai Touch ID di tombol atas **[Terverifikasi]** (18 §2.12.9). Kata layar §12.3 sudah menyebut "sidik jari atau wajah", jadi tidak berubah; tombol dan dialog sistem memakai nama biometrik yang dilaporkan sistem.
 
 ### 16.3 Perangkat lipat dan dua layar
 
@@ -1032,7 +1067,12 @@ Tata letak khusus tablet dan foldable adalah Tier 3; adaptasi ke setiap lebar ad
 
 ### 16.4 Daftar uji tata letak
 
-Di emulator atau perangkat: iPhone 13; Galaxy A55; iPad mini 7 potret, lanskap, dan jendela sempit; emulator foldable Android 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp (perangkat uji minimum adaptive app quality, 18 §4.4); emulator foldable dalam tabletop, buku, dan peralihan; emulator dua layar berengsel. Pada setiap ukuran: teks 200%, tema gelap dan terang, luring.
+Pada setiap ukuran: teks 200% (Android) atau ukuran aksesibilitas terbesar Dynamic Type (iOS), tema gelap dan terang, luring. Waktunya mengikuti keputusan 42 (§0):
+
+| Kapan | Perangkat atau emulator |
+|---|---|
+| Sebelum GR-2 | iPhone 13; iPad mini 7 potret, lanskap, jendela berdampingan selebar *compact* dan *regular*, dan jendela yang diubah ukurannya di tengah alur, untuk setiap baris alur di §16.2 |
+| Sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14; sesudah GR-2, paling lambat sebelum GR-4) | Galaxy A55; emulator foldable Android 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp (perangkat uji minimum adaptive app quality, 18 §4.4); emulator foldable dalam tabletop, buku, dan peralihan; emulator dua layar berengsel |
 
 ---
 
@@ -1142,6 +1182,8 @@ Ikon antarmuka memakai set sistem tiap platform (SF Symbols; Material Symbols) d
 | Tanpa tanda seru | Kecuali tidak ada **[Usulan]** | — | — |
 
 **Sapaan.** Aplikasi menyapa pengguna dengan **"kamu"** (S4-10 (iv) A: bacaan lead atas jawaban pemilik produk "kamu aja", dikukuhkan lewat "lanjut"). "Anda" tidak dipakai di layar mana pun. Sapaan ini berbeda dari sebutan anggota (§7.4), yang adalah nama yang dipilih seorang anggota untuk anggota lain di layarnya sendiri.
+
+**Nama perangkat di kalimat layar.** Kata "ponsel" dalam kalimat layar di dokumen ini ("tersimpan di ponsel", "Diperbarui di ponsel ini", kalimat SEC-14) adalah tempat isi untuk jenis perangkat pembaca: "ponsel" di iPhone dan ponsel Android, "iPad" di iPad, "tablet" di tablet Android **[Usulan]**. Sejak GR-2 pemilik produk membaca kalimat itu di iPad mini 7 (keputusan 42), jadi "Diperbarui di ponsel ini" di iPad adalah galat kata. Ini hanya kata, bukan cabang tata letak (pemeriksaan 8).
 
 **Kata yang tidak dipakai** (Q-119; 02 arah 1): melanggar, salah, curang, perintah, izin, ditolak, keberatan (di layar), kurang, hilang, telat, gagal (untuk orang). Untuk saran `AI` berlaku juga daftar terlarang T1 sampai T11 (10.4 §1.5), termasuk diagnosis, saran medis, dan interogasi.
 
@@ -1281,7 +1323,7 @@ Plus Jakarta Sans hanya untuk jumlah uang dan judul bagian di lapisan isi; seleb
 - **Angka tabular** di semua token angka. iOS: `monospacedDigit()`, yang tidak mengubah apa pun bila huruf dasarnya tidak mendukung; Android: `fontFeatureSettings` dengan `"tnum"`, yang bekerja menurut format CSS-nya **[Asumsi]** (18 §4.10.3). **Satu pemeriksaan saat bangun di kedua platform:** "Rp1.111.111" dan "Rp8.888.888" pada setiap token angka harus sama lebar pada teks 100% dan 200%; gagal berarti fitur tabular tidak terpasang.
 - **"Rp" kecil** pada `angka-utama` dan `angka-besar`: 60% ukuran angka, garis dasar sama, warna `tinta-2`, tanpa spasi ("Rp" lalu "2.150.000"). Pada `angka-baris` "Rp" berukuran dan berwarna sama dengan angkanya. Pembaca layar membaca jumlah utuh dalam kata (§15).
 - Penulisan tetap menurut §17.3: titik ribuan, tanpa desimal, tanpa singkatan "rb" atau "jt".
-- **Teks besar.** `angka-baris` dan `angka-besar` tidak pernah dipotong atau dikecilkan (§15). `angka-utama` membesar bersama ukuran teks sistem sampai jumlah terpanjang yang ditampilkan memenuhi lebar kolom, lalu berhenti membesar; ia tidak pernah lebih kecil dari ukuran dasarnya 40 pt/sp, yang sudah termasuk teks besar. Perkiraan saya: "Rp1.000.000.000" pada 40 pt muat di kolom iPhone 13 dan Galaxy A55 **[Asumsi]**, diukur saat bangun.
+- **Teks besar.** `angka-baris` dan `angka-besar` tidak pernah dipotong atau dikecilkan (§15). `angka-utama` membesar bersama ukuran teks sistem sampai jumlah terpanjang yang ditampilkan memenuhi lebar kolom, lalu berhenti membesar; ia tidak pernah lebih kecil dari ukuran dasarnya 40 pt/sp, yang sudah termasuk teks besar. Perkiraan saya: "Rp1.000.000.000" pada 40 pt muat di kolom iPhone 13 dan Galaxy A55 **[Asumsi]**, diukur saat bangun; juga di jendela iPad mini 7 separuh layar potret, yang lebih sempit dari iPhone 13 (sekitar 372 pt, §16.2) **[Asumsi]**.
 - **Gaya alternatif.** Dipakai gaya bawaan. "Lurus" hanya dipakai bila nomor stylistic set-nya terverifikasi dan bentuk angkanya lebih jelas; repositori menyebut ketiga gaya (Lancip, Lurus, Lingkar) tanpa nomor set **[Perlu validasi]** (§24 [S12]). "Lingkar" tidak dipakai: dekoratif (§20 D-11).
 - **Berkas huruf.** Disertakan di kedua aplikasi menurut SIL OFL 1.1; versi rilis terbaru dipastikan saat bangun dari halaman rilis repositori, karena urutan entri catatan perubahannya tidak menunjukkan dengan jelas mana yang terbaru (§24 [S12]) **[Perlu validasi]**.
 
@@ -1346,7 +1388,7 @@ Tipografis: satu glif milik produk yang berkaitan, 40 pt/dp, warna `tinta-2`, di
 | 4 | Tipografi angka | Plus Jakarta Sans tabular, "Rp" kecil dengan warna sekunder, tanpa desimal dan tanpa singkatan, angka sebagai unsur terbesar (§19.4) |
 | 5 | **Motif tata letak: angka bersama pemegangnya** | Setiap jumlah uang bersama diikuti siapa yang memegangnya, dalam susunan yang sama di mana pun: label kecil, angka rata kiri, satu garis tipis, lalu baris pemegang berisi glif tempat uang, nama atau sebutan (§7.4), dan jumlahnya rata kanan; bagian yang belum dikonfirmasi tampil di bawah baris pemegangnya dengan wadah `pasir`. Tampil di Beranda (bagian 2 dan 3), LY-31, kartu serah terima (glif "dari" dan "ke"), LY-33, dan tabel pemegang di ringkasan. Motif ini menggambar pertanyaan inti produk, "uangnya ada di siapa", sehingga ia hanya masuk akal di aplikasi ini |
 
-**Gerbang sebelum token dibekukan.** Diterima atas saran lead di akhir checkpoint S4 ("pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). Lead menunjukkan contoh layar Beranda, Catat, dan Chat di iOS dan Android, terang dan gelap, beserta ikon aplikasi, kepada pemilik produk dan pasangannya. Bila mereka menilainya masih seperti templat, yang diubah adalah kelima unsur di atas, bukan komponen native dan bukan arah C.
+**Gerbang sebelum token dibekukan.** Diterima atas saran lead di akhir checkpoint S4 ("pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). Lead menunjukkan contoh layar Beranda, Catat, dan Chat di iPhone, iPad mini 7 (perangkat pemilik produk, keputusan 42), dan Android, terang dan gelap, beserta ikon aplikasi, kepada pemilik produk dan pasangannya. Bila mereka menilainya masih seperti templat, yang diubah adalah kelima unsur di atas, bukan komponen native dan bukan arah C.
 
 **Dipakai ulang untuk wawancara keluarga lain (13 §6.3).** Contoh layar statis yang dibuat untuk gerbang ini juga menjadi bahan uji prototipe 13 §6.3 (uji lima detik Beranda; tugas catat, serah terima, dan pengajuan lewat Catat dan Chat), tanpa memasang aplikasi. Karena itu sejak awal contoh layar hanya memuat **data buatan**: nama, sebutan, jumlah, tempat uang, dan pesan rekaan, tidak pernah data atau tangkapan layar rumah tangga pilot **[Usulan]**. Bila sesudah gerbang kelima unsur berubah, versi terakhir yang disetujui yang dipakai. Kedudukannya terhadap Q-209 mengikuti 13 §6.3 (Q-215).
 
@@ -1438,6 +1480,7 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 | SEC-14 kata biometrik | §12.3 |
 | SEC-16 daftar sesi | LY-73 |
 | SEC-19 tawaran kunci aplikasi sekali; kode aplikasi sebagai dasar, biometrik pilihan (permintaan 09 indeks §8 (c)) | LY-10; §12.3 |
+| SEC-59 perangkat yang dipakai bersama (keputusan 42): (b) kalimat tablet di tawaran kunci; (c) tanpa Spotlight, saran Siri, atau judul jendela berdata; (d) kalimat perangkat penerima | (b) §12.3 baris "Tawaran di iPad", LY-10; (c) §16.2 "Judul jendela dan permukaan sistem"; (d) LY-71, LY-85 |
 | SEC-21 peringatan saat mencabut sesi | §18.3 |
 | SEC-80 pernyataan usia | LY-04; §7.1 |
 | SEC-29 teks undangan tanpa nama | LY-07; §7.3 |
@@ -1521,6 +1564,16 @@ Keputusan lain yang ditetapkan dokumen ini sebagai **[Usulan]** dan tidak disebu
 | `architect` (ADR-028, 09 berkas 03) | (1) Kode galat *tahan tulis* dapat dibedakan aplikasi dari "tidak ada jaringan", agar baris status §13.2 tidak berkata "Belum tersambung" pada ponsel yang tersambung; isinya tidak perlu dibedakan dari galat server lain di layar. (2) Penolakan *tahan tulis* atas satu perintah tidak membuat klien menunda perintah pelindung SEC-151 (1) sampai (7) di belakang antrean atau di balik jeda coba ulang. (3) Keluar saat antrean tidak kosong: layar menyebut jumlahnya (§18.3, syarat 07 butir 2b); jumlah itu dihitung dari antrean perangkat, bukan dari server |
 | `product-analyst` (13) | 13 §6.3 dan §12: contoh layar statis gerbang 08 §19.8 dipakai ulang dengan data buatan saja (08 §19.8); kalimat status Plus tersedia di 08 §18.3 untuk 13 §7.5 (a) |
 
+**Permintaan atas keputusan 42 (12 November 2026).**
+
+| Kepada | Permintaan |
+|---|---|
+| `product-analyst` (17, 13, 03) | 17: catat bahwa keputusan 42 juga berbeda dengan brief §1 baris "Platforms" ("Phones come first") untuk iPad mini 7, selain baris "Pilot devices". 13 gerbang GR-2: tata letak iPad mini 7 untuk alur Tier 1 pemilik produk (08 §16.2) lulus 08 §16.4 baris "Sebelum GR-2". 03: bila persona pilot menyebut perangkat, pemilik produk memakai iPad mini 7 untuk gaji, pembagiannya, dan membaca angka; bukan ponsel yang dibawa saat belanja |
+| `architect` (14) | 14:257 masih menulis skenario Tier 1 sebelum GR-2 di "iPhone 13 dan Galaxy A55"; menurut keputusan 42 menjadi iPhone 13 dan iPad mini 7, dengan Galaxy A55 di QG-30 (Android). 14:149 baris "iPad mini 7 bisa dipakai pasangan yang lain **[Asumsi]**" kini fakta dari keputusan 42. QG-30: rujuk 08 §16.4 baris "Sebelum GR-2" sebagai daftar uji tata letak iPad |
+| `security-privacy` (10) | **Dijawab SEC-59** (10.2; 10 §7.6): kalimat tablet di LY-10 (§12.3), judul jendela dan permukaan sistem (§16.2), kalimat perangkat penerima (LY-71, LY-85) diterapkan. Untuk ditinjau: bunyi ketiga kalimat itu, dan tempat isi jenis perangkat pada kalimat SEC-14 (§18.1, "di iPad ini") |
+| `researcher` (18 §4.3) | Fakta §23.2 nomor 14 sampai 16 |
+| Lead (16, 01) | Bila 16 atau 01 menyebut uji tata letak atau perangkat pilot, selaraskan dengan 08 §16.4 (iPhone 13 dan iPad mini 7 sebelum GR-2; Galaxy A55 di QG-30 (Android)) |
+
 ### 23.2 Fakta untuk dokumen 18 (`researcher`)
 
 Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan ke 18 §4.
@@ -1544,6 +1597,9 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 | 11 | Android adaptive icon 108 dp, zona aman 66 dp, logo minimal 48 dp; lapisan monokrom untuk ikon bertema sejak Android 13; tema otomatis mulai Android 16 QPR 2 | [Terverifikasi] | §24 [S11] |
 | 12 | Plus Jakarta Sans: tiga gaya alternatif (Lancip "Sharp", Lurus "Straight", Lingkar "Swirl") tanpa nomor stylistic set di README; angka tabular "(.tf)"; versi terbaru tidak jelas dari urutan catatan perubahan (v2.7.1 bertanggal 6 Mei 2023 di atas v2.700 bertanggal 19 Mei 2023) | [Terverifikasi] isi README; nomor set dan versi [Perlu validasi] | §24 [S12] |
 | 13 | Diminta diperiksa: spesifikasi ikon Google Play; pemetaan token warna komponen Material 3 1.4.0 (penanda navigation bar dari `secondaryContainer`, wadah FAB bawaan) | — | — |
+| 14 | HIG Multitasking (log perubahan 9 Juni 2025): di iPadOS orang memakai aplikasi layar penuh atau berjendela; jendela dapat diubah ukurannya dan ditata seperti macOS dengan kendali penataan sistem; "Apps don't control multitasking configurations or receive any indication of the ones that people choose" | [Terverifikasi] | §24 [S13] |
+| 15 | HIG Layout (log perubahan terakhir 9 September 2026): size class ditetapkan menurut jenis perangkat, susunan jendela, dan keadaan multitasking; aplikasi iOS dan iPadOS dapat berada di setiap kombinasi size class | [Terverifikasi] | §24 [S14] |
+| 16 | `numberPad` di iPad dengan iOS 26 dapat berganti ke papan ketik penuh; pelapor di forum mengutip jawaban Apple lewat Feedback Assistant (FB19626136) bahwa itu perilaku yang diharapkan, sedangkan staf Apple di utas itu hanya meminta laporan bug; `allowsNumberPadPopover` tidak punya halaman dokumentasi; baris alat papan ketik SwiftUI dilaporkan tidak tampil bersama papan angka | [Perlu validasi]; laporan pengembang, bukan dokumentasi | §24 [S15] |
 
 ### 23.3 Butir terbuka
 
@@ -1568,7 +1624,7 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 
 ## 24. Sumber
 
-Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026 ([S10] sampai [S12] sesudah checkpoint S4).
+Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026 ([S10] sampai [S12] sesudah checkpoint S4; [S13] sampai [S15] atas keputusan 42).
 
 | Kode | Sumber | Isi yang dipakai |
 |---|---|---|
@@ -1584,3 +1640,6 @@ Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan doku
 | [S10] | Apple Human Interface Guidelines, "App icons" (log perubahan terakhir 28 Oktober 2026), https://developer.apple.com/design/human-interface-guidelines/app-icons, dibaca lewat berkas data `…/tutorials/data/design/human-interface-guidelines/app-icons.json` | Lapisan dan Icon Composer; Liquid Glass hanya pada bentuk besar sederhana; varian default, dark, clear, tinted; hindari teks, garis sangat tipis, efek buatan, dan tiruan komponen antarmuka |
 | [S11] | Android Developers, "Adaptive icons", https://developer.android.com/develop/ui/views/launch/icon_design_adaptive | Lapisan 108 dp, zona aman 66 dp, logo minimal 48 dp; lapisan monokrom untuk ikon bertema (Android 13); tema otomatis mulai Android 16 QPR 2 |
 | [S12] | Repositori Plus Jakarta Sans, https://github.com/tokotype/PlusJakartaSans | OFL 1.1; tiga gaya alternatif Lancip (Sharp), Lurus (Straight), Lingkar (Swirl); angka tabular "(.tf)"; font variabel sumbu bobot; nomor stylistic set tidak tercantum |
+| [S13] | Apple Human Interface Guidelines, "Multitasking" (log perubahan 9 Juni 2025), https://developer.apple.com/design/human-interface-guidelines/multitasking, dibaca lewat berkas data `…/tutorials/data/design/human-interface-guidelines/multitasking.json`, diakses 12 November 2026 | Aplikasi layar penuh dan berjendela di iPadOS; jendela dapat diubah ukurannya dan ditata; aplikasi tidak diberi tahu susunan multitasking |
+| [S14] | Apple Human Interface Guidelines, "Layout" (log perubahan terakhir 9 September 2026), https://developer.apple.com/design/human-interface-guidelines/layout, dibaca lewat berkas data `…/layout.json`, diakses 12 November 2026 | Size class menurut jenis perangkat, susunan jendela, dan keadaan multitasking; setiap kombinasi size class mungkin |
+| [S15] | Apple Developer Forums, "ios26 NumberPad keyboard issue on iPad", https://developer.apple.com/forums/thread/797047, dan "SwiftUI, numeric keypad, and missing keyboard toolbar", https://developer.apple.com/forums/thread/758729, ringkasan pencarian, diakses 12 November 2026 | Perilaku papan angka dan baris alat papan ketik di iPad **[Perlu validasi]** |
