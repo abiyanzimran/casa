@@ -77,7 +77,7 @@ Alat formatter, linter, pemindai kerentanan, dan pemeriksa duplikasi **diputuska
 | Cakupan | `go test -coverprofile` dilaporkan, **tanpa ambang persen** (§4.13) | — | Laporan cakupan Xcode bila tersedia, tanpa ambang | Laporan cakupan bila tersedia, tanpa ambang | — |
 | Pustaka utama (versi terlihat, dicek saat dipasang) | connect-go v2.0.2; pgx; sqlc; goose; protovalidate-go v1.x; `golang.org/x/crypto` dan `golang.org/x/oauth2` menurut ADR-023 | pgBackRest 2.60.0 (09.4 §6) | connect-swift 1.2.3; pembungkus SQLite dipilih `ios-dev` minggu pertama (09 §6) | connect-kotlin 0.10.x (ADR-023); Room; Compose Material 3 1.4.0 stabil, `ModalBottomSheet` lewat ADR-023 butir 5 | — |
 | Keterlacakan | Pemeriksa ID buatan sendiri (§4.13, QG-06): skrip kecil tanpa dependensi baru | — | Sama, membaca nama uji Swift | Sama, membaca nama uji Kotlin | — |
-| Rahasia di repositori | Alat dipilih `backend-dev` minggu pertama dengan revisi ADR-025 (09.4 §5 menyebut pemeriksaannya, belum alatnya); syarat: tidak mengunggah kode ke layanan selain GitHub (ADR-025 kriteria) | — | Sama | Sama | — |
+| Rahasia di repositori | Betterleaks v1.10.1 lewat `make secrets`, atas seluruh riwayat repositori, tanpa validasi live (dipilih `backend-dev` di tugas 1.1a; ADR-025 butir 9) | — | Sama: satu pemindaian mencakup seluruh repositori | Sama | — |
 
 **Klien web (TypeScript, Svelte; ADR-025 butir 8, ADR-030 butir 8):**
 

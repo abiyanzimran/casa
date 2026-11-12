@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: alat per bahasa seperti butir 1 sampai 7 (D-103, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk"). Gerbang kerentanan Swift dikukuhkan di minggu pertama `ios-dev` (butir 2) |
-| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4; butir 8 TypeScript dan Svelte sesudah S6) |
+| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4; butir 8 TypeScript dan Svelte sesudah S6); 13 November 2026 (butir 9 rahasia di repositori, FS-1 tugas 1.1a) |
 | Pengusul | `architect`, atas temuan `critic` CS-A-07 |
 | Mengubah | — |
 | Rincian | [09.4 §4, §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -63,3 +63,37 @@ Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 8 dan 18. Butir 1 
 | Bundel | Pemeriksaan CI bahwa paket di peta bundel hanya dari daftar ADR-030 butir 8, dan bundel produksi tanpa penanda pemeriksaan diri atau alamat staging (SEC-179) | Skrip CI |
 
 Semua menjadi gerbang merge (butir 7). Semua berjalan di CI Linux.
+
+## Catatan alat rahasia di repositori (13 November 2026, FS-1 langkah 1 tugas 1.1a)
+
+[14 §2.2](../14-engineering-roadmap.md) baris "Rahasia di repositori" menyerahkan pilihan alat ke `backend-dev` di minggu pertama, dengan revisi ADR ini; [09.4 §5](../09-technical-architecture/04-operasi-uji-biaya.md) menyebut pemeriksaannya. `backend-dev` memilih di tugas 1.1a; catatan ini mencatatnya. Butir 1 sampai 8 tetap.
+
+**Fakta yang diperiksa 13 November 2026:**
+
+| Fakta | Label dan sumber |
+|---|---|
+| gitleaks, pilihan bawaan yang lazim: README menyatakan "Gitleaks is feature complete", "Future releases will be security patches only", dan pemeliharanya mengalihkan fokus ke Betterleaks. Rilis terakhir v8.30.1, 21 Maret 2026, tanpa rilis sesudahnya. Isu #2305 meminta perbaikan CVE | **[Terverifikasi]** README dan rilis: [github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks), [rilis](https://github.com/gitleaks/gitleaks/releases), diakses 13 November 2026. Isu #2305 dicek `backend-dev`, 13 November 2026 |
+| Betterleaks v1.10.1 adalah rilis terbaru yang bukan pra-rilis ("Latest", 12 November); sebelumnya v1.10.0 (4 November) dan v1.9.0 (29 September). v2.0.0 masih rc (rc.7, 4 November), jadi tidak dipakai (ES §8; ADR-023 butir 4) | **[Terverifikasi]** [github.com/betterleaks/betterleaks/releases](https://github.com/betterleaks/betterleaks/releases), diakses 13 November 2026 |
+| Modul `github.com/betterleaks/betterleaks@v1.10.1` ada di proxy.golang.org (cap waktu proxy 6 November 2026, lebih awal dari tanggal terbit di halaman rilis; tag dibuat lebih dulu) | **[Terverifikasi]** dicek lead di proxy.golang.org, 13 November 2026 |
+| Lisensi MIT | **[Terverifikasi]** berkas `LICENSE` di repositori Betterleaks, diakses 13 November 2026 |
+| Validasi live kredensial mati secara bawaan; dinyalakan oleh `-v`/`--validate`, `BETTERLEAKS_VALIDATE=true`, atau `-a`/`--analyze` | **[Terverifikasi]** README Betterleaks, diakses 13 November 2026 |
+| `go run` atau `go install` dengan sufiks versi mengabaikan `go.mod` repositori kita dan menyusun daftar build secara deterministik (MVS) dari `go.mod` alat itu | **[Terverifikasi]** [go.dev/ref/mod](https://go.dev/ref/mod), bagian `go install` dan MVS, diakses 13 November 2026 |
+
+**Butir 9 (baru), rahasia di repositori:**
+
+1. **Alat:** Betterleaks v1.10.1, dipatok di `Makefile` (`BETTERLEAKS_VERSION`) dan dijalankan target `make secrets`: `go run github.com/betterleaks/betterleaks@v1.10.1 git --no-banner --redact --ignore-gitleaks-allow .`. Tanpa biner atau pengelola paket tambahan: toolchain Go sudah ada.
+2. **Cakupan:** seluruh riwayat dari semua ref (CI memakai `fetch-depth: 0`), dengan aturan bawaan alat. Satu pemindaian mencakup seluruh repositori, jadi kolom klien web, Android, dan iOS di 14 §2.2 tidak memerlukan alat lain.
+3. **Pengecualian:** komentar izin inline diabaikan (`--ignore-gitleaks-allow`). Setiap pengecualian hanya boleh ada di berkas ignore di repositori, dengan alasannya, dan ditinjau `code-reviewer`.
+4. **Tidak ada yang keluar dari mesin:** temuan disamarkan di keluaran (`--redact`), dan `--validate`, `--analyze`, serta `BETTERLEAKS_VALIDATE` dilarang di `Makefile` dan CI. Dengan begitu kriteria ADR ini (tidak mengirim kode ke layanan luar) terpenuhi.
+5. **Gerbang merge** seperti butir 7, berjalan di job CI dengan `permissions: contents: read`, `persist-credentials: false`, dan tanpa rahasia CI.
+6. **Jalan mundur:** gitleaks v8.30.x selama masih menerima patch keamanan (bahwa berkas ignore dan konfigurasi kita terbaca tanpa diubah **[Asumsi]**, dicek bila jalan mundur ini dipakai); atau pemindai lain ≥ 1.0 yang memenuhi kriteria ADR ini. Penggantiannya hanya menyentuh target `secrets`.
+
+**ADR-023 dan dependensi transitif alat CI (keputusan `architect`):** ADR-023 **tidak berlaku** untuk dependensi transitif 0.x dari alat yang hanya berjalan di CI atau mesin pengembang. Alasannya: syarat ADR-023 (lockfile kita, pembungkus milik kita, jalan mundur di kode kita) menjaga API yang dipanggil kode produk, sedangkan kode kita hanya memanggil baris perintah alat itu, bukan API dependensinya. Pembacaan ini berlaku untuk semua alat di butir 1 sampai 9, dengan tiga syarat; bila salah satunya gagal, ADR-023 berlaku penuh:
+
+- (a) alat itu sendiri lolos ES §8 dan kriteria ADR ini: ≥ 1.0 atau bagian toolchain resmi, bukan pra-rilis, dipatok tepat;
+- (b) tidak ada kode produk yang mengimpornya sebagai pustaka, dan tidak ada bagiannya yang masuk biner, bundel web, atau aplikasi;
+- (c) alat itu berjalan di job CI tanpa rahasia CI dan dengan izin baca saja, terpisah dari job yang memegang kunci unggah atau penandatanganan (09.4 §5).
+
+Risiko rantai pasok alat CI ditangani lewat versi yang dipatok, daftar build yang deterministik, syarat (c), dan pemutakhiran bulanan ES §8, bukan lewat ADR-023.
+
+**Konsekuensi:** gerbang rahasia aktif sejak tugas 1.1a untuk seluruh repositori. Pemutakhiran bulanan memeriksa apakah Betterleaks v2 sudah stabil; naik ke v2 diperlakukan sebagai pembaruan yang dapat merusak (dibaca catatan rilisnya, lalu dibuktikan merah dengan kunci palsu di klon sementara seperti di 1.1a).
