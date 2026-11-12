@@ -1,8 +1,8 @@
 # Single source of the CI gate commands: CI calls these targets and nothing
 # else, so a local run and a CI run check the same things (ES §2, §7).
 # Gates: QG-01 format and lint, QG-02 duplication, QG-03 vulnerabilities,
-# QG-05 tests (docs/14-engineering-roadmap.md §5.1), plus the repository
-# secrets check (09.4 §5).
+# QG-05 tests, QG-06 ID traceability (docs/14-engineering-roadmap.md §5.1,
+# §4.13), plus the repository secrets check (09.4 §5).
 
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
@@ -24,12 +24,12 @@ OSV_SCANNER := $(CURDIR)/.cache/osv-scanner-$(OSV_SCANNER_VERSION)/osv-scanner
 # Overridable on the command line to prove the gate red on a throwaway lockfile.
 WEB_LOCKFILE := web/pnpm-lock.yaml
 
-.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go secrets
+.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
 
 check: check-server check-web
 
-check-server: server-fmt server-lint server-vuln server-test cpd-go secrets
+check-server: server-fmt server-lint server-vuln server-test cpd-go idcheck secrets
 
 # gofmt is taken from the toolchain go.mod selects, not whatever is on PATH.
 server-fmt:
@@ -49,6 +49,11 @@ server-test:
 
 cpd-go:
 	scripts/cpd.sh go server
+
+# QG-06 (14 §4.13): every test that names an ID names a real one, and every ID
+# in the scope of a finished step has a test.
+idcheck:
+	cd server && go run ./cmd/idcheck -docs ../docs -repo .. -scope ../traceability/scope.txt
 
 # Betterleaks' default git scan reads every commit reachable from any ref
 # (git log --full-history --all), not only the changed files, with the
