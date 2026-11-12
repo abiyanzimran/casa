@@ -64,6 +64,7 @@
 	--ukuran-angka-utama: 2.5rem;
 	--ukuran-angka-besar: 1.75rem;
 	--ukuran-angka-baris: 1.0625rem;
+	--ukuran-judul-layar: 1.5rem;
 	--ukuran-judul-bagian: 1.25rem;
 	--ukuran-judul-subbagian: 0.9375rem;
 	--ukuran-isi: 1rem;
@@ -95,6 +96,9 @@
 	--lebar-lembar: 560px;
 	--panel-samping: clamp(320px, 33.333%, 400px);
 
+	/* word spacing per direction (08 §19.12.6); 0 except Koral Hangat */
+	--spasi-kata: 0;
+
 	/* 08 §25.4 "Gerak": at most 200 ms, no bounce */
 	--gerak: 200ms ease-out;
 }
@@ -113,6 +117,8 @@
 		--margin: 32px;
 		--padding-kartu: 24px;
 		--jarak-bagian: 32px;
+		/* the companion pane keeps at least 336 here so a row fits beside its amount (Lebar keeps 320) */
+		--panel-samping: clamp(336px, 33.333%, 400px);
 	}
 }
 
@@ -144,6 +150,7 @@
 :root[data-arah='koral'] {
 	--huruf: 'Plus Jakarta Sans', system-ui, sans-serif;
 	--bobot-angka-utama: 600;
+	--spasi-kata: 0.08em;
 
 	--aksen: light-dark(#ff7f62, #ff9580); /* fill only; text uses aksen-tinta */
 	--di-atas-aksen: #141414;
@@ -243,7 +250,8 @@
 	/* 08 §25.4: system colours, one block for every direction; borders, card lines and focus rings
 	   stay visible. Matters where an element opts out with forced-color-adjust: none. */
 	:root,
-	:root[data-arah] {
+	:root[data-arah],
+	:root[data-kontras][data-arah] {
 		--kertas: Canvas;
 		--kartu: Canvas;
 		--sisip: Canvas;
@@ -288,6 +296,7 @@
 html {
 	font-family: var(--huruf);
 	font-weight: 400;
+	word-spacing: var(--spasi-kata);
 	background: var(--kertas);
 	color: var(--tinta);
 }
@@ -348,16 +357,30 @@ html {
 	white-space: nowrap;
 }
 
-/* 08 §19.4, §17.8 rule 6: section and subsection titles differ in size and weight */
-.judul-bagian {
+/* 08 §19.4, §17.8 rule 6: screen, section and subsection titles differ in size and weight */
+.judul-layar {
 	font-weight: 700;
+	font-size: var(--ukuran-judul-layar);
+	line-height: 1.25;
+}
+
+.judul-bagian {
+	font-weight: 600;
 	font-size: var(--ukuran-judul-bagian);
 	line-height: 1.3;
 }
 
 .judul-subbagian {
-	font-weight: 600;
+	font-weight: 500;
 	font-size: var(--ukuran-judul-subbagian);
 	line-height: 1.35;
 	color: var(--tinta-2);
+}
+
+/* form controls do not inherit word spacing by default */
+button,
+input,
+select,
+textarea {
+	word-spacing: inherit;
 }

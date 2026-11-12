@@ -2,7 +2,7 @@
  * Layout of the 1.8 sample screens, repeat gate (08 §19.12).
  * Four layout states (08 §4.2, §17.8, §25.2, §25.3): Ringkas < 600, Sedang 600-839 (one column),
  * Lebar 840-1199 (main and companion pane), Sangat lebar >= 1200 (sidebar, content capped at 1200,
- * a third pane from 1472). Every colour, size and shape comes from tokens.css; nothing here is a
+ * a third pane from 1504). Every colour, size and shape comes from tokens.css; nothing here is a
  * colour value. Direction differences that are structure, not tokens (08 §19.12.11 item 4), use
  * [data-arah] selectors here, never a branch in the markup.
  */
@@ -316,13 +316,10 @@ p {
   background: var(--kertas);
 }
 
-/* Screen title: larger than judul-bagian, same weight (08 §17.8 rule 6; see report) */
+/* Screen title: size and weight from tokens.css .judul-layar (08 §17.8 rule 6) */
 .judul-layar {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.25;
 }
 
 .kehadiran {
@@ -525,7 +522,20 @@ main:focus {
   padding-top: var(--jarak-2);
 }
 
+@media (min-width: 600px) and (max-width: 1199.98px) {
+  /* Tinta & Limau rail: more room under Catat before the destinations */
+  [data-arah="limau"] .catat-navigasi {
+    margin-bottom: var(--jarak-6);
+  }
+}
+
 @media (min-width: 840px) {
+  /* side panes: 16 inside so a row fits beside its amount at 1133 and 1280 */
+  .panel-pendamping,
+  .panel-chat {
+    --padding-kartu: 16px;
+  }
+
   /* Lebar: main pane and companion pane, a third of the content width, 320-400 (08 §17.8) */
   .halaman-beranda .ruang {
     grid-template-columns: minmax(360px, 1fr) var(--panel-samping);
@@ -570,10 +580,10 @@ main:focus {
   }
 }
 
-@media (min-width: 1472px) {
-  /* Content width >= 1168: the Chat panel is a third pane (main >= 480, two side panes 320) */
+@media (min-width: 1504px) {
+  /* Content width 1200: the Chat panel is a third pane (main >= 480, two side panes 336) */
   .halaman-beranda:has(.panel-chat:target) .ruang {
-    grid-template-columns: minmax(480px, 1fr) 320px 320px;
+    grid-template-columns: minmax(480px, 1fr) 336px 336px;
   }
 
   .halaman-beranda:has(.panel-chat:target) :is(.bilah-atas, main) {
@@ -627,15 +637,12 @@ main:focus {
   border: 1px solid transparent;
   border-radius: var(--sudut-kartu);
   background: var(--kartu);
+  /* static factor: "Rp88.888.888" is at most 6.11 em in the three fonts (Rp at 60%), +2% (08 §25.4) */
+  --lebar-em: 6.25;
 }
 
 [data-arah="biru"] .uang-kita {
   border-color: var(--garis);
-}
-
-/* static factor: "Rp88.888.888" is at most 6.11 em in the three fonts (Rp at 60%), +2% (08 §25.4) */
-.uang-kita {
-  --lebar-em: 6.25;
 }
 
 .uang-kita .angka-utama {
@@ -799,7 +806,6 @@ main:focus {
   display: flex;
   height: var(--tebal-batang);
   margin: var(--jarak-2) 0 var(--jarak-1);
-  border: 1px solid transparent;
   border-radius: var(--sudut-batang);
   background: var(--lintasan);
   overflow: hidden;
@@ -879,7 +885,7 @@ main:focus {
   }
 }
 
-@media (min-width: 1472px) {
+@media (min-width: 1504px) {
   .panel-chat:target {
     grid-column: 3;
   }
@@ -923,7 +929,7 @@ main:focus {
   max-width: min(80%, 480px);
   padding: var(--jarak-2) var(--jarak-3) var(--jarak-1);
   border: 1px solid transparent;
-  border-radius: var(--sudut-kartu);
+  border-radius: 12px; /* CONTENT.md §3.2, every direction; 08 has no token for it */
   overflow-wrap: anywhere;
 }
 
@@ -934,7 +940,8 @@ main:focus {
 }
 
 [data-arah="biru"] .gelembung-lain {
-  border-color: var(--garis);
+  border-color: transparent;
+  background: var(--sisip);
 }
 
 .gelembung-sendiri {
@@ -1041,7 +1048,7 @@ main:focus {
   min-height: var(--sasaran-utama);
   padding: var(--jarak-3) var(--jarak-4);
   border: 1px solid var(--garis-tegas);
-  border-radius: var(--sudut-kelompok, var(--sudut-tombol));
+  border-radius: var(--sudut-kelompok);
   background: var(--kartu);
   color: var(--tinta);
   font: inherit;
