@@ -29,6 +29,12 @@ if [ ! -x "$pmd" ]; then
   unzip -q -o "$zip" -d "$pmd_cache"
 fi
 
+# Go convention: a file is generated when the marker line comes before the
+# package clause, so the same text inside a string literal does not count.
+is_generated() {
+  awk '/^package /{exit} /^\/\/ Code generated .* DO NOT EDIT\.$/{found=1; exit} END{exit !found}' "$1"
+}
+
 # Generated code, third-party code and build output are not scanned
 # (code-reviewer, 13 November 2026). Test files are scanned.
 file_list=$(mktemp)
@@ -37,7 +43,7 @@ find "$dir" \
   \( -name vendor -o -name node_modules -o -name .svelte-kit -o -name gen -o -name build -o -name dist \) -prune \
   -o -type f -name "$file_pattern" ! -name '*.pb.go' -print |
   while IFS= read -r file; do
-    grep -qE '^// Code generated .* DO NOT EDIT\.$' "$file" || echo "$file"
+    is_generated "$file" || echo "$file"
   done >"$file_list"
 
 if [ ! -s "$file_list" ]; then
