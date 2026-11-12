@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. **Atas keputusan 51 (12 November 2026), tanpa rencana go public:** rancangan tidak dikurangi; waktu bangun yang bergantung pada TestFlight eksternal, App Store, kiriman toko, FS-3, GR-4, atau tahap publik kini bersyarat "bila kelak go public" (§10.7, §16, §16.4, §18.3, §23.3); waktu Android di §0 dan §16 berkedudukan "diterima atas saran lead lewat keputusan 50", dan "sebelum beta" hanya berlaku bila beta kelak diadakan; pembingkaian konflik iPad mini 7 dengan brief §1 di §16 dihapus karena baris "Platforms" sudah memuat pengecualiannya. **Atas keputusan 52 dan 10.1 §11.3.1 (12 November 2026):** kata layar final versi keluarga pengelola bagi orang tua dan kerabat yang diberi login (§7.5.1); label versi per akun dan tanggal baca di LY-71, "Riwayat keamanan" dengan baris akses darurat di LY-73 (§7.5.2; SEC-36, SEC-39 (b)); LY-05, §7.1, §21 diselaraskan; lalu atas ketetapan `security-privacy` di 10.1 §11.3.1: "isi dompet campuran" dan isi salinan cadangan ditambahkan ke teks dan tabel fakta wajib (§7.5.1), pergantian versi per akun menulis baris di riwayat keamanan (§7.5.2); atas SEC-34 yang diperbarui, versi baru menahan pengisian sampai dibaca: LY-05 tampil begitu sinkron membawanya, isian yang terbuka masuk antrean atau draf, kata keadaan tertahan (§7.5.3, §13.2). **Atas 10.1 SEC-18 dan SEC-25 (F-FAM-022, FR-FAM-026; Tier 2, FS-2):** layar LY-88 "Pengaman tambahan saat masuk" dengan pernyataan sebelum tombol nyalakan, 10 kode yang tampil sekali, serta matikan dan buat kode baru dengan kata sandi dan faktor kedua atau satu kode (§5.2, §12.5, §21); empat usulan dikukuhkan `security-privacy`, ditambah masa gugur pemasangan dan papan klip sensitif (§12.5). **Atas temuan `critic` (12 November 2026):** S-1 tenggat Android "sebelum jalur pengujian Google Play dibuka" (§16, §16.4); S-2 panggilan identitas tidak pernah ditahan (§7.5.3); S-3 FS-2 hanya TOTP, passkey mungkin di tahap publik (§5.2, §12.5); S-4, menurut SEC-34 (5) final (opsi A usulan lead atas R-3, dipilih `security-privacy`): setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui, tanpa batas frekuensi; bila versi lebih baru datang sebelum diakui, LY-05 menampilkan yang terbaru saja (§7.5.2, §7.5.3); M-a tenggat Android yang sama di §0; M-e pengakuan pemberitahuan tidak pernah ditahan (§7.5.3). Atas 10.1 SEC-34 (5), SEC-35, §11.3: LY-05 selalu menampilkan teks lengkap versi dari server; kalimat fitur yang belum tersedia bertanda "berlaku saat fitur ini tersedia", tanpa tampilan yang bergantung pada build (§7.5, §7.5.1). Putaran keputusan 51–55 sudah ditinjau `critic` (`_progress.md`). **S6 (12 November 2026): pass konsistensi.** Tanpa perkiraan offline di pilot: angka server dengan waktunya dan catatan belum terkirim terpisah, perkiraan hanya pilihan kelak yang memerlukan ADR baru dan persetujuan pemilik produk (§9.1 langkah 3, §13.2; ADR-013 butir 2, 06 S-9); kalimat antrean dan sinkron memakai kata "perangkat" (§7.5.3, §10.2, §13, §18.1; keputusan 42); pengenal F dan FR di LY-10, LY-62, LY-63, LY-73, LY-75, LY-76; atribusi opsi A SEC-34 (5) (§7.5.3); kata "pasangan" di teks aturan diganti menurut model per anggota dewasa (W7); judul SEC-87 mengikuti 10.3 (§21); nuansa kata penyemangat menjadi setelan rumah tangga di LY-45 yang diganti lewat usulan kesepakatan, corak tetap pribadi di LY-86 dengan daftar tertutupnya (§5.1, §5.2; keputusan 62, 64; FR-AI-001); daftar nuansa ditetapkan menurut keputusan 66; keputusan 68 tidak mengubah isi dokumen ini karena 08 tidak memuat layar kebijakan privasi. Perubahan S6 menunggu tinjauan ulang `critic`. **Sesudah S6, putaran web lebih dulu (12 November 2026):** atas keputusan pemilik produk bahwa klien web (PWA) dibangun pertama dengan tata letak yang sama (§0), bagian baru §25 merinci klien web untuk `web-dev`: navigasi per lebar pada IA yang sama (§25.2), tata letak di perangkat pilot (§25.3), sistem desain web di atas token arah C dengan komponen sendiri di atas HTML semantik tanpa kit UI pihak ketiga (§25.4), keyboard, pointer, dan WCAG 2.2 AA (§25.5), pemasangan ke layar utama sebelum masuk di iPhone dan iPad, mode perangkat, kunci kode saja, dan layar sesi berakhir (§25.6, LY-90 sampai LY-97), luring dan belum terkirim (§25.7), izin notifikasi dari ketukan (§25.8), informasi peka (§25.9), daftar bagian yang hanya untuk aplikasi native dan ditunda tanpa dihapus (§25.10), serta gerbang contoh layar dan tinjauan per layar untuk web lebih dulu (§25.11); baris 10 indeks §6 "Klien web" (SEC-164 sampai SEC-178) dipenuhi (§21); kalimat [Klien web] final di teks pemberitahuan pengelola, dan "ponselmu" menjadi "perangkatmu" pada kalimat `CARE` (§7.5, §7.5.1; SEC-178 (b)); catatan rujukan web di §0, §1, §2, §4, §12.3, §13, §14, §15, §16, §17, §19; uji tata letak native dijadwal ulang dan uji web sebelum GR-2 (§16.4, §25.11); "Ponsel {nama}" menjadi "Perangkat {nama}" (§10.2); permintaan baru §23.1, fakta §23.2, butir terbuka §23.3, sumber [S16] sampai [S21]. **Atas tinjauan kata `security-privacy` dan keputusan nama Casa (13 November 2026):** LY-90 tanpa janji data tak terhapus; LY-91 menyatakan batas SEC-170 (b), "Catatanmu tidak disimpan", "perekam layar atau ketikan"; LY-10 "menutup tampilan catatanmu"; LY-92 pemulihan menyebut keluar dari perangkat lain (SEC-24) dan faktor kedua (SEC-18); LY-88 di mode bersama (SEC-165 (h)); galat tautan undangan yang ditempel (§25.6); nama di layar "Casa" (§0, §7.3, §7.5, §7.5.1, §19.5, §25), "Family OS" hanya di uraian; LY-95 bernama "Perangkat ini" (§21). **Atas temuan `critic` (13 November 2026):** S3 kalimat [Klien web] disalin persis dari bunyi kanonis 10.1 (§7.5, §7.5.1, §23.1); M14 LY-90 dengan dua jalan, mode bersama di tab Safari tanpa LY-91, mode pribadi tidak pernah di tab (§25.1 W-6, §25.6, §25.8, §25.11; SEC-171 (b)(5), SEC-165 (d)); M10 "keputusan 69" dan "keputusan 70" (§0). **Atas gerbang contoh layar 1.8, fase bangun (13 November 2026), permintaan `ux-designer` yang disetujui lead:** pelihat menyebut dirinya "kamu" di baris pemegang, kata dan jumlah dipisah di baris (§6.1, §19.4, §19.8 butir 5); satu glif per jenis tempat uang yang dipegang, paling banyak tiga (§19.8 butir 5); letak dan batas kartu di utas, bunyi baris "Disepakati" (§10.4); token `selubung` (§19.3, §25.4); arti batang anggaran (§19.9); data rekaan tanpa merek bank atau layanan (§19.8). **Atas tinjauan QG-09 gerbang 1.8 (13 November 2026), keputusan `ux-designer` A sampai D:** `angka-besar` berhenti membesar pada lebar wadahnya seperti `angka-utama`, dengan rumus web dan batas bawah 40 px dan 28 px (§15, §19.4, §25.4; batas bawah "2,5 rem" dibetulkan); nama aksesibel "000, tambah tiga nol" (§25.3); `-apple-system-body` hanya di WebKit sentuh dan meta `text-scale` (§25.4, [S22]); nilai `teal` kontras tinggi (§19.3); warna jumlah di kalimat keterangan (§19.4); label navigasi tanpa pemenggalan di tengah kata (§25.4); pemeriksaan 17 diperjelas (§25.11). **Atas gerbang 1.8 yang tidak lulus (13 November 2026; pernyataan pemilik produk di `_progress.md`, "Gerbang contoh layar 1.8": "tampilannya jelek bangett, ... coba cek standarya gmna, sekarang keliatan jelek ai slop warnanya juga gak enak") dan riset 18 §4.12:** tata letak mengikuti standar per ukuran, bukan selera: empat keadaan dengan keadaan baru **Sangat lebar** ≥ 1200 (§4.2, §4.3, §25.2); Sedang satu kolom isi di samping rail, dua panel baru di Lebar (§6.3, §10.6, §16.1, §16.2, §25.3); letak Catat per platform (§4.3, §25.2); kisi, lebar isi maksimum, margin, dan jarak dalam angka, kartu lebih terang dari latar, tanpa wadah di dalam kartu, satu angka menonjol dan hierarki judul lewat ukuran dan bobot (§6.1, §17.7, §17.8, §19.4, §19.8, §19.9, §25.4); pemeriksaan 22 sampai 27 (§25.11). Nilai warna dan huruf arah C **tidak dibekukan** dan menunggu arah baru sesudah riset 18 §4.13 (§19.3). Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
+| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. **Atas keputusan 51 (12 November 2026), tanpa rencana go public:** rancangan tidak dikurangi; waktu bangun yang bergantung pada TestFlight eksternal, App Store, kiriman toko, FS-3, GR-4, atau tahap publik kini bersyarat "bila kelak go public" (§10.7, §16, §16.4, §18.3, §23.3); waktu Android di §0 dan §16 berkedudukan "diterima atas saran lead lewat keputusan 50", dan "sebelum beta" hanya berlaku bila beta kelak diadakan; pembingkaian konflik iPad mini 7 dengan brief §1 di §16 dihapus karena baris "Platforms" sudah memuat pengecualiannya. **Atas keputusan 52 dan 10.1 §11.3.1 (12 November 2026):** kata layar final versi keluarga pengelola bagi orang tua dan kerabat yang diberi login (§7.5.1); label versi per akun dan tanggal baca di LY-71, "Riwayat keamanan" dengan baris akses darurat di LY-73 (§7.5.2; SEC-36, SEC-39 (b)); LY-05, §7.1, §21 diselaraskan; lalu atas ketetapan `security-privacy` di 10.1 §11.3.1: "isi dompet campuran" dan isi salinan cadangan ditambahkan ke teks dan tabel fakta wajib (§7.5.1), pergantian versi per akun menulis baris di riwayat keamanan (§7.5.2); atas SEC-34 yang diperbarui, versi baru menahan pengisian sampai dibaca: LY-05 tampil begitu sinkron membawanya, isian yang terbuka masuk antrean atau draf, kata keadaan tertahan (§7.5.3, §13.2). **Atas 10.1 SEC-18 dan SEC-25 (F-FAM-022, FR-FAM-026; Tier 2, FS-2):** layar LY-88 "Pengaman tambahan saat masuk" dengan pernyataan sebelum tombol nyalakan, 10 kode yang tampil sekali, serta matikan dan buat kode baru dengan kata sandi dan faktor kedua atau satu kode (§5.2, §12.5, §21); empat usulan dikukuhkan `security-privacy`, ditambah masa gugur pemasangan dan papan klip sensitif (§12.5). **Atas temuan `critic` (12 November 2026):** S-1 tenggat Android "sebelum jalur pengujian Google Play dibuka" (§16, §16.4); S-2 panggilan identitas tidak pernah ditahan (§7.5.3); S-3 FS-2 hanya TOTP, passkey mungkin di tahap publik (§5.2, §12.5); S-4, menurut SEC-34 (5) final (opsi A usulan lead atas R-3, dipilih `security-privacy`): setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui, tanpa batas frekuensi; bila versi lebih baru datang sebelum diakui, LY-05 menampilkan yang terbaru saja (§7.5.2, §7.5.3); M-a tenggat Android yang sama di §0; M-e pengakuan pemberitahuan tidak pernah ditahan (§7.5.3). Atas 10.1 SEC-34 (5), SEC-35, §11.3: LY-05 selalu menampilkan teks lengkap versi dari server; kalimat fitur yang belum tersedia bertanda "berlaku saat fitur ini tersedia", tanpa tampilan yang bergantung pada build (§7.5, §7.5.1). Putaran keputusan 51–55 sudah ditinjau `critic` (`_progress.md`). **S6 (12 November 2026): pass konsistensi.** Tanpa perkiraan offline di pilot: angka server dengan waktunya dan catatan belum terkirim terpisah, perkiraan hanya pilihan kelak yang memerlukan ADR baru dan persetujuan pemilik produk (§9.1 langkah 3, §13.2; ADR-013 butir 2, 06 S-9); kalimat antrean dan sinkron memakai kata "perangkat" (§7.5.3, §10.2, §13, §18.1; keputusan 42); pengenal F dan FR di LY-10, LY-62, LY-63, LY-73, LY-75, LY-76; atribusi opsi A SEC-34 (5) (§7.5.3); kata "pasangan" di teks aturan diganti menurut model per anggota dewasa (W7); judul SEC-87 mengikuti 10.3 (§21); nuansa kata penyemangat menjadi setelan rumah tangga di LY-45 yang diganti lewat usulan kesepakatan, corak tetap pribadi di LY-86 dengan daftar tertutupnya (§5.1, §5.2; keputusan 62, 64; FR-AI-001); daftar nuansa ditetapkan menurut keputusan 66; keputusan 68 tidak mengubah isi dokumen ini karena 08 tidak memuat layar kebijakan privasi. Perubahan S6 menunggu tinjauan ulang `critic`. **Sesudah S6, putaran web lebih dulu (12 November 2026):** atas keputusan pemilik produk bahwa klien web (PWA) dibangun pertama dengan tata letak yang sama (§0), bagian baru §25 merinci klien web untuk `web-dev`: navigasi per lebar pada IA yang sama (§25.2), tata letak di perangkat pilot (§25.3), sistem desain web di atas token arah C dengan komponen sendiri di atas HTML semantik tanpa kit UI pihak ketiga (§25.4), keyboard, pointer, dan WCAG 2.2 AA (§25.5), pemasangan ke layar utama sebelum masuk di iPhone dan iPad, mode perangkat, kunci kode saja, dan layar sesi berakhir (§25.6, LY-90 sampai LY-97), luring dan belum terkirim (§25.7), izin notifikasi dari ketukan (§25.8), informasi peka (§25.9), daftar bagian yang hanya untuk aplikasi native dan ditunda tanpa dihapus (§25.10), serta gerbang contoh layar dan tinjauan per layar untuk web lebih dulu (§25.11); baris 10 indeks §6 "Klien web" (SEC-164 sampai SEC-178) dipenuhi (§21); kalimat [Klien web] final di teks pemberitahuan pengelola, dan "ponselmu" menjadi "perangkatmu" pada kalimat `CARE` (§7.5, §7.5.1; SEC-178 (b)); catatan rujukan web di §0, §1, §2, §4, §12.3, §13, §14, §15, §16, §17, §19; uji tata letak native dijadwal ulang dan uji web sebelum GR-2 (§16.4, §25.11); "Ponsel {nama}" menjadi "Perangkat {nama}" (§10.2); permintaan baru §23.1, fakta §23.2, butir terbuka §23.3, sumber [S16] sampai [S21]. **Atas tinjauan kata `security-privacy` dan keputusan nama Casa (13 November 2026):** LY-90 tanpa janji data tak terhapus; LY-91 menyatakan batas SEC-170 (b), "Catatanmu tidak disimpan", "perekam layar atau ketikan"; LY-10 "menutup tampilan catatanmu"; LY-92 pemulihan menyebut keluar dari perangkat lain (SEC-24) dan faktor kedua (SEC-18); LY-88 di mode bersama (SEC-165 (h)); galat tautan undangan yang ditempel (§25.6); nama di layar "Casa" (§0, §7.3, §7.5, §7.5.1, §19.5, §25), "Family OS" hanya di uraian; LY-95 bernama "Perangkat ini" (§21). **Atas temuan `critic` (13 November 2026):** S3 kalimat [Klien web] disalin persis dari bunyi kanonis 10.1 (§7.5, §7.5.1, §23.1); M14 LY-90 dengan dua jalan, mode bersama di tab Safari tanpa LY-91, mode pribadi tidak pernah di tab (§25.1 W-6, §25.6, §25.8, §25.11; SEC-171 (b)(5), SEC-165 (d)); M10 "keputusan 69" dan "keputusan 70" (§0). **Atas gerbang contoh layar 1.8, fase bangun (13 November 2026), permintaan `ux-designer` yang disetujui lead:** pelihat menyebut dirinya "kamu" di baris pemegang, kata dan jumlah dipisah di baris (§6.1, §19.4, §19.8 butir 5); satu glif per jenis tempat uang yang dipegang, paling banyak tiga (§19.8 butir 5); letak dan batas kartu di utas, bunyi baris "Disepakati" (§10.4); token `selubung` (§19.3, §25.4); arti batang anggaran (§19.9); data rekaan tanpa merek bank atau layanan (§19.8). **Atas tinjauan QG-09 gerbang 1.8 (13 November 2026), keputusan `ux-designer` A sampai D:** `angka-besar` berhenti membesar pada lebar wadahnya seperti `angka-utama`, dengan rumus web dan batas bawah 40 px dan 28 px (§15, §19.4, §25.4; batas bawah "2,5 rem" dibetulkan); nama aksesibel "000, tambah tiga nol" (§25.3); `-apple-system-body` hanya di WebKit sentuh dan meta `text-scale` (§25.4, [S22]); nilai `teal` kontras tinggi (§19.3); warna jumlah di kalimat keterangan (§19.4); label navigasi tanpa pemenggalan di tengah kata (§25.4); pemeriksaan 17 diperjelas (§25.11). **Atas gerbang 1.8 yang tidak lulus (13 November 2026; pernyataan pemilik produk di `_progress.md`, "Gerbang contoh layar 1.8": "tampilannya jelek bangett, ... coba cek standarya gmna, sekarang keliatan jelek ai slop warnanya juga gak enak") dan riset 18 §4.12:** tata letak mengikuti standar per ukuran, bukan selera: empat keadaan dengan keadaan baru **Sangat lebar** ≥ 1200 (§4.2, §4.3, §25.2); Sedang satu kolom isi di samping rail, dua panel baru di Lebar (§6.3, §10.6, §16.1, §16.2, §25.3); letak Catat per platform (§4.3, §25.2); kisi, lebar isi maksimum, margin, dan jarak dalam angka, kartu lebih terang dari latar, tanpa wadah di dalam kartu, satu angka menonjol dan hierarki judul lewat ukuran dan bobot (§6.1, §17.7, §17.8, §19.4, §19.8, §19.9, §25.4); pemeriksaan 22 sampai 27 (§25.11). Nilai warna dan huruf arah C **tidak dibekukan** dan menunggu arah baru sesudah riset 18 §4.13 (§19.3). **Atas arahan UI pemilik produk dan riset 18 §4.13 (13 November 2026):** tiga arah visual untuk dipilih di gerbang ulang, Tinta & Limau, Koral Hangat, dan Pulpen Biru, dengan nama token baru, skala netral dan warna makna bersama, huruf satu keluarga per arah, bentuk, hasil kontras keempat mode, dan kebutuhan contoh layar yang dapat dialihkan (§19.12); §19.3 tetap tidak dibekukan sampai pemilik produk memilih. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
 | Pemilik | `ux-designer` |
 | Tingkat kedalaman | Tier 1 penuh (brief §1.1); Tier 2 ringkas; Tier 3 daftar saja. Rancangan berlaku untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pemakai pertamanya (brief §1.1, "Tiers set what is built first, not what is designed") |
 | Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya, termasuk 10.5 Klien web), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1, §5.13); `_progress.md` |
@@ -32,7 +32,7 @@
 | 16 | Ponsel, tablet, dan perangkat lipat |
 | 17 | Sistem desain di atas komponen native |
 | 18 | Kata-kata dan nada |
-| 19 | Identitas visual: arah C sebagai sistem kerja, anti-templat, warna uang |
+| 19 | Identitas visual: arah C sebagai sistem kerja, anti-templat, warna uang; tiga arah untuk gerbang ulang (§19.12) |
 | 20 | Catatan keputusan desain sasaran dewasa (SEC-82) |
 | 21 | Pemenuhan persyaratan dokumen 10 untuk dokumen 08 |
 | 22 | Keputusan checkpoint S4 yang mengikat dokumen ini |
@@ -1525,7 +1525,7 @@ Angka di depan, orang di sebelahnya, satu warna untuk bertindak. Terang, lapang,
 
 ### 19.3 Token warna
 
-**Tidak dibekukan (13 November 2026).** Contoh layar dengan nilai di tabel ini ditolak di gerbang 1.8, dan penilaian pemilik produk mencakup warna ("warnanya juga gak enak"; `_progress.md`). Riset 18 §4.12.6 dan §4.12.7 mencatat sebabnya: kartu `kertas-2` lebih gelap dari latar `kertas` dengan rasio sekitar 1,11, permukaan putih tulang dan pasir di keluarga warna yang disebut ciri bawaan desain buatan AI, dan aksen yang jauh kurang jenuh dari warna sistem. Nilai baru diajukan sebagai pilihan arah sesudah riset 18 §4.13, dan dipilih pemilik produk di gerbang ulang. Yang tetap: **nama dan peran token** (web memakainya sebagai CSS custom property, §25.4), dengan dua perubahan peran yang sudah berlaku: kartu adalah permukaan yang lebih terang dari latar di tema terang (§17.8), dan `pasir` hanya label kecil di baris, bukan wadah di dalam kartu (§17.2). Sampai nilai baru dipilih, `web-dev` memakai tabel ini hanya untuk contoh dan uji, tanpa membekukannya.
+**Tidak dibekukan (13 November 2026).** Contoh layar dengan nilai di tabel ini ditolak di gerbang 1.8, dan penilaian pemilik produk mencakup warna ("warnanya juga gak enak"; `_progress.md`). Riset 18 §4.12.6 dan §4.12.7 mencatat sebabnya: kartu `kertas-2` lebih gelap dari latar `kertas` dengan rasio sekitar 1,11, permukaan putih tulang dan pasir di keluarga warna yang disebut ciri bawaan desain buatan AI, dan aksen yang jauh kurang jenuh dari warna sistem. Nilai baru diajukan sebagai pilihan arah sesudah riset 18 §4.13, dan dipilih pemilik produk di gerbang ulang. Yang tetap: **nama dan peran token** (web memakainya sebagai CSS custom property, §25.4), dengan dua perubahan peran yang sudah berlaku: kartu adalah permukaan yang lebih terang dari latar di tema terang (§17.8), dan `pasir` hanya label kecil di baris, bukan wadah di dalam kartu (§17.2). Sampai nilai baru dipilih, `web-dev` memakai tabel ini hanya untuk contoh dan uji, tanpa membekukannya. **Tiga arah pengganti beserta nama token baru dan hasil kontrasnya ada di §19.12 (13 November 2026)**; tabel ini diganti oleh arah yang dipilih pemilik produk.
 
 Kontras di kolom kanan memakai rumus luminans relatif WCAG 2.2, dipotong ke satu desimal. **Semua angka di tabel ini diperiksa lead dengan skrip pada 12 November 2026**, termasuk keempat pasangan teal terang `#0C524E`. Saat token dibuat, setiap pasangan tetap diukur di perangkat (§19.11), dan nilainya digeser bila ada yang tidak lolos. Sasaran: teks 4,5:1, teks kecil berwarna kustom 7:1 bila dapat (HIG Dark Mode, 18 §4.6), unsur grafis 3:1 (WCAG 1.4.11). Semua nilai **[Usulan]**.
 
@@ -1696,6 +1696,247 @@ Token, huruf, dan ilustrasi kedua arah tidak dibawa ke sistem kerja. Contoh hala
 4. Ikon aplikasi di keempat varian iOS dan di peluncur Android, bertema dan tidak (§19.5).
 5. Teks 200% dan ukuran aksesibilitas terbesar pada Beranda, LY-31, LY-32, dan kartu (§15, pemeriksaan 7).
 6. Gerbang anti-templat (§19.8).
+
+### 19.12 Tiga arah visual untuk gerbang ulang (13 November 2026)
+
+**Kedudukan.** Seluruh subbagian ini **[Usulan]** `ux-designer`, diajukan kepada pemilik produk dan pasangannya di gerbang ulang §19.8. Pemilik produk memilih satu arah; sampai itu §19.3 dan §19.4 **tidak dibekukan**, dan nilai arah C di sana hanya catatan. Sesudah pilihan, nilai arah terpilih menggantikan tabel §19.3, aturan huruf §19.4 dan §25.4 "Huruf", dan baris "Uang masuk" §19.9; dua arah lainnya dicatat singkat di §19.10.
+
+**Dasar.** Arahan pemilik produk (`_progress.md`, "Arahan pemilik produk tentang UI", 13 November 2026): "ui harus bener bener yang bisa ngebuat user nyaman, dari font, warna, layout, ... pemilihan pallete warna yang sesuai", dengan gambar rujukan "bukan untuk ditiru tapi sebagai referensi saja". Pada 11 November 2026 ia menerima sketsa hitam dengan satu aksen limau dan Manrope sebagai "gambaran" (`_progress.md` baris 218; 18 §4.13). Riset: 18 §4.13 (rujukan, galeri, palet, huruf, kenyamanan, empat arah kandidat dan sepuluh aturan yang dapat diperiksa) dan §4.12 (standar ukuran, tanda "AI slop", warna). Ukuran lead atas gambar rujukan dengan Pillow: halaman `#F4F4F4`, kartu `#FCFCFC`, hitam sekitar 7% piksel, limau sekitar `#98EC70` di bawah 3%.
+
+**Yang sama di ketiga arah.** Tata letak §4.2, §6.3, §17.8 dan pemeriksaan 22–27; skala ukuran §19.4 dan §25.4; lima unsur anti-templat §19.8 (glif, simpul, nada kata, tipografi angka, motif "angka bersama pemegangnya"), dengan perubahan yang disebut di §19.12.9; skala netral dan warna makna (§19.12.3, §19.12.4). Netral dibuat sama dengan sengaja: rujukan pemilik produk memakai abu netral murni, dan bedanya arah harus terbaca dari aksen, huruf, bentuk, dan perlakuan, bukan dari geseran abu yang hampir tak terlihat. Pengecualian satu: Arah 3 memakai halaman putih.
+
+#### 19.12.1 Tiga arah dan yang dibuang
+
+| # | Nama | Watak dalam satu kalimat | Rujukan (18) |
+|---|---|---|---|
+| 1 | **Tinta & Limau** | Hitam-putih seperti buku catatan, dengan satu sapuan stabilo limau pada yang perlu dilakukan | Rujukan pemilik produk (§4.13.1: monokrom, hitam sebagai jangkar, limau hanya isi, arsiran); galeri 6 dan 15; Wise (terbit: tombol limau dengan teks gelap, §4.13.2 baris 16); sketsa 11 November |
+| 2 | **Koral Hangat** | Abu terang yang tenang, koral hangat untuk bertindak, bentuk lebih bulat dan ramah | Monzo (koral) dan Monarch ("warmth and approachability") (§4.10.2, §4.12.4, §4.13.3) |
+| 3 | **Pulpen Biru** | Kertas putih bergaris dan tinta pulpen biru: rapi, dikenal, dipercaya | Copilot (Webby 2025), Jenius, blu (§4.10.2, §4.12.4); konvensi biru keuangan (§4.13.3) |
+
+Ketiganya berbeda di empat sumbu sekaligus: suhu warna (netral-asam, hangat, dingin), peran hitam (jangkar navigasi; tidak ada; tidak ada), bentuk (sudut sedang dengan batang persegi; bulat penuh; rapat dan bergaris), dan huruf (Manrope, Plus Jakarta Sans, Figtree).
+
+**Dibuang: "Hutan dan Limau" (18 §4.13.6 Arah 2).** Sorotannya limau yang sama dengan Arah 1, jadi pemilik produk tidak akan membandingkan dua pilihan yang sungguh berbeda; hijau hutan tua berada di keluarga teal tua yang baru ditolak (`#0C524E`, §4.12.7); dan keluarga hijau paling mudah terbaca "uang masuk" (§4.10.5 butir 8). Arah 3 dan 4 riset diambil dengan perbaikan: biru dijauhkan dari "SaaS biru" lewat struktur bergaris dan huruf, koral dipisah menjadi isi terang dan tinta gelap supaya lolos kontras (koral riset `#C9432A` di atas `#F5F5F4` hanya 4,46:1, hitungan lead).
+
+#### 19.12.2 Nama token: yang diganti
+
+Nama yang menyebut rona (`teal`, `pasir`) tidak lagi benar untuk arah lain, dan nomor `kertas-1` sampai `kertas-3` menyiratkan "makin gelap", padahal kartu kini lebih terang dari latar (§17.8). Penggantian berlaku untuk ketiga arah; `web-dev` mengganti nama di `tokens.css` dan di contoh layar dalam satu perubahan.
+
+| Lama | Baru | Peran |
+|---|---|---|
+| `kertas` | `kertas` (tetap) | Latar layar |
+| `kertas-1` | `sisip` | Baris yang disorot atau dipilih, latar isian, label netral kecil |
+| `kertas-2` | `kartu` | Kartu, kelompok daftar, gelembung pesan orang lain, permukaan mengambang tema terang |
+| `kertas-3` | `lintasan` | Lintasan batang. **Tidak pernah membawa teks** |
+| `pasir` | dihapus; perannya dipegang `sisip` | Label netral di baris adalah abu, bukan rona hangat (§17.2; 18 §4.12.8 warna butir 6) |
+| `teal` | `aksen` | Isi tindakan utama (Catat, Simpan), pil tab terpilih |
+| `di-atas-teal` | `di-atas-aksen` | Teks dan ikon di atas `aksen` |
+| `teal-muda` | `aksen-muda` | Gelembung pesan sendiri, isi tombol tonal, butir terpilih |
+| — (baru) | `aksen-tinta` | Aksen sebagai teks atau garis: tautan, label tombol bergaris dan tonal, tanda dibaca, cincin fokus |
+| — (baru) | `navigasi`, `di-atas-navigasi` | Latar bilah bawah, rail, dan sidebar; ikon dan label tab yang tidak terpilih |
+| — (baru) | `positif`, `peringatan`, `lebih`, `galat` | Warna makna (§19.12.4) |
+
+`tinta`, `tinta-2`, `garis`, `garis-tegas`, `selubung`, `bayangan`, dan `permukaan-mengambang` tetap. Token huruf, sudut, dan bentuk batang di §19.12.6 dan §19.12.7.
+
+**Mengapa `aksen` dan `aksen-tinta` dipisah.** Limau dan koral terang gagal sebagai teks di atas permukaan terang (limau di atas putih 1,4:1), tetapi justru warna itulah yang membuat arahnya hidup. Jadi warna terang dipakai sebagai **isi** dengan teks gelap di atasnya, dan peran teks dipegang token lain. Pada Arah 3 keduanya sama (`aksen-tinta` merujuk `aksen`).
+
+#### 19.12.3 Skala netral bersama
+
+| Token | Terang | Gelap | Kontras tinggi terang | Kontras tinggi gelap |
+|---|---|---|---|---|
+| `kertas` | `#F4F4F4` (Arah 3: `#FFFFFF`) | `#111111` | sama | sama |
+| `kartu` | `#FFFFFF` | `#1C1C1C` | sama | sama |
+| `sisip` | `#EEEEEE` | `#262626` | sama | sama |
+| `lintasan` | `#E2E2E2` | `#333333` | sama | sama |
+| `garis` | `#DCDCDC` | `#333333` | = `garis-tegas` | = `garis-tegas` |
+| `garis-tegas` | `#767676` | `#8C8C8C` | `#595959` | `#ADADAD` |
+| `tinta` | `#141414` | `#F0F0F0` | sama | sama |
+| `tinta-2` | `#595959` | `#ADADAD` | = `tinta` | = `tinta` |
+| `selubung` | `tinta` 40% | `#000000` 60% | sama | sama |
+| `bayangan` | `0 2px 12px` `tinta` 16% | tidak ada | sama | sama |
+| `permukaan-mengambang` | = `kartu` | = `sisip` (sebelumnya `kertas-3`; diubah agar teks di lembar gelap berada di permukaan yang dihitung) | sama | sama |
+
+Kartu terhadap latar: 1,09 di tema terang dan 1,10 di tema gelap, di atas ambang 1,08 §17.8. Arah 3 (halaman dan kartu sama-sama putih) memakai garis 1 px `garis` di sekeliling kartu, yang memang jalan kedua aturan itu. Abu netral murni, tanpa krem atau pasir (18 §4.12.8 warna butir 1); delapan langkah dengan peran tetap (butir 2). Teks hanya duduk di atas `kertas`, `kartu`, `sisip`, `aksen`, `aksen-muda`, dan `navigasi`; karena semua teks lebih gelap dari setiap permukaan terang (dan lebih terang dari setiap permukaan gelap), pasangan terburuk selalu `sisip`, dan itulah yang menentukan lulus.
+
+#### 19.12.4 Warna makna bersama: masuk, lebih dari rencana, peringatan, berhasil
+
+| Token | Arti | Terang | Gelap | Penanda bukan warna (wajib, WCAG 1.4.1) |
+|---|---|---|---|---|
+| `positif` | Uang masuk; berhasil | `#005A43` hijau kebiruan tua | `#6BD6A8` | Tanda "+" dan ikon panah masuk; "Tersimpan" dengan ikon centang |
+| `peringatan` | Mendekati batas rencana | `#6E4500` oker tua | `#E8B456` | Ikon jam pasir dan kata ("sisa Rp…") |
+| `lebih` | Lebih dari rencana | `#8C2B0A` vermilion tua | `#FF9A70` | Ikon panah melewati garis dan kalimat "Lebih Rp… dari rencana" |
+| `galat` | Hanya galat teknis (§17.2) | `#93112B` merah tua | `#FF9EAB` | Ikon galat dan kalimat tindakan |
+
+**Aturan pakai.** Warna makna hanya pada **penanda kecil**: tanda, ikon, dan satu kalimat pendek. Jumlah uang tetap `tinta` dalam segala keadaan: uang masuk ditulis "+Rp350.000" dengan "+" dan ikon panah berwarna `positif` dan angka `tinta`; ini mengganti baris pertama tabel §19.9 bila arah dipilih (alasan §19.9 butir 1 tetap: pengeluaran tidak pernah diberi warna). "Lebih dari rencana" tidak pernah berupa kartu, latar, atau angka besar berwarna (18 §4.13.6 aturan 6), dan batang tidak berubah warna (§20 D-7). Tanpa merah dan hijau murni: hijau kebiruan dan vermilion menurut panduan Okabe dan Ito untuk buta warna merah-hijau, sekitar 5% laki-laki Asia (18 §4.13.3); `peringatan` dan `lebih` sama-sama kecokelatan bagi buta warna, karena itu ikonnya berbeda bentuk. Keempat warna lolos **7:1** di setiap permukaan teks pada kedua tema, jadi tidak perlu varian kontras tinggi. `galat` menggantikan "merah sistem" di web (§25.4).
+
+#### 19.12.5 Aksen per arah
+
+**Arah 1 — Tinta & Limau.**
+
+| Token | Terang | Gelap | Kontras tinggi |
+|---|---|---|---|
+| `aksen` (isi) | `#A3EB6E` limau | `#A3EB6E` | sama |
+| `di-atas-aksen` | `#141414` | `#141414` | sama |
+| `aksen-tinta` | = `tinta` (`#141414`) | `#A3EB6E` | sama |
+| `aksen-muda` | `#ECF8DF` | `#2A3A1F` | sama |
+| `navigasi` | `#141414` | `#1C1C1C` | sama |
+| `di-atas-navigasi` | `#ADADAD` | `#ADADAD` | `#F0F0F0` |
+
+- **Limau hanya isi, tidak pernah teks atau garis di atas permukaan terang.** Paling banyak dua unsur limau per layar: tombol utama (Catat atau Simpan) dan pil tab terpilih. Luasnya di bawah 3% layar, seperti rujukan. Limau tidak masuk batang dan grafik (lihat bawah), karena warna "segar" pada data mudah terbaca "baik" atau "uang masuk" (18 §4.10.5 butir 8).
+- **Hitam sebagai jangkar.** Di tema terang, bilah bawah (Ringkas), rail (Sedang, Lebar), dan sidebar (Sangat lebar) berlatar `navigasi` hitam; tab terpilih adalah pil limau dengan ikon terisi dan label `di-atas-aksen` tebal 600. Bilah 64 px di iPhone 13 kira-kira 7–8% tinggi layar, sama dengan porsi hitam pada rujukan (sekitar 7%). Tautan dan tombol bergaris memakai `tinta` dengan garis bawah atau garis tepi `garis-tegas`. Cincin fokus `aksen-tinta`; di dalam `navigasi` tema terang cincin fokus memakai `aksen` (limau di atas hitam 12,8:1).
+- **Batang dan grafik monokrom.** Batang anggaran dan tabungan tinggi 8 px, ujung persegi (sudut 2 px), isi `tinta` di atas `lintasan`. Bagian yang belum dikonfirmasi diarsir: garis 45° selebar 1,5 px berjarak 5 px berwarna `tinta`. Seri kedua dalam grafik (Tier 2) diarsir, seri ketiga bertitik; tidak ada rona tambahan. Setiap grafik diawali kalimat ringkasan dan berlabel langsung (HIG Charting data; 18 §4.13.3).
+- **Kartu dan daftar.** Hanya *Uang kita* berbentuk kartu (`kartu`, sudut 20, padding §17.8, tanpa garis dan bayangan). Menunggu, Minggu ini, dan Anggaran adalah kelompok daftar (`kartu`, sudut 14) dengan pemisah `garis` yang menjorok. Tombol utama berbentuk pil penuh; tombol lain sudut 12; label kecil sudut 6; sudut atas lembar 24.
+- **Menghindari tanda bawaan AI (18 §4.12.5).** Ciri (b) "latar hampir hitam dengan satu aksen hijau asam" dihindari: watak utamanya terang, hitam hanya di navigasi, limau hanya isi di dua tempat. Ciri (d) "SaaS-card kit" dihindari: satu kartu, sisanya kelompok daftar, empat nilai sudut berbeda, tanpa bayangan. Tanpa label kapital berjarak lebar dan tanpa angka monospace (e).
+- **[Native].** Bilah hitam hanya untuk web. Di iOS bilah tetap kaca sistem tanpa warna (§17.1 butir 2), tab terpilih dan tombol Catat diberi limau; di Android `NavigationBar` memakai `surface` dengan penanda limau.
+
+**Arah 2 — Koral Hangat.**
+
+| Token | Terang | Gelap | Kontras tinggi |
+|---|---|---|---|
+| `aksen` (isi) | `#FF7F62` koral | `#FF9580` | sama |
+| `di-atas-aksen` | `#141414` | `#141414` | sama |
+| `aksen-tinta` | `#B5391F` koral tua | `#FF9580` | = `tinta` (kedua tema) |
+| `aksen-muda` | `#FFE4DC` | `#3D2420` | sama |
+| `navigasi` | = `kartu` | = `kartu` | sama |
+| `di-atas-navigasi` | = `tinta-2` | = `tinta-2` | = `tinta` |
+
+- **Koral isi, koral tua tinta.** Tombol utama koral dengan teks hitam; tab terpilih berupa pil `aksen-muda` dengan ikon terisi dan label `aksen-tinta` tebal 600; tautan, tombol bergaris, dan tanda dibaca `aksen-tinta`. Koral terang tidak pernah teks di atas permukaan terang (2,4:1 di atas putih). Luas koral terang paling banyak 5% layar; paling banyak dua unsur koral terang per layar.
+- **Koral tidak pernah dekat jumlah uang** (18 §4.13.6 Arah 4): tidak sebagai warna angka, batang, atau latar baris. Risiko yang tersisa: `aksen-tinta` koral tua dan `lebih` vermilion tua sama-sama kemerahan. Karena itu `lebih` selalu disertai ikon panah melewati garis dan kalimatnya, dan tautan selalu bergaris bawah.
+- **Bentuk bulat.** Kartu *Uang kita* sudut 24, kelompok daftar 18, semua tombol pil penuh, label kecil pil, sudut atas lembar 28. Batang tinggi 10 px berujung bulat, isi `tinta-2`, bagian belum dikonfirmasi diarsir `tinta-2`.
+- **Menghindari ciri (a) 18 §4.12.5** (latar krem, judul serif, aksen terakota): latar abu netral `#F4F4F4`, tanpa huruf serif, dan koral yang terang dan jenuh, bukan tanah liat.
+
+**Arah 3 — Pulpen Biru.**
+
+| Token | Terang | Gelap | Kontras tinggi terang | Kontras tinggi gelap |
+|---|---|---|---|---|
+| `kertas` | `#FFFFFF` | `#111111` | sama | sama |
+| `aksen` (isi dan teks) | `#2443C4` biru pulpen | `#8DBBFF` | `#1D36A8` | sama |
+| `di-atas-aksen` | `#FFFFFF` | `#141414` | sama | sama |
+| `aksen-tinta` | = `aksen` | = `aksen` | = `aksen` | = `aksen` |
+| `aksen-muda` | `#E6ECFB` | `#1C2A45` | sama | sama |
+| `navigasi` | = `kartu`, garis atas `garis` | = `kartu` | sama | sama |
+| `di-atas-navigasi` | = `tinta-2` | = `tinta-2` | = `tinta` | = `tinta` |
+
+- **Biru untuk bertindak, sebagai isi maupun teks.** Tombol utama biru dengan teks putih; tab terpilih pil `aksen-muda` dengan ikon dan label `aksen`; tautan biru bergaris bawah. Biru tidak pernah mewarnai jumlah atau batang (§19.2 butir 2). Rona sekitar 228°, biru, bukan nila atau ungu, dan tanpa gradasi (18 §4.13.6 aturan 9).
+- **Struktur buku bergaris.** Halaman putih. *Uang kita* satu-satunya kartu: putih, garis 1 px `garis`, sudut 12. Kelompok daftar **tanpa wadah**: baris di atas halaman, dipisah garis rambut `garis` selebar isi, judul bagian di atasnya, seperti buku kas bergaris. Tombol sudut 8, label kecil sudut 4, sudut atas lembar 16.
+- **Batang seperti penggaris.** Garis 4 px berujung persegi, isi `tinta-2` di atas `lintasan`, dengan takik 1 px `garis-tegas` setiap seperempat. Bagian belum dikonfirmasi digambar putus-putus (4 px isi, 3 px celah), karena arsiran tidak terbaca pada batang 4 px.
+- **Risiko.** Paling dekat dengan "SaaS biru" yang generik dan paling jauh dari selera pemilik produk yang dinyatakan (18 §4.13.6). Kekhasannya harus datang dari struktur bergaris, angka, glif, dan kata.
+
+#### 19.12.6 Huruf dan angka per arah
+
+Satu keluarga huruf untuk seluruh teks web, angka maupun isi, mengganti "huruf sistem untuk isi" di §25.4: rujukan pemilik produk memakai satu keluarga, huruf sistem disebut tanda generik (18 §4.12.5, §4.13.4 butir 2), dan aturan 10 18 §4.13.6 menggagalkan lebih dari satu keluarga. Untuk aplikasi native, §17.3 diputuskan ulang saat jalurnya mulai.
+
+| | Arah 1 | Arah 2 | Arah 3 |
+|---|---|---|---|
+| Huruf | **Manrope** (berkas Google Fonts versi 4.505 atau lebih baru) | **Plus Jakarta Sans** (berkas yang sudah ada di repositori) | **Figtree** (berkas Google Fonts versi 2.002 atau lebih baru) |
+| Lisensi; `tnum` | OFL; `tnum` ada di 4.505, **tidak** di build lama (18 §4.13.4) | OFL 1.1; `tnum` ada (18 §4.13.4) | OFL; `tnum` ada di 2.002 (18 §4.13.4) |
+| Alasan | Pilihan pemilik produk 11 November; grotesk geometris yang agak rapat, angkanya tegas | Buatan Tokotype, Indonesia: "terasa buatan Indonesia lewat huruf" (§19.2); bukaannya lebar dan ramah | Geometris ramah dan jelas pada ukuran kecil; tidak seumum Inter atau Geist di keluaran alat AI |
+| Bobot | Isi 400, label 500, judul 700; `angka-utama` 700 | Isi 400, label 500, judul 700; `angka-utama` 600 | Isi 400, label 500, judul 700; `angka-utama` 600 |
+
+**Skala tetap §25.4** (`angka-utama` 2,5 rem, `angka-besar` 1,75 rem, `angka-baris` 1,0625 rem, `judul-bagian` 1,25 rem, isi 1 rem, terkecil 0,8125 rem): perbandingan angka utama terhadap judul kartu sudah sekitar dua kali, seperti rujukan (18 §4.13.1), dan aturan berhenti-membesar §19.4 bergantung pada skala ini. Tidak ada bobot Thin atau Light.
+
+**Angka.** Rupiah tanpa desimal (§17.3), jadi padanan "desimal yang diredam" pada rujukan adalah **"Rp" yang diredam**: 60% ukuran angka, warna `tinta-2`, garis dasar sama, pada `angka-utama` dan `angka-besar` (§19.4). `tinta-2` lolos 6,0:1 atau lebih di setiap permukaan, sedangkan desimal abu rujukan hanya 2,81:1 (18 §4.13.1). Titik ribuan sewarna dengan angkanya; meredam "000" tidak dipakai karena mengubah cara jumlah dibaca. `tabular-nums` pada setiap token angka. `web-dev` memeriksa `tnum` dengan fontTools pada berkas yang benar-benar dikirim, bukan pada halaman Google Fonts (18 §4.13.6 aturan 3), lalu menjalankan pemeriksaan lebar "Rp1.111.111" dan "Rp8.888.888" (§19.4).
+
+#### 19.12.7 Bentuk per arah, ringkas
+
+| | Arah 1 | Arah 2 | Arah 3 |
+|---|---|---|---|
+| Halaman | Abu `#F4F4F4` | Abu `#F4F4F4` | Putih |
+| *Uang kita* | Kartu putih, sudut 20, tanpa garis | Kartu putih, sudut 24, tanpa garis | Kartu putih, garis 1 px, sudut 12 |
+| Kelompok daftar | Putih, sudut 14 | Putih, sudut 18 | Tanpa wadah; garis rambut antarbaris |
+| Tombol utama; tombol lain; label kecil; lembar | Pil; 12; 6; 24 | Pil; pil; pil; 28 | 8; 8; 4; 16 |
+| Navigasi | Hitam; tab terpilih pil limau | Putih; pil koral muda | Putih bergaris atas; pil biru muda |
+| Batang | 8 px persegi, `tinta`, arsiran | 10 px bulat, `tinta-2`, arsiran | 4 px dengan takik, `tinta-2`, putus-putus |
+| Bayangan | Hanya lembar dan tombol Catat yang mengambang, tema terang (`bayangan`) | Sama | Sama |
+
+Token bentuk baru: `--sudut-kelompok`, `--sudut-tombol-utama`, `--tebal-batang`, `--bobot-angka-utama`; nilai `--sudut-kartu`, `--sudut-tombol`, `--sudut-tanda`, dan `--sudut-lembar` mengikuti tabel ini dan menggantikan nilai §17.7 dan §25.4 bila arah dipilih. Aturan §17.8 nomor 7 (tidak satu sudut untuk semua) dipenuhi ketiganya.
+
+#### 19.12.8 Pemeriksaan terhadap aturan 18 §4.13.6
+
+| Aturan (gagal bila) | Arah 1 | Arah 2 | Arah 3 |
+|---|---|---|---|
+| 1. Aksen terang sebagai teks di bawah ambang | Limau tidak pernah teks di latar terang | Koral terang tidak pernah teks; teks memakai `aksen-tinta` | Biru lolos sebagai teks |
+| 2. "Rp" atau satuan diredam di bawah 4,5:1 | `tinta-2`, ≥ 6,0 | Sama | Sama |
+| 3. Jumlah tanpa `tabular-nums` atau huruf tanpa `tnum` | Diperiksa fontTools (§19.12.6) | Sama | Sama |
+| 4. Warna satu-satunya pembeda | Penanda §19.12.4; seri grafik diarsir | Sama | Sama; seri dibedakan putus-putus |
+| 5. Aksen > 10% layar atau > 2 unsur | < 3%; 2 unsur | ≤ 5%; 2 unsur | ≤ 8% (teks tautan ikut dihitung); 1 tombol berisi |
+| 6. "Lebih dari rencana" berupa kartu atau angka berwarna | Penanda kecil | Sama | Sama |
+| 7. Grafik lebih dari satu rona di luar aksen dan netral; tanpa kalimat ringkasan | Monokrom; kalimat wajib | Netral; kalimat wajib | Netral; kalimat wajib |
+| 8. Gerak saat `prefers-reduced-motion` | §25.4 "Gerak" | Sama | Sama |
+| 9. Gradasi ungu, ikon 3D, label monospace | Tidak ada | Tidak ada | Tidak ada |
+| 10. Lebih dari satu keluarga huruf, Thin atau Light | Satu keluarga, bobot 400–700 | Sama | Sama |
+
+#### 19.12.9 Anti-templat: yang tetap dan yang berubah
+
+Kelima unsur §19.8 tetap di ketiga arah. Yang berubah hanya warnanya:
+
+- **Glif (§19.5):** tetap `tinta` atau `tinta-2`, tidak pernah `aksen` (kata "teal" di §19.5 dibaca `aksen`).
+- **Ikon aplikasi (§19.5):** simpul tetap tanda tunggalnya. Arah 1: simpul limau di atas `tinta` hitam; varian gelap simpul limau di atas `#1C1C1C`. Arah 2: simpul `tinta` di atas koral (7,4:1); varian gelap simpul koral di atas `#1C1C1C`. Arah 3: simpul putih di atas biru (7,8:1); varian gelap simpul `#8DBBFF` di atas `#1C1C1C`. Layar peluncuran dan penutup netral (§19.5, §25.9): `kertas` dengan simpul berwarna ikon itu.
+- **Tipografi angka (§19.8 butir 4):** "Plus Jakarta Sans" dibaca sebagai huruf arah terpilih; aturan "Rp" kecil, tanpa desimal, dan angka sebagai unsur terbesar tetap.
+- Nada kata dan motif "angka bersama pemegangnya" tidak berubah.
+
+#### 19.12.10 Hasil kontras
+
+Rumus luminans relatif WCAG 2.2, rasio dipotong (bukan dibulatkan) ke satu desimal. Ambang: teks 4,5:1; unsur grafis dan batas komponen 3:1 (WCAG 1.4.11); semua teks 7:1 di bawah kontras tinggi. **Cara hitung:** sesi `ux-designer` ini tanpa alat shell, jadi semua angka dihitung dengan rumus itu per kanal, tanpa alat; skrip Python yang memuat setiap pasangan di bawah beserta angka yang diharapkan diserahkan kepada lead untuk dijalankan (`python3 -I`) sebelum gerbang. Angka di sini berlaku sesudah skrip itu lulus tanpa selisih. T = terang, G = gelap, KT = kontras tinggi.
+
+**Netral dan warna makna (ketiga arah).** Kolom: di atas `kertas` / `kartu` / `sisip`.
+
+| Pasangan | Ambang | T | G | KT terang | KT gelap |
+|---|---|---|---|---|---|
+| `tinta` | 4,5 (KT 7) | 16,7 / 18,4 / 15,8 | 16,5 / 14,9 / 13,2 | sama dengan T | sama dengan G |
+| `tinta-2` | 4,5 | 6,3 / 7,0 / 6,0 | 8,4 / 7,5 / 6,7 | menjadi `tinta` | menjadi `tinta` |
+| `garis-tegas` (grafis) | 3 | 4,1 / 4,5 / 3,9 | 5,6 / 5,0 / 4,5 | 6,3 / 7,0 / 6,0 | 8,4 / 7,5 / 6,7 |
+| `positif` | 7 | 7,5 / 8,2 / 7,1 | 10,6 / 9,5 / 8,5 | sama | sama |
+| `peringatan` | 7 | 7,5 / 8,3 / 7,1 | 9,9 / 9,0 / 7,9 | sama | sama |
+| `lebih` | 7 | 7,7 / 8,5 / 7,3 | 9,0 / 8,2 / 7,2 | sama | sama |
+| `galat` | 7 | 8,1 / 8,9 / 7,6 | 9,6 / 8,7 / 7,7 | sama | sama |
+| Isi batang `tinta` di atas `lintasan` / `kartu` (grafis) | 3 | 14,2 / 18,4 | 11,0 / 14,9 | sama | sama |
+| Isi batang `tinta-2` di atas `lintasan` / `kartu` (grafis) | 3 | 5,4 / 7,0 | 5,6 / 7,5 | menjadi `tinta` | menjadi `tinta` |
+
+Arah 3 dengan halaman putih: kolom `kertas` sama dengan kolom `kartu` (misalnya `tinta` 18,4, `tinta-2` 7,0, `garis-tegas` 4,5).
+
+**Arah 1 — Tinta & Limau.**
+
+| Pasangan | Ambang | T | G | KT |
+|---|---|---|---|---|
+| `di-atas-aksen` di atas `aksen` (limau) | 7 | 12,8 | 12,8 | sama |
+| `aksen-tinta` di atas `kertas` / `kartu` / `sisip` | 7 | = `tinta`: 16,7 / 18,4 / 15,8 | 13,1 / 11,9 / 10,5 | sama |
+| `tinta` di atas `aksen-muda` | 7 | 16,7 | 10,6 | sama |
+| `aksen-tinta` di atas `aksen-muda` | 7 | 16,7 | 8,5 | sama |
+| `di-atas-navigasi` di atas `navigasi` | 4,5 (KT 7) | 8,2 | 7,5 | 16,1 (T) / 14,9 (G) |
+| Pil tab dan cincin fokus `aksen` di atas `navigasi` (grafis) | 3 | 12,8 | 11,9 | sama |
+
+**Arah 2 — Koral Hangat.**
+
+| Pasangan | Ambang | T | G | KT |
+|---|---|---|---|---|
+| `di-atas-aksen` di atas `aksen` (koral) | 7 | 7,4 | 8,6 | sama |
+| `aksen-tinta` di atas `kertas` / `kartu` / `sisip` | 4,5 | 5,3 / 5,8 / 5,0 | 8,8 / 8,0 / 7,1 | menjadi `tinta` |
+| `tinta` di atas `aksen-muda` | 7 | 15,2 | 12,5 | sama |
+| `aksen-tinta` di atas `aksen-muda` (label tab, tombol tonal) | 4,5 | 4,8 | 6,7 | menjadi `tinta`: 15,2 / 12,5 |
+
+**Arah 3 — Pulpen Biru.**
+
+| Pasangan | Ambang | T | G | KT terang | KT gelap |
+|---|---|---|---|---|---|
+| `di-atas-aksen` di atas `aksen` | 7 | 7,8 | 9,3 | 9,7 | sama dengan G |
+| `aksen` di atas `kertas` / `kartu` / `sisip` | 4,5 (KT 7) | 7,8 / 7,8 / 6,7 | 9,6 / 8,6 / 7,6 | 9,7 / 9,7 / 8,4 | sama dengan G |
+| `tinta` di atas `aksen-muda` | 7 | 15,5 | 12,5 | sama | sama |
+| `aksen` di atas `aksen-muda` | 4,5 (KT 7) | 6,6 | 7,2 | 8,2 | sama dengan G |
+
+**Hasil: 0 pasangan gagal** di ketiga arah dan keempat mode. Pasangan di bawah ambang berikut **bukan** kegagalan karena tidak diwajibkan, dan dicatat supaya tidak dipakai untuk peran lain: `garis` terhadap permukaan (pemisah dekoratif, bukan satu-satunya pembeda); `lintasan` terhadap `kartu` (yang diwajibkan adalah isi batang terhadap lintasan); tepi tombol limau terhadap `kartu` 1,4:1 dan tombol koral 2,4:1 (tombol dikenali dari labelnya, yang lolos; WCAG 1.4.11 tidak mewajibkan batas tombol berlabel); tepi `aksen-muda` terhadap `kartu` (gelembung dan pil dikenali dari isi, ikon terisi, dan bobot label); kartu terhadap latar (1,09 dan 1,10, diatur §17.8, bukan WCAG).
+
+#### 19.12.11 Yang dibutuhkan `web-dev` untuk contoh layar yang dapat dialihkan
+
+Rencana lead: satu set halaman contoh dengan pengalih arah. Isinya:
+
+1. **Token per arah.** `tokens.css` memuat tiga blok, `:root[data-arah="limau"]`, `[data-arah="koral"]`, dan `[data-arah="biru"]`, masing-masing dengan nilai terang, gelap (`prefers-color-scheme: dark`), dan kontras tinggi (`prefers-contrast: more`) dari §19.12.3–§19.12.5, ditambah token bentuk dan huruf §19.12.6–§19.12.7. Blok `forced-colors` tetap satu untuk semua arah, dengan nama baru. Penggantian nama §19.12.2 dikerjakan di `tokens.css` dan `design-samples/` sekaligus; tidak ada nama lama yang tersisa.
+2. **Pengalih hanya di halaman contoh**, tidak di produk: tiga pilihan arah, ditambah penimpa tema (`data-tema="terang"` atau `"gelap"`) dan penimpa kontras (`data-kontras="tinggi"`), supaya pemilik produk dapat membandingkan di perangkat tanpa mengubah setelan sistem. Keadaan pengalih dibawa di alamat (`?arah=koral&tema=gelap`), tanpa penyimpanan di perangkat. Halaman yang sama, data rekaan yang sama (§19.8), keempat konteks §25.11.
+3. **Tiga berkas huruf** WOFF2 variabel dari origin sendiri (SEC-160 (d)): Manrope ≥ 4.505, Plus Jakarta Sans yang sudah ada, Figtree ≥ 2.002, masing-masing dengan bobot 400–700 dan berkas lisensi OFL-nya. Pemeriksaan fontTools atas `tnum` dan pemeriksaan lebar angka §19.4 per huruf.
+4. **Perbedaan struktur yang bukan sekadar token**: navigasi hitam Arah 1; kelompok daftar tanpa wadah dengan garis rambut di Arah 3; batang (persegi berarsir, bulat berarsir, penggaris bertakik putus-putus). Semuanya lewat pemilih atribut `data-arah` di CSS, tanpa cabang di komponen.
+5. **Ikon aplikasi tiga varian** (§19.12.9) untuk manifest contoh, supaya ikon di layar utama iPhone dan peluncur Galaxy A55 ikut dinilai.
+6. Lead menjalankan skrip kontras §19.12.10 dan menyerahkan tangkapan layar Ringkas, Sedang, dan Lebar per arah untuk tinjauan QG-09 sebelum gerbang.
+
+Sesudah pemilik produk memilih, dua blok lainnya, kedua berkas huruf yang tidak terpilih, dan pengalihnya dihapus; token dibekukan sesuai §19.8.
 
 ---
 
