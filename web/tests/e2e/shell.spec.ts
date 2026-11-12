@@ -1,0 +1,14 @@
+import { expect, test } from '@playwright/test';
+
+// SEC-175 (a), ADR-030 item 9: the visible name is "Casa".
+test('SEC-175: app shell has the Casa title and one h1', async ({ page }) => {
+	await page.goto('/');
+	await expect(page).toHaveTitle('Casa');
+	await expect(page.locator('h1')).toHaveCount(1);
+});
+
+// ADR-030 item 2: SPA mode, the static fallback page serves every path.
+test('ADR-030 item 2: unknown path falls back to the SPA shell', async ({ page }) => {
+	await page.goto('/does-not-exist');
+	await expect(page).toHaveTitle('Casa');
+});
