@@ -6,7 +6,7 @@ Casa is a household app for a husband and wife: they know the state of their hou
 
 | Folder | Contents |
 |---|---|
-| `server/` | Go server (`familyos` binary) |
+| `server/` | Go server (`casa` binary) |
 | `proto/` | API contract (Protobuf); from task 1.3 |
 | `web/` | Web client (PWA); from task 1.1b |
 | `golden/` | Golden test vectors for the client input aids; later in FS-1 step 1 |
