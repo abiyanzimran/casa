@@ -14,8 +14,6 @@ body {
   margin: 0;
   font-size: var(--ukuran-isi);
   line-height: 1.5;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
 }
 
 h1,
