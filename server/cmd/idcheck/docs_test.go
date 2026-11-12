@@ -39,8 +39,10 @@ func TestReadRequirementsReadsOnlyDefinitions(t *testing.T) {
 		"SCN-01": true, "SCN-02": true, "SCN-03": false, "SCN-07": false, "SCN-08": true,
 		// Stage begins with "Pilot", also in bold ("**Pilot**").
 		"SEC-01": true, "SEC-02": true, "SEC-08": true, "SEC-34": true,
-		// "bila": conditional on a later build decision.
-		"SEC-57": false, "SEC-170": false,
+		// "bila" in the first clause: conditional on a later build decision.
+		"SEC-57": false,
+		// "bila" only in a later clause: the pilot part is required.
+		"SEC-170": true,
 		// Stage does not begin with "Pilot".
 		"SEC-149": false,
 		// "Toko" tables: store rows gate the native store tracks.

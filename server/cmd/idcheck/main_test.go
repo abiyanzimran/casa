@@ -127,7 +127,7 @@ func TestRunPrintsCountsPerKind(t *testing.T) {
 		"PG\t2\t1\n" +
 		"CTH\t3\t3\n" +
 		"SCN\t5\t3\n" +
-		"SEC\t11\t4\n"
+		"SEC\t11\t5\n"
 	if code != 0 || stdout != want {
 		t.Fatalf("code %d, stdout %q; want 0, %q", code, stdout, want)
 	}

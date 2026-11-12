@@ -372,12 +372,16 @@ func readSecurityRequirements(docsDir string, reqs requirementSet) error {
 			applies = applies || mapped
 		}
 		// The stage, trimmed of spaces and bold markers, begins with "Pilot"
-		// (lead ruling 13 Nov 2026, 1.1c; 10 §0 "Pilot per klien").
+		// (lead ruling 13 Nov 2026, 1.1c; 10 §0 "Pilot per klien"). So
+		// SEC-148 "(a) Pilot; (b) …" is not required: its pilot part is a
+		// manual drill, not an automated test (same ruling).
 		stage := cell(row.tableRow, 3)
 		pilot := strings.HasPrefix(strings.TrimLeft(strings.TrimSpace(stage), "*"), "Pilot")
-		// "bila" makes the row conditional on a later build decision (lead
-		// ruling 13 Nov 2026, 1.1c).
-		conditional := strings.Contains(stage, "bila")
+		// "bila" in the first clause (up to the first ";") makes the row
+		// conditional on a later build decision; in a later clause it only
+		// qualifies a later part (lead ruling 13 Nov 2026, 1.1c).
+		firstClause, _, _ := strings.Cut(stage, ";")
+		conditional := strings.Contains(firstClause, "bila")
 		// Store rows ("Toko" tables, 10.4 §2) gate the native store tracks
 		// (14 §3.8, §3.9); the web client is in no store (lead ruling 13 Nov
 		// 2026, 1.1c).
