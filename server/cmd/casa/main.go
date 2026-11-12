@@ -1,5 +1,5 @@
-// Command casa is the Casa server binary (09.4 §6.2; ADR-030 item 9 keeps
-// "Family OS" as the existing identifier). Subcommands are added by later
+// Command casa is the Casa server binary (09.4 §6.2; owner decision 71,
+// docs/17). Subcommands are added by later
 // FS-1 tasks: migrate (1.2) and serve (1.3).
 package main
 
