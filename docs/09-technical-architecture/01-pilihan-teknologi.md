@@ -1,6 +1,6 @@
 # 09.1 — Pilihan teknologi: matriks perbandingan
 
-Bagian dari [dokumen 09](../09-technical-architecture.md). Berkas ini membandingkan opsi untuk setiap keputusan teknologi dan merekomendasikan satu. Keputusannya dicatat sebagai ADR-012 sampai ADR-026. **Checkpoint S4 (12 November 2026):** rekomendasi di §2 sampai §9 dan §11 sampai §13 diterima pemilik produk; §10 (hosting dan cadangan) tetap usulan karena S4-2 ditunda sampai menjelang deploy (indeks §1, §7). Matriks dipertahankan sebagai dasar keputusan; opsi selain yang diterima tidak dipilih. Fakta riset dikutip dari [dokumen 18](../18-market-research.md) §5 (diakses 12 November 2026). Fakta yang tidak ada di 18 diperiksa langsung pada 12 November 2026 dan dicantumkan di [indeks §9](../09-technical-architecture.md#9-fakta-yang-diperiksa-untuk-dokumen-ini).
+Bagian dari [dokumen 09](../09-technical-architecture.md). Berkas ini membandingkan opsi untuk setiap keputusan teknologi dan merekomendasikan satu. Keputusannya dicatat sebagai ADR-012 sampai ADR-026, dan ADR-030 untuk klien web (§14, sesudah S6). **Checkpoint S4 (12 November 2026):** rekomendasi di §2 sampai §9 dan §11 sampai §13 diterima pemilik produk; §10 (hosting dan cadangan) tetap usulan karena S4-2 ditunda sampai menjelang deploy (indeks §1, §7). Matriks dipertahankan sebagai dasar keputusan; opsi selain yang diterima tidak dipilih. Fakta riset dikutip dari [dokumen 18](../18-market-research.md) §5 (diakses 12 November 2026). Fakta yang tidak ada di 18 diperiksa langsung pada 12 November 2026 dan dicantumkan di [indeks §9](../09-technical-architecture.md#9-fakta-yang-diperiksa-untuk-dokumen-ini).
 
 ---
 
@@ -13,7 +13,7 @@ Batasannya berasal dari brief §1, dan setiap pilihan di berkas ini harus lolos 
 | BT-1 | Tim satu sampai tiga pengembang. Pemimpinnya kuat di Go dan Rust dan berpengalaman luas di mobile | Brief §1 | Setiap komponen tambahan menambah beban pemeliharaan bagi orang yang sama |
 | BT-2 | Pilot berupa satu rumah tangga dua orang di satu VPS sederhana | Brief §1 | Tidak dirancang untuk lalu lintas yang tidak ada; tidak ada klaster |
 | BT-3 | Pengembangan di Linux, tanpa Mac | Brief §1 | Setiap jalur iOS harus menyebut cara build, uji di iPhone, dan distribusi, beserta biayanya |
-| BT-4 | Pilot dengan data nyata di iOS dan iPadOS (iPhone 13, iPad mini 7); Android (Galaxy A55) sesudah GR-2, untuk keluarga; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) | Brief §1 baris "Pilot devices" dan "Platforms", bunyinya diselaraskan dengan keputusan 42 lewat keputusan 50 (17 K-66 selesai). Waktu Android ikut diterima atas saran lead lewat keputusan 50, dengan syarat beta dari keputusan 51: "Android is built after real data starts and joins the pilot before the beta, if a beta is ever held" | iOS dan iPadOS siap sebelum GR-2; Android tetap dirancang penuh dan dibangun di atas kontrak dan server yang sama (14 §3.8) |
+| BT-4 | **Sejak keputusan 69 (ADR-030):** pilot dengan data nyata di **klien web** pada iPhone 13 dan iPad mini 7 (web app layar utama), Galaxy A55 (Chrome), dan browser desktop; aplikasi iOS dan iPadOS native, lalu Android native, sesudah GR-2. Bunyi brief §1 belum diselaraskan (17 K). *Bunyi sebelumnya:* pilot dengan data nyata di iOS dan iPadOS (iPhone 13, iPad mini 7); Android (Galaxy A55) sesudah GR-2, untuk keluarga; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) | Brief §1 baris "Pilot devices" dan "Platforms", bunyinya diselaraskan dengan keputusan 42 lewat keputusan 50 (17 K-66 selesai). Waktu Android ikut diterima atas saran lead lewat keputusan 50, dengan syarat beta dari keputusan 51: "Android is built after real data starts and joins the pilot before the beta, if a beta is ever held" | iOS dan iPadOS siap sebelum GR-2; Android tetap dirancang penuh dan dibangun di atas kontrak dan server yang sama (14 §3.8) |
 | BT-5 | "No usage-priced managed services unless clearly justified"; penyedia `AI` adalah pengecualian yang diterima, di bawah batas biaya keras | Brief §1 tabel | Tidak ada BaaS, antrean terkelola, atau object storage per GB bila ada alternatif berharga tetap; layanan per pemakaian hanya dengan alasan yang dinyatakan (email, ADR-026) |
 | BT-6 | Server aplikasi di-host di Indonesia; `AI` diinginkan Claude atau ChatGPT | Keputusan 10 (dokumen 17 bagian keputusan S1), "Ia menginginkan AI-nya Claude atau ChatGPT, dan server aplikasi di-host di Indonesia" | Hosting dan cadangan di Indonesia; jalur `AI` R1 (10-B A) |
 | BT-7 | Tampilan dan rasa native mengalahkan berbagi kode | Brief §9.1, §10.1 | Framework yang menggambar widget sendiri ditolak kecuali terbukti |
@@ -101,7 +101,7 @@ ES §2 mewajibkan kontrak API didefinisikan satu kali dan tipe klien di-generate
 | Klien Kotlin | openapi-generator (komunitas) | connect-kotlin **0.10.x** (terlihat 0.10.0, rilis terbaru yang bukan pra-rilis; 18 §5, fase D; dicek ulang di [github.com/connectrpc/connect-kotlin/releases](https://github.com/connectrpc/connect-kotlin/releases), diakses 12 November 2026) **[Terverifikasi]** | Apollo Kotlin (pihak ketiga) | — |
 | Dapat dicoba dengan `curl` | Ya | Ya: unary Connect adalah HTTP POST dengan JSON atau protobuf | Ya | Ya |
 
-**Rekomendasi: Protobuf + Connect** (diterima, D-100), dikelola dengan `buf`: lint, `buf breaking` terhadap cabang utama, dan generate untuk Go, Swift, dan Kotlin. Kode galat domain (misalnya `state_changed`, `terms_superseded`, `currency_locked`, galat per medan) adalah satu `enum` di kontrak, sehingga ketiga bahasa memakai daftar yang sama (ES §2).
+**Rekomendasi: Protobuf + Connect** (diterima, D-100), dikelola dengan `buf`: lint, `buf breaking` terhadap cabang utama, dan generate untuk Go, Swift, dan Kotlin, serta TypeScript untuk klien web (`@bufbuild/protobuf` 2.x; ADR-013 catatan web). Dari browser hanya unary (POST) dan server streaming yang tersedia; kontrak tidak memakai client streaming atau bidi. Kode galat domain (misalnya `state_changed`, `terms_superseded`, `currency_locked`, galat per medan) adalah satu `enum` di kontrak, sehingga ketiga bahasa memakai daftar yang sama (ES §2).
 
 connect-kotlin masih 0.x, sehingga ADR-023 berlaku. Jalan mundurnya murah: unary Connect hanyalah HTTP POST ke `/<paket>.<Layanan>/<Metode>` dengan isi protobuf. Aplikasi Android dapat memakai pesan protobuf hasil generate resmi bersama klien HTTP biasa tanpa connect-kotlin, dan kontraknya tidak berubah. Rinciannya di ADR-013 butir 4.
 
@@ -269,7 +269,7 @@ Fakta dari 18 §5.2 **[Terverifikasi]**, kecuali yang diberi label lain.
 4. **Pekerjaan UI iOS harian tetap lewat jalur utama** (keputusan 43; ADR-022 butir 4): pengembangan SwiftUI tanpa pratinjau, simulator, dan debugger itu lambat (18 §5.2), dan harga itu diterima atas saran lead. Mac sewaan bulanan atau Mac mini ditinjau lagi hanya bila dana tersedia.
 5. **Membeli atau menyewa, acuan bila dana tersedia** (18 §5.2.7.6, **[Usulan]** `researcher`, dihitung ulang lead): membeli impas terhadap sewa bulanan sesudah sekitar **7,1 sampai 7,9 bulan** untuk Mac mini 16 GB/512 GB yang diusulkan `researcher` sebagai konfigurasi minimum; 5,8 sampai 6,4 bulan untuk 16 GB/256 GB (8,8 bulan terhadap sewa berkomitmen 12 bulan); 5,5 sampai 6,2 bulan untuk 24 GB/512 GB. Hanya Mac sendiri di jaringan rumah yang memberi debugger di perangkat pilot. Harga dicek ulang saat itu (14 §9).
 
-Rinciannya di [ADR-022](../adr/ADR-022-jalur-build-ios-tanpa-mac.md).
+Rinciannya di [ADR-022](../adr/ADR-022-jalur-build-ios-tanpa-mac.md). **Sejak ADR-030**, jalur ini berlaku saat jalur iOS native dimulai sesudah GR-2, bukan di FS-1; sumber Mac sekali diputuskan saat itu (ADR-022 catatan web).
 
 ---
 
@@ -298,3 +298,28 @@ Semua versi diperiksa ulang secara langsung saat fase bangun dimulai (ES §8). T
 | River (alternatif antrean) | v0.51.2 | 18 §5.7 | **0.x**: tidak dipakai di rekomendasi |
 | Target API Android | 36 (wajib untuk aplikasi baru dan pembaruan sejak 31 Agustus 2026) | 18 §5 (fase D); [developer.android.com/google/play/requirements/target-sdk](https://developer.android.com/google/play/requirements/target-sdk) | Hanya berlaku bila Play dipakai; dicatat di ADR-012 |
 | Alat kualitas per bahasa | Lihat ADR-025 | ADR-025 | Dicek saat dipasang |
+| Svelte; SvelteKit; Vite | 5.57.3; 3.2.0; 8.3.8 | 18 §5.13.1 | Stabil; dicek saat dipasang |
+| `@vite-pwa/sveltekit`; vite-plugin-pwa; Workbox | 2.0.2; 2.0.0; 7.4.1 | 18 §5.13.1 | Stabil |
+| Dexie | 4.4.7 | 18 §5.13.2 | Stabil |
+| `@connectrpc/connect-web`; `@bufbuild/protobuf` | 2.3.0; ^2.7.0 | 18 §5.13.1 | Stabil |
+| `webpush-go` (Go, pengirim Web Push) | v1.4.0 (2 Januari 2025) | 18 §5.13.3 | Stabil menurut nomor; perawatan **[Perlu validasi]**; jalan mundur stdlib (ADR-030 butir 14) |
+
+---
+
+## 14. Klien web (PWA) lebih dulu (sesudah S6)
+
+Matriks framework, penyimpanan luring, dan autentikasi SSE ada di [ADR-030](../adr/ADR-030-klien-web-pwa-lebih-dulu.md) bagian Opsi; faktanya dari 18 §5.13 (diakses 12 November 2026). Ringkasnya:
+
+| Keputusan | Pilihan | Alasan singkat |
+|---|---|---|
+| Framework | SvelteKit 3 mode SPA + Svelte 5 + `@vite-pwa/sveltekit` (`injectManifest`) | Paling ringan dengan router dan PWA bawaan; handler push sendiri |
+| Penyimpanan | IndexedDB lewat Dexie 4 | Aturan di server; SQLite WASM menambah Worker, WASM, dan `'wasm-unsafe-eval'` tanpa manfaat |
+| Kontrak | connect-web 2.x dari kontrak yang sama | Tanpa proxy; server tidak berubah |
+| SSE | `EventSource` dengan cookie sesi same-origin | Token tidak terbaca skrip; tanpa pustaka |
+| Push | Web Push VAPID dari biner Go | Tanpa biaya, tanpa keanggotaan Apple untuk web |
+| Penyajian | Bundel disematkan ke biner Go, satu origin | Satu artefak, satu hash; tanpa CORS |
+| Uji tanpa Mac | Playwright Chromium dan WebKit di CI; pengamatan tangan di iPhone dan iPad dengan halaman pemeriksaan diri staging | Web Inspector untuk iPhone dan iPad memerlukan Mac; Playwright WebKit bukan Safari (18 §5.13.8) |
+
+**Uji gerbang BT-7.** Klien web gagal gerbang native (komponen sistem tidak dapat disamai; 18 §5.13.7). Pemilik produk menerima hal itu untuk klien pertama, dan gerbang BT-7 dipenuhi oleh aplikasi native kemudian (ADR-030, Konteks). BT-8 tetap: klien web tidak memegang aturan.
+
+**Jalur iOS dan biaya tanpa Mac.** Klien web di iPhone dan iPad dibangun di CI Linux, diuji di perangkat lewat web app layar utama dari server staging, dan didistribusikan lewat URL produksi. Biayanya nol di luar VPS; tidak ada keanggotaan Apple, Xcode Cloud, atau Mac.

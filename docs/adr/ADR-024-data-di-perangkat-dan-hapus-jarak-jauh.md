@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: butir 1 sampai 4 dan 6 lewat D-102 ("lanjut"); butir 5 lewat S4-6 (i) A, pilot tanpa E2EE dan status `CARE` yang tidak dibagikan tidak pernah meninggalkan perangkat. Kata-katanya: "oke gausa e2ee" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban ketiga; dikukuhkan dengan "lanjut"). Menyelesaikan pertentangan dokumen 10 §8 butir 3, 4, dan 9 menurut rekomendasi `security-privacy` di sana |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan keputusan 43) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan keputusan 43; butir 7 klien web sesudah S6) |
 | Pengusul | `architect`, atas SEC-21, SEC-46 sampai SEC-48 (`security-privacy`) |
 | Mengubah | 06 §13.3, §13.5 (06 revisi ketiga belas; berlaku sejak S4-6 (i) A) |
 | Rincian | [09.3 §2, §3](../09-technical-architecture/03-sinkron-waktu-nyata-notifikasi.md) |
@@ -76,6 +76,33 @@ Keputusan ADR ini tidak berubah. Karena pemilik produk memilih tetap tanpa Mac (
 - **Yang ditampilkan sesudah dibuka** (di layar, tanpa isi data dan tanpa dikirim ke mana pun): jumlah tulisan yang gagal beserta kode galat SQLite, hasil `PRAGMA integrity_check`, dan apakah setiap perintah sintetis berada tepat di satu keadaan (masih di antrean atau sudah ditandai diterima), tidak dua-duanya dan tidak hilang.
 - **Aturan keputusan:** kelas paling ketat yang lulus seluruh ulangan (nol perintah hilang atau ganda, `integrity_check` bersih) dipakai, sesuai bunyi butir 1. Bila hanya Class C yang lulus, Class C tetap dan hasilnya dicatat sebagai bukti penyimpangan dari saran Apple. Hasil bertanggal masuk matriks bukti (14 §4.11) sebelum GR-2.
 - Bila uji ini tidak dapat dijalankan tanpa Mac, uji tidak dihapus: gerbangnya menunggu dan hal itu dibawa ke pemilik produk sebagai bahan meninjau keputusan 43 (10 §0).
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 5, 10, 11. Butir 1 sampai 6 berlaku bagi aplikasi native tanpa perubahan. **Butir 7 (baru), klien web** (10.5 SEC-170 sampai SEC-173):
+
+- **(a) Penyimpanan:**
+  - IndexedDB lewat Dexie, isi menurut 10.5 §5.
+  - Browser tidak memberi proteksi berkas setara Class A atau C dan tidak ada pengecualian cadangan yang dapat diatur aplikasi. Batas ini dinyatakan di "Siapa melihat apa", bukan disembunyikan.
+  - Status `CARE` yang tidak dibagikan (Tier 2) di store tersendiri, tanpa padanan Class A (10 §8 butir 17).
+  - Token sesi tidak ada di IndexedDB; ia hanya di cookie `HttpOnly` (ADR-030 butir 5).
+- **(b) Hapus jarak jauh** (padanan butir 4):
+  - `session_revoked` dari RPC, SSE, atau `Sync` menghapus IndexedDB, Cache Storage selain app shell, langganan push, dan memori, **di semua tab** lewat `BroadcastChannel`, sebelum layar lain tampil.
+  - Saat dibuka dan tersambung, sesi diperiksa paling lama 3 detik **[Asumsi]** sebelum data lokal tampil.
+  - Tidak ada push senyap di web, jadi browser yang tidak pernah dibuka lagi menyimpan salinannya. Hal itu dinyatakan di layar cabut sesi (SEC-172 (e); TM-41).
+- **(c) Antrean yang dapat dihapus browser** (TM-44):
+  - `navigator.storage.persist()` diminta di mode pribadi.
+  - Di iPhone dan iPad, masuk akun hanya di web app layar utama (ADR-030 butir 11).
+  - Jumlah catatan belum terkirim selalu tampil, ditambah kalimat risiko bila `persist()` tidak dikabulkan.
+  - Basis data lokal yang hilang sementara sesi sah dinyatakan kepada pengguna, lalu sinkron ulang dari potret awal.
+  - Galat kuota tidak menutup isian.
+- **(d) Beberapa tab:**
+  - Satu pengirim antrean per profil lewat Web Locks.
+  - Keluar akun, `session_revoked`, F06, dan kunci aplikasi berlaku di semua tab.
+- **(e) Mode bersama** (SEC-165): tanpa IndexedDB, push, dan kunci aplikasi; data hanya di memori tab.
+- **(f) Pindah perangkat** (padanan butir 6): sama; sebelum keluar akun, jumlah catatan belum terkirim tampil.
+- **Bukti di perangkat tanpa Mac:** pengamatan tangan di iPhone 13 dan iPad mini 7, dibantu halaman pemeriksaan diri staging (SEC-179). Halaman itu menampilkan isi store IndexedDB (nama dan jumlah, tanpa isi data), hasil `persist()`, `estimate()`, dan keadaan cache. Uji otomatis di Playwright Chromium dan WebKit di CI. Hasil bertanggal masuk matriks bukti (14 §4.11) sebelum GR-2.
+- **Catatan keputusan 43 di atas** (uji kelas proteksi iOS) berlaku saat jalur iOS native, bukan sebelum GR-2.
 
 ## Konsekuensi
 

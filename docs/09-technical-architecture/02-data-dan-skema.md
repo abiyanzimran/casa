@@ -162,6 +162,27 @@ account (
   locale      text NOT NULL DEFAULT 'id'
 )
 
+-- Satu baris per perangkat atau browser yang masuk (SEC-15, SEC-161, SEC-165; ADR-030 butir 5).
+-- Native: token akses berumur pendek + refresh_token. Web: satu token di cookie __Host-, diputar di sini.
+session (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id       uuid NOT NULL REFERENCES account(id),
+  client_kind      text NOT NULL CHECK (client_kind IN ('ios','android','web')),
+  device_mode      text NOT NULL DEFAULT 'personal' CHECK (device_mode IN ('personal','shared')),
+  ua_summary       text NOT NULL,         -- "Safari · iOS 26", dipotong; untuk daftar sesi (FR-FAM-022)
+  token_hash       bytea NOT NULL UNIQUE, -- SHA-256 token akses (native) atau token cookie (web)
+  prev_token_hash  bytea NULL,            -- web: nilai sebelum rotasi
+  prev_valid_until timestamptz NULL,      -- web: +60 detik; pakai ulang sesudahnya mencabut sesi
+  client_version   text NOT NULL,         -- dibandingkan dengan versi minimum per client_kind (ADR-028 butir 5)
+  created_at       timestamptz NOT NULL,
+  last_used_at     timestamptz NOT NULL,  -- dasar batas diam
+  idle_timeout     interval NOT NULL,     -- web pribadi 30 hari; web bersama 30 menit
+  absolute_expiry  timestamptz NOT NULL,  -- web pribadi +180 hari; web bersama +12 jam
+  revoked_at       timestamptz NULL,
+  revoke_reason    text NULL,             -- user | reuse_detected | exit | purge (berakhir karena umur tidak dicatat di sini)
+  CHECK (client_kind = 'web' OR device_mode = 'personal')   -- mode bersama hanya di web
+)
+
 idempotency_record (
   scope_id         uuid NOT NULL,          -- household_id, atau account_id untuk perintah tingkat akun
   idempotency_key  uuid NOT NULL,          -- dibuat klien, satu per niat (ADR-005)
@@ -293,7 +314,16 @@ notification (
   push_ref     uuid NOT NULL DEFAULT gen_random_uuid(),  -- pengenal opak di payload (SEC-50)
   ...
 )
-push_token (session_id uuid PRIMARY KEY, platform text, token text, updated_at timestamptz)
+-- Satu tabel untuk ketiga kanal, sehingga penghapusan SEC-58 punya satu jalur (ADR-019 catatan web).
+push_token (
+  session_id  uuid PRIMARY KEY REFERENCES session(id) ON DELETE CASCADE,
+  platform    text NOT NULL CHECK (platform IN ('apns','fcm','webpush')),
+  token       text NOT NULL,              -- token APNs/FCM, atau endpoint Web Push (host dari daftar izin, ADR-030 butir 14)
+  p256dh      bytea NULL,                 -- kunci publik langganan, hanya webpush (RFC 8291)
+  auth        bytea NULL,                 -- rahasia autentikasi 16 byte, hanya webpush
+  updated_at  timestamptz NOT NULL,
+  CHECK ((platform = 'webpush') = (p256dh IS NOT NULL AND auth IS NOT NULL))
+)
 
 -- Mekanisme Apple 1.2, Tier 1 (10-G A, S4-7 A; FR-COM-019; 06 §16.12; SEC-153, SEC-154)
 member_mute (household_id, viewer uuid, muted_member uuid, created_at,

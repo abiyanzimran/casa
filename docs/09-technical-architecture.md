@@ -1,6 +1,6 @@
 # 09 — Arsitektur teknis
 
-**Status:** **S6 (12 November 2026): pass konsistensi**: ADR-028 kini diterima seluruhnya (keputusan 56); pemicu `content_report`, SEC-36, dan SEC-154 dinyatakan menurut keanggotaan pengelola dan pengguna luar pertama (GR-4; keputusan 52); baris SEC-18 dan SEC-25 di 09.4 §8; perkiraan offline hanya pilihan kelak (riwayat di akhir). Versi S4 fase D ditulis `architect`; temuan `critic` CS-A-01 sampai CS-A-26 sudah ditangani, dan dokumen ini ditinjau ulang `critic` pada S4 fase D, S5 (A, A2), dan putaran keputusan 51–55 ([_progress.md](_progress.md)). Stack mobile diputuskan pemilik produk ("Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend."; [_progress.md](_progress.md); [ADR-012](adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 1). **Checkpoint S4 (12 November 2026):** pemilik produk menjawab semua pertanyaan 09-A sampai 09-G kecuali 09-B, dan mengukuhkannya dengan "lanjut" ([_progress.md](_progress.md), "Checkpoint S4: jawaban pemilik produk", "Keputusan checkpoint S4"). Pilihan yang diterima tercatat di §1 dan §7; ADR yang diterima dicatat di §3. **Hosting, cadangan, dan email (S4-2; ADR-020, ADR-026) tetap usulan**, karena pemilik produk menundanya sampai menjelang deploy ("#S4-2: nanti aja pas mau deploy"), yang menurut keputusan 45 berarti sebelum deploy pertama yang memegang data nyata (GR-2; 14 §7.8); syarat server di Indonesia (keputusan 10) tetap mengikat. Keputusan 43 sampai 50 (12 November 2026) dicatat di §1, §3, §5, §6, dan §7. Keputusan 51 (go public tidak direncanakan, tetap terbuka) dicatat di §5 dan §6: tahap publik menjadi syarat bila diambil, bukan jadwal; tidak ada pilihan arsitektur yang berubah. Rincian di bawah yang tidak disebut keputusan checkpoint tetap **[Usulan]** `architect`.
+**Status:** **Sesudah S6 (12 November 2026): web lebih dulu.** Klien web (PWA) dibangun pertama dan GR-2 berjalan di web saja (keputusan 69; [ADR-030](adr/ADR-030-klien-web-pwa-lebih-dulu.md), diterima): klien web di §1, §2, §3; sesi web, SSE dengan cookie, dan Web Push di 09.2, 09.3, 09.4; biaya pilot tanpa Apple Developer Program sampai jalur iOS native (09.4 §7.1); temuan audit 9 (§5 baris advokat) diperbaiki. Aplikasi native tetap dirancang dan dibangun sesudah GR-2. Bunyi baru ES §2, §3, §8 menunggu pratinjau pemilik produk (ADR-030 butir 15 sampai 17). **S6 (12 November 2026): pass konsistensi**: ADR-028 kini diterima seluruhnya (keputusan 56); pemicu `content_report`, SEC-36, dan SEC-154 dinyatakan menurut keanggotaan pengelola dan pengguna luar pertama (GR-4; keputusan 52); baris SEC-18 dan SEC-25 di 09.4 §8; perkiraan offline hanya pilihan kelak (riwayat di akhir). Versi S4 fase D ditulis `architect`; temuan `critic` CS-A-01 sampai CS-A-26 sudah ditangani, dan dokumen ini ditinjau ulang `critic` pada S4 fase D, S5 (A, A2), dan putaran keputusan 51–55 ([_progress.md](_progress.md)). Stack mobile diputuskan pemilik produk ("Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend."; [_progress.md](_progress.md); [ADR-012](adr/ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 1). **Checkpoint S4 (12 November 2026):** pemilik produk menjawab semua pertanyaan 09-A sampai 09-G kecuali 09-B, dan mengukuhkannya dengan "lanjut" ([_progress.md](_progress.md), "Checkpoint S4: jawaban pemilik produk", "Keputusan checkpoint S4"). Pilihan yang diterima tercatat di §1 dan §7; ADR yang diterima dicatat di §3. **Hosting, cadangan, dan email (S4-2; ADR-020, ADR-026) tetap usulan**, karena pemilik produk menundanya sampai menjelang deploy ("#S4-2: nanti aja pas mau deploy"), yang menurut keputusan 45 berarti sebelum deploy pertama yang memegang data nyata (GR-2; 14 §7.8); syarat server di Indonesia (keputusan 10) tetap mengikat. Keputusan 43 sampai 50 (12 November 2026) dicatat di §1, §3, §5, §6, dan §7. Keputusan 51 (go public tidak direncanakan, tetap terbuka) dicatat di §5 dan §6: tahap publik menjadi syarat bila diambil, bukan jadwal; tidak ada pilihan arsitektur yang berubah. Rincian di bawah yang tidak disebut keputusan checkpoint tetap **[Usulan]** `architect`.
 
 **Pemilik:** `architect`. Keamanan dan privasi dimiliki `security-privacy` ([dokumen 10](10-security-privacy.md)); dokumen ini memenuhi persyaratannya (pemetaan di berkas 04 §8). Aturan uang kanonis di [07](07-financial-domain.md), dan aturan alur di [06](06-activity-approval-architecture.md).
 
@@ -20,21 +20,23 @@
 
 ## 1. Ringkasan rekomendasi
 
-Ringkasnya, Family OS dibangun sebagai **satu monolit modular Go dengan satu PostgreSQL 18**, di satu VPS di Indonesia (usulan: Biznet Gio; menunggu S4-2). Aplikasi native SwiftUI dan Jetpack Compose memanggilnya lewat **kontrak Protobuf dan Connect** yang di-generate untuk ketiga bahasa.
+Ringkasnya, Family OS dibangun sebagai **satu monolit modular Go dengan satu PostgreSQL 18**, di satu VPS di Indonesia (usulan: Biznet Gio; menunggu S4-2). **Klien web (PWA) lebih dulu** (ADR-030): SvelteKit mode SPA dan Svelte 5, IndexedDB lewat Dexie, dilayani biner Go yang sama dari satu origin; GR-2 berjalan di web saja. Aplikasi native SwiftUI dan Jetpack Compose menyusul sesudah GR-2. Semua klien memanggil server lewat **kontrak Protobuf dan Connect** yang di-generate untuk Go, TypeScript, Swift, dan Kotlin.
 
 - **Aturan hanya di server.** Perangkat tidak menghitung aturan uang atau persetujuan, juga tidak menghitung perkiraan offline. Yang tersisa di perangkat adalah tiga bantuan isian kecil yang ditulis per platform dan dijaga vektor uji emas dari server. Itu pengecualian ES §2 yang disetujui tegas oleh pemilik produk (09-F A, S4-1 (ii)) dan sudah tercantum di ES §2.
 - **Penulisan.** Setiap perintah tulis berjalan dalam satu transaksi `SERIALIZABLE` yang juga menulis Peristiwa, umpan per pembaca, notifikasi, dan pekerjaan latar. Message broker tidak ada.
-- **Waktu nyata.** Aplikasi di depan menerima tanda lewat SSE lalu menarik lewat satu jalur baca. Aplikasi di latar hanya menerima push umum dari APNs dan FCM.
+- **Waktu nyata.** Aplikasi di depan menerima tanda lewat SSE lalu menarik lewat satu jalur baca. Aplikasi di latar hanya menerima push umum: Web Push dengan VAPID untuk klien web, APNs dan FCM untuk aplikasi native.
 - **Cadangan.** Dienkripsi di VPS lalu dikirim ke VPS lain di Indonesia; data yang dihapus bertahan paling lama 38 hari di salinan mana pun (D-104, diterima). Penyedianya menunggu S4-2.
 - **Email.** Usulan: Amazon SES di Jakarta lewat API HTTPS, hanya untuk verifikasi, pemulihan, dan tanda ke operator (menunggu S4-2).
 - **`AI`.** Hanya membangun kumpulan kalimat tanpa data rumah tangga.
-- **iOS.** Dibangun di Xcode Cloud dan diuji lewat TestFlight internal, tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43).
+- **Web.** Dibangun di CI Linux, bundel berhash disematkan ke biner server; tanpa Mac, tanpa toko, tanpa biaya Apple (ADR-030).
+- **iOS (sesudah GR-2).** Dibangun di Xcode Cloud dan diuji lewat TestFlight internal, tanpa Mac bulanan atau milik sendiri sampai dana ada (keputusan 43); berlaku sejak jalur iOS native dimulai (ADR-022 catatan web).
 
 Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.md](_progress.md), "Keputusan checkpoint S4").
 
 | Lapisan | Pilihan | ADR | Kedudukan |
 |---|---|---|---|
-| UI | SwiftUI (iOS, iPadOS) dan Jetpack Compose Material 3 (Android) | ADR-012 | **Diputuskan pemilik produk** (butir 1, sebelum S4) |
+| Klien pertama dan urutan platform | Klien web (PWA): SvelteKit 3 mode SPA, Svelte 5, Dexie 4, connect-web 2.x, `EventSource`, Web Push; GR-2 di web; lalu iOS dan iPadOS native, lalu Android native | ADR-030 | **Urutan diputuskan pemilik produk sendiri** (keputusan 69); **stack diterima atas saran lead** (`_progress.md`, "Jawaban pemilik produk") |
+| UI native | SwiftUI (iOS, iPadOS) dan Jetpack Compose Material 3 (Android), sesudah GR-2 | ADR-012 | **Diputuskan pemilik produk** (butir 1, sebelum S4) |
 | Versi OS minimum | iOS dan iPadOS 26; Android 10 (API 29), target API 36 | ADR-012 | **Diterima** (09-E A; S4-3 (ii) A) |
 | Letak logika bersama | Server saja; tanpa perkiraan offline; tiga bantuan isian berpagar sebagai pengecualian ES §2 | ADR-013 | **Diterima** (09-F A; S4-1 (ii) A); pengecualian tercantum di ES §2 |
 | Kontrak API dan validasi | Protobuf + Connect, dikelola `buf`; aturan bentuk sebagai anotasi protovalidate, ditegakkan server | ADR-013 | **Diterima** (D-100) |
@@ -46,10 +48,10 @@ Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.m
 | Push | Langsung ke APNs dan FCM, payload umum, tanpa ekstensi notifikasi | ADR-019 | **Diterima** (D-101) |
 | Hosting dan cadangan | Usulan: Biznet Gio NEO Lite MS 4.2 (PT Biznet Gio Nusantara); cadangan di VPS IDCloudHost (PT Cloud Hosting Indonesia **[Perlu validasi]**) | ADR-020 | **Diusulkan; ditunda sampai menjelang deploy** (S4-2). Syarat di Indonesia tetap mengikat |
 | `AI` | R1 kumpulan kalimat, Claude Sonnet 5.5 untuk membangun kumpulan, batas USD 10 per bulan dan USD 3 per pembangunan | ADR-021 | **Diterima** (10-B A, 09-D A; S4-4 (i), (ii) A) |
-| Build iOS | Xcode Cloud + TestFlight internal, dengan sewa Mac sekali; tanpa Mac bulanan atau milik sendiri sampai dana ada | ADR-022 | **Diterima** (09-C A; S4-3 (i) A); butir 4 diubah keputusan 43 |
-| Irama rilis iOS | Rilis pemeliharaan bila 60 hari tanpa rilis; batas keras 80 hari sejak unggahan TestFlight | ADR-028 butir 4 | Diterima atas saran lead (keputusan 44) |
+| Build iOS | Xcode Cloud + TestFlight internal, dengan sewa Mac sekali; tanpa Mac bulanan atau milik sendiri sampai dana ada; **berlaku sejak jalur iOS native** | ADR-022 | **Diterima** (09-C A; S4-3 (i) A); butir 4 diubah keputusan 43; waktunya diubah ADR-030 |
+| Irama rilis | Web: rilis server berisi bundel, tanpa toko. iOS (sejak jalur native): rilis pemeliharaan bila 60 hari tanpa rilis; batas keras 80 hari sejak unggahan TestFlight | ADR-028 butir 4 dan catatan web | Diterima atas saran lead (keputusan 44; ADR-030) |
 | Lingkungan, pelepasan fitur, tahan tulis, kompatibilitas klien | Staging di VPS yang sama dengan basis data terpisah sejak GR-2; tanpa feature flag; saklar tahan tulis yang tidak pernah menahan perintah pelindung; server melayani build yang masih terpasang | ADR-028 butir 1, 2, 3, 5 | Diterima atas saran lead (keputusan 56) |
-| Perangkat pengukuran ES §3 | iPhone 13 dan iPad mini 7 sebelum data nyata pertama; Galaxy A55 sebelum aplikasi Android memegang data nyata | ADR-029 | **Diterima** atas saran lead (keputusan 50) |
+| Perangkat pengukuran ES §3 | iPhone 13 dan iPad mini 7 sebelum data nyata pertama; Galaxy A55 sebelum aplikasi Android memegang data nyata. Klien web: ketiganya sebelum GR-2 | ADR-029 dan catatan web | **Diterima** atas saran lead (keputusan 50); bunyi ES baru untuk web menunggu pratinjau |
 | Versi 0.x dan API eksperimental | Boleh bila memenuhi lima syarat dan tercatat dengan jalan mundurnya | ADR-023 | **Diterima** (09-G A; S4-1 (iii) A); kalimatnya tercantum di ES §8 |
 | Data perangkat | Proteksi berkas Class C (`CARE` lokal Class A), dikecualikan dari cadangan dan transfer, hapus jarak jauh | ADR-024 | **Diterima** (D-102; 10-D A, S4-6 (i) A) |
 | Alat kualitas | Formatter, linter, pemindai kerentanan, dan pemeriksa duplikasi per bahasa | ADR-025 | **Diterima** (D-103) |
@@ -60,7 +62,8 @@ Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.m
 
 1. **Go dibandingkan Rust.** Keduanya memerlukan pustaka 0.x. Di Go, pustaka 0.x itu (`golang.org/x/crypto`, `golang.org/x/oauth2`) berasal dari proyek Go sendiri dan berada di tepi sistem; jalur setiap permintaan memakai pustaka ≥ 1.0. Di Rust, framework HTTP (axum) dan akses basis data (sqlx) masih 0.x dan berada di jalur setiap permintaan. Rust memberi tipe yang lebih ketat dan kemungkinan inti bersama kelak.
 2. **Server saja dibandingkan inti bersama.** Server saja menghemat satu bahasa dan langkah build yang hanya dapat dikompilasi di macOS. Harganya: perangkat tidak menghitung tanda, sisa, atau perkiraan saat offline (06 S-8, S-9), dan tiga bantuan isian ditulis dua kali dengan pagar uji.
-3. **Xcode Cloud tanpa Mac.** Biayanya hampir nol, tetapi siklus UI iOS lambat.
+3. **Xcode Cloud tanpa Mac.** Biayanya hampir nol, tetapi siklus UI iOS lambat. Sejak ADR-030, harga ini hanya dibayar di jalur iOS native sesudah GR-2.
+7. **Web lebih dulu dibandingkan native lebih dulu** (ADR-030). Data nyata lebih cepat di ketiga perangkat, tanpa Mac dan tanpa biaya Apple, dengan siklus UI di Linux. Harganya: web tidak terasa native di ponsel (diterima pemilik produk), antrean luring lebih rapuh di browser (TM-44), pengelola dapat mengubah kode web per akun (TM-42), dan rantai pasok npm (TM-38).
 4. **Foto di PostgreSQL.** Cadangan dan penghapusannya sederhana, dengan batas pindah yang dinyatakan.
 5. **R1.** Tidak ada data rumah tangga ke luar negeri, dan biayanya tidak tumbuh dengan pengguna. Harganya: saran tidak menyebut hal yang spesifik.
 6. **Email per pemakaian** (menunggu S4-2). SES melanggar bunyi "no usage-priced managed services" kecuali dengan alasan; alasannya ada di ADR-026 (tidak ada jalur SMTP bertarif tetap yang terverifikasi di Indonesia, biayanya mendekati nol, dan isinya tidak memuat data rumah tangga). Kalimat brief untuknya (K-62, D-111 §1) disusun lead sesudah S4-2 dijawab.
@@ -71,17 +74,23 @@ Kolom "Kedudukan" mencatat jawaban checkpoint S4 (12 November 2026; [_progress.m
 
 ```mermaid
 flowchart LR
-  subgraph ios["iPhone dan iPad (SwiftUI)"]
+  subgraph web["Browser: klien web PWA (lebih dulu; GR-2)"]
+    WUI[Layar Svelte] --> WCORE[Modul TS non-UI:<br/>klien connect-web, antrean dengan jeda urungkan,<br/>sinkron, bantuan isian]
+    WCORE --> WDB[(IndexedDB lewat Dexie<br/>persist, tanpa proteksi berkas)]
+    WSW[Service worker:<br/>app shell berhash, handler push]
+  end
+  subgraph ios["iPhone dan iPad (SwiftUI, sesudah GR-2)"]
     IUI[Layar native] --> ICORE[Paket Swift non-UI:<br/>klien Connect, antrean dengan jeda urungkan,<br/>sinkron, bantuan isian]
     ICORE --> IDB[(SQLite<br/>Class C, tanpa cadangan)]
   end
-  subgraph and["Android (Jetpack Compose)"]
+  subgraph and["Android (Jetpack Compose, sesudah iOS)"]
     AUI[Layar native] --> ACORE[Modul Kotlin non-UI:<br/>klien Connect, antrean dengan jeda urungkan,<br/>sinkron, bantuan isian]
     ACORE --> ADB[(Room/SQLite<br/>tanpa cadangan dan transfer)]
   end
   subgraph vps["VPS di Indonesia: satu biner Go"]
     API[API Connect<br/>perintah, Sync, ResolveNotification]
     SSE[Hub SSE]
+    STAT[Bundel web statis tersemat<br/>CSP dan header keamanan]
     subgraph mods["Modul (internal/)"]
       M1[identity] --- M2[household] --- M3[request]
       M4[ledger] --- M5[budget] --- M6[chat]
@@ -94,10 +103,14 @@ flowchart LR
     PG -- NOTIFY --> SSE
     PG -- NOTIFY --> JOB
   end
-  ICORE <-->|HTTPS: Connect + SSE| API
-  ACORE <-->|HTTPS: Connect + SSE| API
+  WCORE <-->|HTTPS satu origin: Connect POST + SSE, cookie __Host-| API
+  STAT -->|app shell| WSW
+  ICORE <-->|HTTPS: Connect + SSE, header| API
+  ACORE <-->|HTTPS: Connect + SSE, header| API
+  SSE -.-> WCORE
   SSE -.-> ICORE
   SSE -.-> ACORE
+  JOB --> WP[Layanan push browser<br/>Apple, Google, lainnya; VAPID] -.push umum.-> WSW
   JOB --> APNS[APNs] -.push umum.-> ios
   JOB --> FCM[FCM] -.push umum.-> and
   JOB --> ANT[API Anthropic:<br/>templat tanpa data rumah tangga]
@@ -107,12 +120,14 @@ flowchart LR
 
 | Komponen | Tanggung jawab | Berkas |
 |---|---|---|
+| Klien web (PWA) | Sama dengan aplikasi native, di browser: layar Svelte, antrean di IndexedDB dengan satu pengirim per profil (Web Locks), salinan baca, bantuan isian TypeScript bila bunyi ES §2 disetujui (ADR-030 butir 15). Service worker hanya app shell dan tampilan push. Tanpa aturan uang atau persetujuan | 01 §14; 03 §2, §4, §8; ADR-030 |
 | Aplikasi native | Layar, navigasi, dan komponen sistem; antrean perintah dengan jeda urungkan; salinan baca; bantuan isian (09-F A, pengecualian ES §2). Tanpa aturan uang atau persetujuan | 01 §2, §3; 03 §1, §2 |
 | API Connect | Perintah tulis idempoten, `Sync` berkursor per pembaca, dan `ResolveNotification` | 02 §6; 03 §3, §8 |
 | Modul | Aturan 06 dan 07, masing-masing pemilik tabelnya | 02 §1 |
 | `read` | Satu-satunya jalur baca untuk layar, laporan, ekspor, sinkron, potret awal, dan `AI` | 02 §1; 03 §3 |
-| Hub SSE | Tanda "umpan bergerak" dan kehadiran sesaat | 03 §4, §6 |
-| Pekerja job | Push, jam tenang, ringkasan, pengingat, kedaluwarsa, penutupan keluar, penghapusan, kumpulan `AI`, email | 03 §9 |
+| Hub SSE | Tanda "umpan bergerak" dan kehadiran sesaat; autentikasi cookie (web) atau header (native) | 03 §4, §6 |
+| Bundel web | Disematkan ke biner, dilayani dari origin yang sama dengan CSP, HSTS, dan header lain (ADR-030 butir 3, 7) | 04 §1, §5 |
+| Pekerja job | Push (Web Push, APNs, FCM), jam tenang, ringkasan, pengingat, kedaluwarsa, penutupan keluar, penghapusan, kumpulan `AI`, email | 03 §9 |
 | PostgreSQL | Semua data, termasuk foto di pilot | 02 |
 | pgBackRest dan VPS cadangan | PITR 30 hari, terenkripsi, di Indonesia, salinan pelindung yang hanya menambah | 04 §6 |
 
@@ -139,7 +154,8 @@ flowchart LR
 | [ADR-026](adr/ADR-026-pengiriman-email.md) | Pengiriman email: Amazon SES Jakarta | Diusulkan; **ditunda sampai menjelang deploy** (S4-2), yaitu sebelum deploy pertama yang memegang data nyata (keputusan 45) |
 | [ADR-027](adr/ADR-027-asas-pengawasan-batas-periode-dan-aturan-dasar.md) | Asas pengawasan: batas periode dan aturan dasar (06 PG-14; dokumen 10.3 §2.4.1) | **Diterima** (S4), opsi A; butir (c) disempitkan menurut S4-9 (i) A |
 | [ADR-028](adr/ADR-028-lingkungan-dan-irama-rilis-pilot.md) | Lingkungan, irama rilis, dan kompatibilitas klien (dokumen 14 §6) | **Diterima** seluruhnya: butir 1, 2, 3, 5 atas saran lead (keputusan 56, S6); butir 4 atas saran lead (keputusan 44) |
-| [ADR-029](adr/ADR-029-perangkat-pengukuran-kinerja-es-3.md) | Perangkat pengukuran kinerja ES §3 (17 K-66, K-67) | **Diterima** atas saran lead (keputusan 50); kalimat ES §3 dipasang lead |
+| [ADR-029](adr/ADR-029-perangkat-pengukuran-kinerja-es-3.md) | Perangkat pengukuran kinerja ES §3 (17 K-66, K-67) | **Diterima** atas saran lead (keputusan 50); kalimat ES §3 dipasang lead; catatan web (ketiga perangkat sebelum GR-2; bunyi ES baru menunggu pratinjau) |
+| [ADR-030](adr/ADR-030-klien-web-pwa-lebih-dulu.md) | Klien web (PWA) lebih dulu: urutan, stack, sesi cookie, CSRF, CSP, npm, service worker, kunci aplikasi web, Web Push (10 §7.9; 10 §8 butir 16, 18, 19, 20) | **Diterima**: urutan diputuskan pemilik produk sendiri, stack atas saran lead; bunyi ES §2, §3, §8 menunggu pratinjau pemilik produk |
 
 ---
 
@@ -181,12 +197,13 @@ Semua keputusan yang harus ada sebelum fase bangun dimulai sudah diambil di chec
 | Bahasa backend (09-A) | Menentukan agen build, pustaka, dan kontrak | ADR-015 | Diterima: Go |
 | Letak logika bersama dan pengecualian ES §2 (09-F) | Menentukan struktur kedua aplikasi dan bunyi FR-FIN-042/AC-2 dan AC-3 | ADR-013 | Diterima: A |
 | Kalimat ES §8 untuk 0.x dan API eksperimental (09-G) | connect-kotlin, `golang.org/x/*`, dan `ModalBottomSheet` diperlukan sejak minggu pertama | ADR-023 | Diterima: A |
-| Jalur build iOS (09-C) | Langganan Apple dan penyiapan Xcode Cloud harus ada sebelum build iOS pertama | ADR-022 | Diterima: A |
+| Klien pertama, stack web, dan model keamanan browser | Menentukan FS-1 langkah 1 dan GR-2; 10.5 meminta keputusan atas 13 butir (10 §7.9) | ADR-030 | Diterima (web lebih dulu: keputusan 69; stack dan bawaan 69.1 sampai 69.7 atas saran lead); bunyi ES §2, §3, §8 menunggu pratinjau, tanpa menahan FS-1 (sampai disetujui, web tanpa bantuan isian) |
+| Jalur build iOS (09-C) | Langganan Apple dan penyiapan Xcode Cloud harus ada sebelum build iOS pertama, kini di jalur iOS native sesudah GR-2 | ADR-022 | Diterima: A; sumber Mac sekali diputuskan saat jalur iOS native dimulai |
 | Versi OS minimum (09-E) | ES §8 menuntutnya di S4 | ADR-012 | Diterima: A |
 | Alat kualitas per bahasa | ES §4 dan §7 menuntut pemilihannya lewat ADR di S4 | ADR-025 | Diterima |
 | Penyedia `AI` di bawah R1 (09-D) dan jalur 10-B | Integrasi dibangun atas permintaan pemilik produk; `AI` tetap Tier 2 | ADR-021 | Diterima: R1, Claude |
 | Kontrak Protobuf dan Connect, PostgreSQL, monolit, pengenal, kursor, SSE, push | Fondasi; mengubahnya kemudian mahal | ADR-013, ADR-014, ADR-016 sampai ADR-019 | Diterima |
-| **Hosting dan tujuan cadangan (09-B)** | Harus ada sebelum deploy pertama yang memegang data nyata; pernyataan tertulis penyedia soal letak data (ADR-020 butir 1) sebelum data nyata | ADR-020 | **Ditunda sampai menjelang deploy** (S4-2): sebelum deploy pertama yang memegang data nyata, dengan server uji sementara sampai itu (keputusan 45; 14 §7.8); diajukan ulang sebelum FS-1 langkah 7 **[Usulan]**. Advokat (L-01, L-14, L-24) sebelum tahap publik, bila diambil (S4-4 (iii) A; keputusan 51) |
+| **Hosting dan tujuan cadangan (09-B)** | Harus ada sebelum deploy pertama yang memegang data nyata; pernyataan tertulis penyedia soal letak data (ADR-020 butir 1) sebelum data nyata | ADR-020 | **Ditunda sampai menjelang deploy** (S4-2): sebelum deploy pertama yang memegang data nyata, dengan server uji sementara sampai itu (keputusan 45; 14 §7.8); diajukan ulang sebelum FS-1 langkah 7 **[Usulan]**. L-01, L-14, L-24 sudah dijawab lewat konsultasi advokat (keputusan 59); konsultasi ulang hanya sebelum go public (keputusan 67) |
 | **Pengiriman email** | Pilot memerlukan verifikasi dan pemulihan (SEC-24) sebelum akun nyata pertama dibuat | ADR-026 | **Ditunda sampai menjelang deploy** (S4-2), sama dengan baris di atas (keputusan 45); K-62 menunggu |
 
 ## 6. Yang ditunda, dan pemicunya
@@ -194,10 +211,12 @@ Semua keputusan yang harus ada sebelum fase bangun dimulai sudah diambil di chec
 | Butir | Ditunda sampai | Pemicu atau syarat |
 |---|---|---|
 | Hosting, tujuan cadangan, dan email (S4-2) | Sebelum deploy pertama yang memegang data nyata. Penundaannya **diputuskan pemilik produk sendiri** ("#S4-2: nanti aja pas mau deploy", keputusan 31); arti "pas mau deploy" sebagai sebelum data nyata **diterima atas saran lead** (keputusan 45) | Server uji sementara berisi data uji saja di FS-1 langkah 1 sampai 6 (14 §7.8). ADR-020 dan ADR-026 diajukan ulang sebelum FS-1 langkah 7 **[Usulan]** dengan harga dan pihak kontrak yang dicek ulang; syarat di Indonesia (keputusan 10) tetap. Baris biaya yang bergantung padanya ditandai di 09.4 §7.1 |
-| Klien Android (Kotlin, Compose; ADR-012 butir 1 tetap) | Sesudah GR-2, untuk keluarga; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) (semula bawaan lead dalam keputusan 42; kini **diterima atas saran lead lewat keputusan 50**, dengan syarat beta dari keputusan 51; bunyi brief §1 "Android is built after real data starts and joins the pilot before the beta, if a beta is ever held"; urutan iOS dan iPadOS lebih dulu dan pilot di iPhone 13 dan iPad mini 7 **diputuskan pemilik produk**) | Jalur Android dan QG-30 (Android) di 14 §3.8 dan §5.3 |
+| Aplikasi iOS dan iPadOS native (SwiftUI; ADR-012 butir 1 tetap) | Sesudah GR-2 (ADR-030 butir 1; keputusan 69). Apple Developer Program, Xcode Cloud, dan sumber Mac sekali baru saat itu (ADR-022 catatan web) | Jalur iOS native dan QG-30 (iOS) di 14 §3.9 dan §5.3 |
+| Klien Android (Kotlin, Compose; ADR-012 butir 1 tetap) | Sesudah jalur iOS native (bawaan 69.5, diterima atas saran lead; dasar keputusan 42; ADR-030 butir 1). Galaxy A55 memegang data nyata lewat web sejak GR-2. Semula: sesudah GR-2, untuk keluarga; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)) (semula bawaan lead dalam keputusan 42; kini **diterima atas saran lead lewat keputusan 50**, dengan syarat beta dari keputusan 51; bunyi brief §1 "Android is built after real data starts and joins the pilot before the beta, if a beta is ever held"; urutan iOS dan iPadOS lebih dulu dan pilot di iPhone 13 dan iPad mini 7 **diputuskan pemilik produk**) | Jalur Android dan QG-30 (Android) di 14 §3.8 dan §5.3 |
 | Mac sewaan bulanan atau Mac mini sendiri (ADR-022 B, C) | Dana tersedia (keputusan 43) | Prakarsa pemilik produk; titik impas di 14 §9 sebagai acuan, harga dicek ulang |
 | Perkiraan offline (angka server − entri yang belum terkirim) | Bila pilot menunjukkan kebutuhannya; **bukan cakupan pilot** (ADR-013 butir 2) | ADR baru: deskriptor dari server + satu penafsir per platform; butir pengecualian ES §2 tambahan yang memerlukan persetujuan pemilik produk tersendiri (01 §3) |
 | Pembungkus SQLite iOS (GRDB, Core Data, SwiftData) | Minggu pertama `ios-dev` | Dapat diuji di Linux; stabil (03 §2) |
+| Kebijakan Trusted Types Svelte, gaya inline, waktu PBKDF2 di perangkat, ukuran app shell, host push non-Apple | Prototipe web, FS-1 langkah 1 sampai 2 | ADR-030 butir 7, 12, 14, 16 |
 | Pustaka property-based Go | Minggu pertama `backend-dev` | Status stabil (ES §8) |
 | Gerbang CI kerentanan Swift | Minggu pertama `ios-dev` | Dependabot atau OSV-Scanner terbukti membaca `Package.resolved` (ADR-025) |
 | SQLCipher | Sebelum tahap publik, bila diambil | SEC-46 |
@@ -209,7 +228,7 @@ Semua keputusan yang harus ada sebelum fase bangun dimulai sudah diambil di chec
 | Faktor kedua TOTP (SEC-18) dan kode pemulihan (SEC-25) | FS-2, sebagai satu pasangan opsional per akun; tidak menahan GR-2 (keputusan 54; 14 §3.5). Faktor kedua di FS-2 hanya TOTP (ketetapan lead) | Dokumen 10 SEC-18, SEC-25 |
 | Enkripsi disk (SEC-45), passkey | Tahap publik, bila diambil; passkey tetap di tahap publik menurut SEC-11 (ketetapan lead) | Dokumen 10 §4 |
 | Jalur `AI` R2 (panggilan langsung) | Sesudah advokat menjawab, sebelum tahap publik bila diambil | ADR baru; pilot memakai R1 (S4-4 (i) A); SEC-122 |
-| Advokat (L-01, L-14, L-24 dan daftar 10-C) | Sebelum tahap publik, bila diambil (S4-4 (iii) A); lebih dulu bila ada pengguna di luar rumah tangga pilot, termasuk orang tua yang diberi login (Q-209; keputusan 52) | Risiko PSE di pilot (W-32) diterima pemilik produk |
+| Konsultasi advokat ulang | Sebelum go public, satu-satunya pemicu (keputusan 67). L-01, L-14, L-24 sudah dijawab lewat konsultasi advokat, termasuk bagi orang tua yang diberi login (keputusan 59; Q-209) | Risiko PSE di pilot (W-32) diterima pemilik produk; dinilai ulang P2 di 15 RISK-65 |
 | Komponen Material 3 Expressive | Compose Material 3 1.5.0 menjadi stabil | ADR-012 butir 5 |
 | `ListDetailPaneScaffold` (eksperimental) | Tablet Android di luar pilot | ADR-023 butir 5 |
 | SES keluar dari sandbox | Sebelum pengguna di luar rumah tangga pilot, termasuk orang tua yang diberi login (keputusan 52) | ADR-026 |
@@ -257,6 +276,8 @@ Dokumen ini tidak menyunting dokumen milik agen lain. Permintaan berikut dikirim
 | `product-analyst` (05, 17) | (a) FR-FIN-042/AC-2 dan AC-3 tetap seperti bunyinya, karena 09-F dijawab A. (b) FR-FIN-010/AC-6 dan FR-FIN-091/AC-2: pilot tidak menampilkan perkiraan; bunyi "bila ditampilkan" tetap benar. (c) 17: catat 09-A sampai 09-G; catat P-40 dan P-41 dari 06 revisi ketiga belas; catat bahwa butir email sudah diusulkan (ADR-026); catat pengenal risiko `RISK-01` sampai `RISK-17` (04 §9) untuk dokumen 15 |
 | `ux-designer` (08) | (a) Selesai: pesan chat tanpa jeda urungkan sudah diterima di 08 §9.3 (03 §1; 06 P-41). (b) `ModalBottomSheet` boleh dipakai lewat ADR-023 butir 5 dengan jalan mundur dialog layar penuh; `ListDetailPaneScaffold` tidak dipakai di pilot (ADR-012 butir 5). (c) "Diperbarui di ponsel ini" memakai jam perangkat; "dicatat 3 hari kemudian" memakai tanggal server dan tampil kepada setiap pembaca entri, bukan hanya pencatat (dokumen 10; 03 §2) |
 | Lead | (a) Glosarium: *umpan per pembaca* (reader feed), *jalur baca*, *bantuan isian*, *jeda urungkan*, *potret awal* bila belum ada. (b) README: label batasan `BT-N` hanya dipakai di dokumen 09 |
+| Lead (web lebih dulu) | (c) Pratinjau kepada pemilik produk dan pemasangan bunyi ES §2 (TypeScript), §3 (perangkat ukur web), §8 (masa tunggu 7 hari dependensi bundel) dari ADR-030 butir 15 sampai 17; bacaan ES §4 (cookie `HttpOnly` sebagai penyimpanan aman browser) tidak mengubah bunyi. (d) `CLAUDE.md` "Build team": peran `web-dev`; "Platform order": web, lalu iOS dan iPadOS, lalu Android. (e) Glosarium: *Klien web*, *Mode perangkat bersama*, *Kunci aplikasi* dan *Autentikasi ulang* (bunyi usulan 10 §7.9). (f) 16 dan 01: biaya pilot baru (09.4 §7.1) |
+| `security-privacy` (10, 10.5) | (f) ADR-030 butir 11 lebih ketat dari SEC-171 (b): di iOS dan iPadOS, tab Safari tidak menawarkan masuk akun, hanya petunjuk pasang; mohon dikukuhkan atau dikoreksi. (g) Daftar izin host push non-Apple (ADR-030 butir 14) dari daftar pihak ketiga, diperiksa di perangkat pilot sebelum GR-2. (h) PBKDF2 600.000 iterasi (OWASP); bila waktu derivasi di perangkat melebihi 1 detik, penurunan iterasi memerlukan persetujuan Anda. **Ketiganya dijawab (13 November 2026):** (f) SEC-171 (b) (5): dua jalan di tab Safari, mode pribadi tidak pernah di tab, mode bersama langsung di tab (ADR-030 butir 5, 11); (g) aturan daftar izin host SEC-176 (g) (ADR-030 butir 14); (h) aturan penurunan SEC-174 (b) di ADR-030 butir 12, tanpa persetujuan baru selama di dalam aturan itu |
 
 ---
 
@@ -296,6 +317,13 @@ Semuanya diakses 12 November 2026. Fakta yang sudah ada di dokumen 18 (termasuk 
 | connect-swift 1.2.3; connect-kotlin 0.10.0 (rilis terbaru yang bukan pra-rilis, dicek ulang di checkpoint S4; dipakai sebagai 0.10.x) | 18 §5 (fase D); [github.com/connectrpc/connect-kotlin/releases](https://github.com/connectrpc/connect-kotlin/releases) | **[Terverifikasi]** |
 | ISO 4217: IDR, minor unit 2 | 18 §5 (fase D) | **[Terverifikasi]** |
 | TestFlight mengirim laporan crash otomatis, terlepas dari setelan perangkat | 18 §5 (fase D) | **[Terverifikasi]** |
+| Stack web: Svelte 5.57.3, SvelteKit 3.2.0, Vite 8.3.8, `@vite-pwa/sveltekit` 2.0.2, Workbox 7.4.1, connect-web 2.3.0; `EventSource` tanpa header; Web Push iOS hanya web app layar utama; Background Sync tidak di Safari; data web app layar utama terpisah dari tab Safari | 18 §5.13.1 sampai §5.13.4 | **[Terverifikasi]** |
+| OWASP: "PBKDF2-HMAC-SHA256: 600,000 iterations" | [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) | **[Terverifikasi]** |
+| pnpm: `strictDepBuilds` bawaan `true`, paket di luar `allowBuilds` tidak menjalankan skrip; `minimumReleaseAge` dalam menit, bawaan 1440 | [pnpm.io/settings/build](https://pnpm.io/settings/build); [pnpm.io/settings/dependency-resolution](https://pnpm.io/settings/dependency-resolution) | **[Terverifikasi]** |
+| OSV-Scanner membaca `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lock` | [google.github.io/osv-scanner/supported-languages-and-lockfiles](https://google.github.io/osv-scanner/supported-languages-and-lockfiles/) | **[Terverifikasi]** |
+| Web Locks: Baseline "Widely available" sejak Maret 2022. Trusted Types: Baseline 2026 "Newly available" sejak Februari 2026 | [MDN Web Locks API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API); [MDN Trusted Types API](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) | **[Terverifikasi]**; versi Safari per fitur **[Perlu validasi]** |
+| Svelte membungkus `innerHTML` dalam kebijakan Trusted Types `svelte-trusted-html` | PR sveltejs/svelte #16271 | **[Perlu validasi]** status merge dan versi |
+| Host layanan push browser selain Apple (`fcm.googleapis.com`, `*.notify.windows.com`, `updates.push.services.mozilla.com`) | Daftar pihak ketiga `github.com/pushpad/known-push-services`; tidak ada daftar resmi vendor yang ditemukan | **[Perlu validasi]** |
 
 ---
 
@@ -316,3 +344,6 @@ Semuanya diakses 12 November 2026. Fakta yang sudah ada di dokumen 18 (termasuk 
 | 12 November 2026 | Temuan `critic` | Tenggat Android di §6 dan 09.1 BT-4 menjadi "sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b))"; §6 baris baru faktor kedua TOTP dan kode pemulihan di FS-2 (keputusan 54; ketetapan lead), passkey tetap tahap publik; 09.3 §1 satu tahan `NOTICE_UNREAD` per akun dalam 30 hari (usulan lead; kemudian diganti SEC-34 aturan (5) opsi A: setiap versi menahan tanpa batas jumlah, hanya pengakuan versi terakhir yang melepas; batas 30 hari dan slot versi tertunda dicabut); ADR-012, ADR-029 tenggat Android; ADR-022 kedudukan keputusan 55 dan rujukan Q-209 |
 | 12 November 2026 | S6: pass konsistensi | Keputusan 56: ADR-028 diterima seluruhnya (§1 baris baru, §3 status). `content_report` dan SEC-153/SEC-154 dinyatakan menurut keanggotaan pengelola dan pemicu SEC-154 (§4, 09.2 §5.3, 09.4 §8; S6-D-08); SEC-36 sebelum GR-4 (09.4 §8; S6-D-02); baris SEC-18 dan SEC-25 (09.4 §8; S6-D-09); perkiraan offline dan perkiraan selisih rekonsiliasi bukan cakupan pilot (09.1 §3, 09.3 §1, §6; ADR-013 butir 2); ADR-022 pemicu kedua SEC-154 (S6-D-07); baris Status (S6-D-05). Tidak ada pilihan arsitektur atau angka yang berubah |
 | 12 November 2026 | S6: keputusan 67 dan 68 | DPIA, catatan prosesor, dan rencana pemberitahuan insiden SEC-148 (b) tidak disiapkan untuk pilot dan ditunda ke go public (SEC-148 (a) tetap Pilot) (09.4 §6.1 baris butir 4 dan skenario VPS dibobol; ADR-020); ADR-007, ADR-022 C-2: tidak ada konsultasi advokat lanjutan sebelum go public. Kontrol teknis dan angka tidak berubah |
+| 12 November 2026 | Sesudah S6: web lebih dulu (keputusan 69) | **ADR-030 baru** (diterima): klien web (PWA) lebih dulu, GR-2 di web, stack SvelteKit/Svelte/Dexie/connect-web, satu origin, sesi cookie, CSRF, CSP dan Trusted Types, npm (pnpm, OSV-Scanner, daftar dependensi bundel), service worker dan versi minimum, mode bersama, Web Locks, PBKDF2 600.000, Web Push dengan daftar izin host; 10 §8 butir 16, 18, 19, 20. Catatan bertanggal di ADR-012, 013, 018, 019, 022 (termasuk temuan audit 2: sumber Mac saat jalur iOS native), 024 (butir 7 web), 025 (butir 8 TypeScript), 028, 029. Indeks: Status, §1 (ringkasan, tabel, tradeoff 7), §2 (diagram, komponen), §3, §5 (baris ADR-030; temuan audit 9: baris advokat), §6 (iOS native, Android, prototipe web, konsultasi advokat ulang), §8, §9. 09.1 BT-4, §4, §12, §13, §14 baru; 09.2 §5.1 `session`, `push_token`; 09.3 §2, §4, §5, §8; 09.4 §1, §2, §4, §5, §6.1, §7.1, §8. Biaya pilot berubah (09.4 §7.1) |
+| 13 November 2026 | Sesudah tinjauan `security-privacy` atas ADR-030 | ADR-030 butir 5 (SEC-165 (g) masa diam mode bersama hanya dari RPC bertanda tindakan pengguna; (h) tanpa LY-88), butir 9 (LY-95 "Perangkat ini"; manifest bernama Casa), butir 11 (selaras SEC-171 (b); masuk diizinkan dengan peringatan bila deteksi tab tidak pasti), butir 12 (aturan penurunan PBKDF2, batas bawah 300.000), butir 14 (aturan pencocokan endpoint SEC-176 (g), diperiksa sebelum setiap pengiriman); 09.4 §2 baris sesi web (`user_initiated`) dan §8 SEC-169. Angka tidak berubah |
+| 13 November 2026 | Temuan `critic` atas putaran web; 18 §5.13.10; SEC-171 (b) (5) | "Calon keputusan 69" menjadi keputusan 69 di 09, 09.1, ADR-012, ADR-030 (juga keputusan 70); §5 baris ADR-030 dan §6 baris Android memakai bawaan 69.5 dan "pratinjau ES tidak menahan FS-1"; 09.4 §7.1 sumber Mac AWS EC2 Mac atau Mac pinjaman (bawaan 69.6; Scaleway catatan riwayat) dan job CI Android sesudah jalur iOS native; ADR-022 catatan web butir 2 ditetapkan; ADR-030 butir 5 dan 11 (mode bersama di tab Safari lewat LY-90, mode pribadi tidak pernah di tab), butir 7 dan 8 (label dan rujukan 18 §5.13.10), butir 9 (LY-95 wajib untuk pilot), butir 15, 16, 19 dan tabel menunggu. Angka tidak berubah |

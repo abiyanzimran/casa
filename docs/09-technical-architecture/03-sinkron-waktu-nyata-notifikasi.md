@@ -115,6 +115,21 @@ Asasnya:
 | Keluar dari akun | Menghapus basis data, cache foto, dan antrean, sesudah peringatan jumlah catatan yang belum terkirim | Sama | SEC-47 |
 | Sesi dicabut dari perangkat lain | Hapus jarak jauh sebelum layar pertama (ADR-024) | Sama | SEC-21 |
 
+**Klien web** ([ADR-030](../adr/ADR-030-klien-web-pwa-lebih-dulu.md); ADR-024 butir 7; 10.5 SEC-170 sampai SEC-173), padanan setiap baris tabel di atas:
+
+| Hal | Klien web |
+|---|---|
+| Mesin | IndexedDB lewat Dexie 4 |
+| Isi | Sama (SEC-47); antrean; tanpa cache foto di luar Cache Storage yang dibersihkan bersama data. `CARE` tak dibagikan (Tier 2) di store tersendiri |
+| Waktu milik perangkat | Sama |
+| Proteksi berkas | Tidak ada padanan; batasnya dinyatakan (SEC-170). `navigator.storage.persist()` diminta di mode pribadi |
+| Pengecualian dari cadangan | Tidak dapat diatur aplikasi; dinyatakan |
+| Token sesi | Cookie `__Host-` `HttpOnly`, tidak terbaca skrip (SEC-161) |
+| Keluar akun, sesi dicabut | Sama, di **semua tab** lewat `BroadcastChannel`; pemeriksaan sesi paling lama 3 detik **[Asumsi]** sebelum data lokal tampil (SEC-172) |
+| Beberapa tab | Satu pengirim antrean per profil lewat Web Locks (`navigator.locks`); idempotency key penjaga terakhir (SEC-173) |
+| Mode bersama | Tanpa IndexedDB; data hanya di memori tab (SEC-165) |
+| Kunci aplikasi | Kode 6 digit saja, pemverifikasi PBKDF2-HMAC-SHA-256 600.000 iterasi di IndexedDB; menutup tampilan, tidak mengenkripsi (SEC-174; ADR-030 butir 12) |
+
 **Biometrik untuk kunci aplikasi** (SEC-14, SEC-19). Kedua platform menerima **setiap** sidik jari atau wajah yang terdaftar di perangkat, dan tidak memberi tahu aplikasi milik siapa. Pasangan yang sidik jarinya terdaftar di ponsel yang sama karena itu dapat membuka kunci aplikasi **[Perlu validasi]** pada dokumentasi resmi kedua platform. Rancangannya: kunci aplikasi menawarkan **kode aplikasi** sebagai pilihan selain biometrik. Pada iOS, kunci yang menjaga kunci aplikasi memakai kebijakan yang batal bila daftar biometrik berubah (`biometryCurrentSet`) **[Perlu validasi]**, sehingga sidik jari yang ditambahkan kemudian tidak membuka kunci aplikasi tanpa kode. Ini diserahkan ke `researcher` dan `security-privacy` untuk dikukuhkan (indeks §8).
 
 ---
@@ -169,8 +184,8 @@ sequenceDiagram
 
 | Hal | Rancangan |
 |---|---|
-| Titik akhir | `GET /v1/stream` dengan header `Authorization` sesi; `Content-Type: text/event-stream` |
-| Kapan dibuka | Hanya saat aplikasi **di depan**. Ditutup saat aplikasi ke latar. Tidak ada mode latar iOS dan tidak ada layanan latar Android untuknya |
+| Titik akhir | `GET /v1/stream`; `Content-Type: text/event-stream`, `Cache-Control: no-store`. **Aplikasi native:** header `Authorization` sesi. **Klien web:** `EventSource` same-origin dengan **cookie sesi** (SEC-161), karena `EventSource` tidak dapat mengirim header (18 §5.13.1). Titik akhir tanpa efek samping; permintaan dengan `Sec-Fetch-Site` selain `same-origin` ditolak (SEC-162 (a)). Saat sesi dicabut atau berakhir, server mengirim satu peristiwa terakhir berisi `session_revoked` atau `session_expired` lalu menutup aliran (SEC-163) |
+| Kapan dibuka | Hanya saat aplikasi **di depan**. Ditutup saat aplikasi ke latar. Tidak ada mode latar iOS dan tidak ada layanan latar Android untuknya. Web: dibuka saat `document.visibilityState` menjadi `visible`, ditutup saat `hidden` |
 | Isi peristiwa | `feed` (tanpa isi; pembaca menarik `Sync`); `presence` (kehadiran sesaat dalam percakapan, §6). Tidak ada isi objek, jumlah, atau teks pesan |
 | Menjaga sambungan | Komentar `:` setiap 15 detik (18 §5.6) |
 | Melanjutkan | Klien menyambung ulang dengan jeda yang membesar. Sesudah tersambung ia selalu memanggil `Sync`, sehingga peristiwa yang terlewat tidak hilang. `Last-Event-ID` tidak diperlukan karena `Sync` berkursor adalah sumber kebenaran |
@@ -189,7 +204,7 @@ sequenceDiagram
 
 1. `Sync` membawa `purpose`. Hanya `purpose = FOREGROUND` yang menaikkan `delivered_upto_seq`, sampai pesan terakhir yang dikembalikan di percakapan itu. Kenaikan itu dihitung server di transaksi bacaan-tulis kecil sesudah proyeksi dibangun.
 2. **Pilot tidak punya jalur kode latar sama sekali**: tidak ada Notification Service Extension, tidak ada `content-available`, tidak ada `BGAppRefreshTask`, dan tidak ada `WorkManager` sinkron. Juga tidak ada ekstensi lain: widget, komplikasi, Live Activity, atau tampilan layar luar (SEC-54). Push iOS hanya berisi teks umum yang ditampilkan sistem tanpa menjalankan kode aplikasi (§8). Di Android, *notification message* FCM saat aplikasi di latar "is delivered to the device's system tray" tanpa memanggil `onMessageReceived` ([firebase.google.com/docs/cloud-messaging/android/receive-messages](https://firebase.google.com/docs/cloud-messaging/android/receive-messages), diakses 12 November 2026) **[Terverifikasi]**. Karena itu tidak ada kode yang dapat menarik pesan di latar.
-3. Klien mengirim `FOREGROUND` hanya dari jalur yang dipicu siklus hidup layar: `scenePhase == .active` di SwiftUI, dan `Lifecycle.State.RESUMED` (`ProcessLifecycleOwner`) di Android. Bila kelak sinkron latar ditambahkan, ia memakai klien sinkron terpisah yang secara struktur hanya dapat mengirim `BACKGROUND`. Uji unit klien memeriksanya.
+3. Klien mengirim `FOREGROUND` hanya dari jalur yang dipicu siklus hidup layar: `scenePhase == .active` di SwiftUI, `Lifecycle.State.RESUMED` (`ProcessLifecycleOwner`) di Android, dan `document.visibilityState === 'visible'` di klien web. **Service worker web tidak memanggil `Sync`**: handler `push` hanya menampilkan notifikasi dan lencana, tanpa panggilan jaringan, dan Background Sync tidak dipakai (ADR-018 catatan web). Bila kelak sinkron latar ditambahkan, ia memakai klien sinkron terpisah yang secara struktur hanya dapat mengirim `BACKGROUND`. Uji unit klien memeriksanya.
 4. Tanda **dibaca** naik saat pesan tampil di layar chat yang terbuka di depan. Tanda yang terkumpul selama offline dikirim saat tersambung (06 S-11 (c)).
 5. Server tidak dapat membuktikan bahwa klien sungguh di depan. Yang dijamin adalah kode aplikasi resmi. Klien yang dimodifikasi hanya dapat memalsukan tanda **miliknya sendiri**, dan itu tidak membuka data orang lain.
 
@@ -225,7 +240,7 @@ Akibatnya **tidak ada celah apa pun yang terbaca** di chat, termasuk celah kartu
 
 ---
 
-## 8. Push: APNs dan FCM, isi umum
+## 8. Push: Web Push, APNs, dan FCM, isi umum
 
 | Hal | APNs (iOS dan iPadOS) | FCM HTTP v1 (Android) | Persyaratan |
 |---|---|---|---|
@@ -239,6 +254,23 @@ Akibatnya **tidak ada celah apa pun yang terbaca** di chat, termasuk celah kartu
 | Membuka notifikasi ke objeknya (SEC-50; dokumen 08 §23.1 butir 2) | Ketukan membuka aplikasi dengan `r`. Sesudah kunci aplikasi dan sesi lolos, aplikasi memanggil `ResolveNotification(push_ref)`. Server mencari `notification` dengan `push_ref` itu **milik penerima = anggota sesi**, lalu memeriksa `read.can_read` atas objeknya **saat itu**. Jawaban: tujuan layar (jenis dan pengenal objek), atau "tidak lagi tersedia" yang berbentuk sama untuk `push_ref` orang lain, kedaluwarsa, atau objek yang sudah tidak terbaca (SEC-05). Notifikasi gabungan sesudah jam tenang (SEC-55) membuka daftar "Perlu tanggapan", bukan satu objek. Membuka notifikasi tidak menggerakkan tanda apa pun (06 §11.1 "Tanpa tanda terima") | Sama | SEC-50, SEC-55 |
 | SDK di aplikasi | Tidak ada (UserNotifications sistem) | `firebase-messaging` saja; pengumpulan analitik Firebase dimatikan | SEC-49 |
 | Batas penyedia | Tidak relevan untuk pilot | 240 per menit dan 5.000 per jam per perangkat; collapsible: semburan 20, isi ulang 1 per 3 menit (18 §5.6) | — |
+
+**Web Push (klien web; kanal ketiga; ADR-019 catatan web, ADR-030 butir 14; SEC-176, SEC-177):**
+
+| Hal | Web Push |
+|---|---|
+| Autentikasi server | VAPID (RFC 8292): JWT ES256 P-256, `exp` paling lama 24 jam, diperbarui paling sering sekali per jam, `sub` alamat operasi umum; kunci privat lewat `LoadCredential=` |
+| Jenis pesan | Payload terenkripsi (RFC 8291), di bawah 4 KB; service worker **selalu** memanggil `showNotification` (Safari mencabut izin bila tidak) |
+| Isi | Teks kelas dan `r` = `push_ref`, sama dengan SEC-50, ditambah angka lencana |
+| Lencana | Badging API di web app layar utama iOS, iPadOS, dan desktop; tidak di Android (18 §5.13.3) |
+| Lipatan N-28 | `tag` notifikasi dan header `Topic` opak, paling banyak 32 karakter |
+| Kanal dan kategori | Tidak ada padanan kanal sistem; kelas tampil di judul notifikasi |
+| Langganan | `push_token` dengan `platform = 'webpush'`, endpoint, `p256dh`, `auth` (berkas 02 §5.1); dihapus seperti token SEC-58. Endpoint diperiksa terhadap daftar izin host, tanpa redirect, saat berlangganan dan saat mengirim (TM-43) |
+| Membuka notifikasi | `notificationclick` membuka atau memfokuskan web app di `/n/{r}`; aplikasi memanggil `ResolveNotification` sesudah kunci dan sesi lolos, sama dengan native |
+| Pustaka | `webpush-go` v1.4.0 (perawatan **[Perlu validasi]**); jalan mundur stdlib |
+| Izin | Diminta sesudah ketukan pengguna pada layar penjelasan (08), tidak saat dibuka; di iPhone dan iPad hanya di web app layar utama (18 §5.13.3) |
+
+Menarik kembali di web: `registration.getNotifications({tag})` lalu `close()` saat aplikasi dibuka.
 
 **Alur dari peristiwa ke push:**
 

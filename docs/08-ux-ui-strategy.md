@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. **Atas keputusan 51 (12 November 2026), tanpa rencana go public:** rancangan tidak dikurangi; waktu bangun yang bergantung pada TestFlight eksternal, App Store, kiriman toko, FS-3, GR-4, atau tahap publik kini bersyarat "bila kelak go public" (§10.7, §16, §16.4, §18.3, §23.3); waktu Android di §0 dan §16 berkedudukan "diterima atas saran lead lewat keputusan 50", dan "sebelum beta" hanya berlaku bila beta kelak diadakan; pembingkaian konflik iPad mini 7 dengan brief §1 di §16 dihapus karena baris "Platforms" sudah memuat pengecualiannya. **Atas keputusan 52 dan 10.1 §11.3.1 (12 November 2026):** kata layar final versi keluarga pengelola bagi orang tua dan kerabat yang diberi login (§7.5.1); label versi per akun dan tanggal baca di LY-71, "Riwayat keamanan" dengan baris akses darurat di LY-73 (§7.5.2; SEC-36, SEC-39 (b)); LY-05, §7.1, §21 diselaraskan; lalu atas ketetapan `security-privacy` di 10.1 §11.3.1: "isi dompet campuran" dan isi salinan cadangan ditambahkan ke teks dan tabel fakta wajib (§7.5.1), pergantian versi per akun menulis baris di riwayat keamanan (§7.5.2); atas SEC-34 yang diperbarui, versi baru menahan pengisian sampai dibaca: LY-05 tampil begitu sinkron membawanya, isian yang terbuka masuk antrean atau draf, kata keadaan tertahan (§7.5.3, §13.2). **Atas 10.1 SEC-18 dan SEC-25 (F-FAM-022, FR-FAM-026; Tier 2, FS-2):** layar LY-88 "Pengaman tambahan saat masuk" dengan pernyataan sebelum tombol nyalakan, 10 kode yang tampil sekali, serta matikan dan buat kode baru dengan kata sandi dan faktor kedua atau satu kode (§5.2, §12.5, §21); empat usulan dikukuhkan `security-privacy`, ditambah masa gugur pemasangan dan papan klip sensitif (§12.5). **Atas temuan `critic` (12 November 2026):** S-1 tenggat Android "sebelum jalur pengujian Google Play dibuka" (§16, §16.4); S-2 panggilan identitas tidak pernah ditahan (§7.5.3); S-3 FS-2 hanya TOTP, passkey mungkin di tahap publik (§5.2, §12.5); S-4, menurut SEC-34 (5) final (opsi A usulan lead atas R-3, dipilih `security-privacy`): setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui, tanpa batas frekuensi; bila versi lebih baru datang sebelum diakui, LY-05 menampilkan yang terbaru saja (§7.5.2, §7.5.3); M-a tenggat Android yang sama di §0; M-e pengakuan pemberitahuan tidak pernah ditahan (§7.5.3). Atas 10.1 SEC-34 (5), SEC-35, §11.3: LY-05 selalu menampilkan teks lengkap versi dari server; kalimat fitur yang belum tersedia bertanda "berlaku saat fitur ini tersedia", tanpa tampilan yang bergantung pada build (§7.5, §7.5.1). Putaran keputusan 51–55 sudah ditinjau `critic` (`_progress.md`). **S6 (12 November 2026): pass konsistensi.** Tanpa perkiraan offline di pilot: angka server dengan waktunya dan catatan belum terkirim terpisah, perkiraan hanya pilihan kelak yang memerlukan ADR baru dan persetujuan pemilik produk (§9.1 langkah 3, §13.2; ADR-013 butir 2, 06 S-9); kalimat antrean dan sinkron memakai kata "perangkat" (§7.5.3, §10.2, §13, §18.1; keputusan 42); pengenal F dan FR di LY-10, LY-62, LY-63, LY-73, LY-75, LY-76; atribusi opsi A SEC-34 (5) (§7.5.3); kata "pasangan" di teks aturan diganti menurut model per anggota dewasa (W7); judul SEC-87 mengikuti 10.3 (§21); nuansa kata penyemangat menjadi setelan rumah tangga di LY-45 yang diganti lewat usulan kesepakatan, corak tetap pribadi di LY-86 dengan daftar tertutupnya (§5.1, §5.2; keputusan 62, 64; FR-AI-001); daftar nuansa ditetapkan menurut keputusan 66; keputusan 68 tidak mengubah isi dokumen ini karena 08 tidak memuat layar kebijakan privasi. Perubahan S6 menunggu tinjauan ulang `critic`. Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
+| Status | Draf pertama, tahap S4 fase C (12 November 2026); diperbaiki di fase D (12 November 2026) atas temuan `critic` B (CS-B-10, CS-B-14, CS-B-15, CS-B-16), permintaan 09 indeks §8, 10 indeks §6, dan 18 §2.12; susulan fase D (12 November 2026): kata layar dari 07 §1.4 dan §2.1, jeda urungkan menurut 06 S-7 dan P-41, LY-32 dan list–detail Android menurut ADR-023 butir 5, layar 10-G (SEC-153, SEC-154; 06 §16.12), lipat N-28 (SEC-57). **Sesudah checkpoint S4 (12 November 2026):** keputusan pemilik produk dicatat (§22): arah C menjadi identitas visual dan diuraikan menjadi sistem kerja (§19), termasuk bagian anti-templat (§19.8) dan pemeriksaan warna uang (§19.9); UX-2 sampai UX-5 dan S4-5 diterapkan (§5.1 LY-78, §10.3, §12.1, §18.1); huruf yang bergantung pada S4-1 (iii), S4-3 (ii), S4-4 (i), S4-6 (ii), dan S4-7 dihapus dari §5, §7, §9, §10.7, §17, §18.3, §21; fitur baru F-FAM-021 sebutan anggota (Tier 2, §7.4, LY-87), diselaraskan dengan SEC-155 dan 10 indeks §7.3; teks final pemberitahuan pengelola (§7.5); kalimat kesepakatan ambang (§18.3). **S5 fase D (12 November 2026):** *tahan tulis* tampil sebagai keadaan antre biasa dan perintah pelindung tetap seketika (§10.2, §13.2, §18.3; ADR-028 butir 3, SEC-151); contoh layar gerbang §19.8 dipakai ulang untuk wawancara 13 §6.3 (§19.8); kalimat status Plus untuk tahap publik (§18.3). **Atas tinjauan ulang `critic` S5 B2 (12 November 2026):** CR5-B-10, keluar dan ekspor tidak lagi diberi kalimat gangguan saat *tahan tulis* (§13.2); CR5-B-11, status Plus "setiap anggota berakun" (§18.3); ketetapan lead, "Salinan data saya" (FR-FAM-013/AC-12) dibangun FS-1 dan masuk LY-75 (§5.1, §21). **Atas keputusan 42 (12 November 2026), platform pilot iOS dan iPadOS:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16, §16.2); rancangan Android tetap utuh, waktu bangunnya mengikuti keputusan (§0, §16, §16.4); sasaran waktu mencatat dan kata perangkat di layar diselaraskan (§9.1, §18.1); gerbang contoh layar memuat iPad (§19.8); permintaan baru di §23.1, fakta baru di §23.2, sumber [S13] sampai [S15]; SEC-59 (b), (c), (d) dengan FR-FAM-021/AC-10 dan FR-NTF-005/AC-6, AC-7: kalimat tablet di LY-10 (§12.3), judul jendela hanya nama tujuan dan tanpa permukaan sistem berdata (§16.2), kalimat perangkat penerima (LY-71, LY-85), §21. **Atas keputusan 47 dan 50 (12 November 2026):** kedudukan wawancara dan uji prototipe statis terhadap Q-209 kini mengutip keputusan 47 dan keempat syarat 10 §7.4 (Q-215 selesai; §19.8); perbedaan dengan brief §1 baris "Pilot devices" dan "Platforms" dihapus karena kedua baris sudah diubah (K-66, K-67 selesai; §0, §16, §23.1). Keputusan 43 dan 44 tidak mengubah isi dokumen ini. **Atas keputusan 51 (12 November 2026), tanpa rencana go public:** rancangan tidak dikurangi; waktu bangun yang bergantung pada TestFlight eksternal, App Store, kiriman toko, FS-3, GR-4, atau tahap publik kini bersyarat "bila kelak go public" (§10.7, §16, §16.4, §18.3, §23.3); waktu Android di §0 dan §16 berkedudukan "diterima atas saran lead lewat keputusan 50", dan "sebelum beta" hanya berlaku bila beta kelak diadakan; pembingkaian konflik iPad mini 7 dengan brief §1 di §16 dihapus karena baris "Platforms" sudah memuat pengecualiannya. **Atas keputusan 52 dan 10.1 §11.3.1 (12 November 2026):** kata layar final versi keluarga pengelola bagi orang tua dan kerabat yang diberi login (§7.5.1); label versi per akun dan tanggal baca di LY-71, "Riwayat keamanan" dengan baris akses darurat di LY-73 (§7.5.2; SEC-36, SEC-39 (b)); LY-05, §7.1, §21 diselaraskan; lalu atas ketetapan `security-privacy` di 10.1 §11.3.1: "isi dompet campuran" dan isi salinan cadangan ditambahkan ke teks dan tabel fakta wajib (§7.5.1), pergantian versi per akun menulis baris di riwayat keamanan (§7.5.2); atas SEC-34 yang diperbarui, versi baru menahan pengisian sampai dibaca: LY-05 tampil begitu sinkron membawanya, isian yang terbuka masuk antrean atau draf, kata keadaan tertahan (§7.5.3, §13.2). **Atas 10.1 SEC-18 dan SEC-25 (F-FAM-022, FR-FAM-026; Tier 2, FS-2):** layar LY-88 "Pengaman tambahan saat masuk" dengan pernyataan sebelum tombol nyalakan, 10 kode yang tampil sekali, serta matikan dan buat kode baru dengan kata sandi dan faktor kedua atau satu kode (§5.2, §12.5, §21); empat usulan dikukuhkan `security-privacy`, ditambah masa gugur pemasangan dan papan klip sensitif (§12.5). **Atas temuan `critic` (12 November 2026):** S-1 tenggat Android "sebelum jalur pengujian Google Play dibuka" (§16, §16.4); S-2 panggilan identitas tidak pernah ditahan (§7.5.3); S-3 FS-2 hanya TOTP, passkey mungkin di tahap publik (§5.2, §12.5); S-4, menurut SEC-34 (5) final (opsi A usulan lead atas R-3, dipilih `security-privacy`): setiap versi baru dan setiap pergantian versi akun menahan tulis sampai diakui, tanpa batas frekuensi; bila versi lebih baru datang sebelum diakui, LY-05 menampilkan yang terbaru saja (§7.5.2, §7.5.3); M-a tenggat Android yang sama di §0; M-e pengakuan pemberitahuan tidak pernah ditahan (§7.5.3). Atas 10.1 SEC-34 (5), SEC-35, §11.3: LY-05 selalu menampilkan teks lengkap versi dari server; kalimat fitur yang belum tersedia bertanda "berlaku saat fitur ini tersedia", tanpa tampilan yang bergantung pada build (§7.5, §7.5.1). Putaran keputusan 51–55 sudah ditinjau `critic` (`_progress.md`). **S6 (12 November 2026): pass konsistensi.** Tanpa perkiraan offline di pilot: angka server dengan waktunya dan catatan belum terkirim terpisah, perkiraan hanya pilihan kelak yang memerlukan ADR baru dan persetujuan pemilik produk (§9.1 langkah 3, §13.2; ADR-013 butir 2, 06 S-9); kalimat antrean dan sinkron memakai kata "perangkat" (§7.5.3, §10.2, §13, §18.1; keputusan 42); pengenal F dan FR di LY-10, LY-62, LY-63, LY-73, LY-75, LY-76; atribusi opsi A SEC-34 (5) (§7.5.3); kata "pasangan" di teks aturan diganti menurut model per anggota dewasa (W7); judul SEC-87 mengikuti 10.3 (§21); nuansa kata penyemangat menjadi setelan rumah tangga di LY-45 yang diganti lewat usulan kesepakatan, corak tetap pribadi di LY-86 dengan daftar tertutupnya (§5.1, §5.2; keputusan 62, 64; FR-AI-001); daftar nuansa ditetapkan menurut keputusan 66; keputusan 68 tidak mengubah isi dokumen ini karena 08 tidak memuat layar kebijakan privasi. Perubahan S6 menunggu tinjauan ulang `critic`. **Sesudah S6, putaran web lebih dulu (12 November 2026):** atas keputusan pemilik produk bahwa klien web (PWA) dibangun pertama dengan tata letak yang sama (§0), bagian baru §25 merinci klien web untuk `web-dev`: navigasi per lebar pada IA yang sama (§25.2), tata letak di perangkat pilot (§25.3), sistem desain web di atas token arah C dengan komponen sendiri di atas HTML semantik tanpa kit UI pihak ketiga (§25.4), keyboard, pointer, dan WCAG 2.2 AA (§25.5), pemasangan ke layar utama sebelum masuk di iPhone dan iPad, mode perangkat, kunci kode saja, dan layar sesi berakhir (§25.6, LY-90 sampai LY-97), luring dan belum terkirim (§25.7), izin notifikasi dari ketukan (§25.8), informasi peka (§25.9), daftar bagian yang hanya untuk aplikasi native dan ditunda tanpa dihapus (§25.10), serta gerbang contoh layar dan tinjauan per layar untuk web lebih dulu (§25.11); baris 10 indeks §6 "Klien web" (SEC-164 sampai SEC-178) dipenuhi (§21); kalimat [Klien web] final di teks pemberitahuan pengelola, dan "ponselmu" menjadi "perangkatmu" pada kalimat `CARE` (§7.5, §7.5.1; SEC-178 (b)); catatan rujukan web di §0, §1, §2, §4, §12.3, §13, §14, §15, §16, §17, §19; uji tata letak native dijadwal ulang dan uji web sebelum GR-2 (§16.4, §25.11); "Ponsel {nama}" menjadi "Perangkat {nama}" (§10.2); permintaan baru §23.1, fakta §23.2, butir terbuka §23.3, sumber [S16] sampai [S21]. **Atas tinjauan kata `security-privacy` dan keputusan nama Casa (13 November 2026):** LY-90 tanpa janji data tak terhapus; LY-91 menyatakan batas SEC-170 (b), "Catatanmu tidak disimpan", "perekam layar atau ketikan"; LY-10 "menutup tampilan catatanmu"; LY-92 pemulihan menyebut keluar dari perangkat lain (SEC-24) dan faktor kedua (SEC-18); LY-88 di mode bersama (SEC-165 (h)); galat tautan undangan yang ditempel (§25.6); nama di layar "Casa" (§0, §7.3, §7.5, §7.5.1, §19.5, §25), "Family OS" hanya di uraian; LY-95 bernama "Perangkat ini" (§21). **Atas temuan `critic` (13 November 2026):** S3 kalimat [Klien web] disalin persis dari bunyi kanonis 10.1 (§7.5, §7.5.1, §23.1); M14 LY-90 dengan dua jalan, mode bersama di tab Safari tanpa LY-91, mode pribadi tidak pernah di tab (§25.1 W-6, §25.6, §25.8, §25.11; SEC-171 (b)(5), SEC-165 (d)); M10 "keputusan 69" dan "keputusan 70" (§0). Tidak ada isi yang diterima pemilik produk kecuali yang disebut dengan kedudukannya |
 | Pemilik | `ux-designer` |
 | Tingkat kedalaman | Tier 1 penuh (brief §1.1); Tier 2 ringkas; Tier 3 daftar saja. Rancangan berlaku untuk setiap rumah tangga tahap publik; rumah tangga pilot adalah pemakai pertamanya (brief §1.1, "Tiers set what is built first, not what is designed") |
-| Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1); `_progress.md` |
-| Dipakai oleh | `ios-dev` dan `android-dev` di fase bangun; `ux-designer` yang meninjau setiap layar yang dibangun (`CLAUDE.md`, tim bangun); dokumen 13 dan 14 di S5 |
+| Masukan | Brief §1, §1.1, §3, §4, §5B, §5K, §5O, §10, §16; `CLAUDE.md`; `ENGINEERING-STANDARDS.md` §3, §4; dokumen 00, 02, 03, 04, 05 (FAM, FIN-1, REQ, NTF, COM, tier-2), 06 (§11, §13, §16), 07 (§1.4, §2.1), 10 (indeks §6 dan bagian yang dirujuknya, termasuk 10.5 Klien web), 11 (IDEA-04, 07, 19), 12, 17 ("Dibawa ke S4"), 18 (§2.9, §4, §5.1, §5.13); `_progress.md` |
+| Dipakai oleh | `web-dev` lebih dulu (§25), lalu `ios-dev` dan `android-dev` di fase bangun; `ux-designer` yang meninjau setiap layar yang dibangun (`CLAUDE.md`, tim bangun); dokumen 13 dan 14 di S5 |
 | Bukan kode | Layar diuraikan dengan kata, tabel, dan Mermaid. Nama komponen platform disebut agar tim bangun tahu bentuk aslinya, bukan sebagai kode |
 
 ## Peta isi
@@ -38,6 +38,7 @@
 | 22 | Keputusan checkpoint S4 yang mengikat dokumen ini |
 | 23 | Permintaan kepada pemilik dokumen lain, fakta untuk dokumen 18, butir terbuka |
 | 24 | Sumber |
+| 25 | Klien web (PWA): klien pertama, dengan IA dan tata letak yang sama |
 
 ---
 
@@ -48,6 +49,10 @@
 **Pengenal.** Dokumen ini memakai satu awalan baru, `LY-NN`, untuk layar (§5). Lead diminta menambahkannya ke tabel pengenal `README.md`. Butir lain dirujuk dengan pengenal dokumen asalnya (`FR-`, `F-`, `SEC-`, `N-`, `PRN-`, `Q-`).
 
 **Kolom iOS dan Android.** Setiap pola diberi bentuk iOS dan bentuk Android. Yang sama di kedua aplikasi hanya warna merek, ikon (maknanya), kata-kata, dan arsitektur informasi (brief §10.1). Bila sebuah baris hanya menyebut satu bentuk, bentuk yang lain mengikuti pedoman platformnya tanpa tambahan.
+
+**Klien web.** Kolom iOS dan Android adalah rancangan aplikasi native dan tetap utuh. Klien web dibangun lebih dulu (baris keputusan web di tabel berikut) dan memakai IA, layar, isi, urutan, kata-kata, dan token yang sama dengan dokumen ini; bentuk web-nya ada di §25. Bagian yang hanya berlaku untuk aplikasi native dan ditunda sampai aplikasi itu dibangun didaftar di §25.10 dan diberi catatan "**[Native]**" di tempatnya. Bila sebuah bagian tidak bercatatan dan tidak disebut di §25, isinya berlaku juga untuk web.
+
+**Nama di layar: Casa.** Nama kerja aplikasi adalah **Casa**, sementara, selama belum go public (**diputuskan pemilik produk sendiri**, keputusan 70; kata-katanya: "Casa aja untuk sementara dan belum go public"; `_progress.md`, "Keputusan pemilik produk: nama aplikasi"; glosarium *Casa*). Setiap teks yang tampil kepada pengguna dan menyebut nama produk (nama di bawah ikon, manifest, ajakan pasang, judul halaman, teks pemberitahuan, kata layar) memakai "Casa". "Family OS" di uraian dokumen ini adalah nama kerja lama proyek perencanaan untuk produk yang sama dan tidak pernah tampil di layar (bacaan lead, tanpa penggantian massal).
 
 **Yang mengikat dokumen ini dan tidak diubahnya.**
 
@@ -65,7 +70,8 @@
 | Layar kunci N-28 "Ada kabar baru" | Bentuk (a), diterima lewat "lanjut" (S3-8 (vii)) | 17 S3-8 |
 | Hanya komponen dan API stabil | Aturan keras: versi stabil terbaru, tanpa alpha, beta, rc, atau API berlabel eksperimental kecuali lewat ADR. Komponen Material 3 Expressive tidak dipakai sampai rilis stabil yang memuatnya terbit (§17.1) | `ENGINEERING-STANDARDS.md` §8 (kalimat ADR-023 dipasang lead sesudah S4-1 (iii) A); ADR-012 butir 4 dan 5; ADR-023 |
 | Versi OS minimum iOS dan iPadOS 26, Android 10 | Diputuskan pemilik produk di checkpoint S4 (S4-3 (ii) A). Status ADR-012 butir 2 diperbarui `architect` | `_progress.md`, "Checkpoint S4" |
-| Platform pilot: iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 (istri, pencatat utama) dan iPad mini 7 (pemilik produk: gaji, pembagiannya, membaca angka); GR-2 tidak menunggu Android | Platform pilot iOS dan iPadOS: **keputusan 42**, dinyatakan pemilik produk sendiri; kata-katanya: "ios ipad yang bakalan dipakai pilot ya". Waktu Android tidak ada di kata-kata itu: Android dibangun sesudah GR-2 untuk Galaxy A55 miliknya, waktu yang semula bawaan lead **[Usulan]** dan kini **diterima atas saran lead lewat keputusan 50** (bunyi brief §1 baris "Pilot devices" yang ia setujui). Tenggat Android di dokumen ini adalah **sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b))**; bagian "bergabung ke pilot sebelum beta" tidak lagi dipakai sebagai tenggat, karena go public tidak direncanakan atau dijadwalkan (**keputusan 51**). Brief §1 baris "Pilot devices" dan "Platforms" sudah diubah sejalan dengan keputusan ini, termasuk pengecualian iPad mini 7 di baris "Platforms" (**keputusan 50**, diterima atas saran lead; K-66 selesai). **Akibat di dokumen ini:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16.2); rancangan Android (Material 3) tidak dikurangi, hanya waktu bangunnya yang mengikuti keputusan | `_progress.md`, "Keputusan pemilik produk: platform pilot (12 November 2026)" dan "Keputusan pemilik produk 51"; 17, keputusan 50 |
+| Klien web (PWA) responsif dibangun pertama dan menjadi klien pertama untuk pengalaman pengguna; aplikasi iOS dan Android native tetap dan menyusul; tata letak sama di semua klien | **Diputuskan pemilik produk sendiri** (keputusan 69, dicatat `product-analyst` di 17); kata-katanya: "web dibangun duluan aja yang penting web jalan dulu aja. ios dan android nanti. web akan jadi yang pertama untuk user experience". Tentang tata letak, dari usulannya sendiri: "untuk aplikasi perngkat kaya ios dan android tetep dan tata letaknya sama paham gaa". Sesudah lead bertanya apakah ia menerima bahwa web belum terasa sepenuhnya iPhone atau Android: "ya saya terima kan ini versi webnya, selebihnya saya ikut saran kamu pastikan semua valid dan matang wajib profesional"; jadi syarat platform-native brief §10.1 dipenuhi aplikasi native kemudian, bukan oleh web. Menggantikan keputusan 41 dan urutan platform keputusan 42. Pilot dengan data nyata di klien web saja, di iPhone 13 (iOS 26), iPad mini 7 (iPadOS 26), Galaxy A55, dan browser desktop: **bacaan lead [Usulan]** yang dipakai 10.5 §0 dan dokumen ini. **Akibat di dokumen ini:** §25; "tata letak sama" berarti IA, layar, isi, urutan, tiga keadaan lebar, token, dan kata-kata yang sama, bukan komponen yang sama (18 §5.13.7) | `_progress.md`, "Sesudah S6: audit kesiapan bangun dan usulan web app (12 November 2026)" |
+| Platform pilot: **urutannya digantikan keputusan web lebih dulu (baris di atas)**; yang di bawah tetap berlaku bagi aplikasi native. iOS dan iPadOS lebih dulu; pilot dengan data nyata di iPhone 13 (istri, pencatat utama) dan iPad mini 7 (pemilik produk: gaji, pembagiannya, membaca angka); GR-2 tidak menunggu Android | Platform pilot iOS dan iPadOS: **keputusan 42**, dinyatakan pemilik produk sendiri; kata-katanya: "ios ipad yang bakalan dipakai pilot ya". Waktu Android tidak ada di kata-kata itu: Android dibangun sesudah GR-2 untuk Galaxy A55 miliknya, waktu yang semula bawaan lead **[Usulan]** dan kini **diterima atas saran lead lewat keputusan 50** (bunyi brief §1 baris "Pilot devices" yang ia setujui). Tenggat Android di dokumen ini adalah **sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b))**; bagian "bergabung ke pilot sebelum beta" tidak lagi dipakai sebagai tenggat, karena go public tidak direncanakan atau dijadwalkan (**keputusan 51**). Brief §1 baris "Pilot devices" dan "Platforms" sudah diubah sejalan dengan keputusan ini, termasuk pengecualian iPad mini 7 di baris "Platforms" (**keputusan 50**, diterima atas saran lead; K-66 selesai). **Akibat di dokumen ini:** tata letak iPad mini 7 untuk alur Tier 1 pemilik produk siap di GR-2 (§16.2); rancangan Android (Material 3) tidak dikurangi, hanya waktu bangunnya yang mengikuti keputusan | `_progress.md`, "Keputusan pemilik produk: platform pilot (12 November 2026)" dan "Keputusan pemilik produk 51"; 17, keputusan 50 |
 
 **Dua batas evidensi.** (1) Saya tidak melihat gambar. Rupa aplikasi rujukan di dokumen ini hanya dikutip dari 18 §4.10.2, tempat `researcher` membuka tangkapan layar App Store sebelas aplikasi keuangan dengan batas yang ia nyatakan sendiri (materi pemasaran pilihan vendor, satu tema, warna disebut dengan mata); di luar itu `researcher` membaca halaman sebagai teks (18 §4.0). (2) Uji langsung aplikasi pesaing (R-02) belum dilakukan, jadi sasaran kecepatan mencatat di §9.1 adalah **[Asumsi]** dari `ENGINEERING-STANDARDS.md` §3 dan dari pola di dokumen 03 §2.4, bukan dari pengukuran.
 
@@ -84,6 +90,8 @@
 | 7 | Bagaimana informasi peka disembunyikan? | Tombol **"Sembunyikan angka"** (ikon mata) di Beranda dan Uang, setelan pribadi per perangkat, yang menyamarkan semua jumlah di seluruh aplikasi; angka tampil saat pertama dibuka dan pilihan mata diingat per perangkat (S4-10 (iii) A); fitur ini F-FIN-027, Tier 3 Could menurut 05, jadi di pilot perlindungannya adalah yang berikut; kunci aplikasi (SEC-19); pengalih aplikasi selalu ditutup layar netral (SEC-20); layar kunci hanya teks kelas (SEC-51). Status suasana hati dan sakit (Tier 2) tidak pernah tampil di Beranda anggota dewasa lain | §12 |
 | 8 | Fitur apa yang muncul kontekstual, bukan di menu? | "Bagikan" sesudah mencatat uang masuk; "Siapkan uang tagihan" bila ada tagihan yang belum disiapkan; "Pakai yang disetujui" saat mencatat belanja yang cocok dengan otorisasi terbuka; "Selesaikan sisa" pada permintaan yang belanjanya sudah tertaut; "Minta konfirmasi" pada catatan bertanda; "Hitung uang" pada tempat uang tunai; "Kirim ke chat" pada setiap objek yang boleh menjadi kartu; "Minta anggaran" saat catatan baru akan melewati ambang | §9.4 |
 | 9 | Bagaimana fitur yang banyak tidak menjadi menu yang melelahkan? | Empat tujuan di Tier 1 (Beranda, Uang, Chat, Saya), lima di Tier 2 (tambah Rumah); semua pekerjaan uang di satu daftar "Uang" yang bersekat; pembuatan apa pun lewat satu "Catat"; tindakan lanjutan muncul pada objeknya (pertanyaan 8); rincian opsional terlipat di "Tambah rincian". Tidak ada layar pengaturan izin di pilot (S3-1 (a)) | §3, §4 |
+
+Kesembilan jawaban berlaku sama di klien web; yang berbeda hanya bentuk komponennya: tombol Catat (§25.2), kunci kode saja (§25.6), dan tanpa pintasan ikon aplikasi di pilot web (§25.10).
 
 ---
 
@@ -104,7 +112,7 @@ Kata sifat brief §10.1 (hangat, tenang, premium, dan seterusnya) tidak dapat ga
 | 9 | Tanpa unsur indikator D | Ada unsur di §20 tanpa keputusan tercatat (SEC-82) |
 | 10 | Tidak ada yang menunggu jaringan | Mencatat, membaca angka terakhir, atau menulis pesan menunggu sambungan (PRN-06; 06 S-7) |
 
-Pemeriksaan 11 sampai 15 (identitas tanpa templat) ada di §19.8.
+Pemeriksaan 11 sampai 15 (identitas tanpa templat) ada di §19.8. Untuk klien web, pemeriksaan 1 dibaca "elemen HTML bawaan dulu", pemeriksaan 2 tidak berlaku (**[Native]**), dan pemeriksaan 16 sampai 21 ditambahkan (§25.11).
 
 ---
 
@@ -184,6 +192,8 @@ graph TD
 
 ## 4. Navigasi per platform dan per ukuran jendela
 
+Tujuan (§4.1), tiga keadaan (§4.2), dan berpindah rumah tangga (§4.4) berlaku untuk semua klien. Bentuk navigasi di §4.3 adalah **[Native]**; bentuk web ada di §25.2.
+
 ### 4.1 Tujuan tingkat atas
 
 | Urutan | Tujuan | Ikon (makna, sama di kedua platform) | Tier |
@@ -235,7 +245,7 @@ Tinggi *compact* (ponsel lanskap, Android < 480 dp) diperlakukan sebagai Ringkas
 
 ### 5.1 Tier 1
 
-Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk.
+Kolom "Bentuk" menyebut wadah native; isinya diuraikan di bagian yang ditunjuk. Di klien web setiap layar di tabel ini ada dengan isi yang sama dan bentuk web menurut §25.4; layar yang hanya ada di klien web (LY-90 sampai LY-97) diinventaris di §25.6. LY-78 Tampilan tidak ada di web (§25.4 "Tema").
 
 | LY | Layar | Isi dan tujuan | Fitur | Bentuk iOS | Bentuk Android |
 |---|---|---|---|---|---|
@@ -427,7 +437,7 @@ Tambahan bila rumah tangga pernah punya anggota dewasa yang sudah keluar:
 
 > Ia tidak akan membaca chat lama, dan tidak melihat nama, catatan, atau foto dari anggota yang sudah keluar. Catatan uangnya tetap ada dan tampil sebagai "mantan anggota".
 
-Teks yang ikut terbagi (SEC-29): "Kamu diundang bergabung di Family OS. Buka tautan ini: {tautan}". Nama produk mengikuti nama kerja; tidak ada nama rumah tangga, nama pengundang, atau sebutan (SEC-155 (c)).
+Teks yang ikut terbagi (SEC-29): "Kamu diundang bergabung di Casa. Buka tautan ini: {tautan}". Nama produk mengikuti nama kerja (Casa, §0); tidak ada nama rumah tangga, nama pengundang, atau sebutan (SEC-155 (c)).
 
 ### 7.4 Sebutan anggota (F-FAM-021, Tier 2 Should; ringkas)
 
@@ -495,7 +505,9 @@ Pemberitahuan ini punya **tiga versi, dipilih per akun** (SEC-34; 10.1 §11.3, �
 >
 > **Di luar aplikasi berbeda.** Pengelola server dapat membuka basis data dan salinan cadangan secara langsung. Dari sana semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Aturan di aplikasi tidak mencegah itu, dan data ini tidak dienkripsi terhadap pengelola server.
 >
-> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca pengelola server.
+> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di perangkatmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca pengelola server.
+>
+> **[Klien web]** Kalau kamu memakai Casa di browser atau dari ikonnya di layar utama, aplikasinya dimuat dari server yang dikelola {pengelola} setiap kali diperbarui. Pengelola server dapat mengubah aplikasi itu, juga khusus untuk akunmu, termasuk agar data yang hanya tersimpan di perangkatmu ikut terkirim.
 >
 > **[Tier 2]** Sebutan yang kamu berikan untuk anggota lain hanya tampil di aplikasimu, tetapi tersimpan di server dan dapat terbaca pengelola server.
 >
@@ -504,6 +516,8 @@ Pemberitahuan ini punya **tiga versi, dipilih per akun** (SEC-34; 10.1 §11.3, �
 > [ ] Saya sudah membaca dan memahami pemberitahuan ini.
 
 Bentuk layar tetap LY-05: layar gulir; kotak centang dan tombol lanjut aktif sesudah dibaca sampai akhir; tanggal dan versi yang dibaca tersimpan sebagai catatan milik pembacanya.
+
+**Kalimat [Klien web]** (10.1 §11.3; 10.5 SEC-178 (b); TM-42). Bunyinya kanonis di 10.1 §11.3 dan §11.3.1 (ditetapkan `security-privacy`) dan disalin persis di sini; mengubahnya terhitung versi pemberitahuan baru (SEC-34), jadi perubahan dimulai di 10.1, bukan di 08. Ia masuk ke versi yang dibaca sebelum GR-2 dan tampil **tanpa** tanda "berlaku saat fitur ini tersedia", karena klien web sudah dibangun. Kalimatnya dibuka dengan "Kalau kamu memakai Casa di browser atau dari ikonnya di layar utama", sehingga tetap benar bagi pembaca yang kelak memakai aplikasi native dan membaca teks lengkap yang sama (SEC-34 (5)). Penanda "[Klien web]" dan "[Tier 2]" adalah tanda dokumen, tidak tampil di layar. Usulan kata dokumen ini ("aplikasi" menggantikan "kode", "khusus untuk akunmu") sudah masuk ke bunyi kanonis 10.1.
 
 **Tanda "berlaku saat fitur ini tersedia"** **[Usulan]** bentuknya. Satu baris keterangan tepat di atas paragraf bertanda, berbunyi persis "Berlaku saat fitur ini tersedia", dengan gaya teks sekunder yang tetap memenuhi kontras teks normal dan ikut ukuran teks sistem (Dynamic Type; ukuran font Android). Tanda berupa kata, bukan warna, ikon, atau huruf miring saja. Paragrafnya tampil utuh dengan gaya biasa: tidak dilipat, tidak dipudarkan, dan ikut dihitung dalam "dibaca sampai akhir". Pembaca layar membaca tanda lebih dulu, lalu paragrafnya. Tanda yang sama tampil di LY-71 dan berlaku untuk ketiga versi. iOS dan Android sama; hanya gaya teks sekundernya mengikuti platform (§17, §19).
 
@@ -523,7 +537,9 @@ Untuk orang tua atau kerabat pengelola yang diberi login, yang menurut keputusan
 >
 > **Pencatatan itu tidak mencegah semuanya.** {pengelola} memegang server dan kunci salinan cadangan data, dan salinan cadangan itu berisi data yang sama dengan server. Karena itu, secara teknis ia tetap dapat membuka datamu, dari server maupun dari salinan cadangan, tanpa tercatat di riwayat keamanan akunmu.
 >
-> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di ponselmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca dengan cara di atas.
+> **[Tier 2]** Status suasana hati dan kabar sakit yang **tidak** kamu bagikan hanya tersimpan di perangkatmu dan tidak sampai ke server. Begitu kamu membagikannya kepada seseorang, status itu tersimpan di server dan dapat terbaca dengan cara di atas.
+>
+> **[Klien web]** Kalau kamu memakai Casa di browser, atau dari ikon yang kamu pasang di layar utama lewat browser, aplikasinya diambil dari server {pengelola} setiap kali diperbarui. Artinya {pengelola} dapat mengubah cara aplikasi itu bekerja, juga khusus untuk akunmu, misalnya supaya data yang selama ini hanya ada di perangkatmu ikut terkirim ke server. Perubahan seperti itu tidak tercatat di riwayat keamanan akunmu.
 >
 > **[Tier 2]** Sebutan yang kamu berikan untuk anggota lain hanya tampil di aplikasimu, tetapi tersimpan di server dan dapat terbaca dengan cara di atas.
 >
@@ -539,8 +555,9 @@ Untuk orang tua atau kerabat pengelola yang diberi login, yang menurut keputusan
 | Lewat akses itu semua data server terbaca, termasuk dana pribadi, isi dompet campuran, chat dan foto, setelan pribadi (setelan jam tenang tercakup di sini); tidak dienkripsi terhadap pengelola | Paragraf 4 |
 | Pencatatan tidak mencegah semuanya; pengelola menguasai server dan kunci cadangan; salinan cadangan berisi data yang sama; data dapat dibuka dari server maupun dari cadangan tanpa tercatat | Paragraf 5 |
 | [Tier 2] Status yang tidak dibagikan tetap di perangkat; sesudah dibagikan tersimpan di server | Paragraf 6 |
-| [Tier 2] Sebutan anggota hanya tampil di aplikasi pembuatnya, tetapi tersimpan di server dan dapat terbaca (SEC-155 (i)) | Paragraf 7 |
-| Bila tidak cocok, pembaca boleh tidak mengisi data pribadi; dapat dibaca ulang di "Siapa melihat apa" | Paragraf 8 |
+| [Klien web] Klien web dimuat dari server pengelola setiap pembaruan; pengelola dapat mengubahnya, juga hanya untuk satu akun, termasuk agar data yang hanya ada di perangkat ikut terkirim (10.1 §11.3.1; SEC-178 (b); TM-42) | Paragraf 7, disalin persis dari bunyi kanonis 10.1 §11.3.1, termasuk kalimat terakhir "Perubahan seperti itu tidak tercatat di riwayat keamanan akunmu." (TM-42) |
+| [Tier 2] Sebutan anggota hanya tampil di aplikasi pembuatnya, tetapi tersimpan di server dan dapat terbaca (SEC-155 (i)) | Paragraf 8 |
+| Bila tidak cocok, pembaca boleh tidak mengisi data pribadi; dapat dibaca ulang di "Siapa melihat apa" | Paragraf 9 |
 
 **Yang ditambahkan dokumen ini, dan alasannya.** (1) Penjelasan "server", "akses darurat", dan "dienkripsi" di tempat, karena pembacanya mungkin tidak mengenal kata itu. (2) Jalur menu ke riwayat keamanan, agar janji "tercatat" dapat diperiksa sendiri. Dua usulan dokumen ini kini menjadi bagian draf 10.1 §11.3.1 atas ketetapan `security-privacy` (tabel "Ketetapan atas kata-kata akhir 08 §7.5.1"): kalimat [Tier 2] sebutan anggota, dan "kamu boleh tidak mengisi … Itu pilihan yang wajar" sebagai pengganti "jangan mengisi", yang dinilai bukan kalimat janji operator (SEC-35). Atas ketetapan yang sama, "isi dompet campuran" dan kalimat isi salinan cadangan ditambahkan ke paragraf 2, 4, dan 5.
 
@@ -701,7 +718,7 @@ Pintasan dari ikon aplikasi tidak menampilkan angka, nama, atau keadaan, sehingg
 
 Belanja berulang di tempat yang sama: **ketik jumlah, satu ketukan Simpan**. Belanja di kategori lain: dua ketukan. Belanja kemarin di kategori lain: tiga. Semua dalam batas `ENGINEERING-STANDARDS.md` §3.
 
-**Sasaran waktu [Asumsi]** (R-02 belum dilakukan, jadi tidak ada pembanding terukur): median kurang dari 8 detik dari ketuk Catat sampai tersimpan untuk belanja berulang, dan kurang dari 15 detik untuk belanja di kategori lain, diukur di iPhone 13, perangkat pencatat utama, dan di iPad mini 7 untuk alur pemilik produk (Uang masuk dan pembagiannya, §16.2; 14 §3.3 langkah 2, §3.4 "Uji kecepatan") pada minggu pertama pilot, dan di Galaxy A55 pada minggu pertama aplikasi Android terpasang (keputusan 42, §0). Bila meleset, yang diubah adalah bawaan isian, bukan jumlah isian wajib.
+**Sasaran waktu [Asumsi]** (R-02 belum dilakukan, jadi tidak ada pembanding terukur): median kurang dari 8 detik dari ketuk Catat sampai tersimpan untuk belanja berulang, dan kurang dari 15 detik untuk belanja di kategori lain, diukur di iPhone 13, perangkat pencatat utama, dan di iPad mini 7 untuk alur pemilik produk (Uang masuk dan pembagiannya, §16.2; 14 §3.3 langkah 2, §3.4 "Uji kecepatan") pada minggu pertama pilot, dan di Galaxy A55 pada minggu pertama aplikasi Android terpasang (keputusan 42, §0). **Sejak keputusan web lebih dulu:** pengukuran minggu pertama pilot dijalankan di klien web yang terpasang di layar utama iPhone 13, iPad mini 7, dan Galaxy A55 (§25.3); pengukuran di aplikasi native diulang pada minggu pertama masing-masing aplikasi memegang data nyata. Bila meleset, yang diubah adalah bawaan isian, bukan jumlah isian wajib.
 
 **Tetap sah bila terlambat.** "Pilih tanggal" menerima tanggal kejadian lampau tanpa batas selain saldo awal (07 INV-22). Catatan terlambat tampil di riwayat pada tanggal kejadiannya, dengan keterangan kecil "dicatat 3 hari kemudian" bagi **setiap pembaca catatan itu**, sama siapa pun pencatatnya, berupa **tanggal saja, tidak pernah jam**. Usulan rancangan pertama dokumen ini (hanya bagi pencatat) tidak diterima `security-privacy` (10 indeks §7.2): tanggal pencatatan satu-satunya pagar terhadap catatan yang dimundurkan tanggalnya untuk menghindari jatah atau ambang (06 §6.3 baris 7; 07 §3.4, §3.11, T-26). Tanggalnya dari server lewat jalur baca (06 AT-6); keterangan muncul hanya bila tanggal pencatatan berbeda dari tanggal kejadian. Kata tetap netral, tanpa warna atau ikon peringatan (pemeriksaan 6): "dicatat Kam, 12 Nov" bila lebih dari 7 hari **[Usulan]**.
 
@@ -815,7 +832,7 @@ Aturan alur kanonis di 06 §16; di sini bentuknya. Tidak ada pedoman platform pi
 |---|---|---|
 | Belum terkirim | Jam kecil | "Belum terkirim. Tersimpan di perangkatmu dan akan terkirim otomatis." **[Usulan]** bunyi ini, bukan "saat tersambung", karena pesan juga antre saat ponsel tersambung tetapi server belum menerima (galat server, *tahan tulis*; §13.2) |
 | Tersimpan | Satu centang | "Sudah sampai di server." |
-| Terkirim | Dua centang, warna permukaan | "Ponsel {nama} sudah membuka aplikasi sejak pesan ini dikirim." (06 §16.5) |
+| Terkirim | Dua centang, warna permukaan | "Perangkat {nama} sudah membuka aplikasi sejak pesan ini dikirim." (06 §16.5; kata "perangkat" menurut §18.1) |
 | Dibaca | Dua centang, warna merek, **ditambah** kata "Dibaca" untuk pembaca layar | "{Nama} sudah membuka chat sampai pesan ini." Kalimat ini, bukan "sudah tampil di layar", karena tanda dibaca juga naik atas pesan yang disembunyikan pembacanya (06 §16.12, SEC-153 (b)) |
 
 **Tanpa waktu baca** di mana pun (06 §16.5). Tanda pada kartu sama dengan pesan (keputusan "Ikut tanda dibaca", diterima atas saran lead). Karena tanda dibaca adalah tanda air, pesan sesudah kartu yang sudah dibaca menunjukkan kartu itu terbaca (06 §16.5); LY-71 menyatakannya.
@@ -1026,6 +1043,8 @@ Biometrik di kedua platform menerima **setiap** sidik jari atau wajah yang terda
 
 Setelan kunci, termasuk ada tidaknya biometrik, tidak terbaca anggota lain dan tidak menghasilkan Peristiwa atau notifikasi (SEC-19). Rancangan ini diterima di checkpoint S4 lewat D-107; angka 6 dan 5 tetap **[Asumsi]**.
 
+**Klien web.** Baris biometrik, Keychain, Keystore, dan "Tawaran di iPad" di atas adalah **[Native]**. Di web kunci aplikasi hanya kode, menutup tampilan, dan tidak mengenkripsi (SEC-174); rancangannya di §25.6.
+
 ### 12.4 Halaman Bantuan (LY-76; SEC-133, SEC-134, SEC-138)
 
 Isi dari daftar di server (SEC-138), jadi nomor dapat diperbaiki tanpa rilis. **Hanya butir yang sudah diverifikasi di situs resmi penyelenggaranya yang tampil**; butir yang belum tidak tampil sama sekali, tidak juga dengan keterangan "belum diperiksa", karena orang yang membuka halaman ini perlu nomor yang pasti benar. Isi saat ini menurut 18 §2.12.1 (12 November 2026):
@@ -1064,6 +1083,8 @@ Menyalakan, mematikan, membuat kode baru, dan memakai kode pemulihan menulis sat
 ---
 
 ## 13. Keadaan kosong, galat, luring, memuat
+
+Semua keadaan di bagian ini berlaku juga di klien web dengan kata yang sama. Keadaan yang hanya ada di browser (tab lawan terpasang, penyimpanan tetap, data dihapus browser, mode bersama, versi minimum) ada di §25.7.
 
 ### 13.1 Asas
 
@@ -1108,6 +1129,8 @@ Tier 1 hanya meminta notifikasi dan, saat dipakai, kamera. Tidak ada izin lokasi
 
 Bila izin ditolak: fitur tetap berjalan sejauh mungkin; satu baris di LY-72 "Notifikasi mati di setelan ponsel. Kamu tetap bisa melihat yang menunggu di Beranda." dengan tautan ke setelan sistem. Tidak ada permintaan berulang.
 
+Kolom iOS dan Android tabel ini adalah **[Native]**. Di klien web: notifikasi lewat §25.8; kamera dan foto lewat pemilih berkas browser tanpa izin terpisah (SEC-67, SEC-166); tidak ada biometrik (SEC-174).
+
 ---
 
 ## 15. Aksesibilitas
@@ -1124,11 +1147,15 @@ Bila izin ditolak: fitur tetap berjalan sejauh mungkin; satu baris di LY-72 "Not
 | Bahasa | Kalimat pendek, satu gagasan; istilah keluarga; angka dengan pemisah titik ("Rp1.250.000") | — | — |
 | Anggota lebih tua | Tanpa mode terpisah: tata letak yang sama yang mengalir ulang, label kata pada navigasi, urungkan di setiap tindakan sendiri yang ditahan dan konfirmasi pada pesan yang dihapus (§9.3), tanpa batas waktu menjawab, tanpa tindakan yang hanya lewat gestur | — | — |
 
+Asas di kolom "Rancangan" berlaku untuk web; kolom iOS dan Android adalah **[Native]**. Aksesibilitas klien web (WCAG 2.2 AA, keyboard, fokus, pembaca layar di Safari dan Chrome, ukuran teks dan zoom) ada di §25.5.
+
 ---
 
 ## 16. Ponsel, tablet, dan perangkat lipat
 
 Tata letak khusus tablet dan foldable adalah Tier 3; adaptasi ke setiap lebar adalah syarat sejak hari pertama (brief §1.1, §10.3). Untuk perangkat lipat berlaku bawaan (c) Q-120: kelas ukuran jendela ditambah emulator; tidak ada perangkat lipat sebenarnya di pilot **[Asumsi]**.
+
+**Sesudah keputusan web lebih dulu (§0).** GR-2 memakai klien web **[Usulan]** bacaan lead. Tiga keadaan §4.2 dan bentuk per layar §16.1 berlaku untuk web apa adanya; keadaan dipilih dari lebar viewport, bukan size class (§25.2). Kesiapan iPad mini 7 dan Galaxy A55 sebelum GR-2 dipenuhi oleh tata letak web §25.3 dan uji §25.11. Bagian native di bawah (size class, `NavigationSplitView`, papan angka iPad, judul scene, postur Jetpack WindowManager) adalah **[Native]** dan berlaku saat aplikasi itu dibangun; waktunya pindah dari "sebelum GR-2" ke "sebelum aplikasi itu memegang data nyata" (§16.4).
 
 **iPad mini 7 siap di GR-2 (keputusan 42, §0).** Brief §1 baris "Platforms" mendahulukan ponsel, kecuali iPad mini 7: perangkat pilot harian, sehingga setiap alur Tier 1 yang dipakainya ditata untuknya sebelum data nyata (keputusan 42 dan 50). Pemilik produk memakai iPad itu sebagai perangkat pilotnya dengan data nyata, jadi keadaan Sedang dan Lebar (dan Ringkas di jendela sempit) untuk setiap alur Tier 1 yang ia pakai dirancang di §16.2 dan **lulus daftar uji §16.4 di iPad mini 7 sebelum GR-2**, bukan sesudahnya. Ini bukan tata letak khusus tablet: tiga keadaan §4.2 dan bentuk per layar §16.1 tetap satu-satunya tata letak; yang berubah adalah waktunya dan bahwa ia diuji di perangkat nyata. Tablet Android dan perangkat lipat tidak berubah: adaptif sejak hari pertama, tata letak khusus Tier 3.
 
@@ -1197,16 +1224,19 @@ Tidak ada fungsi yang hilang di keadaan mana pun (HIG Layout: yang berubah hanya
 
 ### 16.4 Daftar uji tata letak
 
-Pada setiap ukuran: teks 200% (Android) atau ukuran aksesibilitas terbesar Dynamic Type (iOS), tema gelap dan terang, luring. Waktunya mengikuti keputusan 42 (§0):
+Pada setiap ukuran: teks 200% (Android) atau ukuran aksesibilitas terbesar Dynamic Type (iOS), tema gelap dan terang, luring. Waktunya semula mengikuti keputusan 42 (§0); sesudah keputusan web lebih dulu, uji sebelum GR-2 adalah uji klien web di §25.11, dan kedua baris native di bawah berlaku sebelum aplikasi native masing-masing memegang data nyata (10 indeks §4.3, §4.4):
 
 | Kapan | Perangkat atau emulator |
 |---|---|
-| Sebelum GR-2 | iPhone 13; iPad mini 7 potret, lanskap, jendela berdampingan selebar *compact* dan *regular*, dan jendela yang diubah ukurannya di tengah alur, untuk setiap baris alur di §16.2 |
+| Sebelum GR-2 (klien web) | §25.11 tabel "Perangkat dan lebar" |
+| Sebelum aplikasi iOS native memegang data nyata (10 indeks §4.4; semula "sebelum GR-2") | iPhone 13; iPad mini 7 potret, lanskap, jendela berdampingan selebar *compact* dan *regular*, dan jendela yang diubah ukurannya di tengah alur, untuk setiap baris alur di §16.2 |
 | Sebelum aplikasi Android memakai data nyata (QG-30 (Android), 14; sesudah GR-2, dan sebelum jalur pengujian Google Play dibuka, GR-4 butir 8; QG-31 (b)) | Galaxy A55; emulator foldable Android 841×701 dp, tablet 8 inci 1024×640 dp, tablet 10,5 inci 1280×800 dp (perangkat uji minimum adaptive app quality, 18 §4.4); emulator foldable dalam tabletop, buku, dan peralihan; emulator dua layar berengsel |
 
 ---
 
 ## 17. Sistem desain di atas komponen native
+
+Bagian ini adalah sistem desain aplikasi native. Yang dibagi dengan web: peran warna (§17.2), aturan huruf merek dan penulisan angka (§17.3 kolom "Rancangan"), makna ikon (§17.5), asas gerak (§17.6 kolom "Rancangan" kecuali haptik), dan jarak serta sudut (§17.7). Selebihnya, yakni §17.1 butir 2 sampai 4, kolom iOS dan Android, seluruh tabel komponen §17.4, dan haptik, adalah **[Native]**. Sistem desain web ada di §25.4.
 
 ### 17.1 Asas
 
@@ -1480,6 +1510,7 @@ Aturan gambar: kisi dan ketebalan garis sama dengan ikon sistem di sebelahnya, u
 | Android | Adaptive icon: lapisan latar `teal` dan lapisan depan simpul, masing-masing 108 × 108 dp; simpul di dalam zona aman 66 × 66 dp dan tidak lebih kecil dari 48 × 48 dp. Lapisan `monochrome` berisi simpul untuk ikon bertema | [S11]: ikon bertema sejak Android 13; tanpa lapisan monokrom, mulai Android 16 QPR 2 sistem membuat sendiri warna temanya, jadi lapisan milik kita yang menjaga bentuk simpul |
 | Ikon toko Google Play | Turunan dari ikon yang sama | Spesifikasi ikon Google Play tidak dibaca **[Perlu validasi]** |
 | Layar peluncuran dan pengalih aplikasi (§12.2) | Permukaan `kertas` dengan simpul `teal` di tengah; tanpa nama rumah tangga, angka, atau nama orang | §12.2; SEC-20 |
+| Klien web | Baris iOS dan Android di atas adalah **[Native]**. Web memakai gambar yang sama sebagai berkas statis milik sendiri: ikon manifest berukuran 192 dan 512 px (tujuan `any`), satu versi `maskable` dengan simpul di dalam zona aman, dan ikon layar utama Apple 180 px; nama di manifest dan di bawah ikon layar utama "Casa" tanpa data (SEC-175 (g)). Penutup netral dan layar muat pertama memakai rupa layar peluncuran di atas (§25.9) | Ukuran dan zona aman `maskable`, dukungan lapisan `monochrome` di manifest, dan perlakuan iOS 26 atas ikon web app (gelap, berwarna) **[Perlu validasi]** (§23.2) |
 | Risiko | Simpul dapat terbaca sebagai lambang tak hingga atau pita kepedulian. Diperiksa bersama contoh layar di gerbang §19.8; bila terbaca demikian, bentuk simpul diubah, maknanya tetap | **[Asumsi]** |
 
 ### 19.6 Keadaan kosong
@@ -1495,6 +1526,8 @@ Tipografis: satu glif milik produk yang berkaitan, 40 pt/dp, warna `tinta-2`, di
 | Menunggu kosong | Bagian tidak tampil |
 
 ### 19.7 Di dalam Liquid Glass dan Material 3
+
+**[Native]** seluruhnya. Di web tidak ada kaca dan tidak ada komponen Material; token arah C dipakai langsung di lapisan isi dan di kontrol buatan sendiri (§25.4).
 
 | Hal | iOS dan iPadOS 26 (Liquid Glass) | Android (Material 3, rilis stabil 1.4.0) |
 |---|---|---|
@@ -1518,7 +1551,7 @@ Tipografis: satu glif milik produk yang berkaitan, 40 pt/dp, warna `tinta-2`, di
 | 4 | Tipografi angka | Plus Jakarta Sans tabular, "Rp" kecil dengan warna sekunder, tanpa desimal dan tanpa singkatan, angka sebagai unsur terbesar (§19.4) |
 | 5 | **Motif tata letak: angka bersama pemegangnya** | Setiap jumlah uang bersama diikuti siapa yang memegangnya, dalam susunan yang sama di mana pun: label kecil, angka rata kiri, satu garis tipis, lalu baris pemegang berisi glif tempat uang, nama atau sebutan (§7.4), dan jumlahnya rata kanan; bagian yang belum dikonfirmasi tampil di bawah baris pemegangnya dengan wadah `pasir`. Tampil di Beranda (bagian 2 dan 3), LY-31, kartu serah terima (glif "dari" dan "ke"), LY-33, dan tabel pemegang di ringkasan. Motif ini menggambar pertanyaan inti produk, "uangnya ada di siapa", sehingga ia hanya masuk akal di aplikasi ini |
 
-**Gerbang sebelum token dibekukan.** Diterima atas saran lead di akhir checkpoint S4 ("pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). Lead menunjukkan contoh layar Beranda, Catat, dan Chat di iPhone, iPad mini 7 (perangkat pemilik produk, keputusan 42), dan Android, terang dan gelap, beserta ikon aplikasi, kepada pemilik produk dan pasangannya. Bila mereka menilainya masih seperti templat, yang diubah adalah kelima unsur di atas, bukan komponen native dan bukan arah C.
+**Gerbang sebelum token dibekukan.** Diterima atas saran lead di akhir checkpoint S4 ("pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). Lead menunjukkan contoh layar Beranda, Catat, dan Chat di iPhone, iPad mini 7 (perangkat pemilik produk, keputusan 42), dan Android, terang dan gelap, beserta ikon aplikasi, kepada pemilik produk dan pasangannya. Bila mereka menilainya masih seperti templat, yang diubah adalah kelima unsur di atas, bukan komponen native dan bukan arah C. **Sesudah keputusan web lebih dulu**, gerbang ini dijalankan lebih dulu atas contoh layar klien web di keempat konteks pilot; token yang dibekukan di sana berlaku untuk semua klien, dan aplikasi native kelak hanya melewati gerbang wadah native (§25.11).
 
 **Dipakai ulang untuk wawancara keluarga lain (13 §6.3).** Contoh layar statis yang dibuat untuk gerbang ini juga menjadi bahan uji prototipe 13 §6.3 (uji lima detik Beranda; tugas catat, serah terima, dan pengajuan lewat Catat dan Chat), tanpa memasang aplikasi. Karena itu sejak awal contoh layar hanya memuat **data buatan**: nama, sebutan, jumlah, tempat uang, dan pesan rekaan, tidak pernah data atau tangkapan layar rumah tangga pilot **[Usulan]**. Bila sesudah gerbang kelima unsur berubah, versi terakhir yang disetujui yang dipakai. Wawancara dan uji prototipe statis ini bukan "pengguna di luar rumah tangga pilot" (Q-209) selama keempat syarat 10 §7.4 terpenuhi (keputusan 47, diterima atas saran lead; Q-215 selesai): (1) tidak ada build terpasang, akun, atau data peserta yang masuk server; (2) prototipe tanpa data nyata dan, bila dibuka daring, tanpa analitik atau rekaman sesi; (3) catatan wawancara tanpa nama di samping jawaban dan tanpa angka keuangan rumah tangga peserta, disimpan di luar repositori dan server, dihapus sesudah dirangkum; (4) peserta diberi tahu tujuan dan haknya menolak di awal. Syarat dicentang dengan tanggal sebelum wawancara pertama (13 §6.3); begitu satu syarat gugur, Q-209 berlaku.
 
@@ -1637,6 +1670,19 @@ Bukti ini sejalan dengan rating toko: Apple mewajibkan rating dinaikkan ke 18+ b
 | SEC-57 lipat N-28 | §11.5 |
 | SEC-155 sebutan anggota (10.4 §6.3) | §7.4: (a) kapan diatur, LY-07; (b) siapa melihat; (c) "Tidak pernah tampil", §7.3, §11.1; (d) layar penentu penerima, LY-08; (f) ekspor; (g) dihapus; (h) isian 1–30 karakter teks polos satu baris; (i) kalimat keterbukaan; LY-87. Teks pengelola §7.5 memuat kalimat [Tier 2] sebutan |
 | Indeks §3.2 butir 2, kesepakatan ambang | §18.3 kalimat kesepakatan ambang; LY-45; §10.4 kartu usulan ambang |
+| **Klien web (10 indeks §6; 10.5)** | |
+| SEC-165 pertanyaan mode tanpa pilihan terpilih, kalimat batas mode bersama, tombol keluar selalu terlihat | LY-91 (§25.6); bilah mode bersama (§25.2); peringatan sebelum keluar otomatis (§25.5) |
+| SEC-164 jumlah catatan belum terkirim sebelum keluar, keluar perlu koneksi | §25.6 "Keluar akun di web"; §18.3 kalimat keluar dengan antrean |
+| SEC-171 ajakan pasang, jumlah belum terkirim dengan kalimat kemungkinan hilang, pesan data dihapus browser, isian tetap terbuka saat gagal simpan | LY-90 (pasang sebelum masuk di iPhone dan iPad), kartu pasang Android dan desktop (§25.6); §25.7 baris "Belum terkirim, penyimpanan tidak tetap", "Gagal menyimpan ke antrean"; LY-96 |
+| SEC-172 kalimat browser yang belum dibuka lagi di layar cabut sesi | §25.6 "Mencabut sesi web"; LY-94 di sisi yang dicabut |
+| SEC-174 kunci web kode saja, kalimat "hanya menutup tampilan", saran bukan PIN ATM, penutup netral | LY-10 versi web dan LY-93 (§25.6); §25.9 penutup netral |
+| SEC-175 judul halaman hanya nama tujuan; tanpa "Salin" kode pemulihan di web (FS-2) | §25.9; §25.6 "LY-88 di web" |
+| SEC-176 layar penjelasan sebelum izin notifikasi | §25.8 |
+| SEC-170 (c) kalimat `CARE` di browser (Tier 2); SEC-178 (d) kalimat salinan browser di "Siapa melihat apa" | §25.6 "Tambahan LY-71 dan LY-84 di web" |
+| SEC-169 (f) versi di layar "Tentang" | LY-95 "Perangkat ini" (§25.6); di 08 layar itu hanya bernama "Perangkat ini" |
+| SEC-178 (b) kalimat [Klien web] pemberitahuan pengelola | §7.5, §7.5.1 (kata-kata akhir) |
+| SEC-59 (b) kalimat tablet di tawaran kunci, di web | LY-10 versi web, kalimat untuk semua perangkat (§25.6) |
+| SEC-160 (e) browser yang tidak didukung | LY-97 (§25.6) |
 
 ---
 
@@ -1706,6 +1752,19 @@ Keputusan lain yang ditetapkan dokumen ini sebagai **[Usulan]** dan tidak disebu
 | `researcher` (18 §4.3) | Fakta §23.2 nomor 14 sampai 16 |
 | Lead (16, 01) | Bila 16 atau 01 menyebut uji tata letak atau perangkat pilot, selaraskan dengan 08 §16.4 (iPhone 13 dan iPad mini 7 sebelum GR-2; Galaxy A55 di QG-30 (Android)) |
 
+**Permintaan atas keputusan web lebih dulu (12 November 2026).**
+
+| Kepada | Permintaan |
+|---|---|
+| `architect` (09, ADR-030) | (1) Tautan verifikasi email dan pemulihan kata sandi yang terbuka di tab Safari harus selesai **tanpa membuat sesi** di tab itu; web app layar utama mengetahui hasilnya saat sinkron atau saat kembali terlihat (LY-92; data web app layar utama terpisah dari Safari, 18 §5.13.2). (2) Penerimaan undangan dari tautan yang **ditempel** di LY-02 web app layar utama; token dibaca dari fragmen tautan yang ditempel, dengan aturan SEC-175 (c) (§25.6). (3) Peringatan sebelum keluar otomatis di mode bersama (WCAG 2.2.1, §25.5): "Tetap masuk" memperpanjang masa diam lewat satu panggilan baca biasa; batas mutlak 12 jam tidak dapat diperpanjang. (4) Membuka notifikasi: service worker membuka aplikasi di tujuan umum, lalu aplikasi berpindah ke objeknya sesudah pengenal opak ditarik dan kunci dibuka (SEC-50, SEC-176 (i); §25.8). (5) ADR-030: daftar browser yang didukung memuat Safari iOS dan iPadOS 26 sebagai web app layar utama, Chrome di Galaxy A55, dan browser desktop yang dipilih; Samsung Internet tidak diuji di pilot (§25.6). (6) Tidak ada kit UI pihak ketiga di bundel; ikon sebagai berkas SVG dan huruf Plus Jakarta Sans WOFF2 dari origin sendiri, ikut di-precache app shell (§25.4; SEC-160 (d), SEC-168 (d)). (7) Foto dikodekan ulang ke JPEG di browser sebelum dikirim; dukungan HEIC di Chrome Android **[Perlu validasi]** (§14, §25.4). (8) API Viewport Segments hanya peningkatan opsional, bukan ketergantungan (§25.3) |
+| `architect` (14) | QG-30 (GR-2): daftar uji tata letak web 08 §25.11 "Perangkat dan lebar" dan pemeriksaan 16 sampai 21; baris native 08 §16.4 dipindah ke gerbang "sebelum aplikasi iOS memegang data nyata" dan QG-30 (Android) |
+| `security-privacy` (10.5, 10.1) | Tinjau: (1) kata LY-90, LY-91, LY-93, LY-94, LY-96, LY-97 dan LY-10 versi web (§25.6); (2) kalimat tablet SEC-59 (b) di web ditampilkan di **semua** perangkat karena iPad di Safari tidak dapat dikenali dengan pasti (§25.6); (3) **dijawab**: kalimat [Klien web] kedua versi kini kanonis di 10.1, termasuk "Perubahan seperti itu tidak tercatat di riwayat keamanan akunmu" (§7.5.1); (4) LY-88 di web: kunci teks TOTP ditampilkan untuk diketik tanpa tombol "Salin", dan kode pemulihan tanpa "Salin", "Bagikan", atau unduh; apakah tautan `otpauth://` ke aplikasi autentikator di perangkat yang sama boleh (§25.6); (5) peringatan sebelum keluar otomatis di mode bersama memperpanjang masa diam atas tindakan pengguna (§25.5); (6) jalur menempel tautan undangan (§25.6) |
+| `product-analyst` (17) | K: brief §10.2 meminta Android menawarkan terang, gelap, ikuti sistem di dalam aplikasi; klien web **mengikuti sistem di semua perangkat tanpa pilihan di aplikasi** **[Usulan]** (§25.4 "Tema"), termasuk di Galaxy A55. LY-78 tetap untuk aplikasi Android native |
+| `product-analyst` (05, 13) | 05: AC untuk pemasangan ke layar utama sebelum masuk di iPhone dan iPad (LY-90), penerimaan undangan lewat tautan yang ditempel, LY-95 Perangkat ini, peringatan sebelum keluar otomatis di mode bersama. 13: GR-2 memuat uji §25.11; gerbang contoh layar §19.8 dijalankan atas klien web (§25.11) |
+| Lead (`README.md`, glosarium, `CLAUDE.md`) | `README.md`: rentang LY-90 sampai LY-97 milik klien web. Glosarium: istilah *web app layar utama* (web app yang dipasang ke layar utama dan dibuka dari ikonnya, datanya terpisah dari tab browser di iPhone dan iPad), bersama *Klien web* dan *Mode perangkat bersama* yang sudah diminta 10. `CLAUDE.md` "Build team": peran `web-dev`, dan `ux-designer` meninjau setiap layar web terhadap 08 §25 dan WCAG 2.2 AA |
+| `researcher` (18) | Fakta §23.2 nomor 17 sampai 30 |
+| `security-privacy` (10.5) | Nama produk Casa (keputusan 70) di kalimat SEC-172 (e) yang dikutip 08 ("membuka Casa lagi"). Kalimat [Klien web] sudah kanonis di 10.1 §11.3 dan §11.3.1 dan disalin persis di 08 §7.5 dan §7.5.1. Kalimat LY-91 pilihan 1 kini memuat batas SEC-170 (b) |
+
 ### 23.2 Fakta untuk dokumen 18 (`researcher`)
 
 Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan ke 18 §4.
@@ -1732,6 +1791,20 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 | 14 | HIG Multitasking (log perubahan 9 Juni 2025): di iPadOS orang memakai aplikasi layar penuh atau berjendela; jendela dapat diubah ukurannya dan ditata seperti macOS dengan kendali penataan sistem; "Apps don't control multitasking configurations or receive any indication of the ones that people choose" | [Terverifikasi] | §24 [S13] |
 | 15 | HIG Layout (log perubahan terakhir 9 September 2026): size class ditetapkan menurut jenis perangkat, susunan jendela, dan keadaan multitasking; aplikasi iOS dan iPadOS dapat berada di setiap kombinasi size class | [Terverifikasi] | §24 [S14] |
 | 16 | `numberPad` di iPad dengan iOS 26 dapat berganti ke papan ketik penuh; pelapor di forum mengutip jawaban Apple lewat Feedback Assistant (FB19626136) bahwa itu perilaku yang diharapkan, sedangkan staf Apple di utas itu hanya meminta laporan bug; `allowsNumberPadPopover` tidak punya halaman dokumentasi; baris alat papan ketik SwiftUI dilaporkan tidak tampil bersama papan angka | [Perlu validasi]; laporan pengembang, bukan dokumentasi | §24 [S15] |
+| 17 | WCAG 2.2 adalah W3C Recommendation 12 Desember 2024. AA memuat 2.4.11 Focus Not Obscured (Minimum), 2.5.7 Dragging Movements, 2.5.8 Target Size (Minimum) 24 × 24 CSS px, 3.3.8 Accessible Authentication (Minimum; catatan informatif menyebut pengelola kata sandi dan salin-tempel); 2.4.13 Focus Appearance adalah AAA (perimeter 2 CSS px, kontras 3:1) | [Terverifikasi] | §24 [S16] |
+| 18 | Fitur media `prefers-contrast` (Safari dan Safari iOS 14.1, Chrome 96), `prefers-color-scheme` (Safari 12.1, Safari iOS 13, Chrome 76), `prefers-reduced-motion` (Safari 10.1, Chrome 74), `display-mode` (Safari 13, Safari iOS 12.2, Chrome 42), `forced-colors` (Safari 16, Chrome 89) | [Terverifikasi] data BCD MDN | §24 [S17] |
+| 19 | API Viewport Segments dikirim di Chrome 138 dan Edge 138; Firefox dan Safari tidak mendukung | [Terverifikasi] | §24 [S18] |
+| 20 | Dynamic Type iOS di konten web lewat `font: -apple-system-body`; berlakunya di web app layar utama iOS dan iPadOS 26 | Mekanisme dari WebKit; perilaku di 26 [Perlu validasi] | §24 [S19] |
+| 21 | Langkah dan label "Tambah ke Layar Utama" di Safari iOS 26 (menu ⋯, Bagikan, sakelar "Buka sebagai Web App"), termasuk label bahasa Indonesia | [Perlu validasi]; panduan pihak ketiga, bukan Apple | §24 [S20] |
+| 22 | Pemasangan PWA dan `beforeinstallprompt` di Samsung Internet | [Perlu validasi]; laporan forum saling bertentangan | §24 [S21] |
+| 23 | Diminta diperiksa: `navigator.standalone` bernilai `false` di tab Safari iOS dan iPadOS 26 dan tidak ada di browser lain; iPadOS Safari melaporkan User-Agent desktop | — | — |
+| 24 | Diminta diperiksa: apakah web app layar utama iOS 26 punya gestur kembali dari tepi; apakah tekan lama di Safari iOS memicu peristiwa `contextmenu` | — | — |
+| 25 | Diminta diperiksa: apakah Safari iOS memperbesar halaman saat isian berukuran huruf di bawah 16 px difokuskan | — | — |
+| 26 | Diminta diperiksa: apakah PWA yang dipasang Chrome Android memakai penyimpanan dan cookie yang sama dengan tab Chrome; apakah tautan dari aplikasi lain dibuka di PWA terpasang | — | — |
+| 27 | Diminta diperiksa: lisensi SF Symbols untuk web (dugaan: hanya untuk aplikasi di platform Apple); lisensi Material Symbols untuk aset SVG | — | — |
+| 28 | Diminta diperiksa: dukungan lapisan `monochrome` dan zona aman `maskable` pada ikon manifest di Chrome Android; perlakuan iOS 26 atas ikon web app (gelap, berwarna) | — | — |
+| 29 | Diminta diperiksa: cara VoiceOver (iOS 26, bahasa Indonesia) dan TalkBack membacakan "87.000 rupiah"; dekode HEIC di Chrome Android | — | — |
+| 30 | Diminta diperiksa: apakah `navigator.storage.persist()` memunculkan permintaan izin di Firefox desktop | — | — |
 
 ### 23.3 Butir terbuka
 
@@ -1751,12 +1824,14 @@ Diperiksa `ux-designer` pada 12 November 2026; mohon diverifikasi dan dimasukkan
 | 6b | Nilai token, nomor stylistic set, dan versi Plus Jakarta Sans | Diukur dan dipastikan saat token dibuat (§19.11) |
 | 7 | Kata "saldo"; uang masuk tanpa hijau | Diuji dengan anggota pilot di minggu pertama (§18.2; §19.9). Sapaan "kamu" sudah diputuskan (S4-10 (iv) A) |
 | 8 | iPhone lipat tanpa pedoman Apple | Dinilai ulang bila pedoman terbit |
+| 9 | Butir web **[Perlu validasi]** (§25.12) | Diperiksa di perangkat pilot dengan staging sebelum GR-2; tanpa Mac, tanpa Web Inspector (18 §5.13.8), jadi lewat pengamatan dan halaman pemeriksaan diri SEC-179 |
+| 10 | Tema web tanpa pilihan di aplikasi berbeda dari brief §10.2 untuk Android | K di 17 (§23.1); bila pemilik produk ingin pilihan di web, LY-78 dibangun di web untuk semua perangkat, disimpan sebagai setelan tampilan tanpa data (10.5 §5) |
 
 ---
 
 ## 24. Sumber
 
-Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026 ([S10] sampai [S12] sesudah checkpoint S4; [S13] sampai [S15] atas keputusan 42).
+Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan dokumen. Di bawah ini hanya sumber yang diperiksa `ux-designer` untuk dokumen ini, diakses 12 November 2026 ([S10] sampai [S12] sesudah checkpoint S4; [S13] sampai [S15] atas keputusan 42; [S16] sampai [S21] atas keputusan web lebih dulu). Fakta web lain dikutip dari 18 §5.13 dan 10.5 dengan nomor bagiannya.
 
 | Kode | Sumber | Isi yang dipakai |
 |---|---|---|
@@ -1775,3 +1850,369 @@ Sumber yang sudah ada di dokumen 18 dirujuk dengan nomor bagiannya di badan doku
 | [S13] | Apple Human Interface Guidelines, "Multitasking" (log perubahan 9 Juni 2025), https://developer.apple.com/design/human-interface-guidelines/multitasking, dibaca lewat berkas data `…/tutorials/data/design/human-interface-guidelines/multitasking.json`, diakses 12 November 2026 | Aplikasi layar penuh dan berjendela di iPadOS; jendela dapat diubah ukurannya dan ditata; aplikasi tidak diberi tahu susunan multitasking |
 | [S14] | Apple Human Interface Guidelines, "Layout" (log perubahan terakhir 9 September 2026), https://developer.apple.com/design/human-interface-guidelines/layout, dibaca lewat berkas data `…/layout.json`, diakses 12 November 2026 | Size class menurut jenis perangkat, susunan jendela, dan keadaan multitasking; setiap kombinasi size class mungkin |
 | [S15] | Apple Developer Forums, "ios26 NumberPad keyboard issue on iPad", https://developer.apple.com/forums/thread/797047, dan "SwiftUI, numeric keypad, and missing keyboard toolbar", https://developer.apple.com/forums/thread/758729, ringkasan pencarian, diakses 12 November 2026 | Perilaku papan angka dan baris alat papan ketik di iPad **[Perlu validasi]** |
+| [S16] | W3C, "Web Content Accessibility Guidelines (WCAG) 2.2", W3C Recommendation 12 Desember 2024, https://www.w3.org/TR/WCAG22/, diakses 12 November 2026 | Kriteria AA 1.4.4, 1.4.10, 1.4.12, 2.4.7, 2.4.11, 2.5.7, 2.5.8, 3.3.8; AAA 2.4.13 |
+| [S17] | MDN browser-compat-data, `css/at-rules/media.json`, https://raw.githubusercontent.com/mdn/browser-compat-data/main/css/at-rules/media.json, diakses 12 November 2026 | Versi dukungan `prefers-contrast`, `prefers-color-scheme`, `prefers-reduced-motion`, `display-mode`, `forced-colors` |
+| [S18] | Chrome for Developers, "Support foldable devices with the Viewport Segments API", 9 Juni 2025, https://developer.chrome.com/blog/viewport-segments-api-shipped, diakses 12 November 2026 | Dikirim di Chrome 138 dan Edge 138; Firefox dan Safari tidak |
+| [S19] | WebKit, "Using the System Font in Web Content", https://webkit.org/?p=3709, ringkasan pencarian, diakses 12 November 2026 | `font: -apple-system-body` sebagai jalan Dynamic Type di konten web; perilaku di iOS 26 **[Perlu validasi]** |
+| [S20] | Panduan pihak ketiga tentang "Add to Home Screen" di iOS 26: iThinkDifferent, https://www.ithinkdiff.com/add-web-app-bookmark-iphone-home-screen-ios-26/; MacRumors Forums, https://forums.macrumors.com/threads/ios-26-add-web-app-or-bookmark-to-iphone-home-screen.2462753, ringkasan pencarian, diakses 12 November 2026. Fakta primer bahwa setiap situs yang ditambahkan ke layar utama terbuka sebagai web app ada di 18 §5.13.3 (WebKit, Safari 26.0) | Langkah menu ⋯, Bagikan, Tambah ke Layar Utama, sakelar "Open as Web App" **[Perlu validasi]** |
+| [S21] | Samsung Developers Forum, utas tentang `beforeinstallprompt` di Samsung Internet, https://forum.developer.samsung.com/t/beforeinstallprompt-event/30862, ringkasan pencarian, diakses 12 November 2026 | Laporan saling bertentangan tentang pemasangan PWA di Samsung Internet **[Perlu validasi]** |
+
+---
+
+## 25. Klien web (PWA): klien pertama, dengan IA dan tata letak yang sama
+
+**Kedudukan.** Pemilik produk memutuskan klien web dibangun pertama dan menjadi klien pertama untuk pengalaman pengguna, dengan tata letak yang sama dengan aplikasi native, dan menerima bahwa web belum terasa sepenuhnya iPhone atau Android (kata-katanya di §0). Bagian ini menerjemahkan seluruh dokumen ke klien web supaya `web-dev` dapat membangunnya tanpa menebak. Ia tidak mengulang isi: layar, isi, urutan, aturan, dan kata di §3 sampai §20 berlaku apa adanya; di sini hanya bentuk web dan hal yang ditambahkan browser. Keamanan browser milik 10.5 (SEC-160 sampai SEC-179), stack dan arsitektur klien milik `architect` (ADR-030, 09); riset di 18 §5.13. Semua isi bagian ini **[Usulan]** `ux-designer` kecuali disebut lain.
+
+### 25.1 Asas klien web
+
+| # | Asas | Artinya bagi `web-dev` |
+|---|---|---|
+| W-1 | **Satu IA, satu tata letak** | Peta §3.2, tujuan §4.1, layar §5, isi Beranda §6, onboarding §7, pola §9 sampai §13, kata §18, serta tiga keadaan §4.2 dengan bentuk per layar §16.1 dipakai apa adanya. Web tidak punya tujuan, layar, urutan isian, atau kata sendiri, kecuali LY-90 sampai LY-97 yang ada karena browser (§25.6). "Tata letak sama" berarti hal-hal itu, bukan komponen yang sama (18 §5.13.7 butir 1, 2) |
+| W-2 | **Satu bentuk web di semua perangkat** | Web adalah gaya ketiga (18 §5.13.7 butir 3). Ia tidak meniru Liquid Glass, tab bar iOS, atau komponen Material, dan tata letaknya tidak bercabang menurut sistem operasi, browser, atau User-Agent (pemeriksaan 8). Yang boleh berbeda per sistem hanya **teks petunjuk** tentang hal di luar aplikasi: langkah pasang (LY-90) dan jalan ke setelan notifikasi (§25.8) |
+| W-3 | **Elemen HTML bawaan dulu** | `button`, `a`, `input`, `select`, `textarea`, `dialog`, `details`, `input type="date"`, atribut `popover`, dengan semantik dan aksesibilitasnya sendiri. Komponen buatan sendiri hanya bila elemen bawaan tidak ada (§25.4) |
+| W-4 | **Komponen sendiri yang kecil, tanpa kit UI pihak ketiga** | Satu set komponen milik produk di atas HTML semantik dan CSS, bertoken arah C (§25.4). Kit UI pihak ketiga tidak dipakai, karena (a) Material Web dalam mode pemeliharaan (18 §5.13.7) dan tidak ada komponen Liquid Glass untuk web; (b) setiap dependensi di bundel berjalan dengan akses penuh ke IndexedDB dan sesi, sehingga perlu daftar ADR-030 dan tinjauan `security-privacy` (SEC-168 (d), TM-38); (c) set yang dibutuhkan kecil (tabel §25.4) dan kebanyakan elemen bawaan. Menambah kit kelak memerlukan alasan yang tidak dapat dipenuhi elemen bawaan, ditambah prosedur SEC-168 (d) |
+| W-5 | **Kata "perangkat"** | Setiap tempat isi jenis perangkat di kalimat layar (§18.1: "ponsel", "iPad", "tablet") berbunyi **"perangkat"** di web, karena jenis perangkat tidak dapat diketahui dengan pasti dari browser; iPad di Safari dapat melaporkan diri seperti komputer (§23.2 nomor 23) |
+| W-6 | **Terpasang dulu di iPhone dan iPad** | Di iPhone dan iPad, Casa di perangkat sendiri dipakai dari web app layar utama dan **dipasang sebelum masuk akun**; di tab Safari hanya mode bersama yang tersedia (LY-90; SEC-171 (b)(5)): data web app layar utama terpisah dari Safari dan bebas dari batas 7 hari, sedangkan data tab Safari dapat terhapus dan tidak terbawa ke web app (18 §5.13.2 **[Terverifikasi]**; SEC-171 (b)). Di Android dan komputer pemasangan dianjurkan, tidak diwajibkan (§25.6) |
+| W-7 | **Klien tidak menghitung uang** | Sama dengan aplikasi native: angka dari server, catatan belum terkirim tampil terpisah (§13.2; ADR-013) |
+
+### 25.2 Navigasi per lebar
+
+Keadaan dipilih dari **lebar viewport dalam CSS px**, karena web tidak punya size class (18 §5.13.7 butir 2). Ambangnya sama dengan ambang dp Android di §4.2, sehingga perangkat pilot jatuh di keadaan yang sama dengan rancangan native.
+
+| Keadaan | Lebar viewport **[Usulan]** | Perangkat pilot (lebar CSS px **[Asumsi]**, §4.2, §16.2) | Navigasi tingkat atas | Tombol Catat | Kembali |
+|---|---|---|---|---|---|
+| **Ringkas** | < 600 | iPhone 13 (390); Galaxy A55 (sekitar 384); iPad mini 7 di jendela sempit (sekitar 372); jendela browser komputer yang disempitkan | Bilah navigasi bawah yang menempel, empat tujuan Tier 1 (lima di Tier 2), ikon dengan label kata selalu tampil, lencana menurut §4.1; diberi ruang aman bawah (`env(safe-area-inset-bottom)`) | Tombol berlabel "Catat" yang mengambang di ujung kanan bawah, di atas bilah navigasi, di Beranda dan Uang; di Chat lewat tombol tambah di kotak tulis (§9.1). Ketuk = Belanja; jenis lain lewat pemilih jenis di kepala LY-32 (§25.4) | Tombol kembali di bilah atas setiap layar dorong |
+| **Sedang** | 600–839 | iPad mini 7 potret layar penuh (744) | Rail di kiri: tujuan bertumpuk dengan ikon dan label di bawahnya | Tombol "Catat" di puncak rail | Sama; layar list–detail tidak punya kembali |
+| **Lebar** | ≥ 840 | iPad mini 7 lanskap (1133); laptop dan komputer | Rail yang sama. Tanpa sidebar atau drawer: lima tujuan muat di rail, dan sub-bagian Uang sudah tampil sebagai kolom daftar list–detail (alasan §4.3) | Sama dengan Sedang | Sama |
+
+Tinggi viewport < 480 CSS px (ponsel lanskap) mengikuti aturan tinggi *compact* §4.2: isi dapat digulir, dan "Simpan" tidak pernah tertutup papan ketik (§25.3).
+
+**Mengapa tombol Catat di bawah, bukan di bilah atas seperti iOS native (§9.1).** Satu bentuk di semua perangkat (W-2), dan di ponsel tombol bawah terjangkau ibu jari tanpa mengubah genggaman. Bentuk iOS di §9.1 adalah **[Native]**.
+
+**Bilah mode bersama.** Di mode perangkat bersama (LY-91), di bawah bilah atas setiap layar dan di semua keadaan, tampil satu baris tetap "Perangkat bersama · Keluar akun" (SEC-165 (f)). Baris ini bukan baris status dan tidak dapat ditutup.
+
+**Riwayat dan alamat.** Setiap tujuan dan layar dorong punya alamat sendiri, sehingga tombol kembali browser, gestur kembali Android, dan Alt+← bekerja. Membuka lembar atau dialog menambah satu entri riwayat; kembali menutupnya dan menyimpan draf (§9.3). Alamat hanya berisi nama tujuan dan pengenal acak (SEC-175 (b)), misalnya `/uang/tempat/{pengenal acak}`; judul halaman "Casa · {nama tujuan}" (SEC-175 (a); §25.9). Di web app layar utama iOS tidak ada tombol kembali browser, dan gestur kembali dari tepi belum dipastikan (§23.2 nomor 24), jadi tombol kembali di bilah atas adalah satu-satunya jalan yang diandalkan dan selalu ada pada layar dorong.
+
+**Berpindah rumah tangga (Tier 3, §4.4).** Nama rumah tangga di bilah atas Beranda (Ringkas) atau di kepala rail (Sedang, Lebar) menjadi pemilih; aturan "yang tidak pernah ada" di §4.4 berlaku.
+
+### 25.3 Tata letak per layar dan di perangkat pilot
+
+Tabel §16.1 berlaku apa adanya. Bentuk web-nya:
+
+| Hal | Rancangan web |
+|---|---|
+| Pemilihan keadaan | Media query lebar viewport untuk kerangka (navigasi, jumlah kolom); container query untuk komponen (kartu, baris pemegang, baris anggaran), sehingga kartu yang sama tampil benar di Chat layar penuh dan di panel Chat 30% |
+| Beranda | Ringkas satu kolom; Sedang dan Lebar dua kolom grid menurut §6.3. Di Lebar, tombol "Chat" di bilah atas membuka panel Chat sebagai `aside` di kanan, sekitar 30% lebar dan tidak lebih sempit dari 320 px; panel tidak terbuka sendiri, dan menutup bila lebar turun di bawah 840 (§10.6) |
+| Uang dan Saya | Ringkas: daftar lalu layar dorong. Lebar: dua kolom list–detail (daftar 320 sampai 400 px, rincian sisa lebar). LY-42 di Lebar menjadi kolom ketiga hanya bila lebar ≥ 1200 px **[Usulan]**; di bawah itu ia terbuka sebagai dialog berlebar terbatas |
+| Lembar (LY-32, LY-34, LY-50, LY-52, LY-53, LY-63, LY-77, LY-87) | Dialog modal. Ringkas: menempel di bawah, selebar layar, tinggi paling banyak 90% tinggi viewport dinamis. Sedang dan Lebar: di tengah, lebar paling banyak 560 px, tidak pernah selebar layar (§16.1 baris Catat) |
+| Lebar baca | Kolom teks paling lebar sekitar 680 px; ruang sisa memberi kolom berikutnya, bukan baris yang lebih panjang (§6.3). Di layar sangat lebar seluruh isi berhenti melebar dan berada di tengah **[Usulan]** |
+| Papan ketik virtual | "Simpan" ada **di kepala lembar** (atas), sehingga tidak pernah tertutup papan ketik di browser mana pun, dan diulang di akhir isi. Isian jumlah memakai `inputmode="numeric"`; karakter selain angka tidak masuk, tanpa pesan galat. Tombol "000" berada **di samping isian jumlah**, karena web tidak punya baris aksesori papan ketik (sama dengan aturan iPad §16.2) |
+| Ruang aman | `viewport-fit=cover` dan `env(safe-area-inset-*)` untuk poni dan indikator layar utama iPhone 13 di web app layar utama |
+| Gulir | Utas chat dan lembar menahan gulir berlebih (`overscroll-behavior: contain`), supaya tarik-untuk-memuat-ulang browser tidak memuat ulang halaman di tengah isian |
+| Orientasi | Tidak dikunci; manifest tanpa `orientation` |
+| Perangkat lipat | Keadaan menurut lebar viewport seperti di atas. Melipat dan membuka adalah perubahan ukuran, bukan aplikasi yang dimulai ulang; isian, butir terpilih, dan posisi gulir tetap, dan draf sudah tersimpan (§9.3). API Viewport Segments (Chrome dan Edge 138; Safari dan Firefox tidak, [S18] **[Terverifikasi]**) dipakai hanya sebagai peningkatan: bila viewport terbagi dua, batas list–detail diletakkan di lipatan dan tidak ada jumlah, kartu, atau tombol persetujuan yang melintasinya (§16.3) |
+
+**Perangkat pilot.**
+
+| Perangkat | Konteks | Keadaan |
+|---|---|---|
+| iPhone 13, iOS 26 | Web app layar utama | Ringkas; tinggi *compact* saat lanskap |
+| iPad mini 7, iPadOS 26 | Web app layar utama: layar penuh potret dan lanskap, jendela berdampingan atau diubah ukurannya | Sedang (potret), Lebar (lanskap), Ringkas bila jendela < 600. Ditentukan dari lebar jendela, karena aplikasi tidak diberi tahu susunan multitasking (HIG Multitasking, [S13]). Mengubah ukuran di tengah alur mengikuti §16.2 |
+| Galaxy A55 | Chrome, dipasang ke layar utama | Ringkas; tinggi *compact* saat lanskap |
+| Laptop dan komputer | Browser yang didukung ADR-030, di tab atau terpasang | Biasanya Lebar; Sedang dan Ringkas saat jendela disempitkan |
+
+### 25.4 Sistem desain web: token arah C dan komponen sendiri
+
+**Token.** Setiap token §19.3 menjadi CSS custom property bernama sama (`--kertas`, `--kertas-1` sampai `--kertas-3`, `--tinta`, `--tinta-2`, `--garis-tegas`, `--garis`, `--teal`, `--di-atas-teal`, `--teal-muda`, `--pasir`). Nilai terang adalah bawaan; nilai gelap di bawah `prefers-color-scheme: dark`; varian kontras tinggi (§19.3 "Kontras tinggi") di bawah `prefers-contrast: more`. Di bawah `forced-colors: active` aplikasi memakai warna sistem: batas isian, garis kartu, dan cincin fokus tetap terlihat, dan tidak ada informasi yang hanya dibawa warna latar. Dukungan keempat fitur media itu di Safari, Safari iOS, dan Chrome **[Terverifikasi]** ([S17]). `color-scheme: light dark` dipasang supaya kontrol bawaan (pemilih tanggal, `select`, batang gulir) ikut tema; meta `theme-color` per tema bernilai `kertas`. Galat teknis memakai satu merah milik produk dengan kontras 4,5:1 di kedua tema, dihitung saat token dibuat (§19.11); tidak pernah untuk tanda, keberatan, atau selisih (§17.2).
+
+**Tema.** Klien web **mengikuti setelan sistem di semua perangkat, tanpa pilihan di dalam aplikasi** **[Usulan]**. Alasannya: di iPhone dan iPad tema harus mengikuti sistem (brief §10.2; S4-10 (ii) A), web tidak dapat mengenali perangkat dengan pasti (W-5), dan satu aturan lebih sederhana daripada pilihan yang hanya muncul di sebagian perangkat. Di Galaxy A55 ini berbeda dari kalimat brief §10.2 untuk Android, yang ditulis bagi aplikasi Android native dan tetap berlaku di LY-78; perbedaannya dicatat sebagai K (§23.1). Bila pemilik produk ingin pilihan di web, LY-78 dibangun untuk semua perangkat web dan disimpan sebagai setelan tampilan tanpa data (10.5 §5).
+
+**Huruf.**
+
+| Hal | Rancangan |
+|---|---|
+| Teks isi | Tumpukan huruf sistem (`system-ui`), sehingga tampil dengan huruf sistem tiap perangkat **[Asumsi]** pemetaannya. Tidak ada huruf lain untuk isi |
+| Angka dan judul bagian | Plus Jakarta Sans hanya pada token §19.4, bobot 500, 600, 700. Berkas WOFF2 dari origin sendiri (SEC-160 (d)), ikut di-precache app shell sehingga tersedia luring; dua bobot yang paling sering dipakai dimuat lebih dulu. Lompatan tata letak saat huruf berganti hanya boleh terjadi pada kunjungan pertama |
+| Ukuran | Dalam `rem`, ikut ukuran teks browser: `angka-utama` 2,5 rem, `angka-besar` 1,75 rem, `angka-baris` 1,0625 rem, `judul-bagian` 1,25 rem tebal, isi 1 rem, teks terkecil 0,8125 rem **[Usulan]**. `angka-utama` membesar bersama teks lalu berhenti saat jumlah terpanjang memenuhi lebar kolomnya (satuan container query), tidak pernah di bawah 2,5 rem (§19.4) |
+| Dynamic Type iOS | Akar memakai `font: -apple-system-body` bila didukung, supaya ukuran teks iOS ikut; mekanismenya dari WebKit, berlakunya di web app layar utama iOS 26 **[Perlu validasi]** ([S19]; §23.2 nomor 20). Bila tidak berlaku, pengguna iPhone dan iPad tetap mendapat ukuran dasar yang memenuhi §15, dan uji 200% dijalankan di Chrome Android dan browser komputer |
+| Isian | Ukuran huruf isian paling kecil 1 rem, supaya Safari iOS tidak memperbesar halaman saat isian difokuskan **[Asumsi]** (§23.2 nomor 25). Zoom cubit tidak pernah dimatikan: meta viewport tanpa `maximum-scale` dan tanpa `user-scalable=no` |
+| Angka tabular | `font-variant-numeric: tabular-nums` pada setiap token angka; pemeriksaan §19.4 ("Rp1.111.111" dan "Rp8.888.888" sama lebar) dijalankan di Safari dan Chrome |
+| Penulisan angka | Aturan §17.3: pemformat angka bawaan browser dengan lokal `id-ID`, gaya desimal, digit pecahan 0, awalan "Rp" dari token; bukan gaya mata uang |
+
+**Ikon.** Ikon antarmuka dengan makna §17.5 diambil dari Material Symbols sebagai berkas SVG milik sendiri (gaya garis, ketebalan disesuaikan dengan teks di sampingnya); empat glif produk (§19.5) sebagai SVG. SVG adalah aset, bukan kode, jadi tidak menambah dependensi bundel (SEC-168 (d)). SF Symbols tidak dipakai di web; lisensi kedua set **[Perlu validasi]** (§23.2 nomor 27). Navigasi selalu ikon dengan kata.
+
+**Komponen per pola.** Kolom "Elemen" menyebut elemen HTML yang dipakai; kolom ketiga hal yang wajib dijaga.
+
+| Pola (§17.4) | Elemen web | Wajib |
+|---|---|---|
+| Navigasi tingkat atas | `nav` berisi tautan; tujuan aktif bertanda `aria-current="page"` | Label kata selalu tampil; lencana dibacakan sebagai kata ("3 menunggu") |
+| Bilah atas | `header` dengan `h1` judul layar, tombol kembali, dan paling banyak dua tombol ikon berlabel | Menempel di atas; tidak menutupi isi yang difokuskan (§25.5) |
+| Daftar dan bagian | `section` dengan judul; baris adalah satu `a` atau `button` selebar baris | Sasaran sentuh §25.5; jumlah rata kanan, tidak pernah dipotong (§15) |
+| Master–detail, panel Chat | Grid CSS dua atau tiga kolom; panel Chat sebagai `aside` | Fokus pindah ke panel rincian saat butir dipilih |
+| Lembar | `dialog` modal (`showModal`), bentuk §25.3 | Esc, kembali, dan tombol tutup menyimpan draf (§9.3); fokus awal di isian jumlah; fokus kembali ke pemicunya sesudah tutup |
+| Pilihan jenis catat | `select` bawaan di kepala LY-32 ("Belanja" dan seterusnya) | Pemilih bawaan sistem, jadi tetap terbaca pada teks besar; memilih Minta anggaran atau Jalan-jalan membuka LY-50 di tempat yang sama |
+| Tanggal | Tiga tombol "Hari ini", "Kemarin", "Pilih tanggal"; yang terakhir `input type="date"` | Tanggal kejadian lampau tanpa batas selain saldo awal (§9.1) |
+| Rincian terlipat | `details` dan `summary` untuk "Tambah rincian" | Terlipat bawaan |
+| Tombol utama dan tombol kartu | `button`; utama berwadah `teal` dengan teks `di-atas-teal`; lainnya bergaris `garis-tegas` dengan teks `teal`; sama tinggi (§10.4) | "Belum sepakat" tidak berwarna peringatan; baris tombol menjadi tumpukan tegak pada lebar sempit atau teks besar (§10.4) |
+| Menu tindakan pada pesan dan baris | Panel `popover` berisi daftar `button`, dibuka tombol "Tindakan", tekan lama, atau klik kanan | Esc menutup; tanpa pola keyboard `role="menu"` yang rumit: butir dijangkau dengan Tab **[Usulan]** |
+| Konfirmasi tindakan berat | `dialog` dengan dua tombol yang menyebut akibatnya (§9.3) | Tidak memakai dialog bawaan `confirm()` |
+| Urungkan dan kalimat hasil | Baris hasil di bawah, di atas bilah navigasi, `role="status"`, dengan tombol "Urungkan" selama 5 detik (§9.3) | Tanpa "Urungkan" untuk pesan chat dan perintah pelindung (§9.3) |
+| Saklar | `input type="checkbox"` dengan peran `switch` | Label kata di sampingnya |
+| Batang anggaran dan tabungan | Batang visual `aria-hidden` di samping angka | Angkanya selalu tertulis; batang tidak berubah warna (§19.9) |
+| Memuat | Kerangka bagian tanpa angka palsu dan `aria-busy` (§13.2) | "Mengambil catatan rumah tangga…" sesudah 1 detik |
+| Foto | `input type="file"` dengan `accept="image/*"`; dikodekan ulang ke JPEG di browser sebelum dikirim (§14) | Tanpa izin kamera terpisah (SEC-166); penampil foto LY-61 sebagai `dialog` layar penuh |
+
+**Gerak.** Transisi CSS singkat, paling lama 200 ms **[Usulan]**, tanpa pantulan (§17.6, §20 D-14). Lembar naik dari bawah di Ringkas dan memudar di Sedang dan Lebar; angka berganti dengan pudar silang. Di bawah `prefers-reduced-motion: reduce` semuanya menjadi pudar atau seketika. Tidak ada pustaka animasi.
+
+**Haptik.** Tidak ada di web. Safari tidak mendukung Vibration API (18 §5.13.7 **[Terverifikasi]**), dan Chrome juga tidak dipakai, supaya web terasa sama di semua perangkat. Konfirmasi simpan adalah baris hasil (§9.3).
+
+**Jarak, sudut, elevasi.** Jarak berkelipatan 4 px; kartu dan bagian Beranda sudut 12 px, wadah tanda 8 px (§17.7); tombol 12 px dan sudut atas lembar 16 px **[Usulan]**, karena di web tidak ada bentuk sistem yang diwarisi. Isi tanpa bayangan; hanya lembar dan tombol Catat yang mengambang diberi satu bayangan lembut di tema terang dan permukaan `kertas-3` di tema gelap **[Usulan]**.
+
+### 25.5 Keyboard, pointer, dan aksesibilitas (WCAG 2.2 AA)
+
+Sasaran setiap layar web adalah **WCAG 2.2 tingkat AA** ([S16], W3C Recommendation 12 Desember 2024, **[Terverifikasi]**), ditambah asas §15 yang lebih ketat (sasaran sentuh, jumlah tidak dipotong, tanpa mode lansia).
+
+| Hal | Rancangan |
+|---|---|
+| Struktur | `lang="id"`; landmark `header`, `nav`, `main`, `aside`; satu `h1` per layar berisi judul layarnya; tautan "Lewati ke isi" sebagai tempat fokus pertama (2.4.1) |
+| Pindah layar | Sesudah navigasi, fokus pindah ke `h1` layar baru dan judul halaman diganti (2.4.2; SEC-175 (a)); menutup dialog mengembalikan fokus ke pemicunya |
+| Keyboard | Semua tindakan terjangkau dengan Tab dalam urutan tampilan, tanpa jebakan fokus di luar dialog modal. Enter dan Spasi mengaktifkan; Esc menutup dialog, lembar, dan menu (draf tersimpan). **Tanpa pintasan satu huruf** (2.1.4). Di lembar Catat, Enter pada isian satu baris sama dengan "Simpan", sehingga belanja berulang tetap "ketik jumlah, satu tekan" (§9.1). Kotak tulis chat: bila perangkat punya pointer halus dan hover (`(hover: hover) and (pointer: fine)`), Enter mengirim dan Shift+Enter membuat baris baru; selain itu Enter membuat baris baru dan pesan dikirim dengan tombol kirim. Menu "Tindakan" pesan yang difokuskan dibuka dengan tombol menu konteks atau Shift+F10. Ctrl+Z atau ⌘+Z sama dengan "Urungkan" selama baris hasil tampil |
+| Fokus | Cincin `:focus-visible` 2 px berwarna `teal` dengan jarak 2 px, kontras paling sedikit 3:1 terhadap sekitarnya di kedua tema (memenuhi AAA 2.4.13, [S16]); outline tidak pernah dihapus tanpa pengganti. Bilah atas, bilah navigasi bawah, baris status, dan baris hasil tidak pernah menutupi elemen yang difokuskan (2.4.11; jarak gulir disetel setinggi bilah) |
+| Pointer | Hover hanya memperkaya: tombol "Tindakan" pada pesan tampil saat hover, saat fokus, dan saat gelembung diketuk sekali, jadi tidak ada yang hanya lewat hover. Klik kanan pada pesan atau kartu membuka menu yang sama. Tidak ada tindakan yang hanya lewat seret (2.5.7) |
+| Sasaran sentuh | Paling kecil 44 × 44 CSS px untuk setiap sasaran sentuh; 48 × 48 untuk tindakan utama dan tombol kartu (§15); jauh di atas minimum AA 24 × 24 (2.5.8, [S16]) |
+| Gestur | Tekan lama pada pesan hanya jalan pintas ke menu "Tindakan". Geser untuk membalas dan geser pada baris tidak dibangun di pilot web (**[Native]**; ponytail: ditambah bila pilot memintanya); "Balas" ada di menu |
+| Ukuran teks dan zoom | Satuan `rem`. Diuji pada teks 200% (penskalaan teks Chrome Android; ukuran teks browser komputer) tanpa jumlah terpotong (1.4.4; pemeriksaan 7); zoom browser 400% pada jendela 1280 px, setara 320 CSS px, tanpa gulir dua arah (1.4.10). Tabel ringkasan LY-41 di Ringkas menjadi baris label-di-atas-nilai, jadi tidak perlu gulir mendatar. Pengaturan jarak teks pengguna tidak merusak tata letak (1.4.12) |
+| Pembaca layar | Diuji dengan VoiceOver di Safari (web app layar utama iOS 26 dan iPadOS 26), TalkBack di Chrome (Galaxy A55), dan satu pembaca layar per sistem operasi komputer yang dipakai pilot. "Rp" tampak disembunyikan dari pembaca layar dan kata "rupiah" disisipkan tak tampak sesudah angka, sehingga terbaca "87.000 rupiah"; apakah angka itu dibacakan sebagai kata dalam bahasa Indonesia **[Perlu validasi]** (§23.2 nomor 29). Angka tersamar dibacakan "angka disembunyikan". Kartu adalah `article` berjudul (jenis dan judul objek); tombolnya `button` biasa yang dihubungkan ke judul kartu, sehingga terbaca "Setuju, Minta anggaran Makan malam". Tanda pesan punya kata tak tampak ("Dibaca", "Terkirim") |
+| Pengumuman | Utas chat `role="log"` (sopan); baris status luring dan baris hasil `role="status"`; `role="alert"` hanya untuk galat yang menghentikan langkah; galat per isian lewat `aria-describedby` dan `aria-invalid` |
+| Formulir | Label tampak di atas setiap isian, bukan hanya teks contoh; galat dalam kata (§13.1). Menempel tidak pernah diblokir di kata sandi, kode, dan jumlah (3.3.8, catatan informatif tentang salin-tempel dan pengelola kata sandi, [S16]); kata sandi punya tombol tampilkan. Isian otomatis menurut SEC-175 (d) |
+| Batas waktu | Jeda urungkan 5 detik bukan satu-satunya jalan membalik: perbaikan lewat "Perbaiki" dan "Batalkan catatan" tetap ada (§9.3) **[Usulan]** bacaan 2.2.1. Di mode bersama, 60 detik sebelum keluar otomatis tampil dialog "Kamu akan keluar otomatis dalam 1 menit karena tidak ada kegiatan." dengan "Tetap masuk" dan "Keluar sekarang" (2.2.1); batas mutlak 12 jam **[Asumsi]** SEC-165 adalah batas keamanan yang dinyatakan di LY-91. Kunci aplikasi sesudah 1 menit tersembunyi tidak membuang apa pun |
+| Gerak, warna, orientasi | `prefers-reduced-motion`, `prefers-contrast`, `forced-colors` (§25.4); orientasi tidak dikunci (1.3.4) |
+
+### 25.6 Pasang, masuk, mode perangkat, kunci, dan sesi
+
+**Layar yang hanya ada di klien web.** Kata di layar **[Usulan]**; label menu sistem di dalam petunjuk **[Perlu validasi]** (§23.2 nomor 21).
+
+| LY | Layar | Kapan | Isi |
+|---|---|---|---|
+| LY-90 | Pasang ke layar utama | iPhone dan iPad di tab Safari: **sebelum masuk**, dengan dua jalan (pasang, atau mode bersama di tab). Android dan komputer: kartu sekali di Beranda dan baris di LY-95 | Tabel "LY-90" di bawah |
+| LY-91 | Mode perangkat | Setiap kali masuk dimulai, sebelum LY-02 (SEC-165) | Tabel "LY-91" |
+| LY-92 | Halaman tautan di tab | Tautan verifikasi email atau pemulihan kata sandi terbuka di tab Safari iPhone atau iPad | Menyelesaikan satu tindakan server tanpa membuat sesi, lalu menunjuk ke web app layar utama |
+| LY-93 | Layar kunci web | Kunci aplikasi menyala: saat dibuka dan sesudah tersembunyi lebih dari 1 menit (SEC-174 (d)) | Tabel "Kunci aplikasi di web" |
+| LY-94 | Sesi berakhir | Jawaban `session_revoked` atau `session_expired`; berakhirnya sesi mode bersama | Tabel "Sesi berakhir" |
+| LY-95 | Perangkat ini | Dari LY-70 Saya | Tabel "LY-95" |
+| LY-96 | Data perangkat dihapus browser | Sesi sah tetapi basis data lokal tidak ada (SEC-171 (e)) | Dialog sekali, §25.7 |
+| LY-97 | Browser tidak didukung | Fitur wajib tidak ada (SEC-160 (e)) | "Browser ini belum bisa menjalankan Casa dengan aman. Perbarui browser ini, atau buka Casa di browser lain yang lebih baru." Tanpa isian masuk |
+
+```mermaid
+flowchart TD
+    A["Alamat Casa atau tautan dibuka"] --> B{"Fitur wajib ada? (SEC-160 e)"}
+    B -- Tidak --> X["LY-97 Browser tidak didukung"]
+    B -- Ya --> C{"Tab Safari di iPhone atau iPad?"}
+    C -- Ya --> D{"Tautan verifikasi atau pemulihan?"}
+    D -- Ya --> E["LY-92: selesaikan tanpa sesi, lalu kembali ke ikon di layar utama"]
+    D -- Tidak --> F["LY-90: dua jalan; mode pribadi tidak tersedia di tab"]
+    F -- "Pasang ke layar utama (perangkat sendiri)" --> G["Pengguna membuka Casa dari layar utama"]
+    F -- "Pakai sebagai perangkat bersama atau pinjaman" --> S["LY-01, LY-02 di tab itu, langsung mode bersama, tanpa LY-91"]
+    S --> J
+    C -- Tidak --> H
+    G --> H["LY-91 Mode perangkat"]
+    H --> I["LY-01, LY-02 (termasuk 'Saya diundang')"]
+    I --> J["LY-03 sampai LY-05, lalu alur §7.1 atau §7.2"]
+    J --> K{"Mode pribadi?"}
+    K -- Ya --> L["LY-10 versi web"]
+    L --> M["LY-20 Beranda; di Android dan komputer yang belum terpasang: kartu pasang sekali"]
+    K -- "Bersama" --> N["LY-20 Beranda dengan bilah mode bersama; tanpa kunci, notifikasi, atau ajakan pasang"]
+```
+
+**Mengenali tab Safari iPhone dan iPad.** Dari ada tidaknya mode tampilan layar utama (`display-mode: standalone`, [S17]) dan sifat `navigator.standalone` yang hanya ada di Safari iOS dan iPadOS **[Perlu validasi]** (§23.2 nomor 23). Bila tidak dapat dipastikan, layar yang tampil adalah LY-91, bukan LY-90, supaya tidak ada pengguna yang terkunci di luar.
+
+**LY-90, di tab Safari iPhone dan iPad** (SEC-171 (b)(5), SEC-165 (d)). Layar ini menawarkan dua jalan: memasang ke layar utama untuk perangkat sendiri, atau "Pakai sebagai perangkat bersama atau pinjaman", yang langsung membuka LY-01 dan LY-02 dalam mode bersama di tab itu, tanpa memasang ikon dan tanpa LY-91. **Mode pribadi tidak pernah tersedia di tab Safari.** Kalimat "buka halaman ini di Safari dulu" tampil di atas kedua jalan.
+
+| Bagian | Kata |
+|---|---|
+| Baris pertama, di atas kedua jalan | "Kalau kamu membuka halaman ini dari aplikasi lain, buka halaman ini di Safari dulu." (menutup kasus browser di dalam aplikasi lain tanpa mengenalinya) |
+| Judul | "Pasang Casa di layar utama dulu" |
+| Alasan | "Di iPhone dan iPad, Casa dibuka dari ikonnya di layar utama. Dengan begitu catatanmu tidak terhapus oleh aturan pembersihan data Safari, dan kamu bisa menerima pemberitahuan." (tidak menjanjikan data tak pernah hilang: browser tetap dapat menghapus data saat ruang penyimpanan menipis, §25.7; ketetapan `security-privacy`) |
+| Langkah | "1. Ketuk ⋯ di samping alamat situs, lalu ketuk Bagikan." "2. Pilih Tambah ke Layar Utama." "3. Biarkan Buka sebagai Web App menyala, lalu ketuk Tambah." "4. Tutup Safari, lalu buka Casa dari layar utama." Langkah ditulis sebagai teks bernomor dengan nama tombol persis menurut iOS berbahasa Indonesia, tanpa gambar tangkapan layar |
+| Jalan kedua | Di bawah langkah, tombol bergaris setara "Pakai sebagai perangkat bersama atau pinjaman" dengan keterangan "Untuk iPhone atau iPad milik orang lain. Catatanmu tidak disimpan di perangkat ini, dan kamu keluar otomatis sesudah 30 menit tidak dipakai." Mengetuknya membuka LY-01 dan LY-02 di tab itu dalam mode bersama (aturan SEC-165 (a) sampai (f), bilah mode bersama §25.2) |
+| Bila halaman dibuka dari tautan undangan | Ditambah: "Kamu membuka undangan. Sesudah Casa terpasang, bukalah, pilih Saya diundang, lalu tempel tautan undangan dari pesan yang kamu terima." Aplikasi tidak menyalin tautan itu ke papan klip; tokennya dibuang dari bilah alamat seperti SEC-175 (c). Pada jalan kedua, undangan dari tautan itu dibawa ke LY-02 di tab yang sama |
+| Yang tidak ada | Isian masuk sebelum jalan dipilih, data apa pun, dan pilihan mode pribadi di tab |
+
+**Kartu pasang, Android dan komputer.** Sekali di Beranda sesudah masuk pertama di mode pribadi, bila belum terpasang: "Pasang Casa di perangkat ini supaya bisa dibuka dari layar utama dan catatanmu lebih terjaga." dengan "Pasang" dan "Nanti". "Pasang" membuka permintaan pasang browser bila browser menyediakannya; bila tidak, petunjuk: Chrome Android "Buka menu ⋮, lalu pilih Tambahkan ke layar utama atau Instal aplikasi."; komputer "Pakai ikon pasang di bilah alamat, atau menu browser." Kartu tidak kembali sesudah ditutup; pemasangan tetap tersedia di LY-95. Tidak tampil di mode bersama (SEC-165 (d)). Di Galaxy A55, pilot memakai Chrome **[Usulan]**, karena pemasangan PWA di Samsung Internet belum dapat dipastikan ([S21]); bila Casa dibuka di Samsung Internet, kartu itu menambah satu kalimat "Untuk saat ini, pakai Casa di Chrome."
+
+**LY-91 Mode perangkat** (SEC-165; tanpa pilihan terpilih).
+
+| Bagian | Kata |
+|---|---|
+| Pertanyaan | "Ini perangkat pribadimu, atau perangkat bersama atau pinjaman?" |
+| Pilihan 1 | "Perangkat pribadiku" — "Salinan catatan tersimpan di browser perangkat ini, jadi kamu bisa mencatat tanpa internet. Siapa pun yang bisa membuka browser ini dapat membaca salinan itu. Bisa memakai pemberitahuan dan kunci aplikasi." (batas SEC-170 (b) dinyatakan di layar mode) |
+| Pilihan 2 | "Perangkat bersama atau pinjaman" — "Catatanmu tidak disimpan di perangkat ini. Kamu keluar otomatis sesudah 30 menit tidak dipakai, dan paling lama 12 jam. Mencatat perlu internet." (angka dari SEC-165, **[Asumsi]** di sana; "catatanmu", bukan "tidak ada apa pun", karena kode aplikasi tetap tersimpan di browser) |
+| Batas | "Casa tidak bisa mencegah perekam layar atau ketikan, atau pengelola kata sandi, yang terpasang di perangkat ini." |
+| Bentuk | Dua tombol besar setara, selebar kolom, tanpa yang terpilih; memilih langsung lanjut ke LY-01. Mode tidak dapat diganti di tengah sesi: menggantinya berarti keluar akun lalu masuk lagi (SEC-165) |
+
+**LY-02 di web.** (1) Tautan "Saya diundang" membuka isian "Tempel tautan undangan" dengan keterangan "Salin tautan dari pesan undangan yang kamu terima, lalu tempel di sini."; tautan undangan yang tidak berlaku memakai kalimat SEC-30 (§7.2); teks yang bukan tautan undangan Casa sama sekali (tautan situs lain, teks biasa) memakai "Tautan ini bukan tautan undangan Casa. Salin lagi tautan dari pesan undangan." Keduanya galat per isian di bawah isian, tanpa menyebut nama rumah tangga. (2) Mode pribadi: isian kata sandi dengan `current-password` atau `new-password`. Mode bersama: tanpa isian otomatis yang menyimpan, ditambah "Jangan simpan kata sandi di browser perangkat ini." (SEC-165 (e)).
+
+**LY-92 Halaman tautan di tab** (iPhone dan iPad).
+
+| Tautan | Kata sesudah tindakan server |
+|---|---|
+| Verifikasi email | "Email sudah terverifikasi. Kembali ke Casa di layar utama untuk lanjut." |
+| Pemulihan kata sandi | Isian kata sandi baru di tab itu; sesudahnya: "Kata sandi baru sudah tersimpan, dan akunmu sudah dikeluarkan dari semua perangkat lain (SEC-24). Buka Casa di layar utama, lalu masuk dengan kata sandi baru." Bila pengaman tambahan menyala, ditambah: "Saat masuk, kamu tetap diminta kode dari perangkat pengamanmu." (SEC-18). Tidak ada sesi yang dibuat di tab |
+| Undangan | LY-90 dengan tambahan undangan (di atas) |
+
+**LY-10 versi web** (SEC-174 (a) sampai (c), SEC-59 (b)). Ditawarkan sekali, mati secara bawaan, tidak di mode bersama.
+
+| Bagian | Kata |
+|---|---|
+| Pembuka | "Kunci aplikasi menutup Casa dengan kode 6 angka setiap kali dibuka, dan sesudah kamu tinggalkan lebih dari 1 menit." |
+| Batas (SEC-174 (c), bunyi persis) | "Di versi web, kunci ini menutup tampilan aplikasi. Data yang tersimpan di browser ini tetap dapat dibaca orang yang tahu cara membuka penyimpanan browser." |
+| Perangkat yang dipegang orang lain (SEC-59 (b)) | "Kalau perangkat ini sering dipegang orang lain, misalnya tablet di rumah, kunci aplikasi membantu menutup tampilan catatanmu dari mereka." (SEC-174 (c)) Tampil di **semua** perangkat web, karena iPad tidak dapat dikenali dengan pasti (W-5); tanpa bagian biometrik |
+| Tombol | "Nyalakan" dan "Nanti", setara, tanpa yang terpilih |
+| Membuat kode | Satu isian 6 angka, diketik dua kali; di atasnya: "Jangan pakai PIN ATM atau kode layar kunci perangkatmu." Kode yang terlalu mudah ditolak (SEC-19 (a)): "Kode ini terlalu mudah ditebak. Pilih 6 angka lain." Tidak ada pertanyaan sidik jari atau wajah |
+
+**Kunci aplikasi di web, LY-93.**
+
+| Keadaan | Rancangan |
+|---|---|
+| Terkunci | Permukaan `kertas` dengan simpul (§19.5), satu isian kode 6 angka (`inputmode="numeric"`, tanpa isian otomatis, menempel boleh), "Buka" dan "Lupa kode". Data dilepas dari halaman, bukan hanya dikaburkan (SEC-174 (c)); judul halaman "Casa" saja |
+| Salah | "Kode belum cocok." Tanpa hitungan mundur |
+| Salah 5 kali atau "Lupa kode" | "Masukkan kata sandi akun untuk membuka." (LY-77; SEC-174 (e)). Saat luring: "Membuka dengan kata sandi perlu sambungan internet. Catatanmu tetap tersimpan di perangkat ini." Tidak ada data yang dihapus |
+| Semua tab | Terkunci dan terbuka bersama (SEC-173 (b)) |
+| Mematikan | Di LY-73, dengan kata sandi akun (SEC-19 (e)) |
+
+**Sesi berakhir, LY-94.** Tidak pernah menyebut siapa atau apa yang mencabut.
+
+| Sebab | Kata | Tombol |
+|---|---|---|
+| `session_revoked` (SEC-172 (a)) | "Kamu sudah keluar di perangkat ini, dan data Casa di browser ini sudah dihapus." Bila antrean tidak kosong sebelum dihapus: "{n} catatan yang belum terkirim dari perangkat ini ikut terhapus." | "Masuk" |
+| `session_expired`, mode pribadi (SEC-161 (d)) | "Waktu masukmu di perangkat ini sudah habis. Masuk lagi dengan akun yang sama; catatan yang belum terkirim tetap tersimpan dan terkirim sesudah kamu masuk." | "Masuk" dan "Masuk dengan akun lain"; yang kedua meminta konfirmasi: "Data Casa di perangkat ini akan dihapus, termasuk {n} catatan yang belum terkirim." (SEC-170 (a)) |
+| Mode bersama berakhir | "Kamu sudah keluar otomatis. Catatanmu tidak tersimpan di perangkat ini." | "Masuk" |
+
+**Keluar akun di web** (SEC-164). Tombol "Keluar akun" di LY-73 dan LY-95, dan selalu terlihat di bilah mode bersama; namanya sengaja berbeda dari "Keluar dari rumah tangga" (LY-74). Konfirmasi: "Data Casa di perangkat ini akan dihapus." ditambah kalimat §18.3 tentang catatan belum terkirim bila antrean tidak kosong. Saat luring tombol nonaktif dengan alasan terbaca: "Keluar akun perlu sambungan internet." (§13.2 baris "Tindakan yang memerlukan server").
+
+**Mencabut sesi web** (LY-73; SEC-16, SEC-21, SEC-172 (e)). Baris sesi berbunyi "{browser} · {sistem operasi} · {pribadi / bersama}" (SEC-161 (e)). Konfirmasi memuat kalimat SEC-21 (§18.3) lalu kalimat SEC-172 (e), dengan nama produk diganti Casa (§0): "Data di browser itu terhapus saat browser itu membuka Casa lagi dan tersambung. Sampai itu, orang yang dapat membuka browser itu dapat membaca salinannya."
+
+**Tambahan LY-71 dan LY-84 di web.** LY-71 (SEC-178 (d), SEC-170 (b)): "Di versi web, salinan catatan rumah tangga tersimpan di browser perangkat ini tanpa perlindungan tambahan dari sistem. Siapa pun yang dapat membuka browser ini dan tahu caranya dapat membaca salinan itu. Kunci aplikasi hanya menutup tampilan." dan "Perangkat ini dipakai sebagai perangkat {pribadi / bersama}." LY-84, Tier 2 (SEC-170 (c)): "Status yang tidak kamu bagikan hanya tersimpan di browser perangkat ini, dan hilang kalau browser menghapus data situs atau kamu keluar akun." Di mode bersama LY-84 berbunyi "Status tidak tersedia di perangkat bersama."
+
+**LY-95 Perangkat ini** (dari LY-70). Daftar baris tanpa angka uang, jadi tanpa samaran:
+
+| Baris | Isi |
+|---|---|
+| Mode | "Perangkat pribadi" atau "Perangkat bersama" |
+| Dibuka sebagai | "Aplikasi di layar utama" atau "Tab browser", dengan "Pasang" bila belum terpasang dan mode pribadi |
+| Penyimpanan tetap | "Diberikan browser" atau "Belum diberikan browser" dengan tombol "Minta lagi" (hasil `persist()`, SEC-171 (a)); permintaan ulang dari ketukan, karena sebagian browser mungkin menampilkan pertanyaan (§23.2 nomor 30) |
+| Catatan belum terkirim | Jumlahnya; membuka daftar antrean (§13.2) |
+| Versi aplikasi | "{versi} · {hash pendek}" (SEC-169 (f)) |
+| Keluar akun | Tombol, aturan di atas |
+
+**LY-88 di web (FS-2; SEC-175 (e)).** Langkah 3: kode QR untuk dipindai aplikasi autentikator, dan kunci teks dalam huruf monospace berkelompok empat karakter **untuk diketik**, tanpa tombol "Salin". Langkah 4: sepuluh kode tampil dalam huruf monospace, tanpa "Salin", "Bagikan", atau unduh **[Usulan]**, dengan tambahan kalimat: "Di versi web tidak ada tombol salin. Tulis kode ini di tempat yang hanya kamu yang bisa membuka." Apakah tautan `otpauth://` ke aplikasi autentikator di perangkat yang sama boleh ditawarkan, diserahkan kepada `security-privacy` (§23.1). **Di mode bersama LY-88 tidak tersedia** (SEC-165 (h)): baris "Pengaman tambahan saat masuk" di LY-73 tetap tampil tanpa tombol, dengan kalimat "Pasang faktor kedua dari perangkat pribadimu." Masuk dengan faktor kedua yang sudah menyala tetap berjalan di mode bersama.
+
+### 25.7 Luring, belum terkirim, dan keadaan khusus browser
+
+Keadaan §13.2 berlaku dengan kata yang sama. Yang ditambahkan browser:
+
+| Keadaan | Kata **[Usulan]** | Bentuk dan aturan |
+|---|---|---|
+| Belum terkirim, penyimpanan tidak tetap (`persist()` ditolak, atau berjalan di tab browser) | Di bawah "{n} catatan belum terkirim" (§13.2): "Catatan ini bisa hilang kalau browser menghapus data situs. Buka Casa saat tersambung supaya terkirim." | SEC-171 (c). Tidak tampil bila penyimpanan tetap diberikan |
+| Gagal menyimpan ke antrean (`QuotaExceededError` atau galat tulis) | "Catatan belum tersimpan karena penyimpanan browser penuh atau bermasalah. Isianmu masih di sini. Coba Simpan lagi, atau kosongkan ruang di perangkat ini." | Lembar tidak ditutup, isian tidak dibuang (SEC-171 (f)) |
+| Data perangkat dihapus browser (LY-96) | "Data Casa di perangkat ini dihapus oleh browser. Kalau ada catatan yang belum terkirim, catatan itu tidak bisa dipulihkan. Catatan yang sudah terkirim aman di server dan sedang diambil lagi." Tombol "Mengerti" | Dialog sekali, lalu sinkron ulang dengan kerangka §13.2 "Memuat pertama kali" (SEC-171 (e)) |
+| Mode bersama, tidak tersambung | Baris status: "Belum tersambung. Di perangkat bersama, catatan tidak disimpan di perangkat ini." Saat Simpan: "Catatan belum tersimpan karena belum tersambung. Isianmu masih di sini; Simpan lagi saat tersambung." | Lembar tetap terbuka; tidak ada antrean (SEC-165 (c)) |
+| Versi aplikasi di bawah minimum (SEC-169 (d)) | Baris status: "Aplikasi perlu diperbarui untuk mengirim catatan. Catatanmu tersimpan di perangkat ini." Tombol "Perbarui" | "Perbarui" memuat ulang hanya bila tidak ada isian terbuka; bila ada, setelah isian ditutup atau disimpan. Antrean utuh dan terkirim sesudah pembaruan |
+| Versi baru tersedia (bukan minimum) | Tanpa kalimat | Aktif saat aplikasi dibuka berikutnya atau saat tidak ada isian terbuka (SEC-169 (c)) |
+| Pemeriksaan sesi saat dibuka (SEC-172 (b)) | Tanpa kalimat | Paling lama 3 detik **[Asumsi]** SEC-172 sebelum data lokal tampil; selama itu permukaan `kertas` dengan simpul, bukan pemutar |
+| Kunjungan pertama | Tanpa kalimat | App shell dari jaringan dengan rupa layar peluncuran (§19.5); kunjungan berikutnya dari cache |
+
+Antrean dikirim saat aplikasi dibuka, saat tersambung kembali, saat halaman kembali terlihat, dan sesudah setiap perintah baru (SEC-171 (d)). Di iPhone dan iPad tidak ada pengiriman latar (18 §5.13.4), jadi baris "belum terkirim" adalah satu-satunya tanda; ia tidak pernah disembunyikan (ADR-024 butir 6).
+
+### 25.8 Notifikasi di web
+
+Kelas, teks layar kunci, judul, pengelompokan, jam tenang, dan ringkasan sama dengan §11 (SEC-51 sampai SEC-56; SEC-176 (a), (h)).
+
+```mermaid
+flowchart TD
+    A["Saat pertama dibutuhkan (§14): kirim atau terima permintaan pertama, atau anggota dewasa lain bergabung"] --> B{"Mode pribadi dan, di iPhone atau iPad, web app layar utama?"}
+    B -- Tidak --> Z["Tidak ditawarkan; LY-72: 'Pemberitahuan tidak tersedia di perangkat bersama.'"]
+    B -- Ya --> C["Layar penjelasan (kalimat §14) dengan 'Nyalakan pemberitahuan' dan 'Nanti'"]
+    C -- "Ketukan 'Nyalakan pemberitahuan'" --> D["Permintaan izin browser, dari ketukan itu (SEC-176 (e))"]
+    C -- Nanti --> Y["Tidak ditanyakan ulang otomatis; dapat dinyalakan di LY-72"]
+    D -- Diizinkan --> E["Langganan per sesi dibuat (SEC-176 (f))"]
+    D -- Ditolak --> F["LY-72: baris 'Notifikasi mati' dengan langkah per sistem"]
+```
+
+| Hal | Rancangan |
+|---|---|
+| Waktu meminta | Tidak pernah saat halaman dimuat atau saat onboarding (§14; SEC-176 (e)). Di iPhone dan iPad hanya di web app layar utama, yang selalu terpenuhi di mode pribadi karena mode pribadi hanya ada di sana; masuk di tab Safari selalu mode bersama, yang tidak ditawari notifikasi (W-6; LY-90) |
+| Ditolak | Baris LY-72: "Notifikasi mati untuk Casa. Kamu tetap bisa melihat yang menunggu di Beranda." dengan langkah dalam kata, karena web tidak dapat membuka setelan sistem: iPhone dan iPad "Buka Pengaturan, Notifikasi, lalu Casa."; Android "Buka info aplikasi Casa, lalu Notifikasi."; komputer "Buka setelan situs Casa di browser." Label menu **[Perlu validasi]**. Tanpa permintaan ulang |
+| Lencana | iPhone dan iPad: hanya jumlah `perlu_tanggapan` milik penerima (SEC-53, SEC-176 (d)). Android: sistem menandai ikon untuk setiap notifikasi yang belum dibuka, termasuk `kabar` (18 §5.13.3 **[Terverifikasi]**); batas ini dinyatakan di LY-72 Android: "Di Android, tanda di ikon aplikasi juga muncul untuk kabar baru, bukan hanya yang menunggu jawabanmu." |
+| Mengetuk notifikasi | Membuka aplikasi di tujuan umum; kunci aplikasi diminta lebih dulu bila menyala (SEC-176 (i)); sesudah pengenal opak ditarik (SEC-50), aplikasi berpindah ke objeknya seperti §11.2, sehingga sasaran dua ketukan §9.2 tetap |
+| Lipat N-28 (Tier 2) | Satu notifikasi per pasangan lewat `tag` opak (SEC-57, SEC-176 (c)); kata LY-72 dan LY-85 dari §11.5 tetap |
+| Tombol di notifikasi | Tidak ada (§9.2) |
+
+### 25.9 Informasi peka di web
+
+Aturan §12.2 per layar berlaku; tabel ini menambah permukaan browser.
+
+| Permukaan | Aturan |
+|---|---|
+| Halaman tersembunyi (pindah aplikasi, pindah tab, layar mati) | Seketika menampilkan penutup netral: permukaan `kertas` dengan simpul, sama dengan layar peluncuran, menyala atau tidak kuncinya (SEC-174 (f); padanan SEC-20). Apakah gambar pengalih aplikasi iOS dan Android diambil sesudah penutup itu **[Perlu validasi]**; bila tidak, batasnya ditambahkan ke kalimat batas LY-10 |
+| Judul halaman | "Casa · {nama tujuan}" ("Beranda", "Uang", "Chat", "Saya", "Catat"); tidak pernah nama orang, sebutan, tempat uang, kategori, jumlah, atau judul objek (SEC-175 (a)) |
+| Alamat dan riwayat browser | Nama tujuan dan pengenal acak saja (SEC-175 (b)); token undangan, pemulihan, dan pemasangan dibuang dari bilah alamat sebelum permintaan pertama (SEC-175 (c)) |
+| Isian otomatis | Jumlah, catatan, pesan, kode, dan pencarian tanpa isian otomatis (SEC-175 (d)) |
+| Notifikasi dan lencana | §25.8; teks kelas saja |
+| Pratinjau tautan | Umum, tanpa nama rumah tangga atau orang (SEC-175 (f)) |
+| Sembunyikan angka (Tier 3, §12.1) | Sama dengan native; pilihan mata disimpan sebagai setelan tampilan tanpa data (10.5 §5) |
+| Tangkapan layar dan cetak | Tidak dicegah dan tidak dicoba dicegah (SEC-20); tidak ada tampilan cetak khusus |
+| Status `CARE` (Tier 2) | §25.6 "Tambahan LY-71 dan LY-84" |
+
+### 25.10 Yang hanya untuk aplikasi native: ditunda, tidak dihapus
+
+Bagian berikut tetap rancangan aplikasi iOS dan Android dan dibangun saat aplikasi itu dibangun. Klien web tidak membangunnya; padanannya di kolom kanan.
+
+| Bagian 08 | Isi native | Padanan web |
+|---|---|---|
+| §2 pemeriksaan 1, 2 | Komponen sistem; Liquid Glass hanya di lapisan kontrol | Pemeriksaan 1 dibaca "HTML bawaan dulu"; 2 tidak berlaku; 16 sampai 21 (§25.11) |
+| §4.3 | `TabView` dan `sidebarAdaptable`, `NavigationSuiteScaffold`, predictive back, postur tabletop | §25.2 |
+| §9.1 baris "Dari luar aplikasi"; tombol Catat iOS di bilah | Quick action dan app shortcut; tombol kaca menonjol | Pintasan manifest tidak dibangun di pilot web (ponytail; bila kelak ditambah, mengikuti SEC-175 (g)); tombol Catat §25.2 |
+| §9.3 kolom iOS dan Android | `UndoManager`, `Snackbar` | Baris hasil dan Ctrl/⌘+Z (§25.4, §25.5) |
+| §10.1, §10.7 baris foto diburamkan | Komponen utas native; SensitiveContentAnalysis | §25.4; tanpa peburaman foto di web |
+| §11.1 kolom kanal dan kategori; §11.5 kolom iOS dan Android | Kanal Android, kategori iOS, `apns-collapse-id`, `setOnlyAlertOnce` | `tag` Web Push (§25.8) |
+| §12.3 baris biometrik, Keychain, Keystore, "Tawaran di iPad" | Face ID, Touch ID, `BiometricPrompt` | Kode saja (§25.6) |
+| §14 kolom iOS dan Android | PHPicker, Photo Picker, izin runtime | Pemilih berkas dan izin notifikasi browser (§25.4, §25.8) |
+| §15 kolom iOS dan Android | Dynamic Type, sp, VoiceOver dan TalkBack native | §25.5 |
+| §16.2, §16.3 | Size class, `NavigationSplitView`, papan angka iPad, papan ketik terlepas, judul scene, Spotlight dan Siri, postur WindowManager | §25.3; judul halaman §25.9 |
+| §16.4 baris native | Uji aplikasi native | Dijadwal ulang ke sebelum aplikasi itu memegang data nyata; uji web §25.11 |
+| §17.1 butir 2 sampai 4; §17.3 kolom iOS dan Android; §17.4 seluruhnya; §17.5 set ikon per platform; §17.6 haptik; §17.7 bentuk sistem | Sistem desain di atas SwiftUI dan Compose Material 3 | §25.4 |
+| §19.3 tabel "Per platform"; §19.5 baris iOS dan Android; §19.7 seluruhnya | Katalog aset, `ColorScheme`, Icon Composer, adaptive icon, Liquid Glass dan Material 3 | CSS custom property, ikon manifest (§19.5 baris "Klien web"), §25.4 |
+| LY-78 Tampilan | Pilihan tema di aplikasi Android | Web mengikuti sistem (§25.4 "Tema") |
+| §20 D-14 | Gerak Material 3 Expressive | Tanpa pantulan (§25.4) |
+
+Widget, Live Activity, komplikasi, dan layar luar berisi data sudah tidak ada di Tier 1 (§3.3; SEC-54) dan tidak ada di web.
+
+### 25.11 Gerbang contoh layar dan tinjauan per layar, web lebih dulu
+
+**Gerbang §19.8 dijalankan atas klien web.** Sebelum token dibekukan, lead menunjukkan kepada pemilik produk dan pasangannya contoh layar Beranda, Catat, dan Chat yang dirender dengan token web, di empat konteks: iPhone 13 sebagai web app layar utama, iPad mini 7 potret dan lanskap, Galaxy A55 di Chrome, dan satu browser komputer di keadaan Lebar; terang dan gelap; ditambah ikon dan nama Casa di layar utama iPhone dan di peluncur Galaxy A55. Contoh layar dapat berupa halaman statis bertoken web yang dibuka dari origin staging, dengan data buatan saja dan tanpa analitik, sehingga sekaligus memenuhi syarat (1) dan (2) Q-209 untuk uji prototipe 13 §6.3 (§19.8). Bila dinilai masih seperti templat, yang diubah adalah kelima unsur §19.8. Token yang dibekukan di gerbang ini berlaku untuk semua klien; saat aplikasi native dibangun, gerbangnya hanya memeriksa wadah native (bilah kaca, komponen Material 3, varian ikon §19.5) dan kontras token di dalamnya, tanpa memilih ulang token.
+
+**Tinjauan per layar.** `ux-designer` meninjau setiap layar web yang dibangun sebelum layar itu dipakai dengan data nyata, dan setiap perubahan sesudahnya, dengan pemeriksaan 1 (dibaca "HTML bawaan dulu"), 3 sampai 15, dan enam pemeriksaan web berikut **[Usulan]**:
+
+| # | Pemeriksaan | Gagal bila |
+|---|---|---|
+| 16 | Keyboard | Ada tindakan yang tidak terjangkau atau tidak dapat dijalankan dengan keyboard, jebakan fokus di luar dialog, cincin fokus yang hilang, atau pintasan satu huruf (§25.5) |
+| 17 | Mengalir ulang | Ada gulir dua arah pada 320 CSS px, atau jumlah terpotong pada teks 200% atau zoom 400% (§25.5) |
+| 18 | Semantik dan pembaca layar | Layar tanpa `h1` atau landmark, isian tanpa label tampak, kartu yang tombolnya tidak menyebut objeknya, atau alur Tier 1 yang gagal di VoiceOver Safari atau TalkBack Chrome |
+| 19 | Permukaan luar | Judul halaman, alamat, atau riwayat browser memuat nama, sebutan, jumlah, kategori, atau judul objek (§25.9) |
+| 20 | Keadaan browser | Layar salah atau kosong di salah satu keadaan: tab lawan terpasang, luring, ada antrean, penyimpanan tidak tetap, mode bersama, terkunci, sesi berakhir (§25.6, §25.7) |
+| 21 | Tanpa tiruan dan tanpa kit | Ada tiruan Liquid Glass, tab bar iOS, atau efek riak Material; ada komponen UI dari pustaka pihak ketiga; atau tata letak bercabang menurut sistem operasi atau browser (W-2, W-4) |
+
+**Perangkat dan lebar, sebelum GR-2.** Setiap baris pada terang dan gelap, teks besar, dan luring. Tanpa Mac, uji di iPhone dan iPad adalah pengamatan tanpa Web Inspector, dibantu halaman pemeriksaan diri staging (18 §5.13.8; SEC-179).
+
+| Perangkat | Yang diuji |
+|---|---|
+| iPhone 13, iOS 26 | LY-90 di tab Safari dengan kedua jalannya, termasuk masuk mode bersama di tab tanpa LY-91; seluruh alur Tier 1 di web app layar utama, potret dan lanskap; ukuran teks terbesar bila Dynamic Type berlaku di web (§25.4); VoiceOver |
+| iPad mini 7, iPadOS 26 | Web app layar utama potret (Sedang), lanskap (Lebar), jendela berdampingan selebar Ringkas dan Sedang, dan jendela yang diubah ukurannya di tengah alur Catat dan Bagikan uang masuk (§16.2 alur pemilik produk); papan ketik fisik bila dipakai; VoiceOver |
+| Galaxy A55 | Chrome terpasang ke layar utama; penskalaan teks 200%; TalkBack; lencana (§25.8) |
+| Laptop atau komputer | Browser yang didukung ADR-030 pada 1280 dan 1920 px, zoom 200% dan 400%, hanya keyboard, `forced-colors` bila Windows dipakai |
+| Emulator perangkat lipat Chrome | Terlipat, terbuka, dan peralihan di Chrome DevTools; Viewport Segments bila tersedia |
+
+### 25.12 Butir [Perlu validasi] web
+
+Diperiksa di perangkat pilot dengan staging sebelum GR-2, atau oleh `researcher` (§23.2 nomor 20 sampai 30): label menu "Tambah ke Layar Utama" iOS 26 berbahasa Indonesia (LY-90); Dynamic Type lewat `-apple-system-body` di web app layar utama; pengenalan tab Safari lewat `navigator.standalone` dan User-Agent iPad; gestur kembali di web app layar utama dan `contextmenu` pada tekan lama di Safari iOS; pembesaran otomatis isian di bawah 16 px; penyimpanan bersama PWA terpasang dan tab di Chrome Android; lisensi SF Symbols dan Material Symbols; ikon `maskable` dan `monochrome` di manifest dan perlakuan iOS 26 atas ikon web app; pembacaan "87.000 rupiah" oleh VoiceOver dan TalkBack; dekode HEIC di Chrome Android; pertanyaan izin `persist()` di Firefox; pemasangan di Samsung Internet; penutup netral di pengalih aplikasi (SEC-174 (f)).

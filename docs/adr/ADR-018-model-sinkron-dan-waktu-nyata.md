@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: SSE + tarik berkursor, offline per modul, jeda urungkan 5 detik (D-100, diterima dengan "lanjut"); kehadiran menurut S4-5 (i) A dan (ii) A, "A tetap seperti WhatsApp" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban pertama) |
-| Tanggal | 12 November 2026 (S4 fase C) |
+| Tanggal | 12 November 2026 (S4 fase C; catatan web lebih dulu sesudah S6) |
 | Pengusul | `architect` |
 | Mengubah | 06 §16.5 dan §16.6: **[Asumsi]** platform diganti rancangan; batas diam kehadiran ditetapkan (permintaan revisi 06, indeks 09 §8) |
 | Rincian | [09.1 §8](../09-technical-architecture/01-pilihan-teknologi.md); [09.3 §1 sampai §7, §10](../09-technical-architecture/03-sinkron-waktu-nyata-notifikasi.md) |
@@ -64,3 +64,12 @@ Riset 18 §5.6 menemukan:
 - Anggapan lama 06 §16.5 bahwa platform membedakan tarik di depan dari tugas latar tidak lagi diperlukan, karena pembedaannya dibuat oleh struktur kode kita (06 revisi ketiga belas sudah mengganti **[Asumsi]** itu). Harganya: pilot tidak punya sinkron latar, sehingga isi baru selalu ditarik saat aplikasi dibuka. Untuk dua pengguna dengan volume kecil, tarikan itu cepat.
 - Server tidak dapat membuktikan klien sungguh di depan. Klien yang dimodifikasi hanya dapat memalsukan tanda miliknya sendiri.
 - Hub SSE dan kehadiran di memori proses hanya berlaku untuk satu proses. Tahap publik dengan beberapa proses memakai `LISTEN/NOTIFY` (ADR-014 butir 5).
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 13. Butir 1 sampai 6 berlaku sama bagi klien web; yang ditambah:
+
+- **Butir 3, autentikasi SSE:** klien web membuka `GET /v1/stream` dengan `EventSource` bawaan, same-origin, dan diautentikasi **cookie sesi** (SEC-161), karena `EventSource` tidak dapat mengirim header `Authorization` (18 §5.13.1 **[Terverifikasi]**). Aplikasi native tetap memakai header. Titik akhir tanpa efek samping, memeriksa `Sec-Fetch-Site` (SEC-162 (a)), dan menutup aliran seketika saat sesi dicabut atau berakhir, dengan peristiwa terakhir berisi kode galat (SEC-163).
+- **Butir 4, tanda terkirim:** di web, "di depan" berarti `document.visibilityState === 'visible'` di tab atau web app yang sedang dipakai; hanya jalur itu yang mengirim `FOREGROUND`. **Service worker bukan jalur sinkron:** handler `push` hanya menampilkan notifikasi dari payload dan memperbarui lencana, tanpa panggilan jaringan dan tanpa `Sync`, sehingga tetap "tanpa kode latar" dalam arti butir 4. Background Sync tidak dipakai di pilot.
+- **Antrean web** dikirim saat dibuka, saat `online`, saat halaman kembali terlihat, dan sesudah setiap perintah; satu pengirim per profil browser lewat Web Locks (ADR-030 butir 10).
+- **Butir 5, kehadiran:** denyut dari tab yang terlihat dengan interaksi; online berakhir seketika saat `visibilitychange` menjadi tersembunyi.

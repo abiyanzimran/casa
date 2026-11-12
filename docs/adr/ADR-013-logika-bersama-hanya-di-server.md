@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, termasuk pengecualian ES §2 di butir 3, disetujui tegas sesuai ES baris 3 (S4-1 (ii) A). Kata-katanya: "hp boleh ikut, validasi di app dan server wajib jadi a" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat; dikukuhkan dengan "lanjut"). Kontrak (butir 4 sampai 6) diterima lewat D-100. Pengecualian itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §2 |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan web lebih dulu sesudah S6) |
 | Pengusul | `architect` |
 | Mengubah | Menuntaskan 06 S-9 (tanpa perkiraan offline di pilot) |
 | Rincian | [09.1 §3, §4](../09-technical-architecture/01-pilihan-teknologi.md); [09.2 §10](../09-technical-architecture/02-data-dan-skema.md); [09.4 §4](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -64,3 +64,13 @@ Dokumen 06 §12 sudah memindahkan semua penilaian ke server: transisi (S-1), tan
 - Perangkat tidak menampilkan tanda, sisa jatah, sisa anggaran, atau perkiraan saat offline. Yang tampil adalah angka server terakhir dengan waktunya dan daftar entri yang belum terkirim, sesuai 06 S-8 dan S-9.
 - Tiga potong kode kecil ada dua kali (Swift dan Kotlin) di samping acuan Go, dan pagarnya adalah uji, bukan pembangkitan kode. Ini dicatat terang sebagai pengecualian ES §2, bukan disebut "terpenuhi". RISK-15 (pengecualian ditolak) gugur.
 - `buf breaking` membuat perubahan kontrak yang merusak aplikasi lama tidak dapat masuk tanpa keputusan sadar.
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md). Butir 1 dan 2 tidak berubah: klien web, seperti aplikasi native, tidak memegang aturan.
+
+- **Butir 3, bantuan isian:** klien web memerlukan ketiga bantuan isian (a), (b), (c) yang sama, ditulis sekali lagi di **TypeScript**. Vektor uji emas yang sama dari acuan Go dijalankan di CI web; beda hasil memblokir merge (ADR-030 butir 15). Isi pengecualian tetap tertutup pada tiga butir itu; yang bertambah hanya bahasanya. Karena bunyi ES §2 menyebut "once in Swift and once in Kotlin", tambahan TypeScript **menunggu persetujuan pemilik produk** atas bunyi baru ES §2 (ADR-030 butir 15); sampai disetujui, layar web memakai opsi B butir 3 (tanpa bantuan isian, server menolak dengan kode galat per medan).
+- **Butir 4, kontrak:** `buf generate` juga untuk TypeScript (`@bufbuild/protobuf` 2.x, protoc-gen-es). Kontrak memuat `client_kind` (`ios`, `android`, `web`), `client_version`, dan kode galat `CLIENT_UPGRADE_REQUIRED` (ADR-028 butir 5); server menolak perintah tulis dari klien web di bawah versi minimum `web` sejak pilot (SEC-169 (d)).
+- **Butir 5, pustaka klien:** `@connectrpc/connect-web` 2.x (18 §5.13.1). Dari browser hanya unary dan server streaming; kontrak tidak memakai client streaming atau bidi.
+- **Butir 6:** kode non-UI web (klien API, antrean, sinkron, bantuan isian) dipisah dari komponen layar, seperti di aplikasi native.
+- **Konsekuensi pertama di atas berubah:** TypeScript menjadi bahasa keempat di repositori, untuk klien web saja. Tidak ada langkah build khusus macOS sampai jalur iOS native dimulai.

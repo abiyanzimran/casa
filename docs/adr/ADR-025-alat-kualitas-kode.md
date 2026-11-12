@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: alat per bahasa seperti butir 1 sampai 7 (D-103, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk"). Gerbang kerentanan Swift dikukuhkan di minggu pertama `ios-dev` (butir 2) |
-| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4) |
+| Tanggal | 12 November 2026 (S4 fase D; status checkpoint S4; butir 8 TypeScript dan Svelte sesudah S6) |
 | Pengusul | `architect`, atas temuan `critic` CS-A-07 |
 | Mengubah | — |
 | Rincian | [09.4 §4, §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -47,3 +47,19 @@ Kriteria: ≥ 1.0 atau bagian toolchain resmi (ES §8, ADR-023), berjalan di CI 
 - Gerbang ES §7 lengkap untuk Go dan Kotlin sejak hari pertama. Swift punya formatter dan linter sebagai gerbang; pemindai kerentanannya bergantung pada butir 2 (RISK diterima sampai minggu pertama `ios-dev`).
 - `swift format` lebih sedikit aturannya daripada SwiftLint. Harga itu diterima demi tanpa dependensi 0.x; bila kurang, SwiftLint dapat ditambah lewat butir ADR-023.
 - Tidak ada alat yang mengunggah kode ke layanan luar selain GitHub, tempat repositori memang disimpan.
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 8 dan 18. Butir 1 sampai 7 tetap. **Butir 8 (baru), TypeScript dan Svelte (klien web):**
+
+| Peran | Alat | Label |
+|---|---|---|
+| Pengelola paket | pnpm, `strictDepBuilds` bawaan `true`, `allowBuilds` kosong kecuali disetujui `code-reviewer`; `--frozen-lockfile` di CI | **[Terverifikasi]** perilaku bawaan ([pnpm.io/settings/build](https://pnpm.io/settings/build), diakses 12 November 2026); versi saat dipasang |
+| Formatter | Prettier dengan `prettier-plugin-svelte` | Versi dan status ≥ 1.0 **[Perlu validasi]** saat dipasang |
+| Linter | ESLint dengan `typescript-eslint` dan `eslint-plugin-svelte`; `svelte-check` untuk tipe; aturan yang melarang `innerHTML`, `{@html}`, `eval`, `new Function`, `setTimeout` berisi string (SEC-167) | **[Perlu validasi]** saat dipasang |
+| Pemindai kerentanan | OSV-Scanner atas `pnpm-lock.yaml`, alat yang sama dengan Kotlin | **[Terverifikasi]** `pnpm-lock.yaml` tercantum ([daftar resmi](https://google.github.io/osv-scanner/supported-languages-and-lockfiles/), diakses 12 November 2026) |
+| Duplikasi | PMD CPD | Dukungan TypeScript dan berkas `.svelte` **[Perlu validasi]**; bila `.svelte` tidak didukung, CPD dijalankan atas modul `.ts` saja dan `code-reviewer` memeriksa komponen |
+| Uji | Vitest (unit, vektor emas); Playwright Chromium dan WebKit (alur, header, CSRF, XSS; 10.5 §9) | **[Perlu validasi]** saat dipasang |
+| Bundel | Pemeriksaan CI bahwa paket di peta bundel hanya dari daftar ADR-030 butir 8, dan bundel produksi tanpa penanda pemeriksaan diri atau alamat staging (SEC-179) | Skrip CI |
+
+Semua menjadi gerbang merge (butir 7). Semua berjalan di CI Linux.

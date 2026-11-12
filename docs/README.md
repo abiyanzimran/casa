@@ -2,6 +2,8 @@
 
 Pintu masuk seluruh dokumen perencanaan Family OS. Fase saat ini adalah **perencanaan saja**: belum ada kode aplikasi.
 
+**Nama aplikasi:** *Casa*, nama sementara selama pemakaian keluarga dan belum go public (keputusan pemilik produk sesudah S6; glosarium *Casa*). *Family OS* adalah nama kerja proyek perencanaan dan merujuk produk yang sama. **Klien pertama:** aplikasi web (PWA) yang responsif dan dapat dipakai luring; aplikasi native iOS dan Android menyusul (ADR-030; glosarium *Klien web*).
+
 ## Tujuan
 
 Suami dan istri mengetahui keadaan uang rumah tangga dan urusan rumah tangga tanpa harus saling bertanya, dengan usaha pencatatan serendah mungkin, dan aplikasi membantu mereka saling memperhatikan dan bersikap hangat satu sama lain.
@@ -126,6 +128,7 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Keputusan checkpoint yang diajukan dokumen 08 dan 09 | `UX-N`, `09-X`; nomor `S4-N` dan `Q-NN` diberikan dokumen 17 | `UX-1`, `09-A` |
 | Fase roadmap, gerbang antarfase, ukuran validasi (dokumen 13) | `FS-N`, `GR-N`, `VL-NN` | `FS-2`, `GR-3`, `VL-02` |
 | Workstream dan quality gate (dokumen 14) | `WS-N`, `QG-NN` | `WS-5`, `QG-30` |
+| Langkah jalur native dan butir gerbangnya (dokumen 14): jalur iOS native `I1`–`I4` dengan butir QG-30 (iOS) `I-N`; jalur Android `A1`–`A4` dengan butir QG-30 (Android) `A-N` | `IN`, `I-N`, `AN`, `A-N` | `I2`, `I-8`, `A-8` |
 | Tantangan dokumen 13 terhadap brief; gelombang Tier 2 di dalam pilot (dokumen 13) | `TB-N`, `T2-N` | `TB-2`, `T2-1` |
 | Larangan visibilitas dan aturan tampilan (dokumen 06) | `V-N`, `AT-N` | `V-8`, `AT-4` |
 | Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I`, `F` | `K06`, `C05`, `F04` |

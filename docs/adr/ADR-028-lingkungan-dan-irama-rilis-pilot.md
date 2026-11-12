@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima seluruhnya.** **Butir 1, 2, 3, dan 5** diterima atas saran lead lewat **keputusan 56** (12 November 2026, selama S6; jawaban pemilik produk "Terima semua (Saran)", [_progress.md](../_progress.md), "Keputusan pemilik produk 56 sampai 58"). **Butir 4** diterima atas saran lead lewat keputusan 44 (12 November 2026; jawabannya "Ya, 60/80 hari (Saran)", [_progress.md](../_progress.md), "Penutupan pertanyaan terbuka sebelum S6"). Semula Diusulkan (S5). Butir 1 diselaraskan dengan keputusan 45 (server uji sementara sampai menjelang GR-2) |
-| Tanggal | 12 November 2026 (S5; diperbarui S5 fase D; butir 4 diselaraskan dengan keputusan 42; keputusan 44 dan 45; S6: keputusan 56) |
+| Tanggal | 12 November 2026 (S5; diperbarui S5 fase D; butir 4 diselaraskan dengan keputusan 42; keputusan 44 dan 45; S6: keputusan 56; catatan web lebih dulu sesudah S6) |
 | Pengusul | `architect` |
 | Mengubah | ADR-022 butir 1 (**diterima**, keputusan 44): batas keras 80 hari sejak build iOS terakhir diunggah ke TestFlight, sasaran tetap 60. Semula ADR-022 butir 1, keputusan pemilik produk sendiri (17 keputusan 32), berbunyi paling lambat setiap 90 hari, sasaran 60 |
 | Rincian | [14 §6](../14-engineering-roadmap.md#6-strategi-rilis); [09.4 §1, §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -66,3 +66,27 @@
 - Saklar "tahan tulis" menambah satu jalur kode yang harus diuji (14 §4.7): perintah yang ditolak saat tahan tulis tidak hilang, dan diterima sesudah saklar dimatikan dengan hasil yang sama dengan tanpa saklar; **setiap jenis perintah pelindung diterima selama saklar menyala** tanpa mengubah hash inti moneter.
 - Satu tanda baru di tabel jenis perintah kontrak (`protective`), di samping `hold_seconds`. Uji kontrak: setiap jenis SEC-151 (1) sampai (7) bertanda `protective`, dan `protective` selalu disertai `hold_seconds = 0`.
 - Fitur Tier 2 yang belum selesai tidak terlihat oleh pasangan pilot tanpa mekanisme flag, dengan harga: layar baru tidak dapat digabung sebelum servernya dan pagarnya selesai.
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 3, 9. Butir 2 dan 3 tidak berubah. Yang berlaku bagi klien web:
+
+- **Butir 1, lingkungan:**
+  - Staging web di subdomain staging yang sudah ada (origin lain dari produksi), dengan bundel staging tersendiri.
+  - Pemisahan identitas aplikasi diganti pemisahan origin. Data browser per origin, jadi web app layar utama produksi dan staging dapat terpasang berdampingan.
+  - Bundel staging hanya menjangkau server staging (CSP `connect-src 'self'`), dan halaman pemeriksaan diri hanya ada di bundel staging (SEC-179).
+  - Server uji sementara FS-1 langkah 1 sampai 6 melayani bundel staging dengan header produksi.
+- **Butir 4, irama:**
+  - Setiap gelombang Tier 2 tetap satu rilis, dan bagi web rilis itu adalah rilis server, karena bundel disematkan di biner.
+  - **Tanpa TestFlight, tanpa App Review, tanpa batas 90 hari:** aturan 60/80 hari dan QG-23 baru berlaku sejak build TestFlight pertama di jalur iOS native.
+  - **Alur deploy web:**
+    1. CI membangun bundel dari komit bertanda, mencatat hash setiap berkas, lalu membangun biner Go yang menyematkannya.
+    2. Pengelola memasang biner ke staging, memeriksa header dan halaman pemeriksaan diri, lalu memasang biner yang sama ke produksi (`scp` lalu systemd restart; 09.4 §1).
+    3. Runbook membandingkan hash biner di VPS dengan artefak CI.
+    4. Klien mendapat versi baru saat aplikasi dibuka berikutnya (ADR-030 butir 9).
+- **Butir 5, kompatibilitas:**
+  - Bagi web, **versi klien minimum berlaku sejak pilot**, berbeda dari bunyi butir 5 "di pilot tidak dibangun". Alasannya: service worker dapat terus menyajikan bundel lama yang memuat celah (TM-45), dan pengelola tidak dapat memperbarui browser seperti memasang build.
+  - Kode galat `CLIENT_UPGRADE_REQUIRED` dan konstanta versi minimum per platform dari butir 5 dibangun sekarang, dengan satu nilai untuk `web`. Nilai `ios` dan `android` tetap tidak dipakai di pilot.
+  - Perintah yang ditolak tetap di antrean.
+  - **Rollback web** adalah memasang biner sebelumnya. Klien yang sudah memuat bundel lebih baru tetap dilayani selama kontraknya kompatibel, dan `buf breaking` menjaganya.
+- **Konsekuensi:** satu catatan aplikasi iOS kedua dan pembagian jatah Xcode Cloud baru diperlukan di jalur iOS native. FS-1 langkah 7 hanya menyiapkan instans staging dan subdomainnya.

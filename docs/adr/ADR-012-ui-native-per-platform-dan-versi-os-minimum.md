@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Butir 1: Diputuskan pemilik produk** (12 November 2026): "Swift + Kotlin saya setuju untuk apple dan android catat dulu yaa, tinggal backend." ([_progress.md](../_progress.md); dokumen 17 Q-34). **Butir 2 sampai 6: Diterima** pemilik produk di checkpoint S4, 12 November 2026: butir 2 dan 3 lewat S4-3 (ii) A (iOS dan iPadOS 26; Android 10); butir 5 lewat S4-1 (iii) A (kalimat ADR-023 masuk ES §8); butir 4 dan 6 lewat "lanjut" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan urutan platform sesudah S5) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan urutan platform sesudah S5; catatan web lebih dulu sesudah S6); 13 November 2026 urutan native menurut bawaan 69.5 |
 | Pengusul | Butir 1: matriks `researcher` (18 §5.1), diputuskan pemilik produk. Butir 2 sampai 6: `architect` |
 | Mengubah | — |
 | Rincian | [09.1 §2, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-013](ADR-013-logika-bersama-hanya-di-server.md); [ADR-023](ADR-023-kebijakan-versi-0x.md) butir 5 |
@@ -76,7 +76,17 @@ Bukan perubahan keputusan ADR ini; mencatat jawaban atas butir 6.
 - **Keputusan 42** (17; `_progress.md`): "ios ipad yang bakalan dipakai pilot ya". iOS dan iPadOS dibangun lebih dulu (menjawab Q-37), dan pilot dengan data nyata berjalan di iOS dan iPadOS: istri di iPhone 13 (pencatat utama), pemilik produk di iPad mini 7. GR-2 tidak menunggu Android. Android dibangun sesudah GR-2 untuk Galaxy A55 milik pemilik produk; sebelum jalur pengujian Google Play dibuka (GR-4 butir 8; QG-31 (b)): semula bawaan lead, kini diterima atas saran lead lewat keputusan 50, dengan syarat beta dari keputusan 51 (bunyi brief §1: "Android is built after real data starts and joins the pilot before the beta, if a beta is ever held"). Brief §1 "Pilot devices" ("the pilot needs iOS and Android") digantikan (17 K-66); bunyi brief §1 "Pilot devices" dan "Platforms" yang baru diterima atas saran lead (keputusan 50) dan dipasang lead, dan ES §3 diubah lewat [ADR-029](ADR-029-perangkat-pengukuran-kinerja-es-3.md).
 - **Butir 1 tetap:** Android tetap Kotlin dan Compose Material 3, dan tetap dirancang penuh; yang berubah hanya waktu bangunnya (14 §3.8). Tim bangun tetap `ios-dev` dan `android-dev` terpisah; `android-dev` mulai bekerja saat jalur Android dimulai.
 - **Butir 2 dan 3 tetap.** Butir 5 berlaku sejak jalur Android dimulai; versi Compose Material 3 diperiksa ulang saat itu (ES §8), dan bila 1.5.0 sudah stabil, butir 5 (a) memilihnya. Butir 5 (c) tetap: perangkat Android pilot adalah ponsel.
-- **Akibat:** pekerjaan UI hanya SwiftUI di FS-1, dan dikerjakan tanpa Mac lewat Xcode Cloud dan TestFlight, karena pemilik produk memilih tetap di opsi A tanpa sewa bulanan atau membeli Mac sampai dana ada (keputusan 43; ADR-022 butir 4; 14 §9). Risiko yang dibawa urutan ini: RISK-01 (diterima), RISK-18, RISK-91 (15).
+- **Akibat:** pekerjaan UI hanya SwiftUI di FS-1, dan dikerjakan tanpa Mac lewat Xcode Cloud dan TestFlight, karena pemilik produk memilih tetap di opsi A tanpa sewa bulanan atau membeli Mac sampai dana ada (keputusan 43; ADR-022 butir 4; 14 §9). Risiko yang dibawa urutan ini: RISK-01 (diterima), RISK-18, RISK-91 (15). *Digantikan catatan berikut.*
+
+## Catatan keputusan web lebih dulu (12 November 2026, sesudah S6)
+
+Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md); butir 1 sampai 5 ADR ini tidak berubah.
+
+- Pemilik produk memutuskan klien web (PWA) dibangun pertama: "web dibangun duluan aja yang penting web jalan dulu aja. ios dan android nanti" (`_progress.md`, keputusan 69). Urutan platform catatan sebelumnya (keputusan 42) digantikan: **web → GR-2 di web → iOS dan iPadOS native → Android native** (ADR-030 butir 1).
+- **Butir 1 tetap:** aplikasi native tetap SwiftUI dan Compose, tetap dirancang penuh, dan tetap syarat brief §10.1; pemilik produk menerima bahwa web tidak terasa sepenuhnya native dan bahwa rasa native datang dari aplikasi ini kemudian (`_progress.md`, "Jawaban pemilik produk").
+- **Urutan iOS lalu Android sesudah GR-2** ditetapkan sebagai bawaan 69.5, diterima atas saran lead (13 November 2026; 17), dengan dasar keputusan 42 (istri pencatat utama di iPhone). Galaxy A55 sudah memegang data nyata lewat web sejak GR-2.
+- FS-1 tidak memuat pekerjaan SwiftUI; `ios-dev` dan `android-dev` mulai saat jalurnya masing-masing (14 §3.8, §3.9). Butir 2 sampai 5 diperiksa ulang live saat jalur itu dimulai (ES §8).
+- RISK-01 tidak lagi di jalur kritis GR-2 (15).
 
 ## Konsekuensi
 

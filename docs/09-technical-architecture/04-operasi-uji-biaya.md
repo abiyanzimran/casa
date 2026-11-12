@@ -1,6 +1,6 @@
 # 09.4 — Keamanan, operasi, CI/CD, pengujian, cadangan, biaya, dan risiko
 
-Bagian dari [dokumen 09](../09-technical-architecture.md). Semua butir **[Usulan]** `architect`, kecuali yang diberi label lain. **Checkpoint S4:** ADR-022 (build iOS), ADR-025 (alat kualitas), dan ADR-013 (vektor uji emas) diterima; penyedia hosting, cadangan, dan email (§1, §2, §6, §7.1) tetap usulan sampai S4-2 dijawab menjelang deploy.
+Bagian dari [dokumen 09](../09-technical-architecture.md). Semua butir **[Usulan]** `architect`, kecuali yang diberi label lain. **Sesudah S6 (12 November 2026): web lebih dulu** ([ADR-030](../adr/ADR-030-klien-web-pwa-lebih-dulu.md)): §1, §2, §4, §5, §6.1, §7.1, §8 memuat klien web; jalur iOS dan biaya Apple berlaku sejak jalur iOS native. **Checkpoint S4:** ADR-022 (build iOS), ADR-025 (alat kualitas), dan ADR-013 (vektor uji emas) diterima; penyedia hosting, cadangan, dan email (§1, §2, §6, §7.1) tetap usulan sampai S4-2 dijawab menjelang deploy.
 
 ---
 
@@ -12,11 +12,12 @@ flowchart TB
     GIT[Repositori git]
   end
   subgraph gh["CI Linux (GitHub Actions)"]
-    CI1[Server: uji, build biner]
+    CIW[Web: lint, uji, Playwright Chromium dan WebKit,<br/>build bundel berhash]
+    CI1[Server: uji, build biner<br/>menyematkan bundel web]
     CI2[Android: uji, build APK/AAB<br/>sejak jalur Android, 14 §3.8]
     CI3[Kontrak: buf lint dan breaking]
   end
-  subgraph apple["Apple"]
+  subgraph apple["Apple (sejak jalur iOS native, 14 §3.9)"]
     XC[Xcode Cloud: build, uji simulator, arsip]
     TF[TestFlight]
     APNS[APNs]
@@ -24,8 +25,9 @@ flowchart TB
   subgraph google["Google"]
     FCM[FCM]
   end
+  WPS[Layanan push browser:<br/>Apple, Google, lainnya]
   subgraph vps1["VPS utama di Indonesia (usulan Biznet Gio NEO Lite MS 4.2; S4-2)"]
-    APP[familyos: satu biner Go<br/>TLS, API Connect, SSE, pekerja]
+    APP[familyos: satu biner Go<br/>TLS, API Connect, SSE, pekerja,<br/>bundel web tersemat]
     PG[(PostgreSQL 18)]
     BR[pgBackRest]
   end
@@ -34,14 +36,17 @@ flowchart TB
     SNAP[(Salinan pelindung yang hanya menambah, tidak dapat ditulis VPS utama)]
   end
   GIT --> gh
-  GIT --> XC --> TF --> IPH[iPhone 13, iPad mini 7]
+  CIW --> CI1
+  BRW[Klien web sejak GR-2: iPhone 13 dan iPad mini 7<br/>web app layar utama; Galaxy A55 Chrome; desktop]
+  GIT --> XC --> TF --> IPH[iOS native: iPhone 13, iPad mini 7<br/>sesudah GR-2]
   CI2 --> AND[Galaxy A55: pasang APK bertanda tangan<br/>data nyata sesudah QG-30 Android]
-  CI1 -->|scp + systemd restart| APP
+  CI1 -->|scp + systemd restart; hash dicocokkan| APP
   APP --> PG
   PG --> BR -->|SFTP, sudah terenkripsi| REPO --> SNAP
+  APP -->|VAPID| WPS --> BRW
   APP --> APNS --> IPH
   APP --> FCM --> AND
-  IPH & AND -->|HTTPS 443| APP
+  BRW & IPH & AND -->|HTTPS 443| APP
 ```
 
 | Hal | Rancangan | Persyaratan |
@@ -51,7 +56,8 @@ flowchart TB
 | TLS | Biner Go melayani TLS langsung dengan sertifikat ACME (`golang.org/x/crypto/acme/autocert`, 0.x menurut ADR-023, tantangan TLS-ALPN-01, sehingga hanya porta 443 yang terbuka), `MinVersion` TLS 1.2, tanpa pinning di aplikasi. Jalan mundur bila paket itu tidak tersedia saat dipasang: certbot di VPS dengan tantangan HTTP-01 lewat porta 80 yang hanya melayani tantangan itu, dan biner membaca berkas sertifikat | SEC-40 |
 | Porta | 443 dari internet. SSH 22 dengan kunci saja, tanpa kata sandi dan tanpa login root langsung. PostgreSQL hanya di `localhost` | SEC-41 |
 | Pemutakhiran | Pemutakhiran keamanan otomatis untuk paket OS; PostgreSQL minor diperbarui bulanan bersama pembaruan dependensi (ES §8) | SEC-41 |
-| Rahasia | Kunci APNs `.p8`, akun layanan FCM, kunci API `AI`, kunci MAC kursor, kunci sesi, dan kata sandi cadangan dimuat lewat `LoadCredential=` systemd (berkas 0400, di luar repositori dan image). Rotasi: ganti berkas lalu mulai ulang, tanpa rilis aplikasi. Salinan kunci cadangan disimpan pemilik produk di luar VPS | SEC-42 |
+| Rahasia | Kunci privat VAPID (Web Push, sejak FS-1), kunci APNs `.p8` dan akun layanan FCM (sejak jalur native), kunci API `AI`, kunci MAC kursor, kunci sesi, dan kata sandi cadangan dimuat lewat `LoadCredential=` systemd (berkas 0400, di luar repositori dan image). Rotasi: ganti berkas lalu mulai ulang, tanpa rilis aplikasi. Salinan kunci cadangan disimpan pemilik produk di luar VPS | SEC-42 |
+| Bundel web | Disematkan ke biner (`embed`, ADR-030 butir 3) dan dilayani dari origin yang sama dengan CSP, HSTS, dan header lain (ADR-030 butir 7). Hash setiap berkas bundel dan hash biner dicatat CI; runbook rilis mencocokkan hash biner di VPS dengan artefak CI (SEC-169 (a)). Service worker pengganti disimpan di repositori untuk keadaan darurat (SEC-169 (e)) | SEC-166, SEC-169 |
 | Rilis server | CI membangun biner. Perintah `familyos migrate` (peran `migrator`) dijalankan, lalu biner baru dipasang dan systemd memulai ulang. Putus sekitar satu detik; aplikasi menyambung ulang dan menarik `Sync`. Rollback: pasang biner sebelumnya (migrasi bersifat expand–contract, berkas 02 §10) | ES §7 |
 | Enkripsi disk | Dipakai bila penyedia menawarkannya. Bila tidak, dicatat sebagai risiko yang diterima di pilot | SEC-45 |
 | Tanpa API admin | Tidak ada titik akhir admin. Operasi dijalankan sebagai subperintah biner lewat SSH (`familyos ops …`), misalnya perintah anggota wafat (SEC-106), dan setiap pemakaiannya tercatat di `security_event` | SEC-33, SEC-106 |
@@ -64,9 +70,12 @@ flowchart TB
 |---|---|---|
 | Hash kata sandi | **Argon2id, t = 3, p = 4, m = 64 MiB, garam 128 bit, tag 256 bit.** Ini opsi kedua yang direkomendasikan RFC 9106 §4 untuk lingkungan dengan memori terbatas ([rfc-editor.org/rfc/rfc9106](https://www.rfc-editor.org/rfc/rfc9106.html#section-4), diakses 12 November 2026) **[Terverifikasi]**. Paket `golang.org/x/crypto/argon2`. Paling banyak 2 hash berjalan bersamaan (semafor), sehingga memori puncaknya 128 MiB. Parameter disimpan bersama hash agar dapat dinaikkan kemudian. Sasaran waktu ≤ 500 ms di VPS pilot, diukur saat dibangun | SEC-11 |
 | Kata sandi | Minimal 12 karakter, tanpa aturan komposisi. Ditolak bila ada di daftar kata sandi bocor yang disimpan **di server** (berkas statis di biner; tidak ada pemanggilan layanan luar) | SEC-11 |
-| Token akses | String acak 256 bit, opak, berumur 15 menit; disimpan sebagai SHA-256 di `session`. Dicek di basis data per permintaan (kunci berindeks), sehingga pencabutan berlaku seketika | SEC-15 |
+| Token akses (native) | String acak 256 bit, opak, berumur 15 menit; disimpan sebagai SHA-256 di `session`. Dicek di basis data per permintaan (kunci berindeks), sehingga pencabutan berlaku seketika | SEC-15 |
 | Token penyegar | Acak 256 bit, diputar setiap dipakai, dalam satu keluarga per sesi. Pemakaian ulang token lama mencabut seluruh keluarga (sesi) | SEC-15 |
-| Autentikasi ulang | `reauth_grant` berumur 5 menit, terikat sesi | SEC-13 |
+| **Sesi klien web** | Satu cookie `__Host-` (`Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, tanpa `Domain`) berisi token opak 256 bit; server menyimpan SHA-256-nya di `session` dengan `client_kind = 'web'` (berkas 02 §5.1). Tanpa token penyegar: token cookie diputar paling sering setiap 15 menit pada permintaan berikutnya; nilai sebelumnya diterima 60 detik; pemakaian ulang sesudahnya mencabut sesi dan menulis `security_event`. **Mode pribadi:** diam 30 hari, mutlak 180 hari, `Max-Age` = sisa umur mutlak. **Mode bersama:** diam 30 menit, mutlak 12 jam, cookie tanpa `Max-Age`/`Expires`, tanpa IndexedDB, push, kunci aplikasi, atau LY-88 (SEC-165 (h)). **Masa diam mode bersama hanya dari tindakan orang** (SEC-165 (g)): setiap RPC membawa medan kontrak `user_initiated` yang diisi klien untuk navigasi, perintah, dan "Tetap masuk"; hanya RPC bertanda itu yang memperbarui `last_used_at` sebagai pengatur waktu diam sesi mode bersama. Denyut kehadiran, aliran SSE, dan `Sync` otomatis yang dipicu tanda SSE tidak memperbaruinya. Tanda dipercaya dari klien **[Usulan]** (ancamannya sesi terlupa, bukan klien bermusuhan); batas mutlak 12 jam tidak dapat diperpanjang. Uji: dengan jam uji, tab mode bersama tanpa masukan sementara SSE dan `Sync` berjalan berakhir di menit ke-30; "Tetap masuk" di menit ke-29 memperpanjang sampai menit ke-59. Galat `session_expired` (masuk lagi, data lokal tetap) dan `session_revoked` (hapus di semua tab) | SEC-161, SEC-165 |
+| **CSRF klien web** | RPC sesi cookie hanya `POST`; Connect `GET` ditolak. Tolak bila `Origin` bukan origin produksi, tidak ada, atau `Sec-Fetch-Site` ada dan bukan `same-origin`. Tanpa CORS dan tanpa token CSRF di pilot | SEC-162 |
+| **Kunci aplikasi web** | Kode 6 digit; pemverifikasi PBKDF2-HMAC-SHA-256, 600.000 iterasi (OWASP, diakses 12 November 2026) **[Terverifikasi]**, garam 128 bit, keluaran 256 bit, di IndexedDB; tidak pernah dikirim ke server. Waktu derivasi diukur di perangkat pilot | SEC-174 |
+| Autentikasi ulang | `reauth_grant` berumur 5 menit, terikat sesi. Di web: kata sandi akun ditambah faktor kedua bila menyala; tanpa passkey di pilot | SEC-13, SEC-174 (g) |
 | Batas laju | Ember token di memori proses per (akun, alamat jaringan) untuk masuk, pemulihan, undangan, dan pendaftaran. Pada tahap publik dengan beberapa proses, dipindah ke PostgreSQL | SEC-12 |
 | Pemulihan | Tautan email sekali pakai, 30 menit, token tersimpan sebagai hash | SEC-24 |
 | Undangan | Token ≥ 128 bit, disimpan sebagai hash, 7 hari; tanggapan seragam untuk token salah, kedaluwarsa, atau sudah dipakai | SEC-28, SEC-30 |
@@ -83,7 +92,7 @@ flowchart TB
 | Jangka simpan | journald `MaxRetentionSec=14day`, termasuk alamat jaringan | SEC-44 |
 | Metrik | Histogram durasi per RPC dan jumlah coba ulang `40001`, disediakan `expvar` (stdlib) di porta `localhost` saja. Statistik kueri lewat `pg_stat_statements`. p95 baca dan tulis dihitung dari histogram (ES §3) | ES §3 |
 | Peringatan | Pemantau uptime luar memanggil `/healthz` (tanpa data). Pekerjaan `ops.backup_verify` dan `ops.invariant_check` menandai operator bila gagal, lewat email SES yang sama (ADR-026) ke alamat operator; isinya nama pemeriksaan dan waktu saja | — |
-| Laporan crash aplikasi | **Tanpa SDK.** Memakai laporan crash dari sistem. **Pilot iOS (TestFlight):** TestFlight mengirim laporan crash secara otomatis, terlepas dari setelan berbagi analitik di perangkat (18 §5, fase D) **[Terverifikasi]**; pemilik produk dan pasangannya diberi tahu hal ini di catatan persetujuan uji (SEC-109). Laporan crash berisi jejak tumpukan, bukan isi layar **[Perlu validasi]**. **App Store:** laporan dikirim hanya bila pengguna mengizinkan berbagi analitik **[Perlu validasi]**. **Android:** APK pilot tanpa Play tidak punya Android vitals; crash dibaca lewat `adb logcat` saat uji. Android vitals hanya bila Play dipakai | SEC-49 |
+| Laporan crash aplikasi | **Tanpa SDK.** Memakai laporan crash dari sistem. **Pilot iOS (TestFlight):** TestFlight mengirim laporan crash secara otomatis, terlepas dari setelan berbagi analitik di perangkat (18 §5, fase D) **[Terverifikasi]**; pemilik produk dan pasangannya diberi tahu hal ini di catatan persetujuan uji (SEC-109). Laporan crash berisi jejak tumpukan, bukan isi layar **[Perlu validasi]**. **App Store:** laporan dikirim hanya bila pengguna mengizinkan berbagi analitik **[Perlu validasi]**. **Android:** APK pilot tanpa Play tidak punya Android vitals; crash dibaca lewat `adb logcat` saat uji. Android vitals hanya bila Play dipakai. **Klien web:** tanpa laporan galat otomatis ke pihak mana pun, termasuk server sendiri, sehingga tidak perlu catatan persetujuan uji (SEC-178 (c)); galat dibaca saat uji lewat konsol Chrome jarak jauh (Galaxy A55, desktop) dan halaman pemeriksaan diri staging (iPhone, iPad; SEC-179) | SEC-49, SEC-178 |
 
 ---
 
@@ -100,33 +109,38 @@ Mengikuti ES §6 (TDD; setiap AC Tier 1 punya uji yang menyebut pengenalnya; pro
 | AC Tier 1 | Satu uji per `FR-…/AC-n`, bernama pengenalnya, di tingkat API (Connect di atas server uji dan basis data nyata) | `testing` | CI Linux |
 | Isolasi | Untuk setiap kueri sqlc: uji lintas rumah tangga yang dibangkitkan (SEC-02, LM-09); "tidak ada" sama dengan "tidak boleh" (SEC-05) | Pembangkit di atas daftar kueri sqlc | CI Linux |
 | Privasi | Uji "tidak pernah terlihat" (SEC-86); simetri berpermutasi 3 sampai 5 dewasa (SEC-89, LM-01); **urutan kursor identik byte demi byte** dengan 0, 1, dan 5 entri pribadi (SEC-04); pengacakan `read_state` dan `presence` tidak mengubah keluaran di luar chat (LM-11); tidak ada hitungan per orang (SEC-07); **sebutan anggota** (F-FAM-021, Tier 2, bila dibangun): uji SEC-155 (b) sampai (i) persis seperti kolom "Cara menguji" di 10.4 §6.3, termasuk tanggapan API dan `Sync` yang identik byte demi byte bagi orang yang disebut dan anggota ketiga, dan payload push tanpa sebutan (02 §5.5) | `testing` | CI Linux |
-| Kontrak dan bantuan isian | `buf lint`, `buf breaking`; **vektor uji emas** (09-F A, diterima) bantuan isian (selisih baris, bagi rata, bentuk masukan) dibangkitkan dari acuan Go (07 INV-02, aturan protovalidate) dan dijalankan di Swift dan Kotlin; beda hasil memblokir merge (berkas 01 §3; ADR-013) | buf; `testing`; Swift Testing; JUnit | CI Linux (Go, Kotlin, Swift non-UI bila dapat dibangun di Linux); Xcode Cloud (Swift) |
-| Payload push | Tangkap payload untuk setiap N-NN: hanya teks kelas dan `r` (SEC-50, SEC-51) | Server uji dengan klien APNs/FCM tiruan | CI Linux |
+| Kontrak dan bantuan isian | `buf lint`, `buf breaking`; **vektor uji emas** (09-F A, diterima) bantuan isian (selisih baris, bagi rata, bentuk masukan) dibangkitkan dari acuan Go (07 INV-02, aturan protovalidate) dan dijalankan di TypeScript (klien web, bila bunyi ES §2 disetujui; ADR-030 butir 15), Swift, dan Kotlin; beda hasil memblokir merge (berkas 01 §3; ADR-013) | buf; `testing`; Vitest; Swift Testing; JUnit | CI Linux (Go, TypeScript, Kotlin, Swift non-UI bila dapat dibangun di Linux); Xcode Cloud (Swift) |
+| **Keamanan klien web** | Header CSP dan header lain persis menurut ADR-030 butir 7 pada setiap jenis jawaban (HTML, berkas statis, API, SSE, service worker); CSRF: RPC lintas origin, tanpa `Origin`, dan `GET` dengan cookie ditolak; XSS: masukan berisi markup di setiap medan teks tidak pernah menjadi elemen DOM, dan pelanggaran Trusted Types tidak muncul; cookie dengan atribut SEC-161; Cache Storage hanya berisi app shell (10.5 §9) | Playwright Chromium dan WebKit; uji Go untuk header | CI Linux |
+| **Bundel web** | Paket di peta bundel hanya dari daftar ADR-030 butir 8; bundel produksi tanpa penanda pemeriksaan diri dan alamat staging (SEC-179); hash berkas dicatat | Skrip CI | CI Linux |
+| UI web | Alur Tier 1 ujung ke ujung di atas server uji | Playwright Chromium dan WebKit (WebKit Playwright bukan Safari; 18 §5.13.8) | CI Linux |
+| Payload push | Tangkap payload untuk setiap N-NN: hanya teks kelas dan `r` (SEC-50, SEC-51); Web Push di bawah 4 KB, `Topic` opak ≤ 32 karakter; endpoint di luar daftar izin host dan redirect ditolak (SEC-176 (g)) | Server uji dengan klien Web Push, APNs, dan FCM tiruan | CI Linux |
 | Log | Jalankan rangkaian AC, lalu pindai log untuk angka berformat uang, kata status `CARE`, teks pesan uji, dan email uji (SEC-44) | Skrip uji | CI Linux |
 | Migrasi | Setiap migrasi naik, turun, naik lagi pada salinan skema; biner lama berjalan di atas skema baru | goose | CI Linux |
 | Arsitektur | Impor lintas modul hanya dari daftar izin (ADR-014); tidak ada `UPDATE` atau `DELETE` atas tabel inti uang di kode (berkas 02 §5.2) | Uji Go atas `go list` | CI Linux |
-| Duplikasi | Pemeriksaan duplikasi kode per bahasa (ES §2) | PMD CPD, yang mendukung Go, Kotlin, dan Swift (ADR-025) | CI Linux |
+| Duplikasi | Pemeriksaan duplikasi kode per bahasa (ES §2) | PMD CPD, yang mendukung Go, Kotlin, dan Swift (ADR-025); TypeScript dan `.svelte` **[Perlu validasi]** (ADR-025 butir 8) | CI Linux |
 | UI Android | Uji Compose di emulator (KVM di Linux) | Compose UI test | CI Linux |
 | UI iOS | XCUITest di simulator | Xcode Cloud | Xcode Cloud |
-| Perangkat pilot | `qa` membuktikan AC Tier 1 dan invarian ujung ke ujung di iPhone 13 dan iPad mini 7 sebelum GR-2, dan di Galaxy A55 sebelum Android memakai data nyata (QG-30 (Android), keputusan 42; 14 §5.3), termasuk tanda terkirim (berkas 03 §5) dan cadangan perangkat (SEC-46) | Manual dengan daftar periksa | Perangkat |
-| Kinerja | Data rumah tangga sintetis setahun **[Asumsi]**; p95 baca ≤ 200 ms dan tulis ≤ 400 ms diukur di VPS pilot; cold start ≤ 2 detik di iPhone 13 dan iPad mini 7 sebelum GR-2, di Galaxy A55 sebelum QG-30 (Android) | Skrip beban kecil | VPS uji, perangkat |
+| Perangkat pilot | **Klien web, sebelum GR-2:** `qa` membuktikan AC Tier 1 dan invarian ujung ke ujung di iPhone 13 dan iPad mini 7 (web app layar utama) dan Galaxy A55 (Chrome), termasuk tanda terkirim (berkas 03 §5), `persist()`, hapus jarak jauh dua tab, dan kunci aplikasi web (10.5 §9; 14 QG-30). **Aplikasi native:** iPhone 13 dan iPad mini 7 sebelum iOS native memegang data nyata (QG-30 (iOS)), Galaxy A55 sebelum Android memegang data nyata (QG-30 (Android)), termasuk cadangan perangkat (SEC-46) | Manual dengan daftar periksa; halaman pemeriksaan diri staging di iPhone dan iPad | Perangkat |
+| Kinerja | Data rumah tangga sintetis setahun **[Asumsi]**; p95 baca ≤ 200 ms dan tulis ≤ 400 ms diukur di VPS pilot; cold start ≤ 2 detik dan ukuran app shell di klien web pada ketiga perangkat sebelum GR-2 (ADR-029 catatan web); aplikasi native sebelum masing-masing memegang data nyata | Skrip beban kecil | VPS uji, perangkat |
 
 ---
 
 ## 5. CI/CD
 
-| Tahap | Server dan kontrak | Android (sejak jalur Android langkah A1, sesudah GR-2; 14 §3.8) | iOS |
-|---|---|---|---|
-| Setiap push (gerbang ES §7; alat di ADR-025) | `buf lint` dan `buf breaking`; `gofmt -l` kosong; `go vet` dan golangci-lint; `govulncheck`; PMD CPD; uji domain, invarian, AC, isolasi, privasi, migrasi; pemeriksaan rahasia di repositori | ktlint (format dan lint); Android Lint; OSV-Scanner atas `gradle.lockfile`; PMD CPD; uji unit dan Compose | `swift format lint --strict`; PMD CPD; uji paket Swift non-UI di Linux **[Perlu validasi]**; peringatan kerentanan Dependabot atas `Package.resolved` (gerbang CI-nya **[Perlu validasi]**, ADR-025); setiap pull request: Xcode Cloud build dan XCUITest sebagai pemeriksaan status wajib di GitHub sebelum merge (14 §5.1) |
-| Setiap merge ke cabang utama | Build biner; arsip artefak | Build APK bertanda tangan untuk pilot | Xcode Cloud: build, XCUITest, arsip, unggah ke TestFlight internal |
-| Rilis pilot | Manual: `familyos migrate`, lalu pasang | APK dipasang langsung ke Galaxy A55 sesudah QG-30 (Android); sebelumnya APK staging saja (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
-| Penandatanganan | — | Kunci unggah disimpan offline oleh pemilik produk dan sebagai rahasia CI | Penandatanganan dikelola Xcode Cloud (sertifikat di cloud Apple); tidak ada Mac yang menyimpan kunci |
-| Persyaratan toko | — | Target API 36 bila Play dipakai (berkas 01 §13) | Xcode dan SDK iOS stabil terbaru saat bangun; minimal Xcode 26 / SDK iOS 26 untuk unggahan (18 §5.1) |
+| Tahap | Server dan kontrak | Klien web (sejak FS-1 langkah 1; ADR-030) | Android (sejak jalur Android langkah A1; 14 §3.8) | iOS (sejak jalur iOS native; 14 §3.9) |
+|---|---|---|---|---|
+| Setiap push (gerbang ES §7; alat di ADR-025) | `buf lint` dan `buf breaking`; `gofmt -l` kosong; `go vet` dan golangci-lint; `govulncheck`; PMD CPD; uji domain, invarian, AC, isolasi, privasi, migrasi; pemeriksaan rahasia di repositori | `pnpm install --frozen-lockfile` (skrip dependensi diblokir); Prettier; ESLint dan `svelte-check`; OSV-Scanner atas `pnpm-lock.yaml`; PMD CPD; Vitest (termasuk vektor emas bila ES §2 disetujui); Playwright Chromium dan WebKit (alur, header, CSRF, XSS); pemeriksaan daftar dependensi bundel dan bundel produksi tanpa penanda staging (ADR-025 butir 8) | ktlint (format dan lint); Android Lint; OSV-Scanner atas `gradle.lockfile`; PMD CPD; uji unit dan Compose | `swift format lint --strict`; PMD CPD; uji paket Swift non-UI di Linux **[Perlu validasi]**; peringatan kerentanan Dependabot atas `Package.resolved` (gerbang CI-nya **[Perlu validasi]**, ADR-025); setiap pull request: Xcode Cloud build dan XCUITest sebagai pemeriksaan status wajib di GitHub sebelum merge (14 §5.1) |
+| Setiap merge ke cabang utama | Build biner yang menyematkan bundel web; arsip artefak dengan hash biner | Build bundel produksi dan staging; daftar hash setiap berkas sebagai artefak | Build APK bertanda tangan untuk pilot | Xcode Cloud: build, XCUITest, arsip, unggah ke TestFlight internal |
+| Rilis pilot | Manual: `familyos migrate`, lalu pasang; hash biner di VPS dicocokkan dengan artefak CI | Ikut rilis server: staging lebih dulu (header, halaman pemeriksaan diri), lalu produksi; klien memuat versi baru saat dibuka berikutnya; versi minimum dinaikkan bila rilis memperbaiki celah (ADR-028 catatan web) | APK dipasang langsung ke Galaxy A55 sesudah QG-30 (Android); sebelumnya APK staging saja (tanpa Play di pilot; SEC-143 hanya bila Play dipakai) | TestFlight internal ke iPhone 13 dan iPad mini 7 |
+| Penandatanganan | — | Tidak ada; integritas lewat TLS dan hash artefak (TM-42 tetap terbuka, 10.5) | Kunci unggah disimpan offline oleh pemilik produk dan sebagai rahasia CI | Penandatanganan dikelola Xcode Cloud (sertifikat di cloud Apple); tidak ada Mac yang menyimpan kunci |
+| Persyaratan toko | — | Tidak ada | Target API 36 bila Play dipakai (berkas 01 §13) | Xcode dan SDK iOS stabil terbaru saat bangun; minimal Xcode 26 / SDK iOS 26 untuk unggahan (18 §5.1) |
 
-**iOS tanpa Mac: langkah dan biaya** (ADR-022; 18 §5.2):
+**Klien web tanpa Mac: build, uji di iPhone, distribusi, biaya.** Build dan uji otomatis di CI Linux. Uji di iPhone 13 dan iPad mini 7: web app layar utama dipasang dari URL staging, lalu diamati dengan tangan dibantu halaman pemeriksaan diri staging (SEC-179), karena Web Inspector memerlukan Mac (18 §5.13.8). Distribusi: URL produksi, dipasang ke layar utama. Biaya: nol di luar VPS dan menit CI (§7.1).
+
+**iOS tanpa Mac: langkah dan biaya** (ADR-022; 18 §5.2), **berlaku sejak jalur iOS native** (ADR-022 catatan web):
 
 1. Daftar Apple Developer Program: **USD 99 per tahun**.
-2. **Sekali**: sewa Mac jarak jauh minimal 24 jam (minimum **[Terverifikasi]**, 18 §5.2.7.2; Scaleway Mac mini M4, sekitar EUR 0,22 per jam → 24 × 0,22 = **EUR 5,28** **[Perlu validasi]**, harga dari cuplikan; pembanding AWS 24 jam: Singapura `mac2` M1 USD 18,696, Sydney `mac-m4` USD 36,912, belum termasuk EBS **[Terverifikasi]** harga per jam). Tidak ada Mac sewaan di Jakarta; terdekat Malaysia dan Singapura (18 §5.2.7.2). Mac itu dipakai untuk membuat proyek Xcode, menghubungkan repositori, dan menyiapkan alur kerja Xcode Cloud pertama, yang menurut 18 §5.2 harus dibuat di Xcode.
+2. **Sekali**: Mac untuk penyiapan, AWS EC2 Mac atau Mac pinjaman (bawaan 69.6; ADR-022 catatan web). AWS minimal 24 jam (minimum **[Terverifikasi]**, 18 §5.2.7.2): Singapura `mac2` 24 × USD 0,779 = **USD 18,696**, belum termasuk EBS **[Terverifikasi]** harga per jam (pembanding Sydney `mac-m4` USD 36,912); Mac pinjaman **USD 0**. *Catatan riwayat:* Scaleway Mac mini M4 24 × EUR 0,22 = EUR 5,28 **[Perlu validasi]** tidak dipakai lagi. Tidak ada Mac sewaan di Jakarta; terdekat Malaysia dan Singapura (18 §5.2.7.2). Mac itu dipakai untuk membuat proyek Xcode, menghubungkan repositori, dan menyiapkan alur kerja Xcode Cloud pertama, yang menurut 18 §5.2 harus dibuat di Xcode.
 3. Sesudahnya setiap push memicu build di Xcode Cloud. Jatah 25 jam komputasi per bulan sudah termasuk keanggotaan. Dengan build sekitar 10 menit **[Asumsi]**, itu sekitar 150 build per bulan.
 4. Build dipasang di iPhone 13 dan iPad mini 7 lewat TestFlight internal.
 5. **Batasnya:** tanpa pratinjau SwiftUI, simulator, dan debugger di Linux, setiap perubahan UI iOS diuji lewat perjalanan build dan TestFlight. Batas ini berlaku untuk seluruh pekerjaan UI iOS, diterima atas saran lead (keputusan 43; ADR-022 butir 4): Mac bulanan (Scaleway sekitar EUR 149 per bulan **[Perlu validasi]**; penawaran M4 16 GB lain USD 149–164 **[Terverifikasi]**) atau Mac mini sendiri (Mac mini M6 16 GB/256 GB "mulai dari" Rp17.499.000; 16 GB/512 GB, konfigurasi minimum usulan `researcher`, Rp21.499.000 **[Perlu validasi]**, 18 §5.2.7.1) ditinjau lagi hanya bila dana tersedia. Mac sewaan memulihkan pratinjau dan simulator, tetapi tidak debugger di iPhone fisik. Titik impas membeli terhadap menyewa bulanan **[Usulan]** (18 §5.2.7.3, §5.2.7.6; 14 §9): sekitar 7,1 sampai 7,9 bulan untuk 16 GB/512 GB; 5,8 sampai 6,4 bulan untuk 16 GB/256 GB (8,8 terhadap sewa berkomitmen 12 bulan); 5,5 sampai 6,2 bulan untuk 24 GB/512 GB.
@@ -153,7 +167,7 @@ Penyedia VPS utama dan VPS cadangan menunggu S4-2 (ditunda sampai menjelang depl
 
 ### 6.1 Butir operasi sebelum pilot memproses data nyata
 
-Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temuan `security-privacy`, keputusan 49; dicentang bertanggal di runbook pilot; bagian khusus Android di 10 §4.3, sebelum Android memakai data nyata). Butir yang dikerjakan lewat rancangan dokumen ini:
+Daftar kanonisnya dokumen 10 §4.1 (**tiga belas butir** sejak 10.5: butir 11 tinjauan hanya-temuan `security-privacy`, keputusan 49; butir 12 perangkat pilot klien web; butir 13 pemeriksaan origin produksi; dicentang bertanggal di runbook pilot; bagian khusus Android di 10 §4.3 dan iOS native di 10 §4.4, masing-masing sebelum aplikasi itu memakai data nyata). Butir yang dikerjakan lewat rancangan dokumen ini:
 
 | 10 §4.1 | Butir | Di dokumen ini |
 |---|---|---|
@@ -161,6 +175,8 @@ Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temua
 | 4 | DPIA singkat dan catatan ketentuan setiap prosesor tersimpan bertanggal, sebelum data nyata. Untuk hosting, cadangan, dan email catatan itu dibuat **saat S4-2 diputuskan**. DPIA dan catatan prosesor adalah pekerjaan fase bangun, selesai sebelum data nyata dipakai: usulan `security-privacy` (10 §3.1), **diterima atas saran lead** (Q-208, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4"). **Diganti keputusan 68:** tidak disiapkan untuk pilot dan ditunda ke go public; kontrol teknis tetap | ADR-020; ADR-026 |
 | 7 | Penyedia hosting dan cadangan dipilih (S4-2), dengan pihak kontrak dan lokasi pusat data tercatat dan pernyataan tertulis bahwa isi VPS dan cadangan tetap di Indonesia | ADR-020 butir 1; RISK-04 |
 | 8 | Pemulihan cadangan diuji sekali; uji SEC-96 dan SEC-97 lulus | §6 "Uji pemulihan", "Umur data paling tua", "Jurnal penghapusan" |
+| 12 | Klien web di perangkat pilot (10 §4.1 butir 12; bunyi kanonis di 10) | §4 "Perangkat pilot", "Keamanan klien web"; ADR-030 butir 11 |
+| 13 | Pemeriksaan origin produksi (10 §4.1 butir 13; bunyi kanonis di 10) | §1 "Bundel web"; §4 "Keamanan klien web", "Bundel web"; ADR-030 butir 3, 7 |
 
 **Bukan syarat sebelum data nyata** (10-C A, S4-4 (iii) A): jawaban advokat atas L-01, L-14, L-24. Risiko PSE (W-32) diterima pemilik produk. Pemicu dokumen 10 §4.1 (pengguna di luar rumah tangga pilot sebelum tahap publik berarti advokat dijawab lebih dulu) **berlaku**: usulan `security-privacy`, diterima atas saran lead (Q-209, "pasang semua"; `_progress.md`, "Hal terakhir checkpoint S4").
 
@@ -178,26 +194,37 @@ Daftar kanonisnya dokumen 10 §4.1 (sebelas butir; butir 11 tinjauan hanya-temua
 
 ### 7.1 Pilot, per bulan
 
-Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email yang ditunda pemilik produk sampai menjelang deploy; angkanya usulan ADR-020 dan ADR-026 dan dihitung ulang dengan harga yang dicek saat itu. Baris lain mengikuti keputusan yang sudah diterima (ADR-021, ADR-022).
+Baris bertanda **(S4-2)** bergantung pada pilihan hosting, cadangan, dan email yang ditunda pemilik produk sampai menjelang deploy; angkanya usulan ADR-020 dan ADR-026 dan dihitung ulang dengan harga yang dicek saat itu. Baris lain mengikuti keputusan yang sudah diterima (ADR-021, ADR-022, ADR-030).
+
+**Sejak ADR-030 (web lebih dulu):** Apple Developer Program dan Xcode Cloud keluar dari biaya pilot sampai jalur iOS native dimulai (tabel "Sesudah jalur iOS native" di bawah). Web Push tidak berbayar dan tidak memerlukan keanggotaan Apple untuk web (18 §5.13.3).
 
 | Butir | Hitungan | Rupiah | USD | Label |
 |---|---|---|---|---|
 | **(S4-2)** VPS utama, usulan Biznet Gio NEO Lite MS 4.2 | Harga halaman | Rp139.000 | — | **[Terverifikasi]** harga; PPN tidak disebut |
 | **(S4-2)** VPS cadangan, usulan IDCloudHost (2 core, 4 GB, 60 GB) | Cuplikan pencarian 18 §5.8 | Rp105.000 | — | **[Perlu validasi]** |
-| Apple Developer Program | 99 ÷ 12 | — | 8,25 | **[Terverifikasi]** |
 | `AI` R1, pembangunan kumpulan bulanan | Berkas 03 §11.1: 0,06 × 2 + 0,12 × 10 | — | 1,32 (batas 10) | Harga **[Terverifikasi]**; jumlah token **[Asumsi]** |
-| Xcode Cloud | Di dalam 25 jam | — | 0 | **[Terverifikasi]** jatah |
-| CI Linux | Sekitar 100 push × 15 menit = 1.500 menit × USD 0,006 = USD 9, di dalam jatah Free USD 12 | — | 0 | Tarif **[Terverifikasi]** (18 §5.2); jumlah push **[Asumsi]** |
-| Push APNs dan FCM | — | — | 0 | **[Asumsi]** tanpa biaya untuk volume ini |
+| CI Linux, termasuk job web (lint, Vitest, Playwright Chromium dan WebKit) | Sekitar 100 push × 15 menit = 1.500 menit × USD 0,006 = USD 9, di dalam jatah Free USD 12. 15 menit per push tetap batas atas **[Asumsi]** dengan job web; diukur ulang di FS-1 langkah 1. Bila melewati jatah, Playwright WebKit dijalankan hanya saat merge | — | 0 | Tarif **[Terverifikasi]** (18 §5.2); jumlah push dan menit **[Asumsi]** |
+| Web Push | — | — | 0 | **[Terverifikasi]** tanpa biaya dan tanpa keanggotaan Apple (18 §5.13.3) |
 | Domain | Sekitar Rp200.000 per tahun ÷ 12 | Rp16.667 | — | **[Asumsi]** |
 | **(S4-2)** Email, usulan Amazon SES | Puluhan email per bulan **[Asumsi]** | — | Mendekati 0 | Tarif per pesan **[Perlu validasi]** (ADR-026) |
-| **Jumlah** | | **Rp260.667** + PPN bila berlaku, **dengan Rp244.000 di antaranya bergantung pada S4-2** | **USD 9,57** + email (paling tinggi 18,25 + email bila batas `AI` tercapai) | |
+| **Jumlah** | Rupiah: 139.000 + 105.000 + 16.667. USD: 1,32 (paling tinggi 10, batas `AI`) | **Rp260.667** + PPN bila berlaku, **dengan Rp244.000 di antaranya bergantung pada S4-2** | **USD 1,32** + email (paling tinggi **USD 10** + email bila batas `AI` tercapai) | |
 
-**Android di biaya pilot (keputusan 42).** Biaya pendaftaran Google Play (USD 25 sekali) tidak masuk biaya pilot: APK pilot dipasang langsung tanpa Play, dan akun dibuat saat jalur beta Play disiapkan di FS-3, hanya bila jalur publik opsional kelak diambil (keputusan 51; 14 §6.7; §7.2). Job CI Android baru berjalan sejak jalur Android dimulai sesudah GR-2 (14 §3.8); sampai itu baris CI Linux di atas adalah batas atas **[Asumsi]**, dan anggarannya diukur ulang saat job Android ditambahkan. Angka di tabel tidak berubah.
+**Sesudah jalur iOS native dimulai** (14 §3.9; ADR-022), baris ini ditambahkan:
+
+| Butir | Hitungan | USD per bulan | Label |
+|---|---|---|---|
+| Apple Developer Program | 99 ÷ 12 | 8,25 | **[Terverifikasi]** |
+| Xcode Cloud | Di dalam 25 jam | 0 | **[Terverifikasi]** jatah |
+| Push APNs (dan FCM sejak jalur Android) | — | 0 | **[Asumsi]** tanpa biaya untuk volume ini |
+| **Jumlah USD saat itu** | 1,32 + 8,25 | **9,57** (paling tinggi 10 + 8,25 = **18,25**) | Sama dengan angka sebelum ADR-030 |
+
+**Yang berubah dari angka sebelumnya:** USD per bulan selama jalur web 9,57 → **1,32** (selisih 8,25 = 99 ÷ 12); batas atas 18,25 → **10** (selisih 8,25). Rupiah tidak berubah.
+
+**Android di biaya pilot (keputusan 42).** Biaya pendaftaran Google Play (USD 25 sekali) tidak masuk biaya pilot: APK pilot dipasang langsung tanpa Play, dan akun dibuat saat jalur beta Play disiapkan di FS-3, hanya bila jalur publik opsional kelak diambil (keputusan 51; 14 §6.7; §7.2). Job CI Android baru berjalan sejak jalur Android dimulai, sesudah jalur iOS native (bawaan 69.5; 14 §3.8); sampai itu baris CI Linux di atas adalah batas atas **[Asumsi]**, dan anggarannya diukur ulang saat job Android ditambahkan. Angka di tabel tidak berubah.
 
 Dengan VPS cadangan Biznet Gio XS 1.1 (Rp59.000) sebagai ganti IDCloudHost, jumlah rupiahnya Rp139.000 + Rp59.000 + Rp16.667 = **Rp214.667** (juga **(S4-2)**). Konversi ke satu mata uang tidak dilakukan karena kurs tidak diteliti (sama dengan 18 §5.9).
 
-**Satu kali:** sewa Mac 24 jam ≈ EUR 5,28 **[Perlu validasi]** (≈ Rp107.458,77 dengan kurs jual BI 12 November 2026; 18 §5.2.7.6). **Tidak masuk biaya pilot** (keputusan 43; acuan bila dana tersedia): Mac bulanan sekitar EUR 149 atau USD 149–164 per bulan, atau Mac mini M6 mulai dari Rp17.499.000 sekali (harga Mac mini dan Scaleway **[Perlu validasi]**; 18 §5.2.7). Angka lama Mac mini M4 Rp12.749.000 tidak berlaku lagi.
+**Satu kali, sejak jalur iOS native** (bukan biaya FS-1 atau GR-2 lagi): sumber Mac adalah **AWS EC2 Mac atau Mac pinjaman** (bawaan 69.6, diterima atas saran lead; pilihan di antara keduanya saat itu; ADR-022 catatan web). AWS EC2 Mac Singapura `mac2` 24 × 0,779 = **USD 18,696** tanpa EBS **[Terverifikasi]** harga per jam; Mac pinjaman tanpa biaya. *Catatan riwayat:* sewa Scaleway 24 jam ≈ EUR 5,28 **[Perlu validasi]** (≈ Rp107.458,77, kurs jual BI 12 November 2026; 18 §5.2.7.6) tidak dipakai lagi. **Tidak masuk biaya pilot** (keputusan 43; acuan bila dana tersedia): Mac bulanan sekitar EUR 149 atau USD 149–164 per bulan, atau Mac mini M6 mulai dari Rp17.499.000 sekali (harga Mac mini dan Scaleway **[Perlu validasi]**; 18 §5.2.7). Angka lama Mac mini M4 Rp12.749.000 tidak berlaku lagi.
 
 ### 7.2 Tahap publik
 
@@ -284,6 +311,19 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-130 | Daftar terlarang otomatis | Filter pembangunan kumpulan | 03 §11.1 |
 | SEC-133 sampai SEC-136 | Tanda tekanan berat; tanpa pemindaian | `care` dan `ai` (Tier 2); tidak ada pekerjaan yang memindai isi | 03 §9 (tidak ada pekerjaan semacam itu) |
 | SEC-151, SEC-152 | Otorisasi ulang perintah luring; penolakan tanpa kebocoran | Transaksi perintah | 02 §6; 03 §1 |
+| SEC-160 | Satu origin, tanpa CORS; staging di origin lain; batas bawah browser dan deteksi fitur | Biner Go (bundel tersemat); klien web | 04 §1; ADR-030 butir 3, 4 |
+| SEC-161, SEC-165 | Sesi cookie `__Host-`, rotasi, umur; mode bersama | `identity` (`session.client_kind`, `device_mode`) | 02 §5.1; 04 §2 |
+| SEC-162, SEC-163 | CSRF; SSE lewat cookie, tanpa efek samping, ditutup saat dicabut | `identity` (middleware), hub SSE | 03 §4; 04 §2 |
+| SEC-164 | Keluar akun di web | Klien web; `identity` | 03 §2 |
+| SEC-166, SEC-167 | CSP dan header; Trusted Types, larangan sink HTML | Biner Go (header); lint klien web | 04 §1, §4; ADR-030 butir 7 |
+| SEC-168 | Rantai pasok npm | CI (pnpm, OSV-Scanner, daftar dependensi bundel) | 04 §5; ADR-025 butir 8; ADR-030 butir 8 |
+| SEC-169 | Build berhash, service worker, versi minimum, service worker pengganti, LY-95 "Perangkat ini" (08 §25.6) | CI; biner Go; kontrak (`CLIENT_UPGRADE_REQUIRED`) | 04 §1, §5; ADR-028 catatan web |
+| SEC-170 sampai SEC-173 | IndexedDB, `persist()`, antrean yang dapat dihapus browser, hapus jarak jauh di semua tab, beberapa tab | Klien web | 03 §2; ADR-024 butir 7 |
+| SEC-174 | Kunci aplikasi web dan autentikasi ulang | Klien web (PBKDF2 Web Crypto); `identity` | 04 §2; ADR-030 butir 12 |
+| SEC-175 | Permukaan di luar aplikasi (judul halaman, URL, riwayat, isian otomatis, manifest) | Klien web | 08; 10.5 |
+| SEC-176, SEC-177 | Web Push: payload, langganan, daftar izin host, VAPID | `notify` (`push_token` `webpush`) | 02 §5.1; 03 §8; ADR-030 butir 14 |
+| SEC-178 | Pemberitahuan pengelola di web; tanpa laporan galat otomatis | `operator_notice`; klien web | 04 §3 |
+| SEC-179 | Halaman pemeriksaan diri hanya di staging | CI (pemeriksaan bundel produksi) | 04 §4, §5 |
 
 ---
 
