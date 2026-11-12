@@ -91,7 +91,7 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Business rule | `BR-<MOD>-NNN` | `BR-FIN-003` |
 | Skenario | `SCN-NN` | `SCN-13` |
 | Konsep inovasi | `IDEA-NN` | `IDEA-07` |
-| Risiko | `RISK-NN` | `RISK-05` |
+| Risiko (register kanonis di dokumen 15; RISK-01 sampai RISK-17 berasal dari 09 dengan nomor yang sama) | `RISK-NN` | `RISK-05` |
 | Decision record | `ADR-NNN` | `ADR-002` |
 | Pertanyaan terbuka | `Q-NN` | `Q-03` |
 | Asumsi | `A-NN` | `A-07` |
@@ -121,6 +121,9 @@ Setiap klaim yang tidak sepele diberi satu label:
 | Layar (dokumen 08) | `LY-NN` | `LY-01` |
 | Batasan pemilihan teknologi (dokumen 09) | `BT-N` | `BT-1` |
 | Keputusan checkpoint yang diajukan dokumen 08 dan 09 | `UX-N`, `09-X`; nomor `S4-N` dan `Q-NN` diberikan dokumen 17 | `UX-1`, `09-A` |
+| Fase roadmap, gerbang antarfase, ukuran validasi (dokumen 13) | `FS-N`, `GR-N`, `VL-NN` | `FS-2`, `GR-3`, `VL-02` |
+| Workstream dan quality gate (dokumen 14) | `WS-N`, `QG-NN` | `WS-5`, `QG-30` |
+| Tantangan dokumen 13 terhadap brief; gelombang Tier 2 di dalam pilot (dokumen 13) | `TB-N`, `T2-N` | `TB-2`, `T2-1` |
 | Larangan visibilitas dan aturan tampilan (dokumen 06) | `V-N`, `AT-N` | `V-8`, `AT-4` |
 | Transisi state machine (dokumen 06) | huruf + dua angka tanpa tanda hubung: `B`, `C`, `K`, `D`, `T`, `M`, `I`, `F` | `K06`, `C05`, `F04` |
 | Kriteria penerimaan (dokumen 05) | `AC-N`, lokal per kebutuhan; dikutip `FR-<MOD>-NNN/AC-N` | `FR-FIN-012/AC-3` |
