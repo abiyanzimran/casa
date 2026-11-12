@@ -75,7 +75,7 @@ var (
 	guardrailHeader   = regexp.MustCompile(`^\| ID \| Pagar \| Cara menguji \|`)
 	scenarioHeader    = regexp.MustCompile(`^\| SCN \| Judul \| Tier \|`)
 	securityHeader    = regexp.MustCompile(`^\| ID \| Persyaratan \| (Untuk|Toko) \| Tahap \|`)
-	scenarioTier      = regexp.MustCompile(`^([123])(?: \(\+([123](?:, [123])*)\))?$`)
+	scenarioTier      = regexp.MustCompile(`^([123])(?: \(\+[123](?:, [123])*\))?$`)
 	untukSeparator    = regexp.MustCompile(`[,;]`)
 	idCellInvariant   = regexp.MustCompile(`^` + invariantPattern + `$`)
 	idCellApprovalInv = regexp.MustCompile(`^` + approvalInvariantPattern + `$`)
@@ -321,9 +321,10 @@ func readWorkedExamples(docsDir string, reqs requirementSet) error {
 	return nil
 }
 
-// readScenarios reads the 12 §2 table. A scenario is required when its tier
-// is 1, or when it has a Tier 1 part, marked "(+1)": 14 §4.4 tests that part
-// in FS-1 too.
+// readScenarios reads the 12 §2 table. A scenario is required when the first
+// tier in its Tier column is 1: "1" or "1 (+2, 3)", the 38 Tier 1 scenarios
+// of 14 §4.4. Whether a "(+1)" Tier 1 part is required is for the lead to
+// decide (14 §4.4 names SCN-08, SCN-18, SCN-41; 12 §2 also marks SCN-39).
 func readScenarios(docsDir string, reqs requirementSet) error {
 	path := filepath.Join(docsDir, "12-scenarios.md")
 	rows, err := readTable(path, scenarioHeader)
@@ -339,8 +340,7 @@ func readScenarios(docsDir string, reqs requirementSet) error {
 		if m == nil {
 			return fmt.Errorf("%s:%d: %s has tier %q, not \"N\" or \"N (+N, …)\"", path, row.line, id, cell(row, 2))
 		}
-		required := m[1] == "1" || strings.Contains(m[2], "1")
-		if err := reqs.add(id, required, path, row.line); err != nil {
+		if err := reqs.add(id, m[1] == "1", path, row.line); err != nil {
 			return err
 		}
 	}
