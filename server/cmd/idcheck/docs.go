@@ -39,11 +39,8 @@ const (
 	securityPattern          = `SEC-\d{2,3}`
 )
 
-// Line prefixes that must be followed by a well-formed definition.
-const (
-	frHeadingPrefix     = "### FR-"
-	workedExamplePrefix = "#### CTH-"
-)
+// frHeadingPrefix starts a line that must be a well-formed FR heading.
+const frHeadingPrefix = "### FR-"
 
 // kinds lists every ID kind; each must be non-empty in the documents.
 var kinds = []string{"FR", "INV", "INV-A", "PG", "CTH", "SCN", "SEC"}
@@ -66,11 +63,15 @@ var untukAppliesToServerOrWeb = map[string]bool{
 }
 
 var (
-	frHeading         = regexp.MustCompile(`^### (` + frPattern + `) — `)
-	tierRow           = regexp.MustCompile(`^\| Tier / MoSCoW \| ([12]) / `)
-	acBullet          = regexp.MustCompile(`^- \*\*(AC-\d+)\*\*`)
-	sectionHeading    = regexp.MustCompile(`^#{1,3} `)
-	workedExampleHead = regexp.MustCompile(`^#### (` + workedExamplePattern + `) — `)
+	frHeading      = regexp.MustCompile(`^### (` + frPattern + `) — `)
+	tierRow        = regexp.MustCompile(`^\| Tier / MoSCoW \| ([12]) / `)
+	acBullet       = regexp.MustCompile(`^- \*\*(AC-\d+)\*\*`)
+	sectionHeading = regexp.MustCompile(`^#{1,3} `)
+	// 07 §7 writes most examples as "#### CTH-01 — …" and some as numbered
+	// sections, "### 7.10 CTH-37 — …"; workedExampleLine catches both so a
+	// third shape fails instead of being skipped.
+	workedExampleLine = regexp.MustCompile(`^#{1,6} (?:[\d.]+ )?CTH-`)
+	workedExampleHead = regexp.MustCompile(`^#{3,4} (?:\d+(?:\.\d+)* )?(` + workedExamplePattern + `) — `)
 	invariantHeader   = regexp.MustCompile(`^\| ID \| Invarian \| Cara menguji \|`)
 	guardrailHeader   = regexp.MustCompile(`^\| ID \| Pagar \| Cara menguji \|`)
 	scenarioHeader    = regexp.MustCompile(`^\| SCN \| Judul \| Tier \|`)
@@ -307,7 +308,7 @@ func readWorkedExamples(docsDir string, reqs requirementSet) error {
 		return err
 	}
 	for i, line := range lines {
-		if !strings.HasPrefix(line, workedExamplePrefix) {
+		if !workedExampleLine.MatchString(line) {
 			continue
 		}
 		m := workedExampleHead.FindStringSubmatch(line)

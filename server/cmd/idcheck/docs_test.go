@@ -34,7 +34,7 @@ func TestReadRequirementsReadsOnlyDefinitions(t *testing.T) {
 		"INV-01": true, "INV-02": true, "INV-03": true,
 		"INV-A35": true,
 		"PG-14":   true, "PG-15": false,
-		"CTH-01": true, "CTH-03b": true,
+		"CTH-01": true, "CTH-03b": true, "CTH-37": true, // CTH-37 is a numbered section heading
 		// SCN-08 is "2 (+1)": not required until the lead decides (14 §4.4).
 		"SCN-01": true, "SCN-02": true, "SCN-03": false, "SCN-07": false, "SCN-08": false,
 		"SEC-01": true, "SEC-02": true, "SEC-158": true,

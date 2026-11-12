@@ -12,6 +12,8 @@ Notasi: `saldo(p)` = jumlah `delta` semua baris posisi `p`; `U(o)`, `P(o)`, `A(o
 
 #### CTH-03b — Gaji masuk, sebagian langsung ke dana pribadi (berdiri sendiri)
 
+### 7.10 CTH-37 — Ringkasan bulanan rumah tangga contoh
+
 
 | Bagian | Perubahan |
 |---|---|

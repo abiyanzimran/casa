@@ -123,7 +123,7 @@ func TestRunPrintsCountsPerKind(t *testing.T) {
 		"INV\t3\t3\n" +
 		"INV-A\t1\t1\n" +
 		"PG\t2\t1\n" +
-		"CTH\t2\t2\n" +
+		"CTH\t3\t3\n" +
 		"SCN\t5\t2\n" +
 		"SEC\t6\t3\n"
 	if code != 0 || stdout != want {
