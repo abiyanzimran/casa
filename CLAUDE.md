@@ -4,13 +4,13 @@
 
 A husband and wife know the state of their household money and household matters without having to ask each other, at the lowest possible recording effort, and the app helps them be attentive and kind to each other.
 
-Every document, decision, and (later) line of code must trace back to this goal and to the core problem in `family-os-brief.md` §1.1. Work that does not serve it is cut or deferred, and the reason is recorded.
+Every document, decision, and line of code must trace back to this goal and to the core problem in `family-os-brief.md` §1.1. Work that does not serve it is cut or deferred, and the reason is recorded.
 
 The app is for the owner's own household, built to the standard of a public product (brief §1.1, owner decision 51). Going public is not planned, but stays possible without a rewrite. The foundations a public product needs — flexible family structures, household isolation, privacy, and abuse prevention — serve the goal and are not cut.
 
-## Current phase: planning only
+## Current phase: build
 
-No application code, project scaffolding, dependency installs, or boilerplate. Output is Markdown under `docs/`. Pseudocode, schema sketches, state tables, and Mermaid diagrams are allowed inside documents. The phase ends only when the owner says so.
+The owner declared the planning phase finished on 13 November 2026 (`docs/_progress.md`). The build follows `docs/14-engineering-roadmap.md` §3.3: FS-1 steps 1 to 7, web client first (decision 69), then GR-2. Code is written only by the build team, under `ENGINEERING-STANDARDS.md`. The planning documents remain the sources of truth below; a change to one goes to its owner, as in planning.
 
 ## Sources of truth
 
@@ -56,9 +56,9 @@ The main session is the lead: it assigns work per stage, merges results, keeps `
 
 The lead writes `README.md`, `_progress.md`, `00-glossary.md`, `16-final-recommendations.md`, and `01-executive-summary.md`. The glossary is the one shared file: `finance-domain` writes its financial-terms section, and the lead writes the rest.
 
-## Build team (created when the build phase starts)
+## Build team
 
-Agent files for the build phase are written by the lead only after the owner approves the stack at S4, because their content depends on it. Until then this table is the plan.
+Agent files are in `.claude/agents/`, written by the lead on 13 November 2026 for the stack approved at S4: `web-dev`, `backend-dev`, `code-reviewer`, `qa`, and build-phase sections added to `ux-designer` and `security-privacy`. `ios-dev` and `android-dev` are written when their track starts after GR-2.
 
 | Role | Does |
 |---|---|
@@ -84,4 +84,4 @@ Every build agent follows `ENGINEERING-STANDARDS.md` without exception, includin
 - **Depth follows the MVP tiers** in the brief §1.1: full for Tier 1, concise for Tier 2, one page for Tier 3.
 - **Computed, not read.** Before each checkpoint, the lead checks the numbers in every financial worked example and scenario by computation (a throwaway script kept outside the repository). Reading the table is not a check.
 - **Platform order.** The web client (PWA) is built first and holds real data first (decision 69). The native apps follow, a fully native UI per platform chosen at S4; iOS and iPadOS before Android (decisions 42, 50, 58, 69).
-- **Git.** One commit per completed stage, plus one for each owner-approved revision. Commit only finished, reviewed work. Planning commits go to the main branch; branch-per-task starts with the build phase.
+- **Git.** Commit only finished, reviewed work. During planning: one commit per completed stage, plus one for each owner-approved revision, on the main branch. In the build phase: every task on its own branch, merged into `main` only after `code-reviewer` findings are resolved and CI is green (ES §7). The remote is the owner's private GitHub repository `abiyanzimran/casa`.
