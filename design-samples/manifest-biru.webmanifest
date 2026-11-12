@@ -1,0 +1,13 @@
+{
+  "name": "Casa",
+  "short_name": "Casa",
+  "id": "./?arah=biru",
+  "start_url": "beranda.html?arah=biru",
+  "scope": "./",
+  "display": "standalone",
+  "icons": [
+    { "src": "icons/biru-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/biru-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/biru-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
