@@ -47,6 +47,10 @@ jobs:
       - name: server-vuln (QG-03)
         if: ${{ !cancelled() }}
         run: make server-vuln
+      # PostgreSQL 18 for server-test, from the image pinned in the Makefile.
+      - name: db-up
+        if: ${{ !cancelled() }}
+        run: make db-up
       - name: server-test (QG-05)
         if: ${{ !cancelled() }}
         run: make server-test

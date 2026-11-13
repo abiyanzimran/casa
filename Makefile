@@ -24,7 +24,7 @@ OSV_SCANNER := $(CURDIR)/.cache/osv-scanner-$(OSV_SCANNER_VERSION)/osv-scanner
 # Overridable on the command line to prove the gate red on a throwaway lockfile.
 WEB_LOCKFILE := web/pnpm-lock.yaml
 
-.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets
+.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
 
 check: check-server check-web
@@ -44,8 +44,31 @@ server-lint: $(GOLANGCI_LINT)
 server-vuln:
 	cd server && go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
 
+# PostgreSQL 18 for the server tests (14 §4.1 item 1: a real database, never a
+# mock), the same image locally and in CI. Official image, built from the PGDG
+# packages (ADR-016 item 1). Tag 18.7-trixie, digest from
+# https://hub.docker.com/_/postgres (checked 2026-11-13).
+POSTGRES_IMAGE := postgres:18.7-trixie@sha256:9f4fd4aa918f52ae3d6f3b687f1de90d8f867cd4d520021545a9a50c120eae3b
+# Overridable when the host already uses 5432 for something else.
+CASA_DB_PORT ?= 5432
+# trust is for this throwaway test container only: bound to 127.0.0.1, data on
+# tmpfs, test data only (14 §7.8); no password enters the repository.
+CASA_TEST_ADMIN_URL ?= postgres://postgres@127.0.0.1:$(CASA_DB_PORT)/postgres?sslmode=disable
+
+db-up:
+	docker run -d --rm --name casa-postgres -p 127.0.0.1:$(CASA_DB_PORT):5432 \
+		-e POSTGRES_HOST_AUTH_METHOD=trust --tmpfs /var/lib/postgresql $(POSTGRES_IMAGE) >/dev/null
+	for _ in $$(seq 60); do \
+		if docker exec casa-postgres pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then exit 0; fi; \
+		sleep 1; \
+	done; \
+	echo "casa-postgres not ready after 60 s"; docker logs casa-postgres; exit 1
+
+db-down:
+	docker rm -f casa-postgres
+
 server-test:
-	cd server && go test -race -shuffle=on -coverprofile=coverage.out ./...
+	cd server && CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' go test -race -shuffle=on -coverprofile=coverage.out ./...
 
 cpd-go:
 	scripts/cpd.sh go server
