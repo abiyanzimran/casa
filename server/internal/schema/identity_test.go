@@ -115,6 +115,23 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 	return f
 }
 
+// oneAppConnection is an app_rw pool of one connection, so a setting left
+// behind by one transaction would show in the next.
+func oneAppConnection(t *testing.T, d databasetest.Database) *pgxpool.Pool {
+	t.Helper()
+	config, err := pgxpool.ParseConfig(d.URL("app_rw"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.MaxConns = 1
+	one, err := pgxpool.NewWithConfig(t.Context(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(one.Close)
+	return one
+}
+
 // readColumn returns column of every row of table that scope can read.
 func readColumn[T any](t *testing.T, app *pgxpool.Pool, scope database.Scope, table, column string) []T {
 	t.Helper()
@@ -186,6 +203,76 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 		}
 	})
 
+	t.Run("a lookup finds a row but never writes it", func(t *testing.T) {
+		// 10.1 §5.1 rule 1.
+		for _, c := range []struct {
+			hash      []byte
+			statement string
+		}{
+			{a.sessionHash, "UPDATE session SET last_used_at = now() WHERE token_hash = $1"},
+			{a.refreshHash, "UPDATE refresh_token SET used_at = now() WHERE token_hash = $1"},
+			{a.recoveryHash, "UPDATE recovery_token SET used_at = now() WHERE token_hash = $1"},
+			{a.linkHash, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1"},
+		} {
+			err := database.Write(ctx, app, database.Scope{TokenHash: c.hash}, func(tx pgx.Tx) error {
+				_, err := tx.Exec(ctx, c.statement, c.hash)
+				return err
+			})
+			if code := databasetest.PgErrorCode(err); code != "42501" {
+				t.Errorf("%s with only its token hash: err = %v, want 42501", c.statement, err)
+			}
+		}
+		// database.Write refuses an email, so the setting is set by hand.
+		err := pgx.BeginFunc(ctx, app, func(tx pgx.Tx) error {
+			if _, err := tx.Exec(ctx, "SELECT set_config('app.email', $1, true)", a.email); err != nil {
+				return err
+			}
+			_, err := tx.Exec(ctx, "INSERT INTO account (email, created_at, signup_via) VALUES ($1, now(), 'setup_token')", a.email+".x")
+			return err
+		})
+		if code := databasetest.PgErrorCode(err); code != "42501" {
+			t.Errorf("insert into account with only an email: err = %v, want 42501", err)
+		}
+	})
+
+	t.Run("an account scope cannot write a row it found by another account's token hash", func(t *testing.T) {
+		// 10.1 §5.1 rules 1 and 2.
+		for _, statement := range []string{
+			"UPDATE session SET revoked_at = now() WHERE token_hash = $1 AND $2::uuid IS NOT NULL",
+			"UPDATE session SET account_id = $2 WHERE token_hash = $1",
+		} {
+			err := database.Write(ctx, app, database.Scope{AccountID: a.account, TokenHash: b.sessionHash}, func(tx pgx.Tx) error {
+				_, err := tx.Exec(ctx, statement, b.sessionHash, a.account)
+				return err
+			})
+			if code := databasetest.PgErrorCode(err); code != "42501" {
+				t.Errorf("%s: err = %v, want 42501", statement, err)
+			}
+		}
+		var revoked bool
+		var owner pgtype.UUID
+		err := d.Pool(t, d.AdminRole).QueryRow(ctx, "SELECT revoked_at IS NOT NULL, account_id FROM session WHERE id = $1", b.session).Scan(&revoked, &owner)
+		if err != nil || revoked || owner != b.account {
+			t.Errorf("B's session: revoked %t, owner %v, err %v; want unchanged", revoked, owner, err)
+		}
+	})
+
+	t.Run("a lookup setting does not outlive its transaction", func(t *testing.T) {
+		one := oneAppConnection(t, d)
+		if got := readColumn[pgtype.UUID](t, one, database.Scope{Email: a.email}, "account", "id"); !slices.Equal(got, []pgtype.UUID{a.account}) {
+			t.Fatalf("lookup by email: %v, want A", got)
+		}
+		if got := readColumn[pgtype.UUID](t, one, database.Scope{AccountID: b.account}, "account", "id"); !slices.Equal(got, []pgtype.UUID{b.account}) {
+			t.Errorf("account B after a lookup of A's email reads %v, want only B", got)
+		}
+		if got := readColumn[pgtype.UUID](t, one, database.Scope{TokenHash: a.sessionHash}, "session", "id"); len(got) != 1 {
+			t.Fatalf("lookup by token hash: %d rows, want 1", len(got))
+		}
+		if got := readColumn[pgtype.UUID](t, one, database.Scope{}, "session", "id"); len(got) != 0 {
+			t.Errorf("an empty scope after a token lookup reads %d sessions, want 0", len(got))
+		}
+	})
+
 	t.Run("a token hash finds only its own row", func(t *testing.T) {
 		hashes := map[string][]byte{
 			"session.token_hash":                   a.sessionHash,
@@ -227,16 +314,7 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 	})
 
 	t.Run("idempotency_record follows the scope id (09.2 §3)", func(t *testing.T) {
-		config, err := pgxpool.ParseConfig(d.URL("app_rw"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		config.MaxConns = 1
-		one, err := pgxpool.NewWithConfig(ctx, config)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Cleanup(one.Close)
+		one := oneAppConnection(t, d)
 		household := randomUUID()
 		insert := "INSERT INTO idempotency_record (scope_id, idempotency_key, command, request_hash, response) VALUES ($1, gen_random_uuid(), 'x', '\\x00', '\\x00')"
 		for _, w := range []struct {

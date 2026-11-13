@@ -4,7 +4,7 @@
 -- Every table here is global (no household_id). Its one policy reads the
 -- transaction's scope (internal/database): app.account_id for the account's
 -- own rows, and, where a row must be found before the account is known,
--- app.email or app.token_hash as a lookup key (lead ruling Q2). Each setting
+-- app.email or app.token_hash as a lookup key (lead ruling Q2; 10.1 §5.1). Each setting
 -- is read with missing_ok and nullif, so an absent one matches nothing
 -- instead of failing (09.2 §3, note of 13 November 2026). Every time is
 -- written by the server from its clock; none has a default except
@@ -146,14 +146,17 @@ CREATE TABLE idempotency_record (
 	PRIMARY KEY (scope_id, idempotency_key)
 );
 
--- Every table forces row-level security (SEC-08; ADR-016 item 3).
+-- Every table forces row-level security (SEC-08; ADR-016 item 3). A lookup
+-- clause (app.email, app.token_hash) is only in USING: it finds a row, and
+-- every write is bound to the row's own account in WITH CHECK; UPDATE is
+-- granted per column and never on an owner column (10.1 §5.1 rules 1, 2;
+-- 09.2 §3).
 ALTER TABLE account ENABLE ROW LEVEL SECURITY;
 ALTER TABLE account FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON account
 	USING (id = nullif(current_setting('app.account_id', true), '')::uuid
 	    OR email = nullif(current_setting('app.email', true), '')::citext)
-	WITH CHECK (id = nullif(current_setting('app.account_id', true), '')::uuid
-	    OR email = nullif(current_setting('app.email', true), '')::citext);
+	WITH CHECK (id = nullif(current_setting('app.account_id', true), '')::uuid);
 GRANT SELECT, INSERT ON account TO app_rw;
 
 ALTER TABLE credential ENABLE ROW LEVEL SECURITY;
@@ -161,60 +164,58 @@ ALTER TABLE credential FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON credential
 	USING (account_id = nullif(current_setting('app.account_id', true), '')::uuid)
 	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid);
-GRANT SELECT, INSERT, UPDATE ON credential TO app_rw;
+GRANT SELECT, INSERT, UPDATE (salt, hash, time_cost, memory_kib, parallelism, updated_at) ON credential TO app_rw;
 
 ALTER TABLE session ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON session
 	USING (account_id = nullif(current_setting('app.account_id', true), '')::uuid
 	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'))
-	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid
-	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
-GRANT SELECT, INSERT, UPDATE ON session TO app_rw;
+	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid);
+-- 1.5 adds the cookie columns.
+GRANT SELECT, INSERT, UPDATE (token_hash, token_issued_at, last_used_at, revoked_at, revoke_reason) ON session TO app_rw;
 
 ALTER TABLE refresh_token ENABLE ROW LEVEL SECURITY;
 ALTER TABLE refresh_token FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON refresh_token
 	USING (account_id = nullif(current_setting('app.account_id', true), '')::uuid
 	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'))
-	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid
-	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
-GRANT SELECT, INSERT, UPDATE ON refresh_token TO app_rw;
+	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid);
+GRANT SELECT, INSERT, UPDATE (used_at) ON refresh_token TO app_rw;
 
 ALTER TABLE reauth_grant ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reauth_grant FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON reauth_grant
 	USING (account_id = nullif(current_setting('app.account_id', true), '')::uuid)
 	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid);
-GRANT SELECT, INSERT, UPDATE ON reauth_grant TO app_rw;
+GRANT SELECT, INSERT, UPDATE (used_at) ON reauth_grant TO app_rw;
 
 ALTER TABLE recovery_token ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recovery_token FORCE ROW LEVEL SECURITY;
 CREATE POLICY account ON recovery_token
 	USING (account_id = nullif(current_setting('app.account_id', true), '')::uuid
 	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'))
-	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid
-	    OR token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
-GRANT SELECT, INSERT, UPDATE ON recovery_token TO app_rw;
+	WITH CHECK (account_id = nullif(current_setting('app.account_id', true), '')::uuid);
+GRANT SELECT, INSERT, UPDATE (used_at) ON recovery_token TO app_rw;
 
--- Found only by its own hash: no account owns it until the sign-up ends.
+-- No account owns a setup token until it is used, so it is found and
+-- written only through its own hash; account_id is filled once, then.
 ALTER TABLE setup_token ENABLE ROW LEVEL SECURITY;
 ALTER TABLE setup_token FORCE ROW LEVEL SECURITY;
 CREATE POLICY token ON setup_token
 	USING (token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'))
 	WITH CHECK (token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
-GRANT SELECT, INSERT, UPDATE ON setup_token TO app_rw;
+GRANT SELECT, INSERT, UPDATE (used_at, account_id) ON setup_token TO app_rw;
 
--- Found by its own hash (the link) or by its setup token's hash (the holder
--- of the setup token replaces its link).
+-- The link's own hash only finds the row; it is written only through the
+-- hash of its setup token, which never changes.
 ALTER TABLE signup_verification ENABLE ROW LEVEL SECURITY;
 ALTER TABLE signup_verification FORCE ROW LEVEL SECURITY;
 CREATE POLICY token ON signup_verification
 	USING (token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
 	    OR setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'))
-	WITH CHECK (token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
-	    OR setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
-GRANT SELECT, INSERT, UPDATE ON signup_verification TO app_rw;
+	WITH CHECK (setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
+GRANT SELECT, INSERT, UPDATE (token_hash, expires_at, used_at) ON signup_verification TO app_rw;
 
 ALTER TABLE security_event ENABLE ROW LEVEL SECURITY;
 ALTER TABLE security_event FORCE ROW LEVEL SECURITY;
