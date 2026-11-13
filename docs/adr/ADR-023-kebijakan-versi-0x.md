@@ -62,7 +62,7 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    | `ListDetailPaneScaffold` (`@ExperimentalMaterial3AdaptiveApi`) | Material 3 Adaptive 1.3.0 | **Tidak dipakai di pilot** (tidak ada tablet Android) | Tata letak dua panel dengan kelas ukuran jendela stabil |
 6. **Modul tidak langsung** (catatan 13 November 2026, FS-1 1.2, keputusan lead atas temuan `code-reviewer` I3). Butir 1 dan 2 berlaku bagi dependensi yang diimpor kode kita. Modul yang hanya ditarik oleh dependensi langsung yang sudah disetujui **diterima tanpa baris sendiri**, dengan ketentuan:
    1. versinya adalah versi yang dipilih resolusi modul dependensi langsung itu (versi terbaru yang diizinkan), dipatok di `go.mod` dan `go.sum` (ES §8 "Pinned");
-   2. ia tercakup govulncheck dan OSV-Scanner di CI, sama dengan dependensi langsung;
+   2. ia tercakup pemindaian kerentanan CI yang sama dengan dependensi langsung: govulncheck untuk modul Go; OSV-Scanner hanya memindai `pnpm-lock.yaml` (dependensi npm);
    3. PR yang pertama kali membawanya mencantumkan nama, versi, tanggal dicek, tautan sumber, dan dependensi langsung yang menariknya (ES §8 "Recorded");
    4. modul tidak langsung baru yang sendiri bernomor 0.x atau berupa pseudo-version **disebut namanya di PR** untuk diperiksa `code-reviewer`. Syarat "aktif" butir 1.2 dinilai pada dependensi langsungnya, bukan pada modul tidak langsung, karena modul kecil yang sudah selesai dapat lama tanpa rilis. Modul yang bertanda deprecated di `go.mod`-nya atau repositorinya diarsipkan tidak diterima lewat butir ini (ES §8 "Maintained");
    5. jalan mundurnya ikut jalan mundur dependensi langsung yang menariknya;
