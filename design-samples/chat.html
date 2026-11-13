@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="text-scale" content="scale">
+  <title>Casa · Chat</title>
+  <meta name="theme-color" content="#F4F4F4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <script src="pengalih.js"></script>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="samples.css">
+</head>
+<body class="halaman-chat">
+  <a class="lewati" href="#isi">Lewati ke isi</a>
+  <header class="bilah">
+    <p class="merek" aria-hidden="true"><img src="icons/casa-icon.svg" width="32" height="32" alt=""><span class="merek-kata">Casa</span></p>
+    <a class="catat" href="catat.html"><span class="catat-bulat"><span class="ikon ikon-plus" aria-hidden="true"></span></span><span class="catat-kata">Catat</span></a>
+    <nav class="tab-grup" aria-label="Tujuan utama">
+      <ul>
+        <li><a class="tab" href="beranda.html"><span class="ikon-tab"><span class="ikon ikon-house" aria-hidden="true"></span><span class="lencana" aria-hidden="true">2</span></span><span class="label-tab">Beranda</span><span class="sr">, 2 menunggu</span></a></li>
+        <li><a class="tab" href="#"><span class="ikon-tab"><span class="ikon ikon-wallet" aria-hidden="true"></span></span><span class="label-tab">Uang</span></a></li>
+        <li><a class="tab" href="chat.html" aria-current="page"><span class="ikon-tab"><span class="ikon ikon-chat-circle" aria-hidden="true"></span></span><span class="label-tab">Chat</span></a></li>
+        <li><a class="tab" href="#"><span class="ikon-tab"><span class="ikon ikon-user" aria-hidden="true"></span></span><span class="label-tab">Saya</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="ruang" id="isi" tabindex="-1">
+    <div class="kepala-isi">
+      <h1 class="judul-layar">Sari</h1>
+      <p class="kehadiran">online</p>
+    </div>
+
+    <div class="isi-chat">
+      <div class="utas" role="log" aria-label="Pesan dengan Sari">
+        <p class="pemisah-hari">Kemarin</p>
+        <p class="baris-peristiwa"><span class="ikon glif ikon-simpul" aria-hidden="true"></span>Disepakati: Jatah pribadi Sari, 16.10</p>
+        <div class="gelembung gelembung-lain">
+          <p class="pengirim">Sari</p>
+          <p>Kulkasnya makin berisik, tadi pagi bocor lagi.</p>
+          <p class="waktu">19.32</p>
+        </div>
+        <div class="gelembung gelembung-lain">
+          <p>Aku sudah lihat yang dua pintu di toko dekat pasar.</p>
+          <p class="waktu">19.33</p>
+        </div>
+        <article class="kartu kartu-objek" aria-labelledby="ca-jenis ca-judul">
+          <div class="kepala-kartu"><span class="lingkaran" aria-hidden="true"><span class="ikon ikon-hand-coins" aria-hidden="true"></span></span><p class="jenis" id="ca-jenis">Minta anggaran</p><span class="pil-status">Menunggu kamu</span></div>
+          <h2 class="judul-bagian" id="ca-judul">Kulkas baru</h2>
+          <p class="angka-besar"><span class="rp" aria-hidden="true">Rp</span>7.850.000<span class="sr"> rupiah</span></p>
+          <p class="kecil">Menunggu kamu sejak Kam 19.40</p>
+          <div class="deret-tombol">
+            <button type="button" class="tombol tombol-hitam" id="ca-setuju" aria-labelledby="ca-setuju ca-jenis ca-judul">Setuju</button>
+            <button type="button" class="tombol tombol-abu" id="ca-usul" aria-labelledby="ca-usul ca-jenis ca-judul">Usul lain</button>
+            <button type="button" class="tombol tombol-abu" id="ca-belum" aria-labelledby="ca-belum ca-jenis ca-judul">Belum sepakat</button>
+          </div>
+          <a class="tautan" href="#">Lihat rincian<span class="sr">, Kulkas baru</span></a>
+        </article>
+        <div class="gelembung gelembung-sendiri">
+          <p>Aku lihat dulu, besok pagi kita bahas ya.</p>
+          <p class="waktu">21.05 <span class="ikon ikon-checks" aria-hidden="true"></span><span class="sr">Dibaca</span></p>
+        </div>
+        <p class="pemisah-hari">Hari ini</p>
+        <div class="gelembung gelembung-lain">
+          <p class="pengirim">Sari</p>
+          <p>Uang belanja minggu ini aku taruh di laci dapur.</p>
+          <p class="waktu">08.02</p>
+        </div>
+        <article class="kartu kartu-objek" aria-labelledby="cb-jenis cb-judul">
+          <div class="kepala-kartu"><span class="lingkaran lingkaran-glif" aria-hidden="true"><span class="ikon glif ikon-money" aria-hidden="true"></span></span><p class="jenis" id="cb-jenis">Serah terima</p><span class="pil-status">Menunggu kamu</span></div>
+          <h2 class="judul-bagian" id="cb-judul">Sari kasih ke kamu</h2>
+          <p class="angka-besar"><span class="rp" aria-hidden="true">Rp</span>200.000<span class="sr"> rupiah</span></p>
+          <div class="motif">
+            <div class="baris"><span class="ikon glif ikon-money" aria-hidden="true"></span><span class="kata">Dari Dompet Sari</span></div>
+            <div class="baris"><span class="ikon glif ikon-money" aria-hidden="true"></span><span class="kata">Ke Dompet Andi</span></div>
+          </div>
+          <p class="kecil">Menunggu kamu sejak 08.03</p>
+          <div class="deret-tombol">
+            <button type="button" class="tombol tombol-hitam" id="cb-terima" aria-labelledby="cb-terima cb-jenis cb-judul">Sudah terima</button>
+            <button type="button" class="tombol tombol-abu" id="cb-tidak" aria-labelledby="cb-tidak cb-jenis cb-judul">Tidak sesuai</button>
+          </div>
+          <a class="tautan" href="#">Lihat rincian<span class="sr">, Sari kasih ke kamu</span></a>
+        </article>
+      </div>
+      <div class="kotak-tulis">
+        <button type="button" class="tombol-ikon"><span class="ikon ikon-plus" aria-hidden="true"></span><span class="sr">Tambah</span></button>
+        <label class="sr" for="pesan">Pesan untuk Sari</label>
+        <textarea id="pesan" rows="1" placeholder="Tulis pesan" autocomplete="off"></textarea>
+        <button type="button" class="tombol-ikon tombol-kirim"><span class="ikon ikon-paper-plane-right" aria-hidden="true"></span><span class="sr">Kirim</span></button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

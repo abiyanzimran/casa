@@ -1,0 +1,330 @@
+/*
+ * Casa web design tokens. The single source of web tokens (08 §25.4); screens import this file,
+ * they never copy its values.
+ *
+ * One visual direction (08 §19.13). Colour: §19.13.2, meaning colours §19.12.4. Light and dark
+ * come from light-dark(), so each value is written once; high contrast is prefers-contrast: more.
+ * Type: §19.4, §19.13.4. Scale and component sizes: §19.13.5. Grid: §19.13.6. Motion: §19.13.7.
+ */
+
+@font-face {
+	font-family: 'Figtree';
+	/* Google Fonts build 2.002 (has tnum), converted to WOFF2 unchanged; own origin (SEC-160 (d)) */
+	src: url('/fonts/Figtree-Variable.woff2') format('woff2');
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	color-scheme: light dark;
+
+	/* 08 §19.13.2: neutral scale (light, dark) */
+	--kertas: light-dark(#f4f4f4, #111111);
+	--kartu: light-dark(#ffffff, #1c1c1c);
+	--sisip: light-dark(#eeeeee, #262626);
+	--lintasan: light-dark(#e2e2e2, #333333); /* never carries text */
+	--garis: light-dark(#dcdcdc, #333333);
+	--garis-tegas: light-dark(#767676, #8c8c8c);
+	--tinta: light-dark(#141414, #f0f0f0);
+	--tinta-2: light-dark(#595959, #adadad);
+	--selubung: light-dark(rgb(20 20 20 / 0.4), rgb(0 0 0 / 0.6)); /* tinta 40%; black 60% */
+	/* only the dock, the round Catat button and sheets, light theme only (§19.13.2) */
+	--bayangan: 0 2px 12px light-dark(rgb(20 20 20 / 0.16), transparent);
+	--permukaan-mengambang: var(--kartu);
+
+	/* 08 §19.13.2: blue to act and to select, lime as fill only, a dark floating dock */
+	--aksen: light-dark(#1757f0, #1a5cff);
+	--di-atas-aksen: #ffffff;
+	--aksen-tinta: light-dark(#1757f0, #8dbbff);
+	--aksen-muda: light-dark(#e8efff, #1c2a45);
+	--sorot: #c6f432; /* fill only, never text or a thin line on a light surface */
+	--di-atas-sorot: #141414;
+	--navigasi: light-dark(#262626, #333333);
+	--di-atas-navigasi: #adadad;
+	--pil-navigasi: light-dark(#ffffff, #f0f0f0);
+
+	/* 08 §19.12.4: meaning colours, only on small markers next to an icon or word (WCAG 1.4.1) */
+	--positif: light-dark(#005a43, #6bd6a8);
+	--peringatan: light-dark(#6e4500, #e8b456);
+	--lebih: light-dark(#8c2b0a, #ff9a70);
+	--galat: light-dark(#93112b, #ff9eab);
+
+	/* 08 §19.4, §19.13.4: sizes in rem so they follow the browser text size */
+	--huruf: 'Figtree', system-ui, sans-serif;
+	--ukuran-angka-utama: 2.5rem;
+	--ukuran-angka-besar: 1.75rem;
+	--ukuran-angka-baris: 1.0625rem;
+	--ukuran-judul-layar: 1.5rem;
+	--ukuran-judul-bagian: 1.25rem;
+	--ukuran-judul-subbagian: 0.9375rem;
+	--ukuran-isi: 1rem;
+	--ukuran-terkecil: 0.8125rem;
+
+	/* 08 §19.13.5 "Skala": spacing (no 20), corners, touch target */
+	--jarak-1: 4px;
+	--jarak-2: 8px;
+	--jarak-3: 12px;
+	--jarak-4: 16px;
+	--jarak-6: 24px;
+	--jarak-8: 32px;
+	--jarak-10: 40px;
+	--jarak-12: 48px;
+	--jarak-16: 64px;
+	--sudut-kecil: 8px; /* bubble tail */
+	--sudut-sedang: 12px; /* fields, panels inside cards, selected rows, tooltips, chart columns */
+	--sudut-besar: 20px; /* cards, bubbles */
+	--sudut-lembar: 28px; /* sheets, dialogs */
+	--penuh: 999px; /* buttons, chips, segments, dock, indicator, circles, bars, badges, status pills */
+	--sasaran: 48px;
+
+	/* 08 §19.13.5 "Ukuran per komponen" */
+	--tinggi-tombol: 48px;
+	--tinggi-tombol-kartu: 40px;
+	--tombol-ikon: 40px;
+	--catat-bulat: 56px;
+	--tinggi-isian: 48px;
+	--tinggi-chip: 32px;
+	--tinggi-segmen: 40px;
+	--tinggi-baris: 56px;
+	--tinggi-baris-2: 72px;
+	--lingkaran: 40px;
+	--tinggi-bilah: 64px;
+	--tinggi-dok: 64px;
+	/* the selected destination: one pill around icon and label, dock, rail and stacked tabs (08 §19.13.6) */
+	--pil-tab-lebar: 64px;
+	--pil-tab-tinggi: 56px;
+	--pil-tab-padding-tegak: 6px;
+	--pil-tab-padding-datar: 8px;
+	--lebar-rail: 80px; /* left rail, 600-1199 */
+	--lebar-lembar: 560px;
+	--lencana-titik: 6px;
+	--lencana: 16px;
+	--ikon-nav: 24px;
+	--ikon: 20px;
+	--ikon-chip: 18px;
+	/* 08 §25.4 "Navigasi": a tab label stops growing at its tab's width. "Beranda", the longest
+	   label, is 3.71 em in Figtree 600; +2% gives the divisor of the tab's inline size (cqi) */
+	--lebar-label-tab-em: 3.8;
+	--huruf-label-min: 13px; /* tab labels and badge digits never below 13 px (08 §25.4) */
+	--tebal-batang: 12px;
+	--celah-segmen: 4px;
+	--tinggi-pil-status: 24px;
+	--tinggi-kotak-tulis: 56px; /* [Usulan] in 08: button 40 + 8 above and below */
+	--arsir-garis: 1.5px; /* 45° hatch on the unconfirmed segment: 1.5 px line, 5 px apart */
+	--arsir-jarak: 5px;
+
+	/* 08 §19.13.6 grid, Ringkas (< 600); the wider states below */
+	--margin: 16px;
+	--jarak-kartu: 12px;
+	--padding-kartu: 16px;
+	--padding-kartu-samping: 16px; /* side column in Lebar */
+	--lebar-satu-kolom: 640px;
+	--lebar-utama-min: 360px; /* Lebar main column minmax(360px, 1fr) */
+	--lebar-gelembung: 480px; /* bubbles and object cards, 08 §10.4 */
+	--lebar-isi-maks: 1200px;
+	--panel-samping: clamp(320px, 33.333%, 400px);
+
+	/* 08 §19.13.7: Material 3 durations and curves, nothing longer than 300 ms, no bounce */
+	--gerak-tekan: 100ms; /* Short2 */
+	--gerak-warna: 150ms; /* Short3 */
+	--gerak: 200ms; /* Short4: state change, press release, sheet exit */
+	--gerak-lembar: 300ms; /* Medium2: sheet and dialog enter */
+	--gerak-pudar: 150ms; /* sheets and dialogs under reduced motion */
+	--lengkung: cubic-bezier(0.2, 0, 0, 1); /* Standard */
+	--lengkung-masuk: cubic-bezier(0.05, 0.7, 0.1, 1); /* Emphasized decelerate */
+	--lengkung-keluar: cubic-bezier(0.3, 0, 0.8, 0.15); /* Emphasized accelerate */
+}
+
+@media (min-width: 600px) {
+	:root {
+		/* Sedang: one column of at most 640 */
+		--margin: 24px;
+		--jarak-kartu: 16px;
+		--padding-kartu: 24px;
+		--ukuran-angka-utama: 3rem; /* §19.13.4 */
+	}
+}
+
+@media (min-width: 840px) {
+	:root {
+		/* Lebar: main and side column */
+		--jarak-kartu: 24px;
+	}
+}
+
+@media (min-width: 1200px) {
+	:root {
+		/* Sangat lebar: three equal columns, content at most 1200 */
+		--margin: 32px;
+		--padding-kartu-samping: 24px;
+	}
+}
+
+/* 08 §19.13.2, §19.13.9 item 1: high contrast */
+@media (prefers-contrast: more) {
+	:root {
+		--garis-tegas: light-dark(#595959, #adadad);
+		--garis: var(--garis-tegas);
+		--tinta-2: var(--tinta);
+		--aksen: light-dark(#0b3fbf, #8dbbff);
+		--aksen-tinta: light-dark(#0b3fbf, #8dbbff);
+		--di-atas-aksen: light-dark(#ffffff, #141414);
+		--di-atas-navigasi: #f0f0f0;
+	}
+}
+
+/* Sample pages only (08 §19.13.9 item 5): the switch sets data-tema and data-kontras on <html> so
+   the owner compares without changing system settings. Inert in the product, which never sets
+   them. The values repeat the block above. */
+:root[data-tema='terang'] {
+	color-scheme: light;
+}
+
+:root[data-tema='gelap'] {
+	color-scheme: dark;
+}
+
+:root[data-kontras='tinggi'] {
+	--garis-tegas: light-dark(#595959, #adadad);
+	--garis: var(--garis-tegas);
+	--tinta-2: var(--tinta);
+	--aksen: light-dark(#0b3fbf, #8dbbff);
+	--aksen-tinta: light-dark(#0b3fbf, #8dbbff);
+	--di-atas-aksen: light-dark(#ffffff, #141414);
+	--di-atas-navigasi: #f0f0f0;
+}
+
+@media (forced-colors: active) {
+	/* 08 §25.4: system colours; borders, card lines and focus rings stay visible. Matters where an
+	   element opts out with forced-color-adjust: none. Also beats the sample high-contrast hook. */
+	:root,
+	:root[data-kontras] {
+		--kertas: Canvas;
+		--kartu: Canvas;
+		--sisip: Canvas;
+		--lintasan: Canvas;
+		--garis: CanvasText;
+		--garis-tegas: CanvasText;
+		--tinta: CanvasText;
+		--tinta-2: CanvasText;
+		--selubung: Canvas;
+		--bayangan: none;
+		--permukaan-mengambang: Canvas;
+		--positif: CanvasText;
+		--peringatan: CanvasText;
+		--lebih: CanvasText;
+		--galat: CanvasText;
+		--aksen: Highlight;
+		--di-atas-aksen: HighlightText;
+		--aksen-tinta: LinkText;
+		--aksen-muda: Canvas;
+		--sorot: Highlight;
+		--di-atas-sorot: HighlightText;
+		--navigasi: Canvas;
+		--di-atas-navigasi: CanvasText;
+		--pil-navigasi: Highlight;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		/* 08 §19.13.7: no movement; sheets and dialogs fade (--gerak-pudar). Colour changes are not
+		   movement and keep --gerak-warna 150 ms. */
+		--gerak-tekan: 0ms;
+		--gerak: 0ms;
+		--gerak-lembar: 0ms;
+	}
+}
+
+/* iOS text size (08 §25.4 "Dynamic Type iOS" [Perlu validasi]). Guarded to touch WebKit:
+   on macOS Safari -apple-system-body is 13 px and would shrink every rem. */
+@supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
+	html {
+		font: -apple-system-body;
+	}
+}
+
+/* One family for all text, numbers included (08 §19.13.4) */
+html {
+	font-family: var(--huruf);
+	font-weight: 400;
+	background: var(--kertas);
+	color: var(--tinta);
+}
+
+/* 08 §19.4 number tokens: tabular figures; "Rp" is its own element (.rp) */
+.angka-utama,
+.angka-besar {
+	/* 08 §25.4 "Batas lebar jumlah" (decision A): grow with text, stop when the amount fills its
+	   container (container-type: inline-size), never below the base px size; never cut or wrapped.
+	   The container sets --lebar-em (amount width in em, +2%) and --sisi-wadah (inner padding and
+	   border between the container and the amount). Without --lebar-em there is no cap. */
+	--batas-lebar-jumlah: calc((100cqi - var(--sisi-wadah, 0px)) / var(--lebar-em, 1));
+}
+
+.angka-utama,
+.angka-besar,
+.angka-baris {
+	font-variant-numeric: tabular-nums;
+	color: var(--tinta);
+	white-space: nowrap;
+}
+
+.angka-utama {
+	font-weight: 600;
+	font-size: max(40px, min(var(--ukuran-angka-utama), var(--batas-lebar-jumlah)));
+	line-height: 1.15;
+	letter-spacing: -0.03em;
+}
+
+.angka-besar {
+	font-weight: 600;
+	font-size: max(28px, min(var(--ukuran-angka-besar), var(--batas-lebar-jumlah)));
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+}
+
+.angka-baris {
+	font-weight: 500;
+	font-size: var(--ukuran-angka-baris);
+	line-height: 1.4;
+}
+
+/* 08 §19.4, §19.13.5 "Rp" toned down: 60% and tinta-2 on angka-utama and angka-besar, same
+   baseline; on angka-baris "Rp" keeps the digits' size and colour */
+.angka-utama .rp,
+.angka-besar .rp {
+	font-size: 0.6em;
+	font-weight: 500;
+	letter-spacing: 0;
+	color: var(--tinta-2);
+}
+
+/* 08 §19.4 "Jumlah di baris dan di kalimat": an amount inside a sentence keeps the sentence's
+   size and colour, Medium with tabular figures */
+.angka-kalimat {
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+/* 08 §19.4, §17.8 rule 6: screen, section and subsection titles differ in size and weight */
+.judul-layar {
+	font-weight: 700;
+	font-size: var(--ukuran-judul-layar);
+	line-height: 1.25;
+}
+
+.judul-bagian {
+	font-weight: 600;
+	font-size: var(--ukuran-judul-bagian);
+	line-height: 1.3;
+}
+
+.judul-subbagian {
+	font-weight: 500;
+	font-size: var(--ukuran-judul-subbagian);
+	line-height: 1.35;
+	color: var(--tinta-2);
+}

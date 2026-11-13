@@ -1,0 +1,1998 @@
+/*
+ * The 1.8 sample screens (08 §19.13). Every colour, size, shape and duration comes from tokens.css;
+ * nothing here is a colour value. Layout states (08 §4.2, §19.13.6): Ringkas < 600 floating dock;
+ * Sedang 600-839 top bar, one column of 640; Lebar 840-1199 main and side column; Sangat lebar
+ * >= 1200 three equal columns, content at most 1200. Components: §19.13.5. Motion: §19.13.7.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-size: var(--ukuran-isi);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+fieldset {
+  border: 0;
+  min-width: 0;
+}
+
+a {
+  color: var(--aksen-tinta);
+  text-underline-offset: 0.2em;
+}
+
+/* Paragraph line length: at most 70 characters (08 §17.8) */
+p {
+  max-width: 70ch;
+}
+
+:focus-visible {
+  /* 08 §19.13.5 "Cincin fokus": 2 px, 2 px away, following the control's shape */
+  outline: 2px solid var(--aksen-tinta);
+  outline-offset: 2px;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.lewati {
+  position: absolute;
+  left: var(--jarak-2);
+  top: var(--jarak-2);
+  z-index: 10;
+  padding: var(--jarak-2) var(--jarak-4);
+  border-radius: var(--penuh);
+  background: var(--kartu);
+  min-height: var(--sasaran);
+  display: inline-flex;
+  align-items: center;
+  transform: translateY(-200%);
+}
+
+.lewati:focus-visible {
+  transform: none;
+}
+
+.kecil {
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+/* ---------- Icons (08 §19.13.5 "Ikon web": Phosphor 2.1.1 Regular, Fill when selected) ---------- */
+
+/* Same-origin SVG as a mask painted with the text colour, so it follows the theme. Always next to
+   a word or an accessible name, so aria-hidden in the markup. */
+.ikon {
+  display: inline-block;
+  flex: none;
+  width: var(--ikon);
+  height: var(--ikon);
+  background-color: currentColor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  forced-color-adjust: none;
+}
+
+.ikon-house { mask-image: url("symbols/house.svg"); }
+.ikon-wallet { mask-image: url("symbols/wallet.svg"); }
+.ikon-chat-circle { mask-image: url("symbols/chat-circle.svg"); }
+.ikon-user { mask-image: url("symbols/user.svg"); }
+.ikon-plus { mask-image: url("symbols/plus.svg"); }
+.ikon-paper-plane-right { mask-image: url("symbols/paper-plane-right.svg"); }
+.ikon-x { mask-image: url("symbols/x.svg"); }
+.ikon-check { mask-image: url("symbols/check.svg"); }
+.ikon-caret-right { mask-image: url("symbols/caret-right.svg"); }
+.ikon-caret-down { mask-image: url("symbols/caret-down.svg"); }
+.ikon-info { mask-image: url("symbols/info.svg"); }
+.ikon-lock { mask-image: url("symbols/lock.svg"); }
+.ikon-clock { mask-image: url("symbols/clock.svg"); }
+.ikon-calendar { mask-image: url("symbols/calendar.svg"); }
+.ikon-chart-pie { mask-image: url("symbols/chart-pie.svg"); }
+.ikon-hand-coins { mask-image: url("symbols/hand-coins.svg"); }
+.ikon-money { mask-image: url("symbols/money.svg"); }
+.ikon-bank { mask-image: url("symbols/bank.svg"); }
+.ikon-device-mobile { mask-image: url("symbols/device-mobile.svg"); }
+.ikon-simpul { mask-image: url("glyphs/simpul.svg"); }
+
+.ikon-receipt { mask-image: url("symbols/receipt.svg"); }
+.ikon-checks { mask-image: url("symbols/checks.svg"); }
+
+/* Selected destination: the Fill weight (08 §17.5, §19.13.5) */
+[aria-current="page"] .ikon-house { mask-image: url("symbols/house-fill.svg"); }
+[aria-current="page"] .ikon-wallet { mask-image: url("symbols/wallet-fill.svg"); }
+[aria-current="page"] .ikon-chat-circle { mask-image: url("symbols/chat-circle-fill.svg"); }
+[aria-current="page"] .ikon-user { mask-image: url("symbols/user-fill.svg"); }
+
+/* Money-place glyphs (08 §19.5): tinta-2, always with a word */
+.glif {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+  color: var(--tinta-2);
+}
+
+/* ---------- Press, state and colour motion (08 §19.13.7) ---------- */
+
+:is(.tombol, .tombol-ikon, .chip, .pemilih, .tab, .catat, .baris-tautan, .segmen-item) {
+  transition:
+    transform var(--gerak) var(--lengkung),
+    background-color var(--gerak-warna) var(--lengkung),
+    color var(--gerak-warna) var(--lengkung),
+    border-color var(--gerak-warna) var(--lengkung);
+}
+
+:is(.tombol, .tombol-ikon, .chip, .pemilih, .tab, .catat, .baris-tautan, .segmen-item):active {
+  transform: scale(0.97);
+  transition-duration: var(--gerak-tekan);
+}
+
+/* Hover: an 8% layer of the content colour (Material state layer), no colour value of its own */
+:root {
+  --lapisan-hover: inset 0 0 0 100vmax color-mix(in srgb, currentColor 8%, transparent);
+}
+
+@media (hover: hover) {
+  :is(.tombol, .tombol-ikon, .chip, .baris-tautan, .segmen-item):hover,
+  .pemilih:hover::before {
+    box-shadow: var(--lapisan-hover);
+  }
+}
+
+/* A link that stands alone (not inside a sentence): the 48 area */
+.tautan {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  min-height: var(--sasaran);
+  font-weight: 600;
+}
+
+/* ---------- Buttons (08 §19.13.5 "Tombol") ---------- */
+
+.tombol {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--jarak-2);
+  min-height: var(--tinggi-tombol);
+  padding: 0 var(--jarak-6);
+  border: 1px solid transparent;
+  border-radius: var(--penuh);
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tombol-biru {
+  background-color: var(--aksen);
+  color: var(--di-atas-aksen);
+}
+
+.tombol-hitam {
+  background-color: var(--tinta);
+  color: var(--kartu);
+}
+
+.tombol-abu {
+  background-color: var(--sisip);
+  color: var(--tinta);
+}
+
+/* Inside a card: 40 high, 16 padding; the touch area stays 48 */
+.kartu .tombol {
+  min-height: var(--tinggi-tombol-kartu);
+  padding-inline: var(--jarak-4);
+}
+
+.kartu .tombol::after,
+.tombol-ikon::after,
+.chip::after,
+.segmen-item::after {
+  content: "";
+  position: absolute;
+  /* the touch area grows to 48 on each side where the control is smaller (08 §19.13.5) */
+  inset: min(0px, (100% - var(--sasaran)) / 2);
+}
+
+.tombol-ikon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--tombol-ikon);
+  height: var(--tombol-ikon);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--penuh);
+  background-color: var(--kartu);
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.kartu .tombol-ikon,
+.lembar .tombol-ikon {
+  background-color: var(--sisip);
+}
+
+/* Two or three buttons in a row: same width and height; a stack when the row is too narrow (§10.4) */
+.deret-tombol {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--jarak-2);
+}
+
+/* ---------- Chips and the choice pill (08 §19.13.5 "Chip dan pil pemilih") ---------- */
+
+.chip {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarak-2);
+  min-height: var(--tinggi-chip);
+  padding: 0 var(--jarak-3);
+  border: 1px solid var(--garis);
+  border-radius: var(--penuh);
+  background-color: var(--kartu);
+  color: var(--tinta);
+  font-size: var(--ukuran-judul-subbagian);
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  forced-color-adjust: none;
+}
+
+.chip .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+}
+
+.kartu .chip {
+  border-color: transparent;
+  background-color: var(--sisip);
+}
+
+/* A chip that selects: the native radio stays (focus, keyboard, name); the selected fill is a layer
+   that fades and grows in (08 §19.13.7 "Ganti keadaan") */
+.chip input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip:has(input:focus-visible) {
+  outline: 2px solid var(--aksen-tinta);
+  outline-offset: 2px;
+}
+
+.chip:has(input)::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: var(--aksen);
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity var(--gerak) var(--lengkung),
+    transform var(--gerak) var(--lengkung);
+}
+
+.chip:has(input:checked) {
+  border-color: transparent;
+  color: var(--di-atas-aksen);
+}
+
+.chip:has(input:checked)::before {
+  opacity: 1;
+  transform: none;
+}
+
+.chip .ikon-check,
+.segmen-item .ikon-check {
+  display: none;
+}
+
+.chip:has(input:checked) :is(.ikon-check, .glif),
+.segmen-item:has(input:checked) .ikon-check {
+  display: inline-block;
+  color: inherit;
+}
+
+/* The native select as a choice pill with caret-down: the select is 48 high (touch area), the pill
+   behind it 32 */
+.pemilih {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  align-items: center;
+  color: var(--tinta);
+}
+
+.pemilih::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--sasaran) - var(--tinggi-chip)) / 2) 0;
+  z-index: -1;
+  border-radius: var(--penuh);
+  background-color: var(--sisip);
+}
+
+.pemilih select {
+  grid-area: 1 / 1;
+  min-height: var(--sasaran);
+  padding: 0 calc(var(--jarak-3) + var(--ikon-chip) + var(--jarak-2)) 0 var(--jarak-3);
+  border: 0;
+  border-radius: var(--penuh);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: max(1rem, 16px); /* below 16 px iOS zooms the page on focus */
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+}
+
+.pemilih .ikon {
+  grid-area: 1 / 1;
+  justify-self: end;
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+  margin-right: var(--jarak-3);
+  pointer-events: none;
+}
+
+/* ---------- Segmented control (08 §19.13.5 "Kontrol bersegmen") ---------- */
+
+.segmen {
+  display: grid;
+  gap: var(--jarak-2);
+}
+
+.segmen legend {
+  padding: 0;
+  margin-bottom: var(--jarak-2);
+  font-weight: 500;
+}
+
+.jalur {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  min-height: var(--tinggi-segmen);
+  padding: var(--jarak-1);
+  border-radius: var(--penuh);
+  background-color: var(--kartu);
+}
+
+.kartu .jalur {
+  background-color: var(--sisip);
+}
+
+.segmen-item {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--jarak-1);
+  min-width: 0;
+  padding: 0 var(--jarak-2);
+  border-radius: var(--penuh);
+  color: var(--tinta);
+  font-size: var(--ukuran-judul-subbagian);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  forced-color-adjust: none;
+}
+
+.segmen-item .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+}
+
+.segmen-item input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmen-item:has(input:focus-visible) {
+  outline: 2px solid var(--aksen-tinta);
+  outline-offset: 2px;
+}
+
+.segmen-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: var(--tinta);
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity var(--gerak) var(--lengkung),
+    transform var(--gerak) var(--lengkung);
+}
+
+.segmen-item:has(input:checked) {
+  color: var(--kartu);
+}
+
+.segmen-item:has(input:checked)::before {
+  opacity: 1;
+  transform: none;
+}
+
+/* Too narrow for the segments side by side (large text, 320): they stack, still one choice */
+@container kartu (width < 20em) {
+  .jalur {
+    grid-auto-flow: row;
+    border-radius: var(--sudut-besar);
+  }
+
+  .segmen-item {
+    min-height: var(--sasaran);
+  }
+}
+
+/* ---------- Text field (08 §19.13.5 "Isian teks") ---------- */
+
+.label {
+  display: block;
+  margin-bottom: var(--jarak-2);
+  font-weight: 500;
+}
+
+.isian {
+  width: 100%;
+  min-height: var(--tinggi-isian);
+  padding: 0 var(--jarak-4);
+  border: 1px solid var(--garis-tegas);
+  border-radius: var(--sudut-sedang);
+  background-color: var(--kartu);
+  color: var(--tinta);
+  font: inherit;
+  font-size: max(1rem, 16px);
+}
+
+/* ---------- Badges and status pills ---------- */
+
+/* Count badge: sorot with di-atas-sorot, 16 high (08 §19.13.5 "Lencana") */
+.lencana {
+  position: absolute;
+  top: 0;
+  left: calc(50% + var(--jarak-1));
+  min-width: var(--lencana);
+  min-height: var(--lencana);
+  padding: 0 var(--jarak-1);
+  border: 1px solid transparent;
+  border-radius: var(--penuh);
+  background-color: var(--sorot);
+  color: var(--di-atas-sorot);
+  /* at least 13 px, never larger than the tab label it belongs to (08 §25.4) */
+  font-size: min(var(--ukuran-label, 1em), max(var(--huruf-label-min), 0.8 * var(--ukuran-label, 1em)));
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+  forced-color-adjust: none;
+}
+
+.pil-status {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  min-height: var(--tinggi-pil-status);
+  padding: 0 var(--jarak-2);
+  border-radius: var(--penuh);
+  background-color: var(--sisip);
+  color: var(--tinta);
+  font-size: var(--ukuran-terkecil);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Navigation: dock (Ringkas), left rail (Sedang, Lebar), top bar (Sangat lebar) ---------- */
+
+.bilah {
+  position: fixed;
+  inset: auto calc(var(--margin) + env(safe-area-inset-right)) calc(var(--jarak-3) + env(safe-area-inset-bottom))
+    calc(var(--margin) + env(safe-area-inset-left));
+  z-index: 3;
+  container: bilah / inline-size;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jarak-3) var(--jarak-2);
+  pointer-events: none;
+}
+
+.bilah > * {
+  pointer-events: auto;
+}
+
+.merek {
+  display: none;
+}
+
+/* The dock: navigasi pill, 64 high, padding 8; tabs share its width, each at least 64 (08 §19.13.6) */
+.tab-grup {
+  max-width: 100%;
+  padding: 0 var(--jarak-2);
+  /* an outline, not a border, so the dock stays 8 + 4 x 64 + 8; visible in forced colours */
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  border-radius: var(--penuh);
+  background-color: var(--navigasi);
+  box-shadow: var(--bayangan);
+}
+
+.tab-grup ul {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(var(--pil-tab-lebar), 1fr);
+}
+
+/* A tab: icon 24 over its label, gap 4; the selected pill sits 4 inside the tab's top and bottom
+   and 6 / 8 around icon and label. --permukaan-tab is the surface under the badge (its ring). */
+.tab {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--jarak-1);
+  min-height: var(--tinggi-dok);
+  padding: calc(var(--jarak-1) + var(--pil-tab-padding-tegak)) 0;
+  color: var(--di-atas-navigasi);
+  --permukaan-tab: var(--navigasi);
+  /* each tab is a container so its label can stop growing at the tab's width (08 §25.4) */
+  container-type: inline-size;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  forced-color-adjust: none;
+}
+
+/* The pill: 64 x (tab - 8), in the middle of the tab; it carries the hover layer too */
+.tab::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: var(--jarak-1) max(0px, (100% - var(--pil-tab-lebar)) / 2);
+  border-radius: var(--penuh);
+  transition:
+    opacity var(--gerak) var(--lengkung),
+    transform var(--gerak) var(--lengkung);
+}
+
+.tab[aria-current="page"] {
+  color: var(--navigasi);
+  --permukaan-tab: var(--pil-navigasi);
+}
+
+.tab[aria-current="page"]::before {
+  background-color: var(--pil-navigasi);
+}
+
+/* 08 §19.13.7 "Ganti keadaan": the new selected pill fades in from scale 0.92 (200 ms) */
+@starting-style {
+  .tab[aria-current="page"]::before {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@media (hover: hover) {
+  .tab:hover::before {
+    box-shadow: var(--lapisan-hover);
+  }
+}
+
+.label-tab,
+.tab .lencana {
+  --ukuran-label: min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em));
+}
+
+.label-tab {
+  font-size: var(--ukuran-label);
+}
+
+.tab:focus-visible {
+  outline-color: var(--sorot);
+  outline-offset: -2px;
+  border-radius: var(--penuh);
+}
+
+.ikon-tab {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.ikon-tab .ikon {
+  width: var(--ikon-nav);
+  height: var(--ikon-nav);
+}
+
+/* the badge at the icon's top right; a 2 px ring in the surface beneath keeps it apart (QG-09 M1) */
+.tab .lencana {
+  top: calc(-1 * var(--jarak-1));
+  left: calc(100% - var(--jarak-2));
+  box-shadow: 0 0 0 2px var(--permukaan-tab);
+}
+
+/* Catat: one link holding the round blue 56 and its label. In the dock the label is for screen
+   readers only; beside the dock, or above it on the right when both do not fit (wrap-reverse). */
+.catat {
+  display: inline-grid;
+  place-items: center;
+  margin-left: auto;
+  border-radius: var(--penuh);
+  color: var(--tinta);
+  text-decoration: none;
+  /* one DOM for every width: knot, Catat, destinations (08 §19.13.6); dock and top bar show
+     Catat on the right */
+  order: 1;
+}
+
+.catat-bulat {
+  display: grid;
+  place-items: center;
+  width: var(--catat-bulat);
+  height: var(--catat-bulat);
+  border: 1px solid transparent;
+  border-radius: var(--penuh);
+  background-color: var(--aksen);
+  color: var(--di-atas-aksen);
+  box-shadow: var(--bayangan);
+  forced-color-adjust: none;
+}
+
+.catat .ikon {
+  width: var(--ikon-nav);
+  height: var(--ikon-nav);
+}
+
+/* the round Catat keeps its shadow under the hover layer */
+@media (hover: hover) {
+  .catat:hover .catat-bulat {
+    box-shadow: var(--bayangan), var(--lapisan-hover);
+  }
+}
+
+.catat-kata {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Dock and round Catat need 8 + 4 x 64 + 8 + 8 + 56 = 336 (08 §19.13.6); narrower, Catat moves
+   above the dock on the right (wrap-reverse) and the dock sits in the middle */
+@container bilah (width < 336px) {
+  .tab-grup {
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 599.98px) {
+  /* Chat: no round Catat (Catat is the plus in the composer); the dock sits in the middle */
+  .halaman-chat .bilah {
+    justify-content: center;
+  }
+
+  .halaman-chat .catat {
+    display: none;
+  }
+}
+
+/* Sedang and Lebar (600-1199): the left rail, 80 wide, full height, on kertas (08 §19.13.6).
+   From the top: 16, the knot 32, 16, Catat (80 x 76), 24, the destinations (80 x 64), in DOM order. */
+@media (min-width: 600px) and (max-width: 1199.98px) {
+  body:has(> .bilah) {
+    padding-left: calc(var(--lebar-rail) + env(safe-area-inset-left));
+  }
+
+  .bilah {
+    inset: 0 auto 0 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0;
+    width: calc(var(--lebar-rail) + env(safe-area-inset-left));
+    padding: calc(var(--jarak-4) + env(safe-area-inset-top)) 0 var(--jarak-4) env(safe-area-inset-left);
+    overflow-y: auto;
+    background-color: var(--kertas);
+    pointer-events: auto;
+  }
+
+  .merek {
+    display: flex;
+    flex: none;
+  }
+
+  .merek img {
+    border-radius: var(--sudut-kecil);
+  }
+
+  .merek-kata {
+    display: none;
+  }
+
+  .catat {
+    order: 0;
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    align-items: center;
+    gap: var(--jarak-1);
+    width: var(--lebar-rail);
+    margin: var(--jarak-4) 0 0;
+    border-radius: var(--sudut-besar);
+  }
+
+  .catat-bulat {
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .catat:hover .catat-bulat {
+      box-shadow: var(--lapisan-hover);
+    }
+  }
+
+  .catat-kata {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: var(--ukuran-terkecil);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .tab-grup {
+    flex: none;
+    margin-top: var(--jarak-6);
+    padding: 0;
+    outline: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .tab-grup ul {
+    grid-auto-flow: row;
+  }
+
+  .tab {
+    width: var(--lebar-rail);
+    color: var(--tinta);
+    --permukaan-tab: var(--kertas);
+  }
+
+  .tab[aria-current="page"] {
+    color: var(--kartu);
+    --permukaan-tab: var(--tinta);
+  }
+
+  .tab[aria-current="page"]::before {
+    background-color: var(--tinta);
+  }
+
+  /* the label stops at the pill, not the 80 tab, so "Beranda" stays inside it at large text */
+  .label-tab,
+  .tab .lencana {
+    --ukuran-label: min(var(--ukuran-terkecil), var(--pil-tab-lebar) / var(--lebar-label-tab-em));
+  }
+
+  /* lime on kertas is about 1.1:1; the rail ring uses the blue ink (3:1 and more) */
+  .tab:focus-visible {
+    outline-color: var(--aksen-tinta);
+  }
+}
+
+/* Sangat lebar (>= 1200): the top bar, 64, sticky, on kertas: knot and "Casa" left, the tab group
+   in the middle, the blue Catat 48 right */
+@media (min-width: 1200px) {
+  /* a link target or focused control never lands under the sticky top bar (WCAG 2.4.11) */
+  html {
+    scroll-padding-top: calc(var(--tinggi-bilah) + var(--jarak-4));
+  }
+
+  .bilah {
+    position: sticky;
+    inset: 0 auto auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    min-height: var(--tinggi-bilah);
+    padding: env(safe-area-inset-top) max(var(--margin) + env(safe-area-inset-right), (100% - var(--lebar-isi-maks)) / 2) 0
+      max(var(--margin) + env(safe-area-inset-left), (100% - var(--lebar-isi-maks)) / 2);
+    gap: var(--jarak-4);
+    background-color: var(--kertas);
+    pointer-events: auto;
+  }
+
+  .merek {
+    display: flex;
+    align-items: center;
+    gap: var(--jarak-2);
+    justify-self: start;
+    font-size: var(--ukuran-judul-bagian);
+    font-weight: 700;
+    color: var(--tinta);
+  }
+
+  .merek img {
+    border-radius: var(--sudut-kecil);
+  }
+
+  .tab-grup {
+    padding: var(--jarak-1);
+    background-color: var(--kartu);
+    box-shadow: none;
+  }
+
+  .tab-grup ul {
+    grid-auto-columns: auto;
+  }
+
+  /* a row tab: icon and label side by side, 48 high; the selected pill is the whole tab */
+  .tab {
+    flex-direction: row;
+    gap: var(--jarak-2);
+    min-height: var(--sasaran);
+    padding: 0 var(--jarak-4);
+    border-radius: var(--penuh);
+    color: var(--tinta);
+    --permukaan-tab: var(--kartu);
+    container-type: normal;
+  }
+
+  .tab::before {
+    inset: 0;
+  }
+
+  .tab[aria-current="page"] {
+    color: var(--kartu);
+    --permukaan-tab: var(--tinta);
+  }
+
+  .tab[aria-current="page"]::before {
+    background-color: var(--tinta);
+  }
+
+  .label-tab,
+  .tab .lencana {
+    --ukuran-label: var(--ukuran-judul-subbagian);
+  }
+
+  .tab:focus-visible {
+    outline-color: var(--aksen-tinta);
+    outline-offset: 2px;
+  }
+
+  .tab .lencana {
+    top: calc(-1 * var(--jarak-2));
+    left: calc(100% - var(--jarak-2));
+  }
+
+  /* Catat: the blue labelled button, 48, no shadow of its own */
+  .catat {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--jarak-2);
+    justify-self: end;
+    min-height: var(--tinggi-tombol);
+    margin: 0;
+    padding: 0 var(--jarak-6);
+    border: 1px solid transparent;
+    background-color: var(--aksen);
+    color: var(--di-atas-aksen);
+    font-weight: 600;
+    forced-color-adjust: none;
+  }
+
+  .catat-bulat {
+    display: contents;
+  }
+
+  .catat .ikon {
+    width: var(--ikon);
+    height: var(--ikon);
+  }
+
+  @media (hover: hover) {
+    .catat:hover {
+      box-shadow: var(--lapisan-hover);
+    }
+  }
+
+  .catat-kata {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  /* When the tab group does not fit (large text) the tabs stack like the dock: icon over label,
+     the 64 x 56 pill around both, at least 64 wide; labels are never hidden (08 §19.13.6).
+     Measured need: about 601 px (37.6 em) at text 100%, 655 px (41 em) with "Casa". */
+  @container bilah (width < 38.5em) {
+    .tab {
+      flex-direction: column;
+      gap: var(--jarak-1);
+      min-width: var(--pil-tab-lebar);
+      min-height: var(--tinggi-dok);
+      padding: calc(var(--jarak-1) + var(--pil-tab-padding-tegak)) var(--pil-tab-padding-datar);
+      container-type: inline-size;
+    }
+
+    .tab::before {
+      inset: var(--jarak-1) max(0px, (100% - var(--pil-tab-lebar)) / 2);
+    }
+
+    .label-tab,
+    .tab .lencana {
+      --ukuran-label: max(var(--huruf-label-min), min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em)));
+    }
+
+    .tab .lencana {
+      top: calc(-1 * var(--jarak-1));
+    }
+  }
+
+  @container bilah (width < 42em) {
+    .merek-kata {
+      display: none;
+    }
+  }
+}
+
+/* ---------- Content frame ---------- */
+
+.ruang {
+  padding: 0 calc(var(--margin) + env(safe-area-inset-right))
+    calc(var(--tinggi-dok) + var(--jarak-3) + var(--jarak-6) + env(safe-area-inset-bottom))
+    calc(var(--margin) + env(safe-area-inset-left));
+}
+
+/* the round Catat sits above the dock below 368 (dock and Catat need 336 + margins) */
+@media (max-width: 367.98px) {
+  .ruang {
+    padding-bottom: calc(var(--tinggi-dok) + var(--catat-bulat) + 2 * var(--jarak-3) + var(--jarak-6) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Header row: on Ringkas the knot and the household name; on the right at most two icon buttons */
+.kepala-isi {
+  display: flex;
+  align-items: center;
+  gap: var(--jarak-3);
+  min-height: var(--tinggi-bilah);
+  padding-top: env(safe-area-inset-top);
+}
+
+.kepala-isi img {
+  flex: none;
+  border-radius: var(--sudut-kecil);
+}
+
+.kepala-isi .judul-layar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kehadiran {
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+.buka-chat {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  /* what sits above the content: nothing beside the rail, the top bar from 1200 */
+  :root {
+    --atas-isi: 0px;
+  }
+
+  .ruang {
+    max-width: calc(var(--lebar-satu-kolom) + 2 * var(--margin));
+    margin-inline: auto;
+    padding: 0 var(--margin) var(--jarak-8);
+  }
+
+  .kepala-isi {
+    padding-top: 0;
+  }
+
+  .kepala-isi img {
+    display: none;
+  }
+}
+
+/* ---------- Cards (08 §19.13.5 "Kartu", "Kepala kartu", "Lingkaran ikon") ---------- */
+
+.kartu {
+  container: kartu / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--jarak-3);
+  padding: var(--padding-kartu);
+  border: 1px solid transparent;
+  border-radius: var(--sudut-besar);
+  background-color: var(--kartu);
+}
+
+.kepala-kartu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--jarak-3);
+  min-height: var(--sasaran);
+}
+
+/* what sits on the right stays right when it has to move under the title (narrow, large text) */
+.kepala-kartu > :is(.chip, .tombol-ikon, .pil-status, .angka-baris):not(:is(.chip, .tombol-ikon) + *) {
+  margin-left: auto;
+}
+
+.kepala-kartu > :is(h2, h3, .jenis) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* controls on the right sit 8 apart (08 §19.13.5 "Kepala kartu") */
+.kepala-kartu > :is(.chip, .tombol-ikon) + :is(.chip, .tombol-ikon) {
+  margin-left: calc(var(--jarak-2) - var(--jarak-3));
+}
+
+/* object cards: the kind of object as a small title (08 §10.4) */
+.kepala-kartu > .jenis {
+  font-size: var(--ukuran-judul-subbagian);
+  font-weight: 600;
+  color: var(--tinta-2);
+}
+
+.lingkaran {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--lingkaran);
+  height: var(--lingkaran);
+  border-radius: var(--penuh);
+  background-color: var(--sisip);
+  color: var(--aksen-tinta);
+}
+
+.lingkaran .ikon {
+  width: var(--ikon);
+  height: var(--ikon);
+}
+
+.lingkaran-glif {
+  color: var(--tinta-2);
+}
+
+.garis {
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--garis);
+}
+
+/* ---------- Rows (08 §6.1 "Kata dan jumlah di baris", §19.13.5 "Baris daftar") ---------- */
+
+/* Words left, amount right as its own element; when both do not fit (large text) the amount moves
+   to its own line, never cut (08 §15) */
+.baris {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--jarak-3);
+  min-height: var(--tinggi-baris);
+  color: var(--tinta);
+}
+
+.baris.dua {
+  min-height: var(--tinggi-baris-2);
+}
+
+.baris > .kata {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Two lines: the amount stays on the title line (08 §19.13.5 "Baris daftar"); the second line
+   takes a line of its own under both. The words' box dissolves so title, amount and second line
+   share the row's lines; when title and amount do not fit (large text) the amount wraps under
+   the title, never cut (§15). */
+.baris.dua {
+  align-content: center;
+}
+
+.dua .kata {
+  display: contents;
+}
+
+.dua .kata > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dua .kata > :last-child {
+  order: 1;
+  flex-basis: 100%;
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+.baris > .angka-baris,
+.baris > .ujung {
+  margin-left: auto;
+}
+
+.ujung {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarak-1);
+  white-space: nowrap;
+}
+
+.ujung .ikon {
+  color: var(--tinta-2);
+}
+
+.baris-tautan {
+  text-decoration: none;
+  border-radius: var(--sudut-sedang);
+}
+
+button.baris-tautan {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ujung .kecil {
+  margin-right: var(--jarak-1);
+}
+
+/* ---------- Beranda (08 §6.1, §19.13.6) ---------- */
+
+.beranda,
+.kolom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--jarak-kartu);
+}
+
+/* Uang kita: the static factor is "Rp88.888.888" in Figtree, 5.94 em, +2% (08 §25.4) */
+.uang-kita {
+  --lebar-em: 6.1;
+}
+
+.uang-kita > .kecil {
+  margin-top: calc(-1 * var(--jarak-2));
+}
+
+/* Holder rows: two glyphs stacked in an 18 column, so names and child rows line up (§6.1 item 3) */
+.pemegang li + li {
+  border-top: 1px solid var(--garis);
+}
+
+.baris-pemegang,
+.baris-ringkasan {
+  /* summary rows that are not links: 48 (08 §19.13.5) */
+  min-height: var(--sasaran);
+}
+
+.glif-kolom {
+  display: grid;
+  gap: 2px;
+  flex: none;
+  width: var(--ikon-chip);
+}
+
+.baris-anak {
+  min-height: var(--jarak-8);
+  padding-bottom: var(--jarak-2);
+}
+
+.baris-anak .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+  color: var(--tinta-2);
+}
+
+.baris-anak .kata,
+.penjelas .kata {
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+/* The explanation panel: one neutral panel inside the card (08 §19.13.5 "Kartu") */
+.penjelas {
+  padding: var(--jarak-1) var(--jarak-3);
+  border-radius: var(--sudut-sedang);
+  background-color: var(--sisip);
+}
+
+.penjelas .baris {
+  min-height: var(--jarak-8);
+}
+
+.subjudul {
+  margin-top: var(--jarak-1);
+}
+
+/* An item with a button under it */
+.butir {
+  display: grid;
+  gap: var(--jarak-2);
+  padding-bottom: var(--jarak-2);
+}
+
+.butir > .tombol {
+  justify-self: start;
+}
+
+/* Segmented budget bars (08 §19.13.5 "Batang bersegmen"): segments sized by their share, a 4 px
+   gap in the card colour between them; aria-hidden, the amounts are written next to them */
+.batang {
+  display: flex;
+  gap: var(--celah-segmen);
+  height: var(--tebal-batang);
+  margin: var(--jarak-1) 0;
+  forced-color-adjust: none;
+}
+
+.segmen-bagian {
+  flex: var(--bagian) 1 0;
+  min-width: var(--tebal-batang);
+  border-radius: var(--penuh);
+}
+
+.terpakai {
+  background-color: var(--tinta);
+}
+
+.belum {
+  background-color: var(--aksen);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--di-atas-aksen) 0 var(--arsir-garis),
+    transparent var(--arsir-garis) calc(var(--arsir-garis) + var(--arsir-jarak))
+  );
+}
+
+.sisa {
+  background-color: var(--sorot);
+}
+
+.anggaran {
+  display: grid;
+  gap: var(--jarak-4);
+}
+
+.anggaran-butir {
+  display: grid;
+  gap: var(--jarak-1);
+}
+
+.anggaran-butir .baris {
+  min-height: var(--sasaran);
+}
+
+.keterangan-batang {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jarak-1) var(--jarak-4);
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+.keterangan-batang li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarak-2);
+}
+
+.titik {
+  width: var(--jarak-2);
+  height: var(--jarak-2);
+  border-radius: var(--penuh);
+  forced-color-adjust: none;
+}
+
+@media (min-width: 840px) {
+  /* Lebar: the frame becomes the grid, so the Chat panel can take the side column */
+  .ruang {
+    display: grid;
+    grid-template-columns:
+      minmax(min(var(--lebar-utama-min), 100% - var(--panel-samping) - var(--jarak-kartu)), 1fr)
+      var(--panel-samping);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--jarak-kartu);
+    align-content: start;
+    max-width: none;
+  }
+
+  .ruang > .kepala-isi,
+  .halaman-beranda .beranda {
+    grid-column: 1 / -1;
+  }
+
+  .beranda {
+    grid-template-columns: subgrid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .kolom-1 {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .kolom-2,
+  .kolom-3 {
+    grid-column: 2;
+    --padding-kartu: var(--padding-kartu-samping);
+  }
+
+  .kolom-3 {
+    grid-row: 2;
+  }
+
+  .buka-chat {
+    display: inline-grid;
+  }
+
+  /* Chat panel open: it takes the side column (08 §19.13.6) */
+  .halaman-beranda:has(.panel-chat:target) .beranda {
+    grid-column: 1;
+  }
+
+  .halaman-beranda:has(.panel-chat:target) :is(.kolom-2, .kolom-3, .buka-chat) {
+    display: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --atas-isi: var(--tinggi-bilah);
+  }
+
+  /* Sangat lebar: three equal columns, content at most 1200, in the middle */
+  .ruang {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: calc(var(--lebar-isi-maks) + 2 * var(--margin));
+  }
+
+  .kolom-2 {
+    grid-row: 1 / span 2;
+  }
+
+  .kolom-3 {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  /* Chat panel open: it takes column 3; Anggaran moves under Minggu ini */
+  .halaman-beranda:has(.panel-chat:target) .beranda {
+    grid-column: 1 / 3;
+  }
+
+  .halaman-beranda:has(.panel-chat:target) :is(.kolom-2, .kolom-3) {
+    display: grid;
+  }
+
+  .halaman-beranda:has(.panel-chat:target) .kolom-2 {
+    grid-row: 1;
+  }
+
+  .halaman-beranda:has(.panel-chat:target) .kolom-3 {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+/* ---------- Chat (08 §10.1-§10.4, §19.13.5) ---------- */
+
+.utas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jarak-2);
+  padding-block: var(--jarak-2);
+}
+
+.pemisah-hari,
+.baris-peristiwa {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarak-2);
+  margin-block: var(--jarak-2);
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+  text-align: center;
+}
+
+.baris-peristiwa .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+}
+
+.gelembung {
+  max-width: min(80%, var(--lebar-gelembung));
+  padding: var(--jarak-3) var(--jarak-4);
+  border: 1px solid transparent;
+  border-radius: var(--sudut-besar);
+  overflow-wrap: anywhere;
+}
+
+.gelembung-lain {
+  align-self: flex-start;
+  border-bottom-left-radius: var(--sudut-kecil);
+  background-color: var(--kartu);
+}
+
+.gelembung-sendiri {
+  align-self: flex-end;
+  border-bottom-right-radius: var(--sudut-kecil);
+  background-color: var(--aksen-muda);
+}
+
+.pengirim {
+  font-size: var(--ukuran-terkecil);
+  font-weight: 600;
+  color: var(--tinta-2);
+}
+
+.waktu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--jarak-1);
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+.waktu .ikon {
+  width: var(--ikon-chip);
+  height: var(--ikon-chip);
+  color: var(--aksen-tinta);
+}
+
+/* Object card: full thread width up to 480, on no one's side, with a 1 px line (08 §10.4) */
+.kartu-objek {
+  /* static factor: "Rp88.888.888" in angka-besar is at most 6.19 em in Figtree (Chromium; WebKit
+     6.03), +2% (08 §25.4), so any amount up to that length fits */
+  --lebar-em: 6.3;
+  --padding-kartu: var(--jarak-4);
+  align-self: center;
+  width: 100%;
+  max-width: var(--lebar-gelembung);
+  margin-block: var(--jarak-2);
+  border-color: var(--garis);
+  gap: var(--jarak-2);
+}
+
+.motif {
+  display: grid;
+  padding-top: var(--jarak-2);
+  border-top: 1px solid var(--garis);
+}
+
+.motif .baris {
+  min-height: var(--jarak-8);
+}
+
+/* buttons stack when the row is too narrow: three need about 28 em, two about 18 em */
+@container kartu (width < 28em) {
+  .deret-tombol:has(> :nth-child(3)) {
+    grid-auto-flow: row;
+  }
+}
+
+@container kartu (width < 18em) {
+  .deret-tombol {
+    grid-auto-flow: row;
+  }
+}
+
+/* Composer: kartu pill, 56 high, plus and send 40 (08 §19.13.5 "Kotak tulis") */
+.kotak-tulis {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--jarak-2);
+  min-height: var(--tinggi-kotak-tulis);
+  padding: var(--jarak-2);
+  border: 1px solid transparent;
+  border-radius: calc(var(--jarak-2) + var(--tombol-ikon) / 2);
+  background-color: var(--kartu);
+}
+
+.kotak-tulis:has(textarea:focus-visible) {
+  outline: 2px solid var(--aksen-tinta);
+  outline-offset: 2px;
+}
+
+.kotak-tulis .tombol-ikon {
+  background-color: var(--sisip);
+}
+
+.kotak-tulis textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* 48 touch area inside the 40 row: 4 into the composer padding above and below */
+  min-height: var(--sasaran);
+  margin-block: calc((var(--tombol-ikon) - var(--sasaran)) / 2);
+  padding: var(--jarak-3) var(--jarak-1);
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: max(1rem, 16px);
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+
+.kotak-tulis .tombol-kirim {
+  background-color: var(--aksen);
+  color: var(--di-atas-aksen);
+  forced-color-adjust: none;
+}
+
+/* Chat destination: header, thread and composer in one column */
+.halaman-chat .ruang {
+  padding-bottom: calc(
+      var(--tinggi-dok) + var(--jarak-3) + var(--jarak-2) + var(--tinggi-kotak-tulis) + var(--jarak-6) +
+        env(safe-area-inset-bottom)
+    );
+}
+
+.halaman-chat .kepala-isi {
+  display: grid;
+  align-content: center;
+  gap: 0;
+}
+
+.isi-chat > .kotak-tulis {
+  position: fixed;
+  inset: auto calc(var(--margin) + env(safe-area-inset-right))
+    calc(var(--jarak-3) + var(--tinggi-dok) + var(--jarak-2) + env(safe-area-inset-bottom))
+    calc(var(--margin) + env(safe-area-inset-left));
+  z-index: 2;
+}
+
+@media (min-width: 600px) {
+  .halaman-chat .ruang {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--atas-isi));
+    padding-bottom: var(--jarak-4);
+  }
+
+  .isi-chat {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+  }
+
+  .halaman-chat .utas {
+    flex: 1 1 auto;
+  }
+
+  .isi-chat > .kotak-tulis {
+    position: sticky;
+    inset: auto 0 var(--jarak-4);
+  }
+}
+
+/* Chat panel on Beranda (Lebar and wider): no dock, no bar of its own, 16 inside */
+.panel-chat {
+  display: none;
+}
+
+@media (min-width: 840px) {
+  .panel-chat:target {
+    grid-column: -2;
+    grid-row: 2 / span 1;
+    position: sticky;
+    top: var(--atas-isi);
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--atas-isi) - var(--jarak-8));
+    --padding-kartu: var(--jarak-4);
+  }
+
+  .panel-chat .kepala-isi {
+    min-height: var(--sasaran);
+  }
+
+  .panel-chat .kepala-isi > div {
+    flex: 1 1 auto;
+  }
+
+  .panel-chat .utas {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ---------- Catat sheet over Beranda (08 §9.1, §19.13.5 "Lembar", §19.13.7) ---------- */
+
+.latar-beranda {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Static stand-in for dialog::backdrop: the sample opens the sheet without showModal() */
+.selubung {
+  position: fixed;
+  inset: 0;
+  background-color: var(--selubung);
+  /* enters with the sheet (300 ms decelerate), leaves with it (200 ms accelerate) */
+  transition: opacity var(--gerak-lembar) var(--lengkung-masuk);
+}
+
+body:not(:has(.lembar[open])) .selubung {
+  opacity: 0;
+  transition: opacity var(--gerak) var(--lengkung-keluar);
+}
+
+@starting-style {
+  .selubung {
+    opacity: 0;
+  }
+}
+
+.lembar {
+  position: fixed;
+  inset: auto 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 90dvh;
+  margin: 0;
+  padding: 0 calc(var(--jarak-6) + env(safe-area-inset-right)) calc(var(--jarak-6) + env(safe-area-inset-bottom))
+    calc(var(--jarak-6) + env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid transparent;
+  border-radius: var(--sudut-lembar) var(--sudut-lembar) 0 0;
+  background-color: var(--permukaan-mengambang);
+  color: var(--tinta);
+  box-shadow: var(--bayangan);
+  /* exit: 200 ms emphasized accelerate; enter (below): 300 ms emphasized decelerate */
+  transform: translateY(100%);
+  transition:
+    transform var(--gerak) var(--lengkung-keluar),
+    opacity var(--gerak) var(--lengkung-keluar),
+    display var(--gerak) allow-discrete,
+    overlay var(--gerak) allow-discrete;
+}
+
+.lembar[open] {
+  transform: none;
+  transition-duration: var(--gerak-lembar);
+  transition-timing-function: var(--lengkung-masuk);
+}
+
+@starting-style {
+  .lembar[open] {
+    transform: translateY(100%);
+  }
+}
+
+/* Drag region: the handle and the sheet head (lembar.js) */
+.seret {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-inline: calc(-1 * var(--jarak-6));
+  padding: var(--jarak-2) var(--jarak-6) 0;
+  background-color: var(--permukaan-mengambang);
+  touch-action: none;
+}
+
+.pegangan {
+  display: block;
+  width: var(--jarak-8);
+  height: var(--jarak-1);
+  margin: 0 auto;
+  border-radius: var(--penuh);
+  background-color: var(--garis-tegas);
+}
+
+.kepala-lembar {
+  display: flex;
+  align-items: center;
+  gap: var(--jarak-2);
+  min-height: var(--tinggi-bilah);
+}
+
+.kepala-lembar .tombol {
+  margin-left: auto;
+}
+
+.isi-lembar {
+  display: grid;
+  gap: var(--jarak-6);
+  padding-top: var(--jarak-2);
+}
+
+.deret-chip {
+  display: flex;
+  flex-wrap: wrap;
+  /* 16 between rows so the 48 areas of 32 chips do not overlap */
+  gap: var(--jarak-4) var(--jarak-2);
+}
+
+.deret-chip legend {
+  width: 100%;
+}
+
+.isian-jumlah {
+  /* the amount row is the container; the panel's padding and border are --sisi-wadah.
+     Static factor: "Rp87.000" in em, +2% and room for the caret (08 §25.4 "Batas lebar jumlah") */
+  container-type: inline-size;
+  --lebar-em: 4.3;
+  --sisi-wadah: calc(2 * var(--jarak-4) + 2px); /* panel padding and border */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--jarak-2);
+}
+
+.kotak-jumlah {
+  display: flex;
+  align-items: baseline;
+  flex: 1 1 calc(var(--lebar-em) * 1em + var(--sisi-wadah));
+  min-width: 0;
+  padding: 0 var(--jarak-4);
+  border: 1px solid transparent;
+  border-radius: var(--sudut-sedang);
+  background-color: var(--sisip);
+}
+
+.kotak-jumlah:focus-within {
+  outline: 2px solid var(--aksen-tinta);
+  outline-offset: 2px;
+}
+
+.kotak-jumlah .rp {
+  flex: none;
+}
+
+.kotak-jumlah input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: var(--jarak-4) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  outline: none;
+}
+
+.tombol-nol {
+  flex: none;
+  align-self: center;
+}
+
+.kategori {
+  padding: 0 var(--jarak-4);
+  background-color: var(--sisip);
+}
+
+/* Label over value: "Dapur" and the amount share the row, the amount centred across both lines
+   (ux-designer, 08 §17.8 rule 2) */
+.kategori .kata {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kategori .kata > :first-child {
+  font-size: var(--ukuran-terkecil);
+  color: var(--tinta-2);
+}
+
+.kategori .kata > :last-child {
+  font-size: var(--ukuran-isi);
+  color: var(--tinta);
+}
+
+details summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jarak-2);
+  min-height: var(--sasaran);
+  color: var(--aksen-tinta);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details[open] summary .ikon {
+  transform: rotate(90deg);
+}
+
+details > :not(summary) {
+  transition: opacity var(--gerak) var(--lengkung);
+}
+
+@starting-style {
+  details[open] > :not(summary) {
+    opacity: 0;
+  }
+}
+
+.simpan-akhir {
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .lembar {
+    inset: 0;
+    width: min(var(--lebar-lembar), 100% - 2 * var(--jarak-6));
+    height: fit-content;
+    margin: auto;
+    border-radius: var(--sudut-lembar);
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  .lembar[open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .lembar[open] {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  .seret {
+    padding-top: 0;
+    touch-action: auto;
+  }
+
+  .pegangan {
+    display: none;
+  }
+}
+
+/* ---------- Reduced motion (08 §19.13.7, right-hand column) ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.tombol, .tombol-ikon, .chip, .pemilih, .tab, .catat, .baris-tautan, .segmen-item):active {
+    transform: none;
+    opacity: 0.8;
+  }
+
+  .chip:has(input)::before,
+  .segmen-item::before {
+    transform: none;
+  }
+
+  /* sheets fade 150 ms and do not move */
+  .lembar,
+  .lembar[open] {
+    transform: none;
+    transition:
+      opacity var(--gerak-pudar) linear,
+      display var(--gerak-pudar) allow-discrete,
+      overlay var(--gerak-pudar) allow-discrete;
+  }
+
+  .lembar:not([open]) {
+    opacity: 0;
+  }
+
+  @starting-style {
+    .lembar[open] {
+      opacity: 0;
+      transform: none;
+    }
+  }
+
+  .selubung,
+  body:not(:has(.lembar[open])) .selubung {
+    transition-duration: var(--gerak-pudar);
+  }
+
+  details > :not(summary) {
+    transition: none;
+  }
+
+  details[open] summary .ikon {
+    transform: none;
+  }
+}
+
+/* ---------- Index ---------- */
+
+.halaman-indeks {
+  display: grid;
+  gap: var(--jarak-kartu);
+  max-width: calc(var(--lebar-satu-kolom) + 2 * var(--margin));
+  margin: 0 auto;
+  padding: var(--jarak-6) var(--margin) var(--jarak-8);
+}
+
+.halaman-indeks form {
+  display: grid;
+  gap: var(--jarak-6);
+}
+
+.halaman-indeks form .tombol {
+  justify-self: start;
+}
