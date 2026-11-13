@@ -5,8 +5,10 @@ const full = {
 	indexedDB: {},
 	BroadcastChannel: () => undefined,
 	crypto: { subtle: {}, randomUUID: () => '' },
-	navigator: { serviceWorker: {}, storage: {}, locks: {} }
+	navigator: { serviceWorker: {}, storage: {}, locks: {} },
+	CSS: { supports: (property: string, value: string) => `${property}: ${value}` === lightDark }
 };
+const lightDark = 'color: light-dark(#000, #fff)';
 
 /** A scope whose display-mode query and navigator.standalone are set only when given. */
 function scope(options: {
@@ -22,7 +24,7 @@ function scope(options: {
 	};
 }
 
-test('SEC-160 (e): a browser with all seven required features misses none', () => {
+test('SEC-160 (e): a browser with all eight required features misses none', () => {
 	expect(missingFeatures(full)).toEqual([]);
 });
 
@@ -33,6 +35,8 @@ test('SEC-160 (e): each required feature is reported when it is absent', () => {
 		'crypto.subtle'
 	]);
 	expect(missingFeatures({ ...full, crypto: { subtle: {} } })).toEqual(['crypto.randomUUID']);
+	expect(missingFeatures({ ...full, CSS: { supports: () => false } })).toEqual(['css-light-dark']);
+	expect(missingFeatures({ ...full, CSS: undefined })).toEqual(['css-light-dark']);
 	for (const feature of ['serviceWorker', 'storage', 'locks'] as const) {
 		expect(
 			missingFeatures({ ...full, navigator: { ...full.navigator, [feature]: undefined } })

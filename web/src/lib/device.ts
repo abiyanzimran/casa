@@ -7,6 +7,7 @@ export interface BrowserScope {
 	crypto?: { subtle?: unknown; randomUUID?: unknown };
 	navigator?: { serviceWorker?: unknown; storage?: unknown; locks?: unknown; standalone?: boolean };
 	matchMedia?: (query: string) => { matches: boolean };
+	CSS?: { supports: (property: string, value: string) => boolean };
 }
 
 export type Feature =
@@ -16,12 +17,14 @@ export type Feature =
 	| 'crypto.subtle'
 	| 'crypto.randomUUID'
 	| 'locks'
-	| 'BroadcastChannel';
+	| 'BroadcastChannel'
+	| 'css-light-dark';
 
 /**
  * The features the web client's controls depend on that this browser lacks (SEC-160 (e);
- * ADR-030 item 4, with BroadcastChannel and crypto.randomUUID added by the lead's ruling of
- * 13 November 2026). Checked by value, not with `in`: outside a secure context
+ * ADR-030 item 4, with BroadcastChannel, crypto.randomUUID, and CSS light-dark() added by the
+ * lead's rulings of 13 November 2026; the design tokens use light-dark(), so without it the
+ * colours fail, Safari below 17.5). Checked by value, not with `in`: outside a secure context
  * navigator.serviceWorker and crypto.subtle exist as undefined.
  */
 export function missingFeatures(scope: BrowserScope = globalThis): Feature[] {
@@ -32,7 +35,8 @@ export function missingFeatures(scope: BrowserScope = globalThis): Feature[] {
 		'crypto.subtle': scope.crypto?.subtle,
 		'crypto.randomUUID': scope.crypto?.randomUUID,
 		locks: scope.navigator?.locks,
-		BroadcastChannel: scope.BroadcastChannel
+		BroadcastChannel: scope.BroadcastChannel,
+		'css-light-dark': scope.CSS?.supports('color', 'light-dark(#000, #fff)')
 	};
 	return (Object.keys(present) as Feature[]).filter((feature) => !present[feature]);
 }

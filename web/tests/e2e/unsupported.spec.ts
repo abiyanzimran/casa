@@ -5,7 +5,7 @@ const ly97 =
 	'Browser ini belum bisa menjalankan Casa dengan aman. Perbarui browser ini, atau buka Casa di browser lain yang lebih baru.';
 
 // One init script per required feature (SEC-160 (e); ADR-030 item 4 and the lead's ruling 3
-// of 13 November 2026), each making that feature read as missing before the app starts.
+// of 13 November 2026, plus CSS light-dark()), each making that feature read as missing before the app starts.
 const removals = [
 	() => Object.defineProperty(window, 'indexedDB', { value: undefined }),
 	() => Object.defineProperty(Navigator.prototype, 'serviceWorker', { get: () => undefined }),
@@ -13,7 +13,8 @@ const removals = [
 	() => Object.defineProperty(Crypto.prototype, 'subtle', { get: () => undefined }),
 	() => Object.defineProperty(Crypto.prototype, 'randomUUID', { value: undefined }),
 	() => Object.defineProperty(Navigator.prototype, 'locks', { get: () => undefined }),
-	() => Object.defineProperty(window, 'BroadcastChannel', { value: undefined })
+	() => Object.defineProperty(window, 'BroadcastChannel', { value: undefined }),
+	() => Object.defineProperty(CSS, 'supports', { value: () => false })
 ];
 
 test('SEC-160 (e): without any one required feature only the unsupported-browser sentence shows', async ({
