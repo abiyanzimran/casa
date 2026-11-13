@@ -166,6 +166,7 @@ func TestServe(t *testing.T) {
 			{"http://localhost:80", false},
 			{"https://a.example:0", false},
 			{"https://a.example:65536", false},
+			{"http://localhost:08080", false},
 			{"https://a.example.", false},
 			{"https://café.example", false},
 			{"https://xn--caf-dma.example", true},

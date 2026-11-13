@@ -56,12 +56,12 @@ func (s *Service) Reauthenticate(ctx context.Context, client Client, session Ses
 		q := identitydb.New(tx)
 		var cookieHash []byte // NULL for native
 		if session.ClientKind == "web" {
-			rotated, err := rotateCookie(ctx, q, session, now)
+			rotated, hash, err := rotateCookie(ctx, q, session, now)
 			if err != nil {
 				return err
 			}
 			cookie = &rotated
-			cookieHash, _ = hashToken(rotated.Value) // always well-formed: newToken made it
+			cookieHash = hash
 		}
 		err := q.InsertReauthGrant(ctx, identitydb.InsertReauthGrantParams{
 			SessionID: session.ID, AccountID: session.AccountID, Purpose: purpose, CreatedAt: now, ExpiresAt: expiresAt,

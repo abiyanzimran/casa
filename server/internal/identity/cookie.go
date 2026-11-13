@@ -113,7 +113,7 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 	switch {
 	case row.Current && !now.Before(row.TokenIssuedAt.Add(cookieRotateAfter)):
 		// The rotation leaves the new value unconfirmed, so no confirm.
-		cookie, err := rotateCookie(ctx, q, result.Session, now)
+		cookie, _, err := rotateCookie(ctx, q, result.Session, now)
 		if err != nil {
 			return CookieSession{}, false, err
 		}
@@ -151,19 +151,19 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 // browser holds, the current one or an unconfirmed rotation's previous one
 // (query RotateCookie), serves as the previous one until now +
 // previousCookieGrace (SEC-161 (c)). The token is made here, inside the
-// caller's transaction attempt.
-func rotateCookie(ctx context.Context, q *identitydb.Queries, session Session, now time.Time) (Cookie, error) {
+// caller's transaction attempt. It also returns the hash of the new value.
+func rotateCookie(ctx context.Context, q *identitydb.Queries, session Session, now time.Time) (Cookie, []byte, error) {
 	value, hash := newToken()
 	expiry, err := q.RotateCookie(ctx, identitydb.RotateCookieParams{
 		PrevValidUntil: now.Add(previousCookieGrace), TokenHash: hash, Now: now, ID: session.ID,
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Cookie{}, ErrSessionExpired // it ended: fail closed
+		return Cookie{}, nil, ErrSessionExpired // it ended: fail closed
 	}
 	if err != nil {
-		return Cookie{}, err
+		return Cookie{}, nil, err
 	}
-	return sessionCookie(value, session.DeviceMode, expiry, now), nil
+	return sessionCookie(value, session.DeviceMode, expiry, now), hash, nil
 }
 
 // reissueCookie discards session's current value, which never reached the

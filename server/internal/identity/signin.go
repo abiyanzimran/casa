@@ -34,9 +34,8 @@ type Session struct {
 // SignIn opens a native or web session (SEC-12, SEC-15, SEC-161). An unknown
 // email and a wrong password both get ErrCredentialsRejected after the same
 // work: two read transactions and one password verification (10.1 §5.1 rule
-// 5). The
-// email is trimmed and lower-cased once, for both the lookup and the rate
-// limit key.
+// 5). The email is trimmed and lower-cased once, for both the lookup and the
+// rate limit key.
 func (s *Service) SignIn(ctx context.Context, client Client, email, password string) (Tokens, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	// The key is a hash so the table in memory holds no email (10.1 §8.1).

@@ -2,7 +2,8 @@
 -- SEC-161 (c); ADR-030 item 5; 09.2 §3, §5.1): when the browser proved it
 -- holds the current value, the hash of a value discarded on a reissue, the
 -- lookup of the previous and discarded values before the account is known,
--- and the cookie value a web re-authentication's grant is bound to. Expand only: the old binary runs on it unchanged (09.2 §10).
+-- and the cookie value a web re-authentication's grant is bound to. Expand
+-- only: the old binary runs on it unchanged (09.2 §10).
 
 -- +goose Up
 ALTER TABLE session

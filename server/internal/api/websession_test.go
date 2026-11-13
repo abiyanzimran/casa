@@ -543,9 +543,10 @@ func TestCookieSession(t *testing.T) {
 	t.Run("SEC-162 (a) a cookie request from another origin is rejected without effect", func(t *testing.T) {
 		// Focus 2 of plan 1.5: staging on a subdomain is same-site, so only
 		// the origin check holds it (SEC-41 (d)). This proves SEC-162 (a)
-		// note 1.5 clause (1), a request with the cookie; a web RPC without
-		// Origin (clause (2)) and a claimed native client (clause (3)) are
-		// the two subtests after the next.
+		// note 1.5 clause (1), a request with the cookie. Clause (2), a web
+		// RPC without Origin, is the subtest "a public web RPC from another
+		// origin is rejected"; clause (3), a claimed native client, is "a
+		// request claiming a native client with a foreign Origin is rejected".
 		h := startIdentity(t)
 		h.signUp(t, email, password)
 		signedIn := h.clock.Now()

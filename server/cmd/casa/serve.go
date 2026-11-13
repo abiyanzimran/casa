@@ -149,7 +149,7 @@ func openBundle(stderr io.Writer) (*api.Bundle, error) {
 // Origin header, since the origin check compares the two as strings
 // (SEC-162 (a)): scheme://host[:port] in lower-case ASCII, without path,
 // query, fragment, user info, a trailing dot, an empty or default port, or a
-// port outside 1 to 65535; https, or http on a loopback host for
+// port outside 1 to 65535 or with a leading zero; https, or http on a loopback host for
 // development. Anything else would fail every web request closed without
 // saying why. The error never repeats the value, which might hold user info.
 func checkOriginFlag(origin string) error {
@@ -161,7 +161,7 @@ func checkOriginFlag(origin string) error {
 	}
 	if port := u.Port(); port != "" {
 		n, err := strconv.Atoi(port)
-		if err != nil || n < 1 || n > 65535 || u.Scheme == "https" && n == 443 || u.Scheme == "http" && n == 80 {
+		if err != nil || strconv.Itoa(n) != port || n < 1 || n > 65535 || u.Scheme == "https" && n == 443 || u.Scheme == "http" && n == 80 {
 			return errors.New("want a port from 1 to 65535 other than the scheme's default, which browsers leave out")
 		}
 	}
