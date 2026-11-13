@@ -334,7 +334,7 @@ func (s *Service) OpenInvitation(ctx context.Context, viewer Member) (inv OpenIn
 			return err
 		}
 		inv, found = OpenInvitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt}, true
-		if row.State == "accepted" && row.Inviter == member.MemberID {
+		if row.State == "accepted" && member.MemberID.Valid { // RED row 17: every member
 			inv.InviteeDisplayName, inv.InviteeAccount = row.InviteeDisplayName.String, row.InviteeAccountID
 		}
 		return nil
