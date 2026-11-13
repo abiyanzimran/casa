@@ -42,10 +42,14 @@ func Up(ctx context.Context, db *sql.DB) (int64, error) {
 	}
 	p, err := NewProvider(db)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("load migrations: %w", err)
 	}
 	if _, err := p.Up(ctx); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("apply migrations: %w", err)
 	}
-	return p.GetDBVersion(ctx)
+	version, err := p.GetDBVersion(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("read schema version: %w", err)
+	}
+	return version, nil
 }
