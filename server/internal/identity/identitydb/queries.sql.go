@@ -408,49 +408,6 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 	return err
 }
 
-const revokeLiveSessions = `-- name: RevokeLiveSessions :many
-UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
- WHERE account_id = $3 AND revoked_at IS NULL
-   AND last_used_at + idle_timeout > $1::timestamptz AND absolute_expiry > $1::timestamptz
-   AND id IS DISTINCT FROM $4::uuid
-RETURNING id
-`
-
-type RevokeLiveSessionsParams struct {
-	Now       time.Time
-	Reason    string
-	AccountID pgtype.UUID
-	Keep      pgtype.UUID
-}
-
-// Every session of the account still live at now, except keep (none when
-// NULL), so an ended session gets no second end (SEC-24); served by
-// session_account_live.
-func (q *Queries) RevokeLiveSessions(ctx context.Context, arg RevokeLiveSessionsParams) ([]pgtype.UUID, error) {
-	rows, err := q.db.Query(ctx, revokeLiveSessions,
-		arg.Now,
-		arg.Reason,
-		arg.AccountID,
-		arg.Keep,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []pgtype.UUID
-	for rows.Next() {
-		var id pgtype.UUID
-		if err := rows.Scan(&id); err != nil {
-			return nil, err
-		}
-		items = append(items, id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const revokeSession = `-- name: RevokeSession :execrows
 UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
  WHERE id = $3 AND revoked_at IS NULL
@@ -470,9 +427,58 @@ func (q *Queries) RevokeSession(ctx context.Context, arg RevokeSessionParams) (i
 	return result.RowsAffected(), nil
 }
 
-const rotateAccessToken = `-- name: RotateAccessToken :exec
+const revokeSessions = `-- name: RevokeSessions :many
+UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
+ WHERE account_id = $3 AND revoked_at IS NULL
+   AND id IS DISTINCT FROM $4::uuid
+RETURNING id, (last_used_at + idle_timeout > $1::timestamptz AND absolute_expiry > $1::timestamptz)::boolean AS live
+`
+
+type RevokeSessionsParams struct {
+	Now       time.Time
+	Reason    string
+	AccountID pgtype.UUID
+	Keep      pgtype.UUID
+}
+
+type RevokeSessionsRow struct {
+	ID   pgtype.UUID
+	Live bool
+}
+
+// Every unrevoked session of the account except keep (none when NULL),
+// expired ones too, so no path can revive one (SEC-24; lead ruling on #32:
+// fail closed); live says which were still live, for the trail. Served by
+// session_account_live.
+func (q *Queries) RevokeSessions(ctx context.Context, arg RevokeSessionsParams) ([]RevokeSessionsRow, error) {
+	rows, err := q.db.Query(ctx, revokeSessions,
+		arg.Now,
+		arg.Reason,
+		arg.AccountID,
+		arg.Keep,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RevokeSessionsRow
+	for rows.Next() {
+		var i RevokeSessionsRow
+		if err := rows.Scan(&i.ID, &i.Live); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rotateAccessToken = `-- name: RotateAccessToken :execrows
 UPDATE session SET token_hash = $1, token_issued_at = $2, last_used_at = $2
- WHERE id = $3
+ WHERE id = $3 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $2 AND absolute_expiry > $2
 `
 
 type RotateAccessTokenParams struct {
@@ -481,13 +487,19 @@ type RotateAccessTokenParams struct {
 	ID        pgtype.UUID
 }
 
-func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenParams) error {
-	_, err := q.db.Exec(ctx, rotateAccessToken, arg.TokenHash, arg.Now, arg.ID)
-	return err
+// Fail closed like TouchSession.
+func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rotateAccessToken, arg.TokenHash, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
-const touchSession = `-- name: TouchSession :exec
-UPDATE session SET last_used_at = $1 WHERE id = $2
+const touchSession = `-- name: TouchSession :execrows
+UPDATE session SET last_used_at = $1
+ WHERE id = $2 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $1 AND absolute_expiry > $1
 `
 
 type TouchSessionParams struct {
@@ -495,10 +507,14 @@ type TouchSessionParams struct {
 	ID  pgtype.UUID
 }
 
-// The base of the idle limit.
-func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) error {
-	_, err := q.db.Exec(ctx, touchSession, arg.Now, arg.ID)
-	return err
+// The base of the idle limit. Fail closed: an ended session is never moved,
+// whatever the caller checked (lead ruling on #32).
+func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, touchSession, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateCredential = `-- name: UpdateCredential :execrows

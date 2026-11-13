@@ -90,7 +90,7 @@ func (s *Service) ChangePassword(ctx context.Context, tx pgx.Tx, session Session
 	if err := replaceCredential(ctx, q, session.AccountID, hash, now); err != nil {
 		return err
 	}
-	if err := revokeLiveSessions(ctx, q, session.AccountID, session.ID, "password_changed", now); err != nil {
+	if err := revokeSessions(ctx, q, session.AccountID, session.ID, "password_changed", now); err != nil {
 		return err
 	}
 	return q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{

@@ -673,6 +673,11 @@ func TestSessions(t *testing.T) {
 		h.clock.advance(6 * 24 * time.Hour) // day 180
 		_, err = h.refresh(active.GetRefreshToken())
 		wantErrorCode(t, err, connect.CodeUnauthenticated, expired)
+		wantErrorCode(t, h.authenticated(active.GetAccessToken()), connect.CodeUnauthenticated, expired)
+		// Expiry is never undone: the refused calls moved no session.
+		if n := h.count(t, "SELECT count(*) FROM session WHERE last_used_at + idle_timeout > $1 AND absolute_expiry > $1", h.clock.Now()); n != 0 {
+			t.Fatalf("%d sessions live again, want none", n)
+		}
 	})
 
 	t.Run("a web session is never accepted from the Authorization header", func(t *testing.T) {
@@ -1042,9 +1047,10 @@ func TestRecovery(t *testing.T) {
 			t.Fatalf("%d recovery events naming the new session, want 1", n)
 		}
 	})
-	t.Run("SEC-24 recovery revokes only sessions still live", func(t *testing.T) {
-		// An idle-expired session is already over: it is not revoked again
-		// and gets no security-trail row (code-reviewer M1 on #32).
+	t.Run("SEC-24 recovery revokes expired sessions too but trails only live ones", func(t *testing.T) {
+		// Fail closed (lead ruling on #32): every unrevoked session is
+		// revoked, so no path can revive an expired one; the trail names
+		// only the sessions that were still live (code-reviewer M1).
 		h := startIdentity(t)
 		h.signUp(t, email, password)
 		h.clock.advance(30 * 24 * time.Hour) // the first session ends idle
@@ -1054,8 +1060,8 @@ func TestRecovery(t *testing.T) {
 		wantOK(t, err)
 		_, err = h.completeRecovery(ios, h.lastLink(t), next)
 		wantOK(t, err)
-		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'recovery'"); n != 1 {
-			t.Fatalf("%d sessions revoked by recovery, want 1 (the live one)", n)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'recovery'"); n != 2 {
+			t.Fatalf("%d sessions revoked by recovery, want 2 (the expired one too)", n)
 		}
 		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked'"); n != 1 {
 			t.Fatalf("%d session_revoked events, want 1", n)

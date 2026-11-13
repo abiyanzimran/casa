@@ -70,9 +70,12 @@ SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout,
   FROM session
  WHERE token_hash = @token_hash;
 
--- name: TouchSession :exec
--- The base of the idle limit.
-UPDATE session SET last_used_at = @now WHERE id = @id;
+-- name: TouchSession :execrows
+-- The base of the idle limit. Fail closed: an ended session is never moved,
+-- whatever the caller checked (lead ruling on #32).
+UPDATE session SET last_used_at = @now
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now;
 
 -- name: GetRefreshToken :one
 SELECT session_id, account_id FROM refresh_token WHERE token_hash = @token_hash;
@@ -89,9 +92,11 @@ UPDATE refresh_token SET used_at = @now::timestamptz
 UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
  WHERE id = @id AND revoked_at IS NULL;
 
--- name: RotateAccessToken :exec
+-- name: RotateAccessToken :execrows
+-- Fail closed like TouchSession.
 UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_at = @now
- WHERE id = @id;
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now;
 
 -- name: InsertReauthGrant :exec
 INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
@@ -131,15 +136,15 @@ SELECT account_id, expires_at, used_at FROM recovery_token WHERE token_hash = @t
 UPDATE recovery_token SET used_at = @now::timestamptz
  WHERE token_hash = @token_hash AND used_at IS NULL AND expires_at > @now::timestamptz;
 
--- name: RevokeLiveSessions :many
--- Every session of the account still live at now, except keep (none when
--- NULL), so an ended session gets no second end (SEC-24); served by
+-- name: RevokeSessions :many
+-- Every unrevoked session of the account except keep (none when NULL),
+-- expired ones too, so no path can revive one (SEC-24; lead ruling on #32:
+-- fail closed); live says which were still live, for the trail. Served by
 -- session_account_live.
 UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
  WHERE account_id = @account_id AND revoked_at IS NULL
-   AND last_used_at + idle_timeout > @now::timestamptz AND absolute_expiry > @now::timestamptz
    AND id IS DISTINCT FROM sqlc.narg(keep)::uuid
-RETURNING id;
+RETURNING id, (last_used_at + idle_timeout > @now::timestamptz AND absolute_expiry > @now::timestamptz)::boolean AS live;
 
 -- name: UseAccountRecoveryTokens :exec
 -- A credential reset uses up every open recovery link of the account

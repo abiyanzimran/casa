@@ -145,8 +145,15 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 	}
 	if now.Sub(row.LastUsedAt) > touchAfter {
 		err := database.Write(ctx, s.pool, database.Scope{AccountID: row.AccountID}, func(tx pgx.Tx) error {
-			return identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
+			touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
+			if err == nil && touched == 0 {
+				err = ErrSessionExpired // it ended since the read: fail closed
+			}
+			return err
 		})
+		if errors.Is(err, ErrSessionExpired) {
+			return Session{}, err
+		}
 		if err != nil {
 			return Session{}, fmt.Errorf("touch the session: %w", err)
 		}
@@ -221,9 +228,12 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (Tokens, err
 func rotate(ctx context.Context, q *identitydb.Queries, account, session pgtype.UUID, now time.Time) (Tokens, error) {
 	access, accessHash := newToken()
 	refresh, refreshHash := newToken()
-	err := q.RotateAccessToken(ctx, identitydb.RotateAccessTokenParams{TokenHash: accessHash, Now: now, ID: session})
-	if err != nil {
+	rotated, err := q.RotateAccessToken(ctx, identitydb.RotateAccessTokenParams{TokenHash: accessHash, Now: now, ID: session})
+	switch {
+	case err != nil:
 		return Tokens{}, err
+	case rotated == 0:
+		return Tokens{}, ErrSessionExpired // it ended: fail closed
 	}
 	err = q.InsertRefreshToken(ctx, identitydb.InsertRefreshTokenParams{
 		TokenHash: refreshHash, SessionID: session, AccountID: account, CreatedAt: now,

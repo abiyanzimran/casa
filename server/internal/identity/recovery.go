@@ -142,7 +142,7 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 		if err := replaceCredential(ctx, q, account, hash, now); err != nil {
 			return err
 		}
-		if err := revokeLiveSessions(ctx, q, account, pgtype.UUID{}, "recovery", now); err != nil {
+		if err := revokeSessions(ctx, q, account, pgtype.UUID{}, "recovery", now); err != nil {
 			return err
 		}
 		var session pgtype.UUID
@@ -158,17 +158,20 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 	return tokens, err
 }
 
-// revokeLiveSessions revokes every session of account still live at now,
-// except keep, with reason, and writes one session_revoked row per session
-// (SEC-24, SEC-16).
-func revokeLiveSessions(ctx context.Context, q *identitydb.Queries, account, keep pgtype.UUID, reason string, now time.Time) error {
-	revoked, err := q.RevokeLiveSessions(ctx, identitydb.RevokeLiveSessionsParams{Now: now, Reason: reason, AccountID: account, Keep: keep})
+// revokeSessions revokes every unrevoked session of account except keep,
+// expired ones too (fail closed), with reason, and writes one
+// session_revoked row per session that was still live (SEC-24, SEC-16).
+func revokeSessions(ctx context.Context, q *identitydb.Queries, account, keep pgtype.UUID, reason string, now time.Time) error {
+	revoked, err := q.RevokeSessions(ctx, identitydb.RevokeSessionsParams{Now: now, Reason: reason, AccountID: account, Keep: keep})
 	if err != nil {
 		return err
 	}
 	for _, session := range revoked {
+		if !session.Live {
+			continue
+		}
 		err := q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
-			AccountID: account, SessionID: session, Kind: "session_revoked",
+			AccountID: account, SessionID: session.ID, Kind: "session_revoked",
 			Detail: pgtype.Text{String: reason, Valid: true}, OccurredAt: now,
 		})
 		if err != nil {
