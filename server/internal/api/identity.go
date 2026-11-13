@@ -44,7 +44,11 @@ func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.Complet
 	if err != nil {
 		return nil, identityError(err)
 	}
-	return &casav1.CompleteSignUpResponse{Tokens: openedSession(ctx, client, tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.CompleteSignUpResponse{Tokens: opened}, nil
 }
 
 func (h identityHandler) SignIn(ctx context.Context, req *casav1.SignInRequest) (*casav1.SignInResponse, error) {
@@ -53,7 +57,11 @@ func (h identityHandler) SignIn(ctx context.Context, req *casav1.SignInRequest) 
 	if err != nil {
 		return nil, identityError(err)
 	}
-	return &casav1.SignInResponse{Tokens: openedSession(ctx, client, tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.SignInResponse{Tokens: opened}, nil
 }
 
 func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.RefreshSessionRequest) (*casav1.RefreshSessionResponse, error) {
@@ -151,18 +159,21 @@ func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.Compl
 	if err != nil {
 		return nil, newPasswordError(err, req)
 	}
-	return &casav1.CompleteRecoveryResponse{Tokens: openedSession(ctx, client, tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.CompleteRecoveryResponse{Tokens: opened}, nil
 }
 
 // openedSession hands a new session to its client: a web session only as the
 // cookie, with tokens left unset in the response (SEC-161 (b)); a native one
-// as tokens.
-func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) *casav1.SessionTokens {
+// as tokens. A cookie that cannot be set is an internal error.
+func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) (*casav1.SessionTokens, error) {
 	if client.Kind == "web" {
-		setSessionCookie(ctx, tokens.Cookie)
-		return nil
+		return nil, setSessionCookie(ctx, tokens.Cookie)
 	}
-	return sessionTokens(tokens)
+	return sessionTokens(tokens), nil
 }
 
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {

@@ -93,6 +93,15 @@ func (h *identityHarness) sessionOfCookie(t *testing.T, value string) sessionRow
 	return r
 }
 
+// wantNativeTokens checks a native response: tokens, and no Set-Cookie
+// (SEC-161 (b): the cookie is only for web).
+func wantNativeTokens(t *testing.T, info *connect.CallInfo, tokens *casav1.SessionTokens) {
+	t.Helper()
+	if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || tokens.GetAccessToken() == "" || tokens.GetRefreshToken() == "" {
+		t.Fatalf("native response: %d Set-Cookie headers, tokens %t; want none and tokens", n, tokens.GetAccessToken() != "")
+	}
+}
+
 // ruleIDs returns the rule id of every violation in err.
 func ruleIDs(t *testing.T, err error) []string {
 	t.Helper()
@@ -114,8 +123,32 @@ func TestWebSessionOpening(t *testing.T) {
 
 	t.Run("SEC-161 (b) a web sign-in sets only the __Host- cookie", func(t *testing.T) {
 		h := startIdentity(t)
-		h.signUp(t, email, password)
+		// The native variants of all three RPCs answer with tokens and set
+		// no cookie, even with a browser's User-Agent.
+		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(safariIPhone)
+		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+		})
+		wantOK(t, err)
+		wantNativeTokens(t, info, signedUp.GetTokens())
+		ctx, info = webCall(safariIPhone)
+		signedIn, err := h.client.SignIn(ctx, &casav1.SignInRequest{
+			RequestContext: identityRC(ios), Email: email, Password: password,
+		})
+		wantOK(t, err)
+		wantNativeTokens(t, info, signedIn.GetTokens())
+		_, err = h.startRecovery(email)
+		wantOK(t, err)
+		ctx, info = webCall(safariIPhone)
+		recovered, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
+			RequestContext: identityRC(ios), RecoveryToken: h.lastLink(t), NewPassword: next,
+		})
+		wantOK(t, err)
+		wantNativeTokens(t, info, recovered.GetTokens())
+		password := next
+
+		ctx, info = webCall(safariIPhone)
 		res, err := h.client.SignIn(ctx, &casav1.SignInRequest{
 			RequestContext: identityRC(web), Email: email, Password: password, DeviceMode: personal,
 		})
@@ -169,10 +202,12 @@ func TestWebSessionOpening(t *testing.T) {
 			name string
 			kind casav1.ClientKind
 			mode casav1.DeviceMode
+			rule string
 		}{
-			{"web without a mode", web, casav1.DeviceMode_DEVICE_MODE_UNSPECIFIED},
-			{"ios in shared mode", ios, shared},
-			{"ios in personal mode", ios, personal},
+			{"web without a mode", web, casav1.DeviceMode_DEVICE_MODE_UNSPECIFIED, "device_mode.web"},
+			{"web with an undefined mode", web, casav1.DeviceMode(7), "enum.defined_only"},
+			{"ios in shared mode", ios, shared, "device_mode.web"},
+			{"ios in personal mode", ios, personal, "device_mode.web"},
 		} {
 			for name, call := range map[string]func() error{
 				"SignIn": func() error {
@@ -196,8 +231,8 @@ func TestWebSessionOpening(t *testing.T) {
 			} {
 				err := call()
 				wantCode(t, err, connect.CodeInvalidArgument)
-				if got := ruleIDs(t, err); !slices.Equal(got, []string{"device_mode.web"}) {
-					t.Errorf("%s, %s: rules %v, want [device_mode.web]", c.name, name, got)
+				if got := ruleIDs(t, err); !slices.Equal(got, []string{c.rule}) {
+					t.Errorf("%s, %s: rules %v, want [%s]", c.name, name, got, c.rule)
 				}
 			}
 		}
