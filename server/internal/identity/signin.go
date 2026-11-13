@@ -56,7 +56,7 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 	var tokens Tokens
 	err = database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		var err error
-		tokens, err = openSession(ctx, tx, account, client, s.config.Now())
+		tokens, _, err = openSession(ctx, tx, account, client, s.config.Now())
 		return err
 	})
 	if err != nil {

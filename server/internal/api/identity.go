@@ -121,6 +121,21 @@ func newPasswordError(err error, request proto.Message) error {
 	return identityError(err)
 }
 
+func (h identityHandler) StartRecovery(ctx context.Context, req *casav1.StartRecoveryRequest) (*casav1.StartRecoveryResponse, error) {
+	if err := h.s.StartRecovery(ctx, clientOf(ctx, req.GetRequestContext()), req.GetEmail()); err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.StartRecoveryResponse{}, nil
+}
+
+func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.CompleteRecoveryRequest) (*casav1.CompleteRecoveryResponse, error) {
+	tokens, err := h.s.CompleteRecovery(ctx, clientOf(ctx, req.GetRequestContext()), req.GetRecoveryToken(), req.GetNewPassword())
+	if err != nil {
+		return nil, newPasswordError(err, req)
+	}
+	return &casav1.CompleteRecoveryResponse{Tokens: sessionTokens(tokens)}, nil
+}
+
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
 	return &casav1.SessionTokens{
 		AccessToken: t.AccessToken, RefreshToken: t.RefreshToken,

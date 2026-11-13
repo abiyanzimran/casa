@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/identity.proto.
  */
 export const file_casa_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKCg5TaWduT3V0UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiEQoPU2lnbk91dFJlc3BvbnNlIqUBChVSZWF1dGhlbnRpY2F0ZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh0KCHBhc3N3b3JkGAIgASgJQguAAQG6SAVyAxiACBIzCgdwdXJwb3NlGAMgASgOMhYuY2FzYS52MS5SZWF1dGhQdXJwb3NlQgq6SAeCAQQQASAAIkgKFlJlYXV0aGVudGljYXRlUmVzcG9uc2USLgoKZXhwaXJlc19hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAidgoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIjCgxuZXdfcGFzc3dvcmQYAiABKAlCDYABAbpIB3IFEAwYgAgiGAoWQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSpTCg1SZWF1dGhQdXJwb3NlEh4KGlJFQVVUSF9QVVJQT1NFX1VOU1BFQ0lGSUVEEAASIgoeUkVBVVRIX1BVUlBPU0VfQ0hBTkdFX1BBU1NXT1JEEAEytgQKD0lkZW50aXR5U2VydmljZRJICgtTdGFydFNpZ25VcBIbLmNhc2EudjEuU3RhcnRTaWduVXBSZXF1ZXN0GhwuY2FzYS52MS5TdGFydFNpZ25VcFJlc3BvbnNlElEKDkNvbXBsZXRlU2lnblVwEh4uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlcXVlc3QaHy5jYXNhLnYxLkNvbXBsZXRlU2lnblVwUmVzcG9uc2USOQoGU2lnbkluEhYuY2FzYS52MS5TaWduSW5SZXF1ZXN0GhcuY2FzYS52MS5TaWduSW5SZXNwb25zZRJRCg5SZWZyZXNoU2Vzc2lvbhIeLmNhc2EudjEuUmVmcmVzaFNlc3Npb25SZXF1ZXN0Gh8uY2FzYS52MS5SZWZyZXNoU2Vzc2lvblJlc3BvbnNlEkYKB1NpZ25PdXQSFy5jYXNhLnYxLlNpZ25PdXRSZXF1ZXN0GhguY2FzYS52MS5TaWduT3V0UmVzcG9uc2UiCIK1GAQIABgBElEKDlJlYXV0aGVudGljYXRlEh4uY2FzYS52MS5SZWF1dGhlbnRpY2F0ZVJlcXVlc3QaHy5jYXNhLnYxLlJlYXV0aGVudGljYXRlUmVzcG9uc2USXQoOQ2hhbmdlUGFzc3dvcmQSHi5jYXNhLnYxLkNoYW5nZVBhc3N3b3JkUmVxdWVzdBofLmNhc2EudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSIKgrUYBggAEAEYAUKaAQoLY29tLmNhc2EudjFCDUlkZW50aXR5UHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
+  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKCg5TaWduT3V0UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiEQoPU2lnbk91dFJlc3BvbnNlIqUBChVSZWF1dGhlbnRpY2F0ZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh0KCHBhc3N3b3JkGAIgASgJQguAAQG6SAVyAxiACBIzCgdwdXJwb3NlGAMgASgOMhYuY2FzYS52MS5SZWF1dGhQdXJwb3NlQgq6SAeCAQQQASAAIkgKFlJlYXV0aGVudGljYXRlUmVzcG9uc2USLgoKZXhwaXJlc19hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAidgoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIjCgxuZXdfcGFzc3dvcmQYAiABKAlCDYABAbpIB3IFEAwYgAgiGAoWQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSJrChRTdGFydFJlY292ZXJ5UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGQoFZW1haWwYAiABKAlCCrpIB3IFGP4BYAEiFwoVU3RhcnRSZWNvdmVyeVJlc3BvbnNlIpUBChdDb21wbGV0ZVJlY292ZXJ5UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGwoOcmVjb3ZlcnlfdG9rZW4YAiABKAlCA4ABARIjCgxuZXdfcGFzc3dvcmQYAyABKAlCDYABAbpIB3IFEAwYgAgiQgoYQ29tcGxldGVSZWNvdmVyeVJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucypTCg1SZWF1dGhQdXJwb3NlEh4KGlJFQVVUSF9QVVJQT1NFX1VOU1BFQ0lGSUVEEAASIgoeUkVBVVRIX1BVUlBPU0VfQ0hBTkdFX1BBU1NXT1JEEAEy3wUKD0lkZW50aXR5U2VydmljZRJICgtTdGFydFNpZ25VcBIbLmNhc2EudjEuU3RhcnRTaWduVXBSZXF1ZXN0GhwuY2FzYS52MS5TdGFydFNpZ25VcFJlc3BvbnNlElEKDkNvbXBsZXRlU2lnblVwEh4uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlcXVlc3QaHy5jYXNhLnYxLkNvbXBsZXRlU2lnblVwUmVzcG9uc2USOQoGU2lnbkluEhYuY2FzYS52MS5TaWduSW5SZXF1ZXN0GhcuY2FzYS52MS5TaWduSW5SZXNwb25zZRJRCg5SZWZyZXNoU2Vzc2lvbhIeLmNhc2EudjEuUmVmcmVzaFNlc3Npb25SZXF1ZXN0Gh8uY2FzYS52MS5SZWZyZXNoU2Vzc2lvblJlc3BvbnNlEk4KDVN0YXJ0UmVjb3ZlcnkSHS5jYXNhLnYxLlN0YXJ0UmVjb3ZlcnlSZXF1ZXN0Gh4uY2FzYS52MS5TdGFydFJlY292ZXJ5UmVzcG9uc2USVwoQQ29tcGxldGVSZWNvdmVyeRIgLmNhc2EudjEuQ29tcGxldGVSZWNvdmVyeVJlcXVlc3QaIS5jYXNhLnYxLkNvbXBsZXRlUmVjb3ZlcnlSZXNwb25zZRJGCgdTaWduT3V0EhcuY2FzYS52MS5TaWduT3V0UmVxdWVzdBoYLmNhc2EudjEuU2lnbk91dFJlc3BvbnNlIgiCtRgECAAYARJRCg5SZWF1dGhlbnRpY2F0ZRIeLmNhc2EudjEuUmVhdXRoZW50aWNhdGVSZXF1ZXN0Gh8uY2FzYS52MS5SZWF1dGhlbnRpY2F0ZVJlc3BvbnNlEl0KDkNoYW5nZVBhc3N3b3JkEh4uY2FzYS52MS5DaGFuZ2VQYXNzd29yZFJlcXVlc3QaHy5jYXNhLnYxLkNoYW5nZVBhc3N3b3JkUmVzcG9uc2UiCoK1GAYIABABGAFCmgEKC2NvbS5jYXNhLnYxQg1JZGVudGl0eVByb3RvUAFaP2dpdGh1Yi5jb20vYWJpeWFuemltcmFuL2Nhc2Evc2VydmVyL2ludGVybmFsL2dlbi9jYXNhL3YxO2Nhc2F2MaICA0NYWKoCB0Nhc2EuVjHKAgdDYXNhXFYx4gITQ2FzYVxWMVxHUEJNZXRhZGF0YeoCCENhc2E6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.StartSignUpRequest
@@ -342,6 +342,92 @@ export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = 
   messageDesc(file_casa_v1_identity, 14);
 
 /**
+ * @generated from message casa.v1.StartRecoveryRequest
+ */
+export type StartRecoveryRequest = Message<"casa.v1.StartRecoveryRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: string email = 2;
+   */
+  email: string;
+};
+
+/**
+ * Describes the message casa.v1.StartRecoveryRequest.
+ * Use `create(StartRecoveryRequestSchema)` to create a new message.
+ */
+export const StartRecoveryRequestSchema: GenMessage<StartRecoveryRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 15);
+
+/**
+ * Always empty: it never tells a registered email from another (SEC-12).
+ *
+ * @generated from message casa.v1.StartRecoveryResponse
+ */
+export type StartRecoveryResponse = Message<"casa.v1.StartRecoveryResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.StartRecoveryResponse.
+ * Use `create(StartRecoveryResponseSchema)` to create a new message.
+ */
+export const StartRecoveryResponseSchema: GenMessage<StartRecoveryResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 16);
+
+/**
+ * @generated from message casa.v1.CompleteRecoveryRequest
+ */
+export type CompleteRecoveryRequest = Message<"casa.v1.CompleteRecoveryRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * No validation rule on purpose: an empty or malformed token gets the same
+   * rejection as any other invalid token (SEC-30).
+   *
+   * @generated from field: string recovery_token = 2;
+   */
+  recoveryToken: string;
+
+  /**
+   * At least 12 characters and not on the common password list (SEC-11).
+   *
+   * @generated from field: string new_password = 3;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message casa.v1.CompleteRecoveryRequest.
+ * Use `create(CompleteRecoveryRequestSchema)` to create a new message.
+ */
+export const CompleteRecoveryRequestSchema: GenMessage<CompleteRecoveryRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 17);
+
+/**
+ * @generated from message casa.v1.CompleteRecoveryResponse
+ */
+export type CompleteRecoveryResponse = Message<"casa.v1.CompleteRecoveryResponse"> & {
+  /**
+   * @generated from field: casa.v1.SessionTokens tokens = 1;
+   */
+  tokens?: SessionTokens | undefined;
+};
+
+/**
+ * Describes the message casa.v1.CompleteRecoveryResponse.
+ * Use `create(CompleteRecoveryResponseSchema)` to create a new message.
+ */
+export const CompleteRecoveryResponseSchema: GenMessage<CompleteRecoveryResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 18);
+
+/**
  * ReauthPurpose is the one action a re-authentication grants (SEC-13).
  *
  * @generated from enum casa.v1.ReauthPurpose
@@ -419,6 +505,30 @@ export const IdentityService: GenService<{
     methodKind: "unary";
     input: typeof RefreshSessionRequestSchema;
     output: typeof RefreshSessionResponseSchema;
+  },
+  /**
+   * Sends a single-use recovery link to the email when it has an account.
+   * The answer is the same empty response either way (SEC-24, SEC-12);
+   * requests are rate limited per email and per address (10.1 §8.1).
+   *
+   * @generated from rpc casa.v1.IdentityService.StartRecovery
+   */
+  startRecovery: {
+    methodKind: "unary";
+    input: typeof StartRecoveryRequestSchema;
+    output: typeof StartRecoveryResponseSchema;
+  },
+  /**
+   * Sets a new password with the emailed link, revokes every other session
+   * of the account, and opens a session for this device (SEC-24). Every
+   * rejection of the link is the same TOKEN_REJECTED (SEC-30).
+   *
+   * @generated from rpc casa.v1.IdentityService.CompleteRecovery
+   */
+  completeRecovery: {
+    methodKind: "unary";
+    input: typeof CompleteRecoveryRequestSchema;
+    output: typeof CompleteRecoveryResponseSchema;
   },
   /**
    * Revokes the caller's session (09.3 §1 "keluar akun"): never held, and

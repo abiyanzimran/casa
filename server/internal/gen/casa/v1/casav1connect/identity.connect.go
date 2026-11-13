@@ -35,6 +35,12 @@ const (
 	// IdentityServiceRefreshSessionProcedure is the procedure name of the IdentityService's
 	// RefreshSession RPC.
 	IdentityServiceRefreshSessionProcedure = "/casa.v1.IdentityService/RefreshSession"
+	// IdentityServiceStartRecoveryProcedure is the procedure name of the IdentityService's
+	// StartRecovery RPC.
+	IdentityServiceStartRecoveryProcedure = "/casa.v1.IdentityService/StartRecovery"
+	// IdentityServiceCompleteRecoveryProcedure is the procedure name of the IdentityService's
+	// CompleteRecovery RPC.
+	IdentityServiceCompleteRecoveryProcedure = "/casa.v1.IdentityService/CompleteRecovery"
 	// IdentityServiceSignOutProcedure is the procedure name of the IdentityService's SignOut RPC.
 	IdentityServiceSignOutProcedure = "/casa.v1.IdentityService/SignOut"
 	// IdentityServiceReauthenticateProcedure is the procedure name of the IdentityService's
@@ -72,6 +78,20 @@ var (
 			StreamType: connect.StreamTypeUnary,
 			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("RefreshSession"),
 			Procedure:  IdentityServiceRefreshSessionProcedure,
+		}
+	})
+	identityServiceStartRecoverySpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("StartRecovery"),
+			Procedure:  IdentityServiceStartRecoveryProcedure,
+		}
+	})
+	identityServiceCompleteRecoverySpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("CompleteRecovery"),
+			Procedure:  IdentityServiceCompleteRecoveryProcedure,
 		}
 	})
 	identityServiceSignOutSpec = sync.OnceValue(func() connect.Spec {
@@ -112,6 +132,14 @@ type IdentityServiceClient interface {
 	// Rotates a native session's tokens. A refresh token used a second time
 	// revokes its session (SEC-15).
 	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
+	// Sends a single-use recovery link to the email when it has an account.
+	// The answer is the same empty response either way (SEC-24, SEC-12);
+	// requests are rate limited per email and per address (10.1 §8.1).
+	StartRecovery(context.Context, *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error)
+	// Sets a new password with the emailed link, revokes every other session
+	// of the account, and opens a session for this device (SEC-24). Every
+	// rejection of the link is the same TOKEN_REJECTED (SEC-30).
+	CompleteRecovery(context.Context, *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error)
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
 	// exempt from NOTICE_UNREAD.
 	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
@@ -146,6 +174,14 @@ type IdentityServiceHandler interface {
 	// Rotates a native session's tokens. A refresh token used a second time
 	// revokes its session (SEC-15).
 	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
+	// Sends a single-use recovery link to the email when it has an account.
+	// The answer is the same empty response either way (SEC-24, SEC-12);
+	// requests are rate limited per email and per address (10.1 §8.1).
+	StartRecovery(context.Context, *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error)
+	// Sets a new password with the emailed link, revokes every other session
+	// of the account, and opens a session for this device (SEC-24). Every
+	// rejection of the link is the same TOKEN_REJECTED (SEC-30).
+	CompleteRecovery(context.Context, *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error)
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
 	// exempt from NOTICE_UNREAD.
 	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
@@ -168,6 +204,8 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 		connect.Method{Spec: identityServiceCompleteSignUpSpec(), Handler: adapter.completeSignUp},
 		connect.Method{Spec: identityServiceSignInSpec(), Handler: adapter.signIn},
 		connect.Method{Spec: identityServiceRefreshSessionSpec(), Handler: adapter.refreshSession},
+		connect.Method{Spec: identityServiceStartRecoverySpec(), Handler: adapter.startRecovery},
+		connect.Method{Spec: identityServiceCompleteRecoverySpec(), Handler: adapter.completeRecovery},
 		connect.Method{Spec: identityServiceSignOutSpec(), Handler: adapter.signOut},
 		connect.Method{Spec: identityServiceReauthenticateSpec(), Handler: adapter.reauthenticate},
 		connect.Method{Spec: identityServiceChangePasswordSpec(), Handler: adapter.changePassword},
@@ -191,6 +229,14 @@ func (UnimplementedIdentityServiceHandler) SignIn(context.Context, *v1.SignInReq
 
 func (UnimplementedIdentityServiceHandler) RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.RefreshSession is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) StartRecovery(context.Context, *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.StartRecovery is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) CompleteRecovery(context.Context, *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.CompleteRecovery is not implemented")
 }
 
 func (UnimplementedIdentityServiceHandler) SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error) {
@@ -236,6 +282,22 @@ func (c *identityServiceClient) SignIn(ctx context.Context, req *v1.SignInReques
 func (c *identityServiceClient) RefreshSession(ctx context.Context, req *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
 	var res v1.RefreshSessionResponse
 	if err := c.client.CallUnary(ctx, identityServiceRefreshSessionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) StartRecovery(ctx context.Context, req *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error) {
+	var res v1.StartRecoveryResponse
+	if err := c.client.CallUnary(ctx, identityServiceStartRecoverySpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) CompleteRecovery(ctx context.Context, req *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error) {
+	var res v1.CompleteRecoveryResponse
+	if err := c.client.CallUnary(ctx, identityServiceCompleteRecoverySpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -309,6 +371,30 @@ func (h identityServiceHandler) refreshSession(ctx context.Context, _ connect.Sp
 		return err
 	}
 	res, err := h.svc.RefreshSession(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) startRecovery(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.StartRecoveryRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.StartRecovery(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) completeRecovery(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CompleteRecoveryRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CompleteRecovery(ctx, &req)
 	if err != nil {
 		return err
 	}

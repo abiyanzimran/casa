@@ -19,6 +19,7 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -905,4 +906,187 @@ func TestReauthentication(t *testing.T) {
 			}
 		}
 	})
+}
+
+func (h *identityHarness) startRecovery(email string) (*casav1.StartRecoveryResponse, error) {
+	return h.client.StartRecovery(context.Background(), &casav1.StartRecoveryRequest{RequestContext: identityRC(ios), Email: email})
+}
+
+func (h *identityHarness) completeRecovery(kind casav1.ClientKind, token, newPassword string) (*casav1.SessionTokens, error) {
+	res, err := h.client.CompleteRecovery(context.Background(), &casav1.CompleteRecoveryRequest{
+		RequestContext: identityRC(kind), RecoveryToken: token, NewPassword: newPassword,
+	})
+	return res.GetTokens(), err
+}
+
+func TestRecovery(t *testing.T) {
+	const email = "owner@example.test"
+	// Built, so no secret scanner sees a literal.
+	password, next := strings.Repeat("recover ", 3), strings.Repeat("recovered ", 3)
+	rejected := casav1.ErrorCode_ERROR_CODE_TOKEN_REJECTED
+	rateLimited := casav1.ErrorCode_ERROR_CODE_RATE_LIMITED
+
+	t.Run("SEC-24 a recovery link works once", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		mails := h.mails()
+		last := mails[len(mails)-1]
+		if len(mails) != 2 || last.To != email || last.Kind != identity.MessageRecovery ||
+			!strings.HasPrefix(last.Link, testOrigin+"/recover#") || len(h.lastLink(t)) != 43 {
+			t.Fatalf("mails %d, last to %q kind %d link of %d characters; want a recovery link to %s", len(mails), last.To, last.Kind, len(last.Link), email)
+		}
+		link := h.lastLink(t)
+		_, err = h.completeRecovery(casav1.ClientKind_CLIENT_KIND_WEB, link, next)
+		wantCode(t, err, connect.CodeUnimplemented) // web sessions come with 1.5; the link stays usable
+		tokens, err := h.completeRecovery(ios, link, next)
+		wantOK(t, err)
+		wantOK(t, h.authenticated(tokens.GetAccessToken()))
+		_, again := h.completeRecovery(ios, link, password)
+		_, unknown := h.completeRecovery(ios, strings.Repeat("A", 43), password)
+		wantErrorCode(t, again, connect.CodePermissionDenied, rejected)
+		if !rejectionOf(t, again).equal(rejectionOf(t, unknown)) {
+			t.Fatalf("a used link %v and an unknown one %v are told apart", again, unknown)
+		}
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+	t.Run("SEC-24 after recovery the old sessions cannot refresh", func(t *testing.T) {
+		h := startIdentity(t)
+		first := h.signUp(t, email, password)
+		second, err := h.signIn(email, password)
+		wantOK(t, err)
+		_, err = h.startRecovery(email)
+		wantOK(t, err)
+		tokens, err := h.completeRecovery(ios, h.lastLink(t), next)
+		wantOK(t, err)
+		revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+		for _, old := range []*casav1.SessionTokens{first, second} {
+			_, err := h.refresh(old.GetRefreshToken())
+			wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+			wantErrorCode(t, h.authenticated(old.GetAccessToken()), connect.CodeUnauthenticated, revoked)
+		}
+		wantOK(t, h.authenticated(tokens.GetAccessToken()))
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'recovery'"); n != 2 {
+			t.Fatalf("%d sessions revoked by recovery, want 2", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'recovery'"); n != 2 {
+			t.Fatalf("%d session_revoked events, want 2", n)
+		}
+		// SEC-24: the owner reads when and from which device.
+		if n := h.count(t, `SELECT count(*) FROM security_event e JOIN session s ON s.id = e.session_id
+			WHERE e.kind = 'recovery' AND s.revoked_at IS NULL AND s.client_kind = 'ios'`); n != 1 {
+			t.Fatalf("%d recovery events naming the new session, want 1", n)
+		}
+	})
+	t.Run("SEC-24 a recovery link expires after 30 minutes", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		link := h.lastLink(t)
+		h.clock.advance(30 * time.Minute)
+		_, err = h.completeRecovery(ios, link, next)
+		wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+		_, err = h.signIn(email, password)
+		wantOK(t, err)
+	})
+	t.Run("SEC-12 a recovery request does not tell a registered email from an unregistered one", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		registered, err := h.startRecovery(email)
+		wantOK(t, err)
+		unregistered, err := h.startRecovery("nobody@example.test")
+		wantOK(t, err)
+		if a, b := marshal(t, registered), marshal(t, unregistered); !bytes.Equal(a, b) {
+			t.Fatalf("responses %x and %x differ", a, b)
+		}
+		if mails := h.mails(); len(mails) != 2 || mails[1].To != email {
+			t.Fatalf("%d mails, want the sign-up link and one recovery link to %s", len(mails), email)
+		}
+	})
+	t.Run("SEC-12 recovery mail for one email stops after 5 requests", func(t *testing.T) {
+		// 10.1 §8.1 row StartRecovery: every request counts; nothing clears.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		for _, address := range []string{email, "nobody@example.test"} {
+			for i := range 5 {
+				_, err := h.startRecovery(address)
+				wantOK(t, err)
+				if i == 0 && address == email {
+					_, err := h.completeRecovery(ios, h.lastLink(t), next) // a success clears nothing
+					wantOK(t, err)
+				}
+			}
+			_, err := h.startRecovery(strings.ToUpper(address))
+			wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+		}
+		if mails := h.mails(); len(mails) != 1+5 {
+			t.Fatalf("%d mails, want the sign-up link and 5 recovery links", len(mails))
+		}
+	})
+	t.Run("SEC-12 recovery requests are limited per address", func(t *testing.T) {
+		h := startIdentity(t)
+		for i := range 20 {
+			_, err := h.startRecovery(fmt.Sprintf("nobody%d@example.test", i))
+			wantOK(t, err)
+		}
+		_, err := h.startRecovery("someone@example.test")
+		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+	})
+	t.Run("SEC-12 a sign-in lockout does not block recovery", func(t *testing.T) {
+		// 10.1 §8.1 "Penguncian oleh orang lain".
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		for range 20 {
+			_, err := h.signIn(email, "a wrong passphrase")
+			wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED)
+		}
+		_, err := h.signIn(email, password)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+		_, err = h.startRecovery(email)
+		wantOK(t, err)
+		tokens, err := h.completeRecovery(ios, h.lastLink(t), next)
+		wantOK(t, err)
+		wantOK(t, h.authenticated(tokens.GetAccessToken()))
+	})
+	t.Run("SEC-12 failed token uses are limited per address", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password) // one successful token use; it is withdrawn, not counted
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		link := h.lastLink(t)
+		for i := range 20 {
+			_, err := h.completeRecovery(ios, fmt.Sprintf("%043d", i), next)
+			wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+		}
+		_, err = h.completeRecovery(ios, link, next)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+	})
+	t.Run("SEC-11 a recovery with a common password is refused and the link stays usable", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		link := h.lastLink(t)
+		for weak, want := range map[string]string{"password1234": "new_password password.common", "elevenchars": "new_password string.min_len"} {
+			_, err := h.completeRecovery(ios, link, weak)
+			wantCode(t, err, connect.CodeInvalidArgument)
+			if got := violations(t, err); !slices.Equal(got, []string{want}) {
+				t.Fatalf("violations %v, want [%s]", got, want)
+			}
+		}
+		_, err = h.completeRecovery(ios, link, next)
+		wantOK(t, err)
+	})
+}
+
+func marshal(t *testing.T, m proto.Message) []byte {
+	t.Helper()
+	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
 }

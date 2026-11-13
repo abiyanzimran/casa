@@ -50,6 +50,23 @@ func (q *Queries) GetCredential(ctx context.Context, accountID pgtype.UUID) (Get
 	return i, err
 }
 
+const getRecoveryToken = `-- name: GetRecoveryToken :one
+SELECT account_id, expires_at, used_at FROM recovery_token WHERE token_hash = $1
+`
+
+type GetRecoveryTokenRow struct {
+	AccountID pgtype.UUID
+	ExpiresAt time.Time
+	UsedAt    pgtype.Timestamptz
+}
+
+func (q *Queries) GetRecoveryToken(ctx context.Context, tokenHash []byte) (GetRecoveryTokenRow, error) {
+	row := q.db.QueryRow(ctx, getRecoveryToken, tokenHash)
+	var i GetRecoveryTokenRow
+	err := row.Scan(&i.AccountID, &i.ExpiresAt, &i.UsedAt)
+	return i, err
+}
+
 const getRefreshToken = `-- name: GetRefreshToken :one
 SELECT session_id, account_id FROM refresh_token WHERE token_hash = $1
 `
@@ -265,6 +282,28 @@ func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantPa
 	return err
 }
 
+const insertRecoveryToken = `-- name: InsertRecoveryToken :exec
+INSERT INTO recovery_token (token_hash, account_id, created_at, expires_at)
+VALUES ($1, $2, $3, $4)
+`
+
+type InsertRecoveryTokenParams struct {
+	TokenHash []byte
+	AccountID pgtype.UUID
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (q *Queries) InsertRecoveryToken(ctx context.Context, arg InsertRecoveryTokenParams) error {
+	_, err := q.db.Exec(ctx, insertRecoveryToken,
+		arg.TokenHash,
+		arg.AccountID,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
 const insertRefreshToken = `-- name: InsertRefreshToken :exec
 INSERT INTO refresh_token (token_hash, session_id, account_id, created_at)
 VALUES ($1, $2, $3, $4)
@@ -367,6 +406,40 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const revokeLiveSessions = `-- name: RevokeLiveSessions :many
+UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
+ WHERE account_id = $3 AND revoked_at IS NULL
+RETURNING id
+`
+
+type RevokeLiveSessionsParams struct {
+	Now       time.Time
+	Reason    string
+	AccountID pgtype.UUID
+}
+
+// Every live session of the account (SEC-24); served by
+// session_account_live.
+func (q *Queries) RevokeLiveSessions(ctx context.Context, arg RevokeLiveSessionsParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, revokeLiveSessions, arg.Now, arg.Reason, arg.AccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const revokeSession = `-- name: RevokeSession :execrows
@@ -496,6 +569,25 @@ type UseReauthGrantParams struct {
 // reauth_grant_open.
 func (q *Queries) UseReauthGrant(ctx context.Context, arg UseReauthGrantParams) (int64, error) {
 	result, err := q.db.Exec(ctx, useReauthGrant, arg.Now, arg.SessionID, arg.Purpose)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const useRecoveryToken = `-- name: UseRecoveryToken :execrows
+UPDATE recovery_token SET used_at = $1::timestamptz
+ WHERE token_hash = $2 AND used_at IS NULL AND expires_at > $1::timestamptz
+`
+
+type UseRecoveryTokenParams struct {
+	Now       time.Time
+	TokenHash []byte
+}
+
+// SEC-24: a recovery link is used once, within its lifetime.
+func (q *Queries) UseRecoveryToken(ctx context.Context, arg UseRecoveryTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useRecoveryToken, arg.Now, arg.TokenHash)
 	if err != nil {
 		return 0, err
 	}

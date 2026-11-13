@@ -46,15 +46,18 @@ const (
 	nativeAbsoluteLifetime   = 180 * 24 * time.Hour
 	verificationLinkLifetime = 30 * time.Minute // lead ruling Q4 on the 1.4 plan [Usulan]
 	reauthLifetime           = 5 * time.Minute  // SEC-13 [Asumsi]; 09.4 §2
+	recoveryLinkLifetime     = 30 * time.Minute // SEC-24 [Asumsi]; 09.4 §2
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
 // address; SignIn by email and by address; Reauthenticate by account and by
-// address.
+// address; StartRecovery by email and by address.
 const (
-	tokenUseThreshold = 20
-	signInThreshold   = 20
-	reauthThreshold   = 20
+	tokenUseThreshold        = 20
+	signInThreshold          = 20
+	reauthThreshold          = 20
+	recoveryEmailThreshold   = 5
+	recoveryAddressThreshold = 20
 )
 
 // touchAfter is how stale last_used_at may get before a request updates it,
@@ -79,6 +82,8 @@ type MessageKind int
 const (
 	// MessageVerification carries the link that finishes a sign-up.
 	MessageVerification MessageKind = iota + 1
+	// MessageRecovery carries the link that sets a new password (SEC-24).
+	MessageRecovery
 )
 
 // Message is one email: a recipient and a one-time link (09.4 §2 "Pengiriman
@@ -112,6 +117,7 @@ type Service struct {
 	tokenUse rateLimit
 	signIn   rateLimit
 	reauth   rateLimit
+	recovery rateLimit
 	// decoy is verified when the email has no credential, so a sign-in
 	// costs one hash whatever the reason it fails (SEC-12).
 	decoy PasswordHash
@@ -126,6 +132,7 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 		tokenUse: newRateLimit(0, tokenUseThreshold, false, config.Now),
 		signIn:   newRateLimit(signInThreshold, signInThreshold, true, config.Now),
 		reauth:   newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
+		recovery: newRateLimit(recoveryEmailThreshold, recoveryAddressThreshold, false, config.Now),
 		decoy: PasswordHash{
 			params: config.Password,
 			salt:   randomBytes(int(config.Password.SaltBytes)),

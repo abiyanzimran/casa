@@ -118,3 +118,22 @@ UPDATE credential
    SET salt = @salt, hash = @hash, time_cost = @time_cost, memory_kib = @memory_kib,
        parallelism = @parallelism, updated_at = @updated_at
  WHERE account_id = @account_id;
+
+-- name: InsertRecoveryToken :exec
+INSERT INTO recovery_token (token_hash, account_id, created_at, expires_at)
+VALUES (@token_hash, @account_id, @created_at, @expires_at);
+
+-- name: GetRecoveryToken :one
+SELECT account_id, expires_at, used_at FROM recovery_token WHERE token_hash = @token_hash;
+
+-- name: UseRecoveryToken :execrows
+-- SEC-24: a recovery link is used once, within its lifetime.
+UPDATE recovery_token SET used_at = @now::timestamptz
+ WHERE token_hash = @token_hash AND used_at IS NULL AND expires_at > @now::timestamptz;
+
+-- name: RevokeLiveSessions :many
+-- Every live session of the account (SEC-24); served by
+-- session_account_live.
+UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
+ WHERE account_id = @account_id AND revoked_at IS NULL
+RETURNING id;

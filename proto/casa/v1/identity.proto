@@ -27,6 +27,14 @@ service IdentityService {
   // Rotates a native session's tokens. A refresh token used a second time
   // revokes its session (SEC-15).
   rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  // Sends a single-use recovery link to the email when it has an account.
+  // The answer is the same empty response either way (SEC-24, SEC-12);
+  // requests are rate limited per email and per address (10.1 §8.1).
+  rpc StartRecovery(StartRecoveryRequest) returns (StartRecoveryResponse);
+  // Sets a new password with the emailed link, revokes every other session
+  // of the account, and opens a session for this device (SEC-24). Every
+  // rejection of the link is the same TOKEN_REJECTED (SEC-30).
+  rpc CompleteRecovery(CompleteRecoveryRequest) returns (CompleteRecoveryResponse);
   // Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
   // exempt from NOTICE_UNREAD.
   rpc SignOut(SignOutRequest) returns (SignOutResponse) {
@@ -158,3 +166,33 @@ message ChangePasswordRequest {
 }
 
 message ChangePasswordResponse {}
+
+message StartRecoveryRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string email = 2 [(buf.validate.field).string = {
+    email: true
+    max_len: 254
+  }];
+}
+
+// Always empty: it never tells a registered email from another (SEC-12).
+message StartRecoveryResponse {}
+
+message CompleteRecoveryRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No validation rule on purpose: an empty or malformed token gets the same
+  // rejection as any other invalid token (SEC-30).
+  string recovery_token = 2 [debug_redact = true];
+  // At least 12 characters and not on the common password list (SEC-11).
+  string new_password = 3 [
+    debug_redact = true,
+    (buf.validate.field).string = {
+      min_len: 12
+      max_len: 1024
+    }
+  ];
+}
+
+message CompleteRecoveryResponse {
+  SessionTokens tokens = 1;
+}

@@ -377,6 +377,8 @@ func TestLimiter(t *testing.T) {
 			{"token use address", s.tokenUse.address, false},
 			{"Reauthenticate account", s.reauth.account, true},
 			{"Reauthenticate address", s.reauth.address, false},
+			{"StartRecovery email", s.recovery.account, false},
+			{"StartRecovery address", s.recovery.address, false},
 		} {
 			if c.l.refusesWhenFull != c.refuse {
 				t.Errorf("%s: refusesWhenFull %t, want %t", c.name, c.l.refusesWhenFull, c.refuse)
