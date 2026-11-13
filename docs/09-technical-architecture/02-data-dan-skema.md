@@ -400,6 +400,10 @@ object_event (                            -- 06 §2.5: Peristiwa per objek
 -- the foreign key columns to be null; if any of them are null, the row is not required to have a match",
 -- postgresql.org/docs/18/sql-createtable.html, diakses 14 November 2026) [Terverifikasi], sehingga baris
 -- tanpa jumlah tidak menghalangi ganti mata uang sebelum ada baris uang (FR-FAM-001/AC-8, langkah 2; 07 T-45).
+-- Catatan 14 November 2026 (putusan lead, tinjauan Tugas 1, sudah di 00005_household.sql): karena itu juga,
+-- household_rule dan object_event mendapat FK biasa (household_id) → household (id), sebab FK kompositnya
+-- tidak diperiksa saat currency atau actor NULL (baris pilot biasa, setiap Peristiwa invitee dan system);
+-- FK (household_id, currency) memakai ON UPDATE RESTRICT (§5.2 butir 4).
 household (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL, time_zone text NOT NULL,
   currency char(3) NOT NULL DEFAULT 'IDR' REFERENCES currency (code),
@@ -420,7 +424,10 @@ membership (                              -- 06 §3.1 peran dan izin. Sampai F06
 )
 CREATE UNIQUE INDEX membership_one_household ON membership (account_id) WHERE account_id IS NOT NULL;
                                           -- keanggotaan akun sendiri (§3 lapis 1) dan aturan produk pilot
-                                          -- "satu rumah tangga per akun"; lihat catatan balapan di bawah
+                                          -- "satu rumah tangga per akun"; lihat catatan balapan di bawah.
+                                          -- Catatan 14 November 2026 (putusan lead, tinjauan Tugas 1):
+                                          -- tidak ada indeks membership_account; migrasi F-FAM-009 yang
+                                          -- menghapus indeks unik ini menambah indeks biasa (account_id)
 approval_authority (                      -- 06 §3.1 wewenang persetujuan
   household_id, member_id, request_type text NOT NULL CHECK (request_type IN ('all')),
   limit_amount bigint NULL, currency char(3) NULL,   -- §7: jumlah selalu berpasangan; keduanya NULL = tanpa batas
@@ -428,7 +435,7 @@ approval_authority (                      -- 06 §3.1 wewenang persetujuan
   CHECK ((limit_amount IS NULL) = (currency IS NULL)),
   PRIMARY KEY (household_id, member_id, request_type, valid_from),
   FOREIGN KEY (household_id, member_id) REFERENCES membership,
-  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT   -- §5.2 butir 4
 )
 household_rule (                          -- 06 §3.1 aturan rumah tangga; tidak dapat diubah, versi baru = baris baru
   household_id, version int NOT NULL,
@@ -438,7 +445,8 @@ household_rule (                          -- 06 §3.1 aturan rumah tangga; tidak
   created_at timestamptz NOT NULL,
   CHECK ((request_threshold IS NULL) = (currency IS NULL)),
   PRIMARY KEY (household_id, version),
-  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+  FOREIGN KEY (household_id) REFERENCES household (id),   -- komposit di bawah tidak diperiksa saat currency NULL
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT   -- §5.2 butir 4
 )  -- approval_mode ditambah request (langkah 4, expand) bersama resolve_approvers: belum ada aturan yang membacanya
 relationship (                            -- 06 §3.1 hubungan: tabel ada, tanpa baris di pilot
   household_id, member_id, other_member_id, kind text NOT NULL,
@@ -536,6 +544,7 @@ object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR
   CHECK ((actor_kind = 'system') = (rule IS NOT NULL)),
   CHECK (actor_kind <> 'invitee' OR object_kind = 'invitation'),
   PRIMARY KEY (household_id, object_kind, object_id, seq),
+  FOREIGN KEY (household_id) REFERENCES household (id),   -- komposit di bawah tidak diperiksa saat actor NULL
   FOREIGN KEY (household_id, actor) REFERENCES membership (household_id, member_id)
 )  -- terms_version (INV-A01) ditambah request bersama request_terms
 operator_notice_ack (                     -- tabel global (§3); SEC-34; FR-FAM-019/AC-3 riwayat
