@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/abiyanzimran/casa/server/internal/database"
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/identity"
@@ -102,6 +103,9 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrSessionRevoked):
 		return errorWithDetail(connect.CodeUnauthenticated, "session revoked",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED})
+	case errors.Is(err, database.ErrRetryExhausted):
+		return errorWithDetail(connect.CodeAborted, "retry exhausted",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RETRY_EXHAUSTED})
 	}
 	return connect.NewError(connect.CodeInternal, "internal error").WithCause(err)
 }

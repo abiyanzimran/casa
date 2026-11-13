@@ -33,6 +33,9 @@ enum ErrorCode {
   // The email and password do not open a session, whichever of the two is
   // wrong (SEC-12).
   ERROR_CODE_CREDENTIALS_REJECTED = 8;
+  // The server's serializable retries ran out under contention; the client
+  // may send the same request again (09.2 §6).
+  ERROR_CODE_RETRY_EXHAUSTED = 9;
 }
 
 // ErrorDetail is the Connect error detail that carries the domain error code
