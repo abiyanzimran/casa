@@ -90,10 +90,3 @@ func (s *Service) Create(ctx context.Context, tx pgx.Tx, account, household pgty
 	}
 	return Member{HouseholdID: household, MemberID: memberID}, nil
 }
-
-// FullAdultMembers are the full adult members of tx's household (SEC-10;
-// 06 §3.2 full_adult_members; 09.2 §1): every caller that needs them uses
-// this one definition.
-func (s *Service) FullAdultMembers(ctx context.Context, tx pgx.Tx) ([]pgtype.UUID, error) {
-	return householddb.New(tx).FullAdultMembers(ctx)
-}

@@ -37,7 +37,8 @@ const requestContextField = "request_context"
 // inside one database.Write it returns the stored response of an earlier
 // identical request, refuses another request under the same key, or runs
 // apply and stores its response (ADR-005; 09.2 §6 steps 1 and 8, §8). The
-// scope id is the household, or the account for an account-level command.
+// scope id is the household, or the account for an account-level command
+// that carries no household; one that carries a household uses RunForAccount.
 // apply may run more than once (serializable retry): no effect outside tx.
 func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope,
 	procedure, idempotencyKey string, request proto.Message,
@@ -96,7 +97,8 @@ func run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 // the conflict rules of Run, in a read of its own: a handler calls it before
 // work that must not repeat on a resend, such as an authorisation check the
 // first send used up or a password hash (ADR-005; 09.2 §8). Run still
-// decides; Stored only answers early.
+// decides; Stored only answers early. It keys on the household first, so an
+// account-level caller passes an account-only scope.
 func Stored[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope,
 	procedure, idempotencyKey string, request proto.Message,
 ) (response Response, found bool, err error) {

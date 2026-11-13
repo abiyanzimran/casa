@@ -16,9 +16,6 @@ import (
 // Errors the API layer maps to the contract (ADR-013 note 1.6; plan 1.6
 // decision 17).
 var (
-	// ErrNotFound: not a membership of the account, another household's
-	// object, or an actor who is not a party to it (SEC-05).
-	ErrNotFound = errors.New("not found")
 	// ErrCreationNotAllowed: the account was made through an invitation, or
 	// is already a member of a household (SEC-158 (a); FR-FAM-001 AC-5,
 	// AC-10).

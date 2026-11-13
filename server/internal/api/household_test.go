@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
@@ -197,21 +198,6 @@ func TestCreateHousehold(t *testing.T) {
 		if n := h.count(t, "SELECT count(*) FROM membership"); n != 1 {
 			t.Fatalf("%d memberships, want 1", n)
 		}
-		// SEC-10: the one definition of the household's full adult members.
-		var adults []string
-		scope := database.Scope{HouseholdID: uuidOf(t, res.GetHouseholdId()), AccountID: uuidOf(t, a.account)}
-		if err := database.Read(t.Context(), h.pool, scope, func(tx pgx.Tx) error {
-			ids, err := h.service.FullAdultMembers(t.Context(), tx)
-			for _, id := range ids {
-				adults = append(adults, uuidText(id))
-			}
-			return err
-		}); err != nil {
-			t.Fatal(err)
-		}
-		if !slices.Equal(adults, []string{res.GetMemberId()}) {
-			t.Fatalf("full adult members = %v, want [%s]", adults, res.GetMemberId())
-		}
 	})
 
 	t.Run("FR-FAM-001/AC-2 the concepts are written as separate rows and no relationship row", func(t *testing.T) {
@@ -227,6 +213,15 @@ func TestCreateHousehold(t *testing.T) {
 		}
 		if authorityMember != res.GetMemberId() || requestType != "all" || !validFrom.Equal(h.clock.Now()) {
 			t.Fatalf("approval authority = %s %s %v", authorityMember, requestType, validFrom)
+		}
+		var role, permissionSet string
+		if err := h.admin.QueryRow(t.Context(), `
+			SELECT role, permission_set FROM membership WHERE household_id = $1 AND member_id = $2`,
+			res.GetHouseholdId(), res.GetMemberId()).Scan(&role, &permissionSet); err != nil {
+			t.Fatal(err)
+		}
+		if role != "household_owner" || permissionSet != "two_equal_adults" {
+			t.Fatalf("membership = %s %s", role, permissionSet)
 		}
 		var preset, mode string
 		if err := h.admin.QueryRow(t.Context(), `
@@ -288,7 +283,13 @@ func TestCreateHousehold(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-001/AC-10 an account made through an invitation cannot create a household", func(t *testing.T) {
+	// FR-FAM-001/AC-10, the clause for an account made through an invitation
+	// only: the account is marked by the fixture until Task 8 builds sign-up
+	// through an invitation. The setup-token clauses are proved in 1.4
+	// (sign-up), the token clauses of the invitation in Task 8; the clause
+	// that AC-1 to AC-8 apply to the creator is proved by the AC-1 and AC-2
+	// tests.
+	t.Run("an account marked as made through an invitation cannot create a household", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		// Until Task 8 builds sign-up through an invitation (SEC-158 (a)).
@@ -413,7 +414,7 @@ func TestCreateHousehold(t *testing.T) {
 		if !slices.Equal(got, want) {
 			t.Fatalf("violations = %v, want %v", got, want)
 		}
-		for _, zone := range []string{"Local", "../../etc/passwd"} {
+		for _, zone := range []string{"Local", "localtime", "posixrules", "posix/Asia/Jakarta", "right/Asia/Jakarta", "../../etc/passwd"} {
 			req := newHousehold()
 			req.TimeZone = zone
 			_, err := h.create(a, req)
@@ -443,6 +444,35 @@ func TestCreateHousehold(t *testing.T) {
 			res.GetHouseholdId(), res.GetMemberId(), strings.ToLower(req.GetRequestContext().GetIdempotencyKey()))
 		if got != want {
 			t.Fatalf("event = %q, want %q", got, want)
+		}
+	})
+
+	// ADR-005: a concurrent resend of the same key is a resend, not a second
+	// creation: both get the stored response.
+	t.Run("two concurrent sends of the same key get the same response", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpMember(t, "a@example.test")
+		waitBlocked, release := holdTables(t, h.db, "membership")
+		req := newHousehold()
+		res := make([]*casav1.CreateHouseholdResponse, 2)
+		errs := make([]error, 2)
+		var wg sync.WaitGroup
+		for i := range errs {
+			wg.Go(func() { res[i], errs[i] = h.create(a, proto.Clone(req).(*casav1.CreateHouseholdRequest)) })
+		}
+		waitBlocked(2)
+		release()
+		wg.Wait()
+		for i := range errs {
+			if errs[i] != nil {
+				t.Fatalf("send %d: %v", i, errs[i])
+			}
+		}
+		if res[0].GetHouseholdId() != res[1].GetHouseholdId() || res[0].GetMemberId() != res[1].GetMemberId() {
+			t.Fatalf("responses differ: %v, %v", res[0], res[1])
+		}
+		if n := h.count(t, "SELECT count(*) FROM household"); n != 1 {
+			t.Fatalf("%d households, want 1", n)
 		}
 	})
 
@@ -591,10 +621,4 @@ func uuidOf(t *testing.T, s string) pgtype.UUID {
 		t.Fatal(err)
 	}
 	return id
-}
-
-func uuidText(id pgtype.UUID) string {
-	v, _ := id.Value() // a valid uuid always has a text form
-	s, _ := v.(string)
-	return s
 }

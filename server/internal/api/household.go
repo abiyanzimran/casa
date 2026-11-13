@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
@@ -45,9 +46,8 @@ type householdHandler struct {
 // 5, 8). Its checks, in order: the names and the time zone; a resend gets
 // the stored response, before the membership check that the first send
 // turned into a refusal (ADR-005); the account is no member of any
-// household (FR-FAM-001/AC-5)
-// and was made with a setup token (AC-10; SEC-158), both
-// HOUSEHOLD_CREATION_NOT_ALLOWED; the adult age statement (SEC-80); then
+// household (FR-FAM-001/AC-5) and was made with a setup token (AC-10;
+// SEC-158), both HOUSEHOLD_CREATION_NOT_ALLOWED; the adult age statement (SEC-80); then
 // the write, where a concurrent creation is caught as ALREADY_HOUSEHOLD_MEMBER.
 func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.CreateHouseholdRequest) (*casav1.CreateHouseholdResponse, error) {
 	h, err := newHousehold(req)
@@ -60,8 +60,11 @@ func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.Creat
 	// A scope without a household keys the record on the account, as
 	// RunForAccount does.
 	res, found, err := command.Stored[*casav1.CreateHouseholdResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req)
-	if err != nil || found {
-		return res, householdErrorOrNil(err)
+	if err != nil {
+		return nil, householdError(err)
+	}
+	if found {
+		return res, nil
 	}
 	member, err := s.h.MemberAnywhere(ctx, account)
 	if err != nil {
@@ -93,24 +96,42 @@ func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.Creat
 			}
 			return &casav1.CreateHouseholdResponse{HouseholdId: uuidString(m.HouseholdID), MemberId: uuidString(m.MemberID)}, nil
 		})
+	if errors.Is(err, household.ErrAlreadyMember) {
+		// A concurrent send of the same key won the race and made the
+		// membership: answer with its stored response (ADR-005).
+		if stored, found, serr := command.Stored[*casav1.CreateHouseholdResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req); serr == nil && found {
+			return stored, nil
+		}
+	}
 	if err != nil {
 		return nil, householdError(err)
 	}
 	return res, nil
 }
 
+// hostZone is a name that the zoneinfo of the host, not the IANA database,
+// gives a meaning.
+func hostZone(tz string) bool {
+	return tz == "Local" || tz == "localtime" || tz == "posixrules" ||
+		strings.HasPrefix(tz, "posix/") || strings.HasPrefix(tz, "right/")
+}
+
 // newHousehold checks the names with household.CleanName and the time zone
 // against the IANA database (06 §2.4; cmd/casa embeds time/tzdata), each
 // refusal reported on its field (plan 1.6 decision 8).
 func newHousehold(req *casav1.CreateHouseholdRequest) (household.NewHousehold, error) {
+	tz := req.GetTimeZone()
 	fields := req.ProtoReflect().Descriptor().Fields()
 	var violations []*validate.Violation
 	name, rule := household.CleanName(req.GetName(), maxHouseholdName)
 	if rule != "" {
 		violations = append(violations, fieldViolation(fields.ByName("name"), rule, "name is not accepted"))
 	}
-	// "Local" is the server's own zone, not an IANA name.
-	if _, err := time.LoadLocation(req.GetTimeZone()); err != nil || req.GetTimeZone() == "Local" {
+	// ponytail: LoadLocation also takes host-dependent names ("Local",
+	// "localtime", "posixrules", "posix/", "right/"); these are refused by
+	// name. Ceiling: a list of such names; replace it by the tzdata zone
+	// list if another alias appears.
+	if _, err := time.LoadLocation(tz); err != nil || hostZone(tz) {
 		violations = append(violations, fieldViolation(fields.ByName("time_zone"), "time_zone.iana", "time zone is not an IANA name"))
 	}
 	display, rule := household.CleanName(req.GetDisplayName(), maxDisplayName)
@@ -245,21 +266,11 @@ func idempotencyKey(key string) pgtype.UUID {
 	return id
 }
 
-// householdErrorOrNil is householdError, and nil for nil.
-func householdErrorOrNil(err error) error {
-	if err == nil {
-		return nil
-	}
-	return householdError(err)
-}
-
 // householdError maps a household error to the contract (ADR-013 note 1.6;
 // plan 1.6 decision 17). Each code has one fixed message; any other error is
 // internal and its text never reaches the client (09.2 §3 layer 3).
 func householdError(err error) error {
 	switch {
-	case errors.Is(err, household.ErrNotFound):
-		return connect.NewError(connect.CodeNotFound, "not found") // no detail (SEC-05)
 	case errors.Is(err, household.ErrAgeDeclarationRequired):
 		return errorWithDetail(connect.CodeFailedPrecondition, "age declaration required",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_AGE_DECLARATION_REQUIRED})

@@ -68,15 +68,6 @@ SELECT h.name AS household_name, m.member_id, m.display_name
  ORDER BY m.joined_at, m.member_id
  LIMIT 20;
 
--- name: FullAdultMembers :many
--- SEC-10; 06 §3.2: the one definition of the full adult members, in the
--- transaction's household. In the pilot every member is a household owner
--- of two equal adults; F01 keeps a household at two adults (06 §3.6), which
--- bounds the result.
-SELECT member_id FROM membership
- WHERE household_id = current_setting('app.household_id')::uuid AND role = 'household_owner'
- ORDER BY member_id;
-
 -- name: IssueNotice :execrows
 -- 09.3 §1 "Mekanisme": the first sight of a version identity writes its row;
 -- a second, concurrent or later, writes nothing (1 row, then 0), so the

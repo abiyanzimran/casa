@@ -36,9 +36,15 @@ func CleanName(s string, max int) (clean string, rule string) {
 				return "", ruleCharacters
 			}
 		case unicode.Is(unicode.Variation_Selector, r):
-			// Allowed only on an emoji base, where it picks the emoji
-			// presentation; it is not counted (Mn).
-			if i == 0 || !unicode.Is(unicode.So, runes[i-1]) {
+			// The security goal is no invisible name (SEC-155 (h)): a
+			// selector after a visible base is harmless (emoji, keycap,
+			// CJK ideographic and Mongolian sequences); one that is first
+			// or follows an invisible or space rune could stand alone. It
+			// is not counted (Mn).
+			// ponytail: emoji tag sequences (subdivision flags) stay refused
+			// because the tag characters are Cf; allow them by a rule for
+			// a tag run after a flag base if a user needs one.
+			if i == 0 || unicode.IsSpace(runes[i-1]) || refused(runes[i-1]) {
 				return "", ruleCharacters
 			}
 		case refused(r):

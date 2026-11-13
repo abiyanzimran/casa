@@ -74,7 +74,7 @@ make sqlc-generated   # fails if the committed code differs (a check-server and 
 cd server && go run ./cmd/casa serve -mail-dir /path/to/mail -listen 127.0.0.1:8080
 ```
 
-`GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
+`GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `serve` also needs the credential `operator-name`: it fills `{pengelola}` in the operator notice, and changing it issues a new notice version and holds every account until they read it again. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
 
 A setup token opens the first account of a household (closed sign-up, SEC-158 (b)). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
 

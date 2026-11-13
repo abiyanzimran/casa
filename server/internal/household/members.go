@@ -34,6 +34,8 @@ func (s *Service) Memberships(ctx context.Context, account pgtype.UUID) ([]Membe
 	if err != nil {
 		return nil, err
 	}
+	// ponytail: 1+N reads. membership_one_household limits it to one
+	// iteration until F-FAM-009; RLS `id = H` forces one tx per household.
 	memberships := make([]Membership, 0, len(found))
 	for _, f := range found {
 		var rows []householddb.HouseholdMembersRow

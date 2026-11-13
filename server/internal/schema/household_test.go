@@ -90,12 +90,12 @@ func newHouseholdFixture(t *testing.T, admin *pgxpool.Pool) householdFixture {
 		         ($2, $5, $8, NULL, 'accepted', $10, $11, NULL, $12, 'C', 1)`,
 			[]any{f.x, f.y, f.openX, f.cancelledY, f.byC, f.ax, f.tx, f.ay, f.ty, now, week, f.c}},
 		{`INSERT INTO object_event (household_id, object_kind, object_id, seq, actor_kind, actor, command, to_state, server_time)
-		  VALUES ($1, 'household', $1, 0, 'member', $3, 'CreateHousehold', 'created', $5),
-		         ($2, 'household', $2, 0, 'member', $4, 'CreateHousehold', 'created', $5)`,
+		  VALUES ($1, 'household', $1, 0, 'member', $3, 'create_household', 'created', $5),
+		         ($2, 'household', $2, 0, 'member', $4, 'create_household', 'created', $5)`,
 			[]any{f.x, f.y, f.ax, f.ay, now}},
 		{`INSERT INTO object_event (household_id, object_kind, object_id, seq, actor_kind, command, from_state, to_state,
 		                           idempotency_key, server_time)
-		  VALUES ($1, 'invitation', $2, 1, 'invitee', 'AcceptInvitation', 'open', 'accepted', gen_random_uuid(), $3)`,
+		  VALUES ($1, 'invitation', $2, 1, 'invitee', 'accept_invitation', 'open', 'accepted', gen_random_uuid(), $3)`,
 			[]any{f.y, f.byC, now}},
 	} {
 		if _, err := admin.Exec(t.Context(), s.sql, s.args...); err != nil {

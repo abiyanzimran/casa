@@ -38,36 +38,6 @@ func (q *Queries) AcknowledgeNotice(ctx context.Context, arg AcknowledgeNoticePa
 	return err
 }
 
-const fullAdultMembers = `-- name: FullAdultMembers :many
-SELECT member_id FROM membership
- WHERE household_id = current_setting('app.household_id')::uuid AND role = 'household_owner'
- ORDER BY member_id
-`
-
-// SEC-10; 06 §3.2: the one definition of the full adult members, in the
-// transaction's household. In the pilot every member is a household owner
-// of two equal adults; F01 keeps a household at two adults (06 §3.6), which
-// bounds the result.
-func (q *Queries) FullAdultMembers(ctx context.Context) ([]pgtype.UUID, error) {
-	rows, err := q.db.Query(ctx, fullAdultMembers)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []pgtype.UUID
-	for rows.Next() {
-		var member_id pgtype.UUID
-		if err := rows.Scan(&member_id); err != nil {
-			return nil, err
-		}
-		items = append(items, member_id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const hasAgeDeclaration = `-- name: HasAgeDeclaration :one
 SELECT EXISTS (SELECT 1 FROM consent_record WHERE account_id = $1 AND kind = 'adult_age')
 `
