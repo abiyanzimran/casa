@@ -91,8 +91,12 @@
 	--lingkaran: 40px;
 	--tinggi-bilah: 64px;
 	--tinggi-dok: 64px;
-	--indikator-lebar: 56px;
-	--indikator-tinggi: 32px;
+	/* the selected destination: one pill around icon and label, dock, rail and stacked tabs (08 §19.13.6) */
+	--pil-tab-lebar: 64px;
+	--pil-tab-tinggi: 56px;
+	--pil-tab-padding-tegak: 6px;
+	--pil-tab-padding-datar: 8px;
+	--lebar-rail: 80px; /* left rail, 600-1199 */
 	--lebar-lembar: 560px;
 	--lencana-titik: 6px;
 	--lencana: 16px;

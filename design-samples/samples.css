@@ -159,14 +159,8 @@ p {
 
 @media (hover: hover) {
   :is(.tombol, .tombol-ikon, .chip, .baris-tautan, .segmen-item):hover,
-  .pemilih:hover::before,
-  .tab:hover .indikator {
+  .pemilih:hover::before {
     box-shadow: var(--lapisan-hover);
-  }
-
-  /* the round Catat keeps its shadow under the layer */
-  .catat:hover {
-    box-shadow: var(--bayangan), var(--lapisan-hover);
   }
 }
 
@@ -539,7 +533,7 @@ p {
   white-space: nowrap;
 }
 
-/* ---------- Navigation: floating dock (Ringkas), top bar (Sedang and wider) ---------- */
+/* ---------- Navigation: dock (Ringkas), left rail (Sedang, Lebar), top bar (Sangat lebar) ---------- */
 
 .bilah {
   position: fixed;
@@ -563,7 +557,7 @@ p {
   display: none;
 }
 
-/* The dock: navigasi pill, 64 high, tabs share its width, each at least 64 (08 §19.13.6) */
+/* The dock: navigasi pill, 64 high, padding 8; tabs share its width, each at least 64 (08 §19.13.6) */
 .tab-grup {
   max-width: 100%;
   padding: 0 var(--jarak-2);
@@ -578,24 +572,64 @@ p {
 .tab-grup ul {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(var(--tinggi-dok), 1fr);
+  grid-auto-columns: minmax(var(--pil-tab-lebar), 1fr);
 }
 
+/* A tab: icon 24 over its label, gap 4; the selected pill sits 4 inside the tab's top and bottom
+   and 6 / 8 around icon and label. --permukaan-tab is the surface under the badge (its ring). */
 .tab {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--jarak-1);
   min-height: var(--tinggi-dok);
-  padding: var(--jarak-1) 0;
+  padding: calc(var(--jarak-1) + var(--pil-tab-padding-tegak)) 0;
   color: var(--di-atas-navigasi);
+  --permukaan-tab: var(--navigasi);
   /* each tab is a container so its label can stop growing at the tab's width (08 §25.4) */
   container-type: inline-size;
   font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
   forced-color-adjust: none;
+}
+
+/* The pill: 64 x (tab - 8), in the middle of the tab; it carries the hover layer too */
+.tab::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: var(--jarak-1) max(0px, (100% - var(--pil-tab-lebar)) / 2);
+  border-radius: var(--penuh);
+  transition:
+    opacity var(--gerak) var(--lengkung),
+    transform var(--gerak) var(--lengkung);
+}
+
+.tab[aria-current="page"] {
+  color: var(--navigasi);
+  --permukaan-tab: var(--pil-navigasi);
+}
+
+.tab[aria-current="page"]::before {
+  background-color: var(--pil-navigasi);
+}
+
+/* 08 §19.13.7 "Ganti keadaan": the new selected pill fades in from scale 0.92 (200 ms) */
+@starting-style {
+  .tab[aria-current="page"]::before {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@media (hover: hover) {
+  .tab:hover::before {
+    box-shadow: var(--lapisan-hover);
+  }
 }
 
 .label-tab,
@@ -607,59 +641,64 @@ p {
   font-size: var(--ukuran-label);
 }
 
-/* a ring in the dock colour keeps the badge apart from the icon (QG-09 M1) */
-.tab .lencana {
-  box-shadow: 0 0 0 2px var(--navigasi);
-}
-
 .tab:focus-visible {
   outline-color: var(--sorot);
   outline-offset: -2px;
   border-radius: var(--penuh);
 }
 
-.indikator {
+.ikon-tab {
   position: relative;
   display: grid;
   place-items: center;
-  width: var(--indikator-lebar);
-  height: var(--indikator-tinggi);
-  border-radius: var(--penuh);
 }
 
-.indikator .ikon {
+.ikon-tab .ikon {
   width: var(--ikon-nav);
   height: var(--ikon-nav);
 }
 
-.tab[aria-current="page"] {
-  color: var(--pil-navigasi);
+/* the badge at the icon's top right; a 2 px ring in the surface beneath keeps it apart (QG-09 M1) */
+.tab .lencana {
+  top: calc(-1 * var(--jarak-1));
+  left: calc(100% - var(--jarak-2));
+  box-shadow: 0 0 0 2px var(--permukaan-tab);
 }
 
-.tab[aria-current="page"] .indikator {
-  background-color: var(--pil-navigasi);
-  color: var(--navigasi);
-}
-
-/* The round Catat button beside the dock; above it, right, when both do not fit (wrap-reverse) */
+/* Catat: one link holding the round blue 56 and its label. In the dock the label is for screen
+   readers only; beside the dock, or above it on the right when both do not fit (wrap-reverse). */
 .catat {
   display: inline-grid;
   place-items: center;
+  margin-left: auto;
+  border-radius: var(--penuh);
+  color: var(--tinta);
+  text-decoration: none;
+}
+
+.catat-bulat {
+  display: grid;
+  place-items: center;
   width: var(--catat-bulat);
   height: var(--catat-bulat);
-  margin-left: auto;
   border: 1px solid transparent;
   border-radius: var(--penuh);
   background-color: var(--aksen);
   color: var(--di-atas-aksen);
   box-shadow: var(--bayangan);
-  text-decoration: none;
   forced-color-adjust: none;
 }
 
 .catat .ikon {
   width: var(--ikon-nav);
   height: var(--ikon-nav);
+}
+
+/* the round Catat keeps its shadow under the hover layer */
+@media (hover: hover) {
+  .catat:hover .catat-bulat {
+    box-shadow: var(--bayangan), var(--lapisan-hover);
+  }
 }
 
 .catat-kata {
@@ -679,22 +718,124 @@ p {
   }
 }
 
-/* Chat: no round Catat (Catat is the plus in the composer); the dock sits in the middle */
-.halaman-chat .bilah {
-  justify-content: center;
+@media (max-width: 599.98px) {
+  /* Chat: no round Catat (Catat is the plus in the composer); the dock sits in the middle */
+  .halaman-chat .bilah {
+    justify-content: center;
+  }
+
+  .halaman-chat .catat {
+    display: none;
+  }
 }
 
-.halaman-chat .catat {
-  display: none;
+/* Sedang and Lebar (600-1199): the left rail, 80 wide, full height, on kertas (08 §19.13.6).
+   From the top: 16, the knot 32, 16, Catat (80 x 76), 24, the destinations (80 x 64).
+   ponytail: the rail shows Catat above the destinations with `order`, so keyboard order is
+   destinations then Catat; the product can render Catat first if 08 wants the visual order. */
+@media (min-width: 600px) and (max-width: 1199.98px) {
+  body:has(> .bilah) {
+    padding-left: calc(var(--lebar-rail) + env(safe-area-inset-left));
+  }
+
+  .bilah {
+    inset: 0 auto 0 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0;
+    width: calc(var(--lebar-rail) + env(safe-area-inset-left));
+    padding: calc(var(--jarak-4) + env(safe-area-inset-top)) 0 var(--jarak-4) env(safe-area-inset-left);
+    overflow-y: auto;
+    background-color: var(--kertas);
+    pointer-events: auto;
+  }
+
+  .merek {
+    display: flex;
+    flex: none;
+  }
+
+  .merek img {
+    border-radius: var(--sudut-kecil);
+  }
+
+  .merek-kata {
+    display: none;
+  }
+
+  .catat {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    align-items: center;
+    gap: var(--jarak-1);
+    width: var(--lebar-rail);
+    margin: var(--jarak-4) 0 0;
+    border-radius: var(--sudut-besar);
+  }
+
+  .catat-bulat {
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .catat:hover .catat-bulat {
+      box-shadow: var(--lapisan-hover);
+    }
+  }
+
+  .catat-kata {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: var(--ukuran-terkecil);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .tab-grup {
+    order: 2;
+    flex: none;
+    margin-top: var(--jarak-6);
+    padding: 0;
+    outline: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .tab-grup ul {
+    grid-auto-flow: row;
+  }
+
+  .tab {
+    width: var(--lebar-rail);
+    color: var(--tinta);
+    --permukaan-tab: var(--kertas);
+  }
+
+  .tab[aria-current="page"] {
+    color: var(--kartu);
+    --permukaan-tab: var(--tinta);
+  }
+
+  .tab[aria-current="page"]::before {
+    background-color: var(--tinta);
+  }
 }
 
-@media (min-width: 600px) {
+/* Sangat lebar (>= 1200): the top bar, 64, sticky, on kertas: knot and "Casa" left, the tab group
+   in the middle, the blue Catat 48 right */
+@media (min-width: 1200px) {
   /* a link target or focused control never lands under the sticky top bar (WCAG 2.4.11) */
   html {
     scroll-padding-top: calc(var(--tinggi-bilah) + var(--jarak-4));
   }
 
-  /* Top bar, 64 high, sticky, on kertas: mark left, tab group in the middle, Catat right */
   .bilah {
     position: sticky;
     inset: 0 auto auto;
@@ -722,10 +863,6 @@ p {
     border-radius: var(--sudut-kecil);
   }
 
-  .merek-kata {
-    display: none;
-  }
-
   .tab-grup {
     padding: var(--jarak-1);
     background-color: var(--kartu);
@@ -736,6 +873,7 @@ p {
     grid-auto-columns: auto;
   }
 
+  /* a row tab: icon and label side by side, 48 high; the selected pill is the whole tab */
   .tab {
     flex-direction: row;
     gap: var(--jarak-2);
@@ -743,7 +881,21 @@ p {
     padding: 0 var(--jarak-4);
     border-radius: var(--penuh);
     color: var(--tinta);
+    --permukaan-tab: var(--kartu);
     container-type: normal;
+  }
+
+  .tab::before {
+    inset: 0;
+  }
+
+  .tab[aria-current="page"] {
+    color: var(--kartu);
+    --permukaan-tab: var(--tinta);
+  }
+
+  .tab[aria-current="page"]::before {
+    background-color: var(--tinta);
   }
 
   .label-tab,
@@ -751,75 +903,46 @@ p {
     --ukuran-label: var(--ukuran-judul-subbagian);
   }
 
-  .tab .lencana {
-    box-shadow: 0 0 0 2px var(--kartu);
-  }
-
-  /* Catat in the bar has no shadow of its own */
-  @media (hover: hover) {
-    .catat:hover {
-      box-shadow: var(--lapisan-hover);
-    }
-  }
-
   .tab:focus-visible {
     outline-color: var(--aksen-tinta);
     outline-offset: 2px;
   }
 
-  @media (hover: hover) {
-    .tab:hover {
-      box-shadow: inset 0 0 0 100vmax color-mix(in srgb, currentColor 8%, transparent);
-    }
-
-    .tab:hover .indikator {
-      box-shadow: none;
-    }
-  }
-
-  .indikator {
-    width: auto;
-    height: auto;
-  }
-
-  .tab[aria-current="page"] {
-    background-color: var(--tinta);
-    color: var(--kartu);
-  }
-
-  .tab[aria-current="page"] .indikator {
-    background-color: transparent;
-    color: inherit;
-  }
-
-  .tab .indikator .ikon {
-    width: var(--ikon-nav);
-    height: var(--ikon-nav);
-  }
-
-  .lencana {
+  .tab .lencana {
     top: calc(-1 * var(--jarak-2));
     left: calc(100% - var(--jarak-2));
   }
 
-  /* Catat: the blue labelled button, 48 */
-  .catat,
-  .halaman-chat .catat {
+  /* Catat: the blue labelled button, 48, no shadow of its own */
+  .catat {
     display: inline-flex;
+    flex-direction: row;
+    align-items: center;
     gap: var(--jarak-2);
     justify-self: end;
-    width: auto;
-    height: auto;
     min-height: var(--tinggi-tombol);
     margin: 0;
     padding: 0 var(--jarak-6);
-    box-shadow: none;
+    border: 1px solid transparent;
+    background-color: var(--aksen);
+    color: var(--di-atas-aksen);
     font-weight: 600;
+    forced-color-adjust: none;
+  }
+
+  .catat-bulat {
+    display: contents;
   }
 
   .catat .ikon {
     width: var(--ikon);
     height: var(--ikon);
+  }
+
+  @media (hover: hover) {
+    .catat:hover {
+      box-shadow: var(--lapisan-hover);
+    }
   }
 
   .catat-kata {
@@ -830,16 +953,21 @@ p {
     clip-path: none;
   }
 
-  /* When the tab group does not fit (large text, narrow Sedang) the tabs stack like the dock:
-     icon over label, at least 64 wide; labels are never hidden (08 §19.13.6). Measured need:
-     about 601 px (37.6 em) at text 100%, 655 px (41 em) with "Casa". */
+  /* When the tab group does not fit (large text) the tabs stack like the dock: icon over label,
+     the 64 x 56 pill around both, at least 64 wide; labels are never hidden (08 §19.13.6).
+     Measured need: about 601 px (37.6 em) at text 100%, 655 px (41 em) with "Casa". */
   @container bilah (width < 38.5em) {
     .tab {
       flex-direction: column;
       gap: var(--jarak-1);
-      min-width: var(--tinggi-dok);
-      padding: var(--jarak-1) var(--jarak-2);
+      min-width: var(--pil-tab-lebar);
+      min-height: var(--tinggi-dok);
+      padding: calc(var(--jarak-1) + var(--pil-tab-padding-tegak)) var(--pil-tab-padding-datar);
       container-type: inline-size;
+    }
+
+    .tab::before {
+      inset: var(--jarak-1) max(0px, (100% - var(--pil-tab-lebar)) / 2);
     }
 
     .label-tab,
@@ -847,16 +975,9 @@ p {
       --ukuran-label: min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em));
     }
 
-    .lencana {
+    .tab .lencana {
       top: calc(-1 * var(--jarak-1));
-      left: calc(50% + var(--jarak-1));
     }
-  }
-}
-
-@media (min-width: 840px) {
-  .merek-kata {
-    display: inline;
   }
 
   @container bilah (width < 42em) {
@@ -910,6 +1031,11 @@ p {
 }
 
 @media (min-width: 600px) {
+  /* what sits above the content: nothing beside the rail, the top bar from 1200 */
+  :root {
+    --atas-isi: 0px;
+  }
+
   .ruang {
     max-width: calc(var(--lebar-satu-kolom) + 2 * var(--margin));
     margin-inline: auto;
@@ -1260,6 +1386,10 @@ button.baris-tautan {
 }
 
 @media (min-width: 1200px) {
+  :root {
+    --atas-isi: var(--tinggi-bilah);
+  }
+
   /* Sangat lebar: three equal columns, content at most 1200, in the middle */
   .ruang {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1468,7 +1598,7 @@ button.baris-tautan {
   .halaman-chat .ruang {
     display: flex;
     flex-direction: column;
-    min-height: calc(100dvh - var(--tinggi-bilah));
+    min-height: calc(100dvh - var(--atas-isi));
     padding-bottom: var(--jarak-4);
   }
 
@@ -1498,10 +1628,10 @@ button.baris-tautan {
     grid-column: -2;
     grid-row: 2 / span 1;
     position: sticky;
-    top: var(--tinggi-bilah);
+    top: var(--atas-isi);
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - var(--tinggi-bilah) - var(--jarak-8));
+    height: calc(100dvh - var(--atas-isi) - var(--jarak-8));
     --padding-kartu: var(--jarak-4);
   }
 
