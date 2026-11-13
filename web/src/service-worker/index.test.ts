@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 vi.mock('$app/env', () => ({ version: 'v42' }));
 vi.mock('$app/manifest', () => ({
 	immutable: [{ path: '_app/immutable/start.js' }],
-	assets: [{ path: 'icons/icon-180.png' }, { path: 'LICENSE' }]
+	assets: [{ path: 'icons/icon-180.png' }, { path: 'symbols/LICENSE.txt' }]
 }));
 const listeners = new Map<string, (event: unknown) => void>();
 vi.mock('$app/service-worker', () => ({

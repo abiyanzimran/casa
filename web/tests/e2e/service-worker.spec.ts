@@ -29,8 +29,7 @@ function expectedShell(): string[] {
 				path !== '/service-worker.js' &&
 				path !== '/_app/version.json' &&
 				!path.endsWith('.map') &&
-				!path.endsWith('.txt') &&
-				!/\/(README\.md|LICENSE)$/.test(path)
+				!path.endsWith('.txt')
 		)
 		.map((path) => (path === '/index.html' ? '/' : path));
 }
