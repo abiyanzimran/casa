@@ -66,6 +66,8 @@ type identityHarness struct {
 	admin  *pgxpool.Pool
 	clock  *testClock
 	client casav1connect.IdentityServiceClient
+	// url is the server's base URL, for requests that are not Connect calls.
+	url string
 	// probe calls an authenticated procedure, ProbeService.Read.
 	probe     *connect.Client
 	probeRead protoreflect.MethodDescriptor
@@ -107,7 +109,9 @@ func startIdentity(t *testing.T) *identityHarness {
 		},
 	})
 	h.service = service
-	server := api.NewServer(api.Version{}, service.Authenticate)
+	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{
+		Bearer: service.Authenticate, Cookie: service.AuthenticateCookie, UserAction: service.TouchUserAction,
+	})
 	api.RegisterIdentityService(server, h.pool, service)
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
 	server.Register(connect.Method{
@@ -121,6 +125,7 @@ func startIdentity(t *testing.T) *identityHarness {
 	})
 	srv := httptest.NewServer(api.NewMux(server, nil))
 	t.Cleanup(srv.Close)
+	h.url = srv.URL
 	client := connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL))
 	h.client = casav1connect.NewIdentityServiceClient(client)
 	h.probe = client
@@ -671,13 +676,11 @@ func TestSessions(t *testing.T) {
 	})
 
 	t.Run("a web session is never accepted from the Authorization header", func(t *testing.T) {
-		// SEC-161 (b): a web session token travels only in a cookie (1.5).
+		// SEC-161 (b): a web session token travels only in a cookie.
 		h := startIdentity(t)
-		tokens := h.signUp(t, "owner@example.test", password)
-		if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web'"); err != nil {
-			t.Fatal(err)
-		}
-		wantUnauthenticated(t, h.authenticated(tokens.GetAccessToken()))
+		h.signUp(t, "owner@example.test", password)
+		cookie := h.webSignIn(t, "owner@example.test", password, personal)
+		wantUnauthenticated(t, h.authenticated(cookie))
 	})
 
 	t.Run("a sign-in writes the account's security trail", func(t *testing.T) {
@@ -1207,16 +1210,9 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
 	h := startIdentity(t)
 	x := h.signUp(t, email, password)
-	y, err := h.signIn(email, password)
-	wantOK(t, err)
+	y := h.webSignIn(t, email, password, personal) // a web session in its cookie
 	z, err := h.signIn(email, password)
 	wantOK(t, err)
-	// Y stands for a web session: a native row relabelled, so its refresh
-	// token can still probe it until cookie authentication (1.5 Task 4).
-	yHash := sha256.Sum256(decodeToken(t, y.GetAccessToken()))
-	if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web' WHERE token_hash = $1", yHash[:]); err != nil {
-		t.Fatal(err)
-	}
 	_, err = h.reauthenticate(x.GetAccessToken(), password)
 	wantOK(t, err)
 	wantOK(t, h.changePassword(x.GetAccessToken(), next))
@@ -1224,10 +1220,9 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	_, err = h.refresh(x.GetRefreshToken())
 	wantOK(t, err)
 	wantErrorCode(t, h.authenticated(z.GetAccessToken()), connect.CodeUnauthenticated, revoked)
-	for _, other := range []*casav1.SessionTokens{y, z} {
-		_, err := h.refresh(other.GetRefreshToken())
-		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
-	}
+	_, err = h.refresh(z.GetRefreshToken())
+	wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+	wantErrorCode(t, h.read(sameOrigin(y), web, true), connect.CodeUnauthenticated, revoked)
 	if n := h.count(t, `SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'password_changed'`); n != 2 {
 		t.Fatalf("%d session_revoked rows, want 2", n)
 	}

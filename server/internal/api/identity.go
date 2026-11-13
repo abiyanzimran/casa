@@ -199,10 +199,7 @@ func clientOf(ctx context.Context, req interface {
 	GetRequestContext() *casav1.RequestContext
 }) identity.Client {
 	rc := req.GetRequestContext()
-	client := identity.Client{
-		Kind:    strings.ToLower(strings.TrimPrefix(rc.GetClientKind().String(), "CLIENT_KIND_")),
-		Version: rc.GetClientVersion(),
-	}
+	client := identity.Client{Kind: clientKindOf(rc), Version: rc.GetClientVersion()}
 	if withMode, ok := req.(interface{ GetDeviceMode() casav1.DeviceMode }); ok {
 		client.DeviceMode = deviceModes[withMode.GetDeviceMode()]
 	}
@@ -211,6 +208,12 @@ func clientOf(ctx context.Context, req interface {
 		client.UserAgent = info.RequestHeader().Get("User-Agent")
 	}
 	return client
+}
+
+// clientKindOf is request_context.client_kind as session.client_kind
+// writes it: "ios", "android" or "web".
+func clientKindOf(rc *casav1.RequestContext) string {
+	return strings.ToLower(strings.TrimPrefix(rc.GetClientKind().String(), "CLIENT_KIND_"))
 }
 
 // identityError maps an identity error to the contract (lead ruling Q6 on

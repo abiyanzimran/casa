@@ -36,22 +36,33 @@ const requestContextField = "request_context"
 var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().FullName()
 
 // NewServer returns the Connect server every service registers on. Before a
-// handler sees a request, it checks, in this order:
+// handler sees a request, it checks, in this order (plan 1.5 decision 11):
 //
 //  1. the method has its descriptor, else CodeInternal (fail closed: without
 //     it a write command cannot be told from a read);
-//     1b. outside publicProcedures, "Authorization: Bearer <access token>" is
-//     accepted by authenticate, before the request is received, else
-//     CodeUnauthenticated (SEC-15; 09.4 §2; 09.2 §1); the handler reads the
-//     session with SessionFrom;
-//  2. request_context is present and its client_kind and client_version are
+//  2. a request carrying the session cookie, an Origin or a Sec-Fetch-Site
+//     header, whatever its procedure and claimed client kind, is a POST from
+//     origin, else CodePermissionDenied, before the request is received
+//     (SEC-162 (a), (b); ADR-030 item 6; checkOrigin);
+//  3. outside publicProcedures, "Authorization: Bearer <access token>" is
+//     accepted by sessions.Bearer (SEC-15; 09.4 §2), or without it the
+//     session cookie by sessions.Cookie (SEC-161 (a)), before the request is
+//     received, else CodeUnauthenticated; a cookie value rotated by the
+//     authentication is set on the response here, so it is sent even when
+//     the handler fails; the handler reads the session with SessionFrom;
+//  4. request_context is present and its client_kind and client_version are
 //     valid (protovalidate), else CodeInvalidArgument;
-//  3. a write command from a web client is at least minimumWebVersion, else
+//  5. a web client's request passes the check of step 2 too, so a web RPC
+//     without Origin is rejected (SEC-162 (a) note 1.5 (2)); an
+//     authenticated request's client_kind is the session's, else
+//     CodeInvalidArgument; a user-initiated request of a shared web session
+//     moves its idle limit through sessions.UserAction (SEC-165 (g));
+//  6. a write command from a web client is at least minimumWebVersion, else
 //     CodeFailedPrecondition with CLIENT_UPGRADE_REQUIRED (ADR-030 item 9;
 //     SEC-169 (d));
-//  4. a write command carries an idempotency key, else CodeInvalidArgument
+//  7. a write command carries an idempotency key, else CodeInvalidArgument
 //     (ADR-005; 09.2 §8);
-//  5. the whole request, idempotency key form included, is valid
+//  8. the whole request, idempotency key form included, is valid
 //     (protovalidate), else CodeInvalidArgument.
 //
 // The version is checked before the body and before the key's form, so an old
@@ -61,8 +72,17 @@ var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().
 // rejection that drops it (SEC-169 (d); ADR-030 item 9). A write command is a
 // method with the casa.v1.command option (09.3 §1; lead ruling Q4).
 // Validation errors carry a buf.validate.Violations detail (lead ruling Q5).
-func NewServer(minimumWebVersion Version, authenticate func(context.Context, string) (identity.Session, error)) *connect.Server {
-	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion, authenticate: authenticate}.intercept)
+// Connect serves GET only for NO_SIDE_EFFECTS methods, which the contract
+// has none of; step 2 would refuse one with the cookie.
+func NewServer(minimumWebVersion Version, origin string, sessions Sessions) *connect.Server {
+	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion, origin: origin, sessions: sessions}.intercept)
+}
+
+// Sessions authenticates the requests outside publicProcedures.
+type Sessions struct {
+	Bearer     func(context.Context, string) (identity.Session, error)       // identity.Service.Authenticate
+	Cookie     func(context.Context, string) (identity.CookieSession, error) // identity.Service.AuthenticateCookie
+	UserAction func(context.Context, identity.Session) error                 // identity.Service.TouchUserAction
 }
 
 // publicProcedures are the only procedures served without a session: the
@@ -105,7 +125,9 @@ func NewMux(server *connect.Server, bundle *Bundle) http.Handler {
 
 type boundary struct {
 	minimumWebVersion Version
-	authenticate      func(context.Context, string) (identity.Session, error)
+	// origin is the app's origin, scheme://host[:port], as browsers send it.
+	origin   string
+	sessions Sessions
 }
 
 func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
@@ -114,38 +136,88 @@ func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
 		if !ok {
 			return connect.Errorf(connect.CodeInternal, "procedure %s has no method descriptor", spec.Procedure)
 		}
+		header := &connect.Header{}
+		if info, ok := connect.CallInfoForServerContext(ctx); ok {
+			header = info.RequestHeader()
+		}
+		cookie, withCookie := sessionCookieValue(header)
+		if withCookie || header.Has("Origin") || header.Has("Sec-Fetch-Site") {
+			if err := b.sameOrigin(ctx, header); err != nil {
+				return err
+			}
+		}
 		if !publicProcedures[spec.Procedure] {
-			session, err := b.session(ctx)
+			session, err := b.session(ctx, header, cookie, withCookie)
 			if err != nil {
 				return err
 			}
 			ctx = context.WithValue(ctx, sessionKey{}, session)
 		}
-		return next(ctx, spec, &checkedStream{ServerStream: stream, boundary: b, method: method})
+		return next(ctx, spec, &checkedStream{ServerStream: stream, ctx: ctx, header: header, boundary: b, method: method})
 	}
 }
 
-// session authenticates the request's bearer access token.
-func (b boundary) session(ctx context.Context) (identity.Session, error) {
-	var authorization string
-	if info, ok := connect.CallInfoForServerContext(ctx); ok {
-		authorization = info.RequestHeader().Get("Authorization")
+// sameOrigin is step 2 of NewServer: a POST whose Origin is the app's
+// (SEC-162 (a), (b)).
+func (b boundary) sameOrigin(ctx context.Context, header *connect.Header) error {
+	if info, ok := connecthttp.ServerInfoForContext(ctx); !ok || info.HTTPMethod() != http.MethodPost {
+		return crossOriginRejected()
 	}
-	token, ok := strings.CutPrefix(authorization, "Bearer ")
-	if !ok {
-		return identity.Session{}, identityError(identity.ErrUnauthenticated)
+	return checkOrigin(header, b.origin)
+}
+
+// checkOrigin accepts a request only if it has exactly one Origin, equal to
+// origin as a string (no case folding, prefix or suffix match: a staging
+// subdomain is same-site, so SameSite=Strict does not hold it, SEC-41 (d)),
+// and a Sec-Fetch-Site, if any, of same-origin (SEC-162 (a); ADR-030 item
+// 6). /v1/stream reuses it (SEC-163).
+func checkOrigin(header *connect.Header, origin string) error {
+	if values := header.Values("Origin"); len(values) != 1 || values[0] != origin {
+		return crossOriginRejected()
 	}
-	session, err := b.authenticate(ctx, token)
-	if err != nil {
-		return identity.Session{}, identityError(err)
+	if site := header.Values("Sec-Fetch-Site"); len(site) > 1 || len(site) == 1 && site[0] != "same-origin" {
+		return crossOriginRejected()
 	}
-	return session, nil
+	return nil
+}
+
+// crossOriginRejected is the one answer of the origin check, without detail.
+func crossOriginRejected() error {
+	return connect.NewError(connect.CodePermissionDenied, "cross-origin request rejected")
+}
+
+// session is step 3 of NewServer: the bearer access token, or without one
+// the session cookie.
+func (b boundary) session(ctx context.Context, header *connect.Header, cookie string, withCookie bool) (identity.Session, error) {
+	token, bearer := strings.CutPrefix(header.Get("Authorization"), "Bearer ")
+	switch {
+	case bearer:
+		session, err := b.sessions.Bearer(ctx, token)
+		if err != nil {
+			return identity.Session{}, identityError(err)
+		}
+		return session, nil
+	case withCookie:
+		session, err := b.sessions.Cookie(ctx, cookie)
+		if err != nil {
+			return identity.Session{}, identityError(err)
+		}
+		if session.NewCookie != nil {
+			if err := setSessionCookie(ctx, *session.NewCookie); err != nil {
+				return identity.Session{}, identityError(err)
+			}
+		}
+		return session.Session, nil
+	}
+	return identity.Session{}, identityError(identity.ErrUnauthenticated)
 }
 
 // checkedStream runs the boundary checks on each request message as it is
 // received, so the handler gets either a checked request or the error.
 type checkedStream struct {
 	connect.ServerStream
+	ctx      context.Context // the request's, with its session: step 5 of NewServer reads it
+	header   *connect.Header
 	boundary boundary
 	method   protoreflect.MethodDescriptor
 }
@@ -158,10 +230,10 @@ func (s *checkedStream) Receive(msg any) error {
 	if !ok {
 		return connect.Errorf(connect.CodeInternal, "procedure %s received a %T, not a proto message", s.method.FullName(), msg)
 	}
-	return s.boundary.check(request, proto.HasExtension(s.method.Options(), casav1.E_Command))
+	return s.boundary.check(s.ctx, s.header, request, proto.HasExtension(s.method.Options(), casav1.E_Command))
 }
 
-func (b boundary) check(request proto.Message, command bool) error {
+func (b boundary) check(ctx context.Context, header *connect.Header, request proto.Message, command bool) error {
 	descriptor := request.ProtoReflect().Descriptor()
 	if err := protovalidate.Validate(request, protovalidate.WithFilter(requestContextOnly(descriptor))); err != nil {
 		return validationError(err)
@@ -169,6 +241,9 @@ func (b boundary) check(request proto.Message, command bool) error {
 	requestContext, err := readRequestContext(request)
 	if err != nil {
 		return connect.NewError(connect.CodeInternal, "request context unreadable").WithCause(err)
+	}
+	if err := b.checkClient(ctx, header, requestContext); err != nil {
+		return err
 	}
 	if command && requestContext.GetClientKind() == casav1.ClientKind_CLIENT_KIND_WEB {
 		version, err := ParseVersion(requestContext.GetClientVersion())
@@ -185,6 +260,30 @@ func (b boundary) check(request proto.Message, command bool) error {
 	}
 	if err := protovalidate.Validate(request); err != nil {
 		return validationError(err)
+	}
+	return nil
+}
+
+// checkClient is step 5 of NewServer.
+func (b boundary) checkClient(ctx context.Context, header *connect.Header, requestContext *casav1.RequestContext) error {
+	kind := clientKindOf(requestContext)
+	if kind == "web" { // SEC-162 (a) note 1.5 (2): closes login CSRF on the public RPCs
+		if err := b.sameOrigin(ctx, header); err != nil {
+			return err
+		}
+	}
+	session, ok := SessionFrom(ctx)
+	if !ok {
+		return nil
+	}
+	if session.ClientKind != kind {
+		return connect.NewError(connect.CodeInvalidArgument, "client kind does not match the session")
+	}
+	if requestContext.GetUserInitiated() && session.ClientKind == "web" && session.DeviceMode == "shared" {
+		// SEC-165 (g): only a user's action moves a shared session's idle limit.
+		if err := b.sessions.UserAction(ctx, session); err != nil {
+			return identityError(err)
+		}
 	}
 	return nil
 }

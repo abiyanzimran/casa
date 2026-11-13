@@ -106,6 +106,52 @@ func (q *Queries) GetSession(ctx context.Context, id pgtype.UUID) (GetSessionRow
 	return i, err
 }
 
+const getSessionByCookieHash = `-- name: GetSessionByCookieHash :one
+SELECT id, account_id, client_kind, device_mode, token_hash = $1 AS current, token_issued_at,
+       token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = $1 OR prev_token_hash = $1 OR discarded_token_hash = $1
+`
+
+type GetSessionByCookieHashRow struct {
+	ID               pgtype.UUID
+	AccountID        pgtype.UUID
+	ClientKind       string
+	DeviceMode       string
+	Current          bool
+	TokenIssuedAt    time.Time
+	TokenConfirmedAt pgtype.Timestamptz
+	PrevValidUntil   pgtype.Timestamptz
+	LastUsedAt       time.Time
+	IdleTimeout      time.Duration
+	AbsoluteExpiry   time.Time
+	RevokedAt        pgtype.Timestamptz
+}
+
+// SEC-161 (a), (c): a web request's cookie value is the current, the
+// previous, or a discarded value of at most one session; served by the
+// unique index on token_hash and the partial indexes session_prev_token and
+// session_discarded_token (09.2 §3, §5.1).
+func (q *Queries) GetSessionByCookieHash(ctx context.Context, tokenHash []byte) (GetSessionByCookieHashRow, error) {
+	row := q.db.QueryRow(ctx, getSessionByCookieHash, tokenHash)
+	var i GetSessionByCookieHashRow
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.ClientKind,
+		&i.DeviceMode,
+		&i.Current,
+		&i.TokenIssuedAt,
+		&i.TokenConfirmedAt,
+		&i.PrevValidUntil,
+		&i.LastUsedAt,
+		&i.IdleTimeout,
+		&i.AbsoluteExpiry,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
 const getSessionByTokenHash = `-- name: GetSessionByTokenHash :one
 SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout, absolute_expiry, revoked_at
   FROM session

@@ -71,6 +71,16 @@ SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout,
   FROM session
  WHERE token_hash = @token_hash;
 
+-- name: GetSessionByCookieHash :one
+-- SEC-161 (a), (c): a web request's cookie value is the current, the
+-- previous, or a discarded value of at most one session; served by the
+-- unique index on token_hash and the partial indexes session_prev_token and
+-- session_discarded_token (09.2 §3, §5.1).
+SELECT id, account_id, client_kind, device_mode, token_hash = @token_hash AS current, token_issued_at,
+       token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = @token_hash OR prev_token_hash = @token_hash OR discarded_token_hash = @token_hash;
+
 -- name: TouchSession :execrows
 -- The base of the idle limit. Fail closed: an ended session is never moved,
 -- whatever the caller checked (lead ruling on #32).

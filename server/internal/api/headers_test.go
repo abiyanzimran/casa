@@ -13,7 +13,6 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
-	"github.com/abiyanzimran/casa/server/internal/identity"
 )
 
 // fixtureCSP is the policy of plan decision 5 for the fixture bundle, with
@@ -64,9 +63,7 @@ func wantSecurityHeaders(t *testing.T, header http.Header, csp, cacheControl, re
 // always fails, through NewMux.
 func newFixtureMux(t *testing.T) http.Handler {
 	t.Helper()
-	server := api.NewServer(api.Version{}, func(context.Context, string) (identity.Session, error) {
-		return identity.Session{}, identity.ErrUnauthenticated
-	})
+	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{})
 	server.Register(connect.Method{
 		Spec: connect.Spec{Procedure: casav1connect.IdentityServiceSignInProcedure},
 		Handler: func(context.Context, connect.Spec, connect.ServerStream) error {

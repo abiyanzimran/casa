@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"net/http"
 	"slices"
 	"strings"
@@ -14,8 +15,12 @@ import (
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"connectrpc.com/connect/v2"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
+	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 )
 
 const sessionCookieName = "__Host-casa_session"
@@ -29,11 +34,13 @@ var (
 // safariIPhone is the User-Agent of Safari on an iPhone.
 const safariIPhone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1"
 
-// webCall is one call's context with userAgent, and the call's info, which
-// holds the response headers once the call returns.
+// webCall is one call's context with userAgent and the app's Origin, as a
+// browser sends them, and the call's info, which holds the response headers
+// once the call returns.
 func webCall(userAgent string) (context.Context, *connect.CallInfo) {
 	ctx, info := connect.NewClientContext(context.Background())
 	info.RequestHeader().Set("User-Agent", userAgent)
+	info.RequestHeader().Set("Origin", testOrigin)
 	return ctx, info
 }
 
@@ -209,21 +216,22 @@ func TestWebSessionOpening(t *testing.T) {
 			{"ios in shared mode", ios, shared, "device_mode.web"},
 			{"ios in personal mode", ios, personal, "device_mode.web"},
 		} {
+			ctx, _ := webCall(safariIPhone) // the Origin a web call needs (SEC-162 (a))
 			for name, call := range map[string]func() error{
 				"SignIn": func() error {
-					_, err := h.client.SignIn(context.Background(), &casav1.SignInRequest{
+					_, err := h.client.SignIn(ctx, &casav1.SignInRequest{
 						RequestContext: identityRC(c.kind), Email: email, Password: password, DeviceMode: c.mode,
 					})
 					return err
 				},
 				"CompleteSignUp": func() error {
-					_, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+					_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
 						RequestContext: identityRC(c.kind), VerificationToken: token, Password: password, DeviceMode: c.mode,
 					})
 					return err
 				},
 				"CompleteRecovery": func() error {
-					_, err := h.client.CompleteRecovery(context.Background(), &casav1.CompleteRecoveryRequest{
+					_, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
 						RequestContext: identityRC(c.kind), RecoveryToken: token, NewPassword: next, DeviceMode: c.mode,
 					})
 					return err
@@ -372,5 +380,339 @@ func TestWebSessionOpening(t *testing.T) {
 		if n := h.count(t, "SELECT count(*) FROM session WHERE client_kind = 'ios' AND ua_summary = '' AND device_mode = 'personal'"); n != 1 {
 			t.Fatalf("%d native sessions with an empty ua_summary in personal mode, want 1", n)
 		}
+	})
+}
+
+// cookieCall is a call's context carrying the session cookie value (none
+// for ""), and the Origin and Sec-Fetch-Site headers (none for "").
+func cookieCall(cookie, origin, fetchSite string) context.Context {
+	ctx, info := connect.NewClientContext(context.Background())
+	if cookie != "" {
+		info.RequestHeader().Set("Cookie", sessionCookieName+"="+cookie)
+	}
+	if origin != "" {
+		info.RequestHeader().Set("Origin", origin)
+	}
+	if fetchSite != "" {
+		info.RequestHeader().Set("Sec-Fetch-Site", fetchSite)
+	}
+	return ctx
+}
+
+// sameOrigin is a browser's call from the app itself with the cookie.
+func sameOrigin(cookie string) context.Context { return cookieCall(cookie, testOrigin, "same-origin") }
+
+// webSignIn signs in from the web in mode and returns the cookie's value.
+func (h *identityHarness) webSignIn(t *testing.T, email, password string, mode casav1.DeviceMode) string {
+	t.Helper()
+	ctx, info := webCall(safariIPhone)
+	_, err := h.client.SignIn(ctx, &casav1.SignInRequest{
+		RequestContext: identityRC(web), Email: email, Password: password, DeviceMode: mode,
+	})
+	wantOK(t, err)
+	cookie, _ := sessionCookie(t, info)
+	return cookie.Value
+}
+
+// read calls the authenticated ProbeService.Read as kind; userInitiated is
+// request_context.user_initiated (SEC-165 (g)).
+func (h *identityHarness) read(ctx context.Context, kind casav1.ClientKind, userInitiated bool) error {
+	rc := identityRC(kind)
+	rc.UserInitiated = userInitiated
+	req := dynamicpb.NewMessage(h.probeRead.Input())
+	req.Set(h.probeRead.Input().Fields().ByName("request_context"), protoreflect.ValueOfMessage(rc.ProtoReflect()))
+	return h.probe.CallUnary(ctx, connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read"}, req, &emptypb.Empty{})
+}
+
+// webSignOut is SignOut from a web client in ctx.
+func (h *identityHarness) webSignOut(ctx context.Context) error {
+	rc := commandRC()
+	rc.ClientKind = web
+	_, err := h.client.SignOut(ctx, &casav1.SignOutRequest{RequestContext: rc})
+	return err
+}
+
+// wantCrossOriginRejected checks the one answer of the origin check: no
+// detail and a fixed message (plan 1.5 decision 11 step 2).
+func wantCrossOriginRejected(t *testing.T, err error) {
+	t.Helper()
+	wantCode(t, err, connect.CodePermissionDenied)
+	var connectErr *connect.Error
+	if !errors.As(err, &connectErr) || connectErr.Message() != "cross-origin request rejected" || len(connectErr.Details()) != 0 {
+		t.Fatalf("error %v; want \"cross-origin request rejected\" without detail", err)
+	}
+}
+
+func TestCookieSession(t *testing.T) {
+	password := strings.Repeat("cookie session ", 2) // built, so no secret scanner sees a literal
+	const email = "owner@example.test"
+	const day = 24 * time.Hour
+	expired := casav1.ErrorCode_ERROR_CODE_SESSION_EXPIRED
+	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+	const other = "https://evil.example"
+
+	// wantUntouched checks that the cookie's session was neither revoked nor
+	// touched since lastUsed, and that no command was recorded.
+	wantUntouched := func(t *testing.T, h *identityHarness, cookie string, lastUsed time.Time) {
+		t.Helper()
+		hash := sha256.Sum256(decodeToken(t, cookie))
+		if n := h.count(t, "SELECT count(*) FROM session WHERE token_hash = $1 AND revoked_at IS NULL AND last_used_at = $2", hash[:], lastUsed); n != 1 {
+			t.Fatal("the session was revoked or touched; want no effect")
+		}
+		if n := h.count(t, "SELECT count(*) FROM idempotency_record"); n != 0 {
+			t.Fatalf("%d idempotency records, want none", n)
+		}
+	}
+
+	t.Run("a same-origin request with the session cookie is authenticated", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		cookie := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.read(sameOrigin(cookie), web, true))
+		// Sec-Fetch-Site is optional: a browser without it is judged by Origin.
+		wantOK(t, h.read(cookieCall(cookie, testOrigin, ""), web, true))
+		wantOK(t, h.webSignOut(sameOrigin(cookie)))
+		if n := h.count(t, "SELECT count(*) FROM session WHERE client_kind = 'web' AND revoke_reason = 'user'"); n != 1 {
+			t.Fatalf("%d web sessions signed out, want 1", n)
+		}
+	})
+
+	t.Run("SEC-162 (a) a cookie request from another origin is rejected without effect", func(t *testing.T) {
+		// Focus 2 of plan 1.5: staging on a subdomain is same-site, so only
+		// the origin check holds it (SEC-41 (d)).
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		signedIn := h.clock.Now()
+		cookie := h.webSignIn(t, email, password, personal)
+		// Past touchAfter, so an authenticated request would move last_used_at.
+		h.clock.advance(2 * time.Minute)
+		for _, c := range []struct{ origin, fetchSite string }{
+			{"https://staging.casa.example", "same-origin"},
+			{"null", "same-origin"},
+			{"https://casa.example:8443", "same-origin"},
+			{"http://casa.example", "same-origin"},
+			{"https://casa.example/", "same-origin"},
+			{"https://CASA.example", "same-origin"},
+			{"https://casa.example.evil.example", "same-origin"},
+			{"", "same-origin"},
+			{"", ""},
+			{testOrigin, "same-site"},
+			{testOrigin, "cross-site"},
+			{testOrigin, "none"},
+			{testOrigin, "Same-Origin"},
+		} {
+			err := h.webSignOut(cookieCall(cookie, c.origin, c.fetchSite))
+			if connect.CodeOf(err) != connect.CodePermissionDenied {
+				t.Errorf("Origin %q, Sec-Fetch-Site %q: %v; want permission denied", c.origin, c.fetchSite, err)
+				continue
+			}
+			wantCrossOriginRejected(t, err)
+		}
+		wantUntouched(t, h, cookie, signedIn)
+	})
+
+	t.Run("a public web RPC from another origin is rejected", func(t *testing.T) {
+		// SEC-162 (a) note 1.5 (2): closes login CSRF; also a same-origin
+		// web RPC without Origin.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		for _, c := range []struct{ origin, fetchSite string }{
+			{other, ""}, {"", ""}, {"", "same-origin"}, {testOrigin, "cross-site"},
+		} {
+			ctx := cookieCall("", c.origin, c.fetchSite)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			_, err := h.client.SignIn(ctx, &casav1.SignInRequest{
+				RequestContext: identityRC(web), Email: email, Password: password, DeviceMode: personal,
+			})
+			wantCrossOriginRejected(t, err)
+			if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+				t.Fatalf("Origin %q: %d Set-Cookie headers, want none", c.origin, n)
+			}
+		}
+		if n := h.count(t, "SELECT count(*) FROM session"); n != 1 {
+			t.Fatalf("%d sessions, want only the sign-up's", n)
+		}
+	})
+
+	t.Run("a request claiming a native client with a foreign Origin is rejected", func(t *testing.T) {
+		// SEC-162 (a) note 1.5 (3): client_kind is the sender's claim.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		for _, c := range []struct{ origin, fetchSite string }{{other, ""}, {other, "cross-site"}, {"", "cross-site"}} {
+			_, err := h.client.SignIn(cookieCall("", c.origin, c.fetchSite), &casav1.SignInRequest{
+				RequestContext: identityRC(ios), Email: email, Password: password,
+			})
+			wantCrossOriginRejected(t, err)
+		}
+		if n := h.count(t, "SELECT count(*) FROM session"); n != 1 {
+			t.Fatalf("%d sessions, want only the sign-up's", n)
+		}
+	})
+
+	t.Run("a native request without Origin is accepted", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		tokens, err := h.signIn(email, password)
+		wantOK(t, err)
+		wantOK(t, h.authenticated(tokens.GetAccessToken()))
+	})
+
+	t.Run("SEC-162 (b) a form POST with the cookie has no effect", func(t *testing.T) {
+		// A cross-site form can send only these types, none a Connect type.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		signedIn := h.clock.Now()
+		cookie := h.webSignIn(t, email, password, personal)
+		h.clock.advance(2 * time.Minute)
+		for _, contentType := range []string{"text/plain", "application/x-www-form-urlencoded", "multipart/form-data; boundary=x"} {
+			for _, origin := range []string{other, testOrigin} {
+				req, err := http.NewRequestWithContext(t.Context(), http.MethodPost,
+					h.url+casav1connect.IdentityServiceSignOutProcedure, strings.NewReader("x"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Origin", origin)
+				req.Header.Set("Cookie", sessionCookieName+"="+cookie)
+				res, err := http.DefaultClient.Do(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+				_ = res.Body.Close()
+				if res.StatusCode != http.StatusUnsupportedMediaType {
+					t.Errorf("%s from %s: status %d, want 415 (not a Connect call)", contentType, origin, res.StatusCode)
+				}
+			}
+		}
+		// No Connect GET for a cookie session: every procedure has side
+		// effects, so Connect refuses the method before the boundary.
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet,
+			h.url+casav1connect.IdentityServiceSignOutProcedure+"?encoding=json&message={}", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.Header.Set("Origin", testOrigin)
+		req.Header.Set("Cookie", sessionCookieName+"="+cookie)
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = res.Body.Close()
+		if res.StatusCode != http.StatusMethodNotAllowed {
+			t.Errorf("GET: status %d, want 405", res.StatusCode)
+		}
+		wantUntouched(t, h, cookie, signedIn)
+	})
+
+	t.Run("a cookie and a bearer token together still need the origin", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		cookie := h.webSignIn(t, email, password, personal)
+		both := func(origin string) context.Context {
+			ctx := cookieCall(cookie, origin, "")
+			info, _ := connect.CallInfoForClientContext(ctx)
+			info.RequestHeader().Set("Authorization", "Bearer "+tokens.GetAccessToken())
+			return ctx
+		}
+		wantCrossOriginRejected(t, h.read(both(""), ios, true))
+		wantCrossOriginRejected(t, h.read(both(other), ios, true))
+		// From the app's origin the bearer token decides (decision 11 step 3).
+		wantOK(t, h.read(both(testOrigin), ios, true))
+	})
+
+	t.Run("the client kind must match the session", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		cookie := h.webSignIn(t, email, password, personal)
+		mismatch := func(t *testing.T, err error) {
+			t.Helper()
+			wantCode(t, err, connect.CodeInvalidArgument)
+			var connectErr *connect.Error
+			if !errors.As(err, &connectErr) || connectErr.Message() != "client kind does not match the session" {
+				t.Fatalf("error %v; want \"client kind does not match the session\"", err)
+			}
+		}
+		mismatch(t, h.read(sameOrigin(cookie), ios, true))
+		withBearer := cookieCall("", testOrigin, "same-origin")
+		info, _ := connect.CallInfoForClientContext(withBearer)
+		info.RequestHeader().Set("Authorization", "Bearer "+tokens.GetAccessToken())
+		mismatch(t, h.read(withBearer, web, true))
+	})
+
+	t.Run("a native access token in the cookie is not a session", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		for _, value := range []string{tokens.GetAccessToken(), tokens.GetRefreshToken(), strings.Repeat("A", 43), "x"} {
+			err := h.read(sameOrigin(value), web, true)
+			wantCode(t, err, connect.CodeUnauthenticated)
+			if got := details(t, err); got != nil {
+				t.Fatalf("details %v, want none (sign in again)", got)
+			}
+		}
+	})
+
+	t.Run("an expired web session says session expired and a revoked one session revoked", func(t *testing.T) {
+		// SEC-161 (d): personal mode ends after 30 idle days or 180 days.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		idle := h.webSignIn(t, email, password, personal)
+		h.clock.advance(30 * day)
+		wantErrorCode(t, h.read(sameOrigin(idle), web, true), connect.CodeUnauthenticated, expired)
+
+		active := h.webSignIn(t, email, password, personal)
+		for range 180 / 29 {
+			h.clock.advance(29 * day)
+			wantOK(t, h.read(sameOrigin(active), web, false))
+		}
+		h.clock.advance(6 * day) // day 180
+		wantErrorCode(t, h.read(sameOrigin(active), web, true), connect.CodeUnauthenticated, expired)
+
+		signedOut := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.webSignOut(sameOrigin(signedOut)))
+		wantErrorCode(t, h.read(sameOrigin(signedOut), web, true), connect.CodeUnauthenticated, revoked)
+	})
+
+	t.Run("SEC-165 (g) only user-initiated requests keep a shared session alive", func(t *testing.T) {
+		// Focus 5 of plan 1.5: background requests never move the idle
+		// limit of a shared session, and nothing moves the absolute one.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		at := func(t *testing.T, start time.Time, minute int) {
+			t.Helper()
+			h.clock.advance(start.Add(time.Duration(minute) * time.Minute).Sub(h.clock.Now()))
+		}
+
+		start := h.clock.Now()
+		background := h.webSignIn(t, email, password, shared)
+		for minute := 5; minute < 30; minute += 5 {
+			at(t, start, minute)
+			wantOK(t, h.read(sameOrigin(background), web, false))
+		}
+		at(t, start, 30)
+		wantErrorCode(t, h.read(sameOrigin(background), web, false), connect.CodeUnauthenticated, expired)
+
+		start = h.clock.Now()
+		kept := h.webSignIn(t, email, password, shared)
+		for minute := 5; minute < 29; minute += 5 {
+			at(t, start, minute)
+			wantOK(t, h.read(sameOrigin(kept), web, false))
+		}
+		at(t, start, 29)
+		wantOK(t, h.read(sameOrigin(kept), web, true)) // "Tetap masuk"
+		for minute := 30; minute <= 58; minute += 4 {
+			at(t, start, minute)
+			wantOK(t, h.read(sameOrigin(kept), web, false))
+		}
+		at(t, start, 59)
+		wantErrorCode(t, h.read(sameOrigin(kept), web, true), connect.CodeUnauthenticated, expired)
+
+		start = h.clock.Now()
+		used := h.webSignIn(t, email, password, shared)
+		for minute := 10; minute < 12*60; minute += 10 {
+			at(t, start, minute)
+			wantOK(t, h.read(sameOrigin(used), web, true))
+		}
+		at(t, start, 12*60)
+		wantErrorCode(t, h.read(sameOrigin(used), web, true), connect.CodeUnauthenticated, expired)
 	})
 }

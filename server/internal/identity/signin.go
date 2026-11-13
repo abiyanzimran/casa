@@ -19,6 +19,12 @@ import (
 type Session struct {
 	ID, AccountID pgtype.UUID
 	ClientKind    string
+	// DeviceMode is "personal" or "shared"; native sessions are personal
+	// (plan 1.5 decision 9).
+	DeviceMode string
+	// LastUsedAt is the base of the idle limit when the session was read;
+	// TouchUserAction reads it (SEC-165 (g)).
+	LastUsedAt time.Time
 }
 
 // SignIn opens a native or web session (SEC-12, SEC-15, SEC-161). An unknown
@@ -141,22 +147,32 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 	if !now.Before(row.TokenIssuedAt.Add(accessTokenLifetime)) {
 		return Session{}, ErrUnauthenticated
 	}
-	if now.Sub(row.LastUsedAt) > touchAfter {
-		err := database.Write(ctx, s.pool, database.Scope{AccountID: row.AccountID}, func(tx pgx.Tx) error {
-			touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
-			if err == nil && touched == 0 {
-				err = ErrSessionExpired // it ended since the read: fail closed
-			}
-			return err
-		})
-		if errors.Is(err, ErrSessionExpired) {
-			return Session{}, err
-		}
-		if err != nil {
-			return Session{}, fmt.Errorf("touch the session: %w", err)
-		}
+	session := Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind, DeviceMode: "personal", LastUsedAt: row.LastUsedAt}
+	return s.touch(ctx, session, now)
+}
+
+// touch moves session's idle limit to now when last_used_at is more than
+// touchAfter old, so a burst of requests does not write on each one. A
+// session that ended since it was read is ErrSessionExpired (fail closed).
+func (s *Service) touch(ctx context.Context, session Session, now time.Time) (Session, error) {
+	if now.Sub(session.LastUsedAt) <= touchAfter {
+		return session, nil
 	}
-	return Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind}, nil
+	err := database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
+		touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: session.ID})
+		if err == nil && touched == 0 {
+			err = ErrSessionExpired // it ended since the read: fail closed
+		}
+		return err
+	})
+	if errors.Is(err, ErrSessionExpired) {
+		return Session{}, err
+	}
+	if err != nil {
+		return Session{}, fmt.Errorf("touch the session: %w", err)
+	}
+	session.LastUsedAt = now
+	return session, nil
 }
 
 // sessionEnded reports why a session no longer serves, or nil.

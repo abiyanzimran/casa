@@ -16,6 +16,18 @@ import (
 // 1.5 decision 7; ADR-030 item 5).
 const sessionCookieName = "__Host-casa_session"
 
+// sessionCookieValue returns the value of the request's session cookie, read
+// as net/http reads a request's cookies (the first of that name), and false
+// when there is none.
+func sessionCookieValue(header *connect.Header) (string, bool) {
+	request := http.Request{Header: http.Header{"Cookie": header.Values("Cookie")}}
+	cookie, err := request.Cookie(sessionCookieName)
+	if err != nil {
+		return "", false
+	}
+	return cookie.Value, true
+}
+
 // setSessionCookie adds c to the response as the session cookie: Path=/,
 // Secure, HttpOnly, SameSite=Strict, no Domain, and Max-Age in whole seconds
 // rounded down, or none for a session cookie (plan 1.5 decision 7). The
