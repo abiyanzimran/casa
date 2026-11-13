@@ -2,8 +2,11 @@ package identity
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -13,9 +16,6 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
 
-// TestSignInHashesAlike proves a failed sign-in costs the same for an
-// unknown email as for a wrong password: one Argon2 verification and the
-// same number of database transactions (SEC-12; 10.1 §5.1 rule 5).
 // signedUp returns a service whose clock is *now, with one account
 // owner@example.test signed up with password.
 func signedUp(t *testing.T, now *time.Time, password string) (*Service, *pgxpool.Pool) {
@@ -96,6 +96,18 @@ func TestSignInLimits(t *testing.T) {
 					t.Fatalf("after the wait: %v", err)
 				}
 			}
+		}
+	})
+	t.Run("the email key is kept only as a SHA-256 of the normalised email", func(t *testing.T) {
+		// 10.1 §8.1: the limiter table in memory holds no email address.
+		now := time.Now()
+		s, _ := signedUp(t, &now, password)
+		if _, err := s.SignIn(t.Context(), Client{Kind: "ios", Address: "198.51.100.1:443"}, " Owner@Example.TEST ", "a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
+			t.Fatal(err)
+		}
+		sum := sha256.Sum256([]byte("owner@example.test"))
+		if _, ok := s.signIn.account.keys[string(sum[:])]; !ok || len(s.signIn.account.keys) != 1 {
+			t.Fatalf("email keys %q, want only the SHA-256 of owner@example.test", slices.Collect(maps.Keys(s.signIn.account.keys)))
 		}
 	})
 }

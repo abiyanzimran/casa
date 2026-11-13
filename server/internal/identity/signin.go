@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"strings"
@@ -30,7 +31,9 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 		return Tokens{}, ErrWebSessionNotYet
 	}
 	email = strings.ToLower(strings.TrimSpace(email))
-	allowed, done := s.signIn.attempt(email, client.Address)
+	// The key is a hash so the table in memory holds no email (10.1 §8.1).
+	emailKey := sha256.Sum256([]byte(email))
+	allowed, done := s.signIn.attempt(string(emailKey[:]), client.Address)
 	if !allowed {
 		return Tokens{}, ErrRateLimited
 	}
