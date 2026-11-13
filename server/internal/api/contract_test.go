@@ -1,7 +1,10 @@
 package api_test
 
 import (
+	"io/fs"
+	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -14,11 +17,28 @@ import (
 // 09.3 §1; 09.1 §4). Each rule runs on the real contract (no violation) and on
 // a probe file that breaks only that rule (exactly that violation), so a rule
 // that checks nothing fails here, not later.
+// protoFilesOnDisk counts the .proto files of the contract, so a package
+// casaFiles does not see cannot pass the contract test unchecked.
+func protoFilesOnDisk(t *testing.T) int {
+	t.Helper()
+	count := 0
+	err := filepath.WalkDir("../../../proto/casa", func(path string, entry fs.DirEntry, err error) error {
+		if err == nil && !entry.IsDir() && strings.HasSuffix(path, ".proto") {
+			count++
+		}
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return count
+}
+
 func TestContract(t *testing.T) {
 	t.Run("the real contract has no violation", func(t *testing.T) {
 		files := casaFiles(t)
-		if len(files) == 0 {
-			t.Fatal("no casa.* file is registered; the contract test checks nothing")
+		if want := protoFilesOnDisk(t); len(files) != want {
+			t.Fatalf("%d casa.* files registered, %d .proto files under proto/casa: import every contract package in probe_test.go", len(files), want)
 		}
 		if got := contractViolations(files); got != nil {
 			t.Fatalf("violations:\n%v", got)
