@@ -105,9 +105,9 @@ async function installSecondCopy(page: Page): Promise<boolean> {
 				};
 			}
 		).trustedTypes;
-		// eslint-disable-next-line no-restricted-syntax -- a test-only copy of the casa-sw policy (SEC-167 (c) allows this only in tests)
+		// eslint-disable-next-line no-restricted-syntax -- test-only casa-sw policy that accepts any URL; the probe document runs no app code
 		const policy = trustedTypes.createPolicy('casa-sw', { createScriptURL: (input) => input });
-		// eslint-disable-next-line no-restricted-syntax -- the test installs a second copy of the worker (SEC-167 (c) allows this only in tests)
+		// eslint-disable-next-line no-restricted-syntax -- installs a second copy of the worker through that test-only policy to test the update flow
 		const probe = await navigator.serviceWorker.register(
 			policy.createScriptURL('/service-worker.js?probe=1'),
 			{ type: 'module', scope: '/' }

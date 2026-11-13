@@ -115,7 +115,7 @@ func TestSecurityHeaders(t *testing.T) {
 			wantSecurityHeaders(t, rec.Header(), fixtureCSP(), tc.cacheControl, request)
 		}
 	})
-	t.Run("the CSP allows the bundle's inline script by its hash and nothing else inline", func(t *testing.T) {
+	t.Run("the CSP allows the bundle's inline script by its hash, no 'unsafe-inline' or 'unsafe-eval'", func(t *testing.T) {
 		// Plan decision 4; ADR-030 item 7: no 'unsafe-inline', no 'unsafe-eval'.
 		// The one 'unsafe-hashes' (style-src-attr) is pinned by fixtureCSP.
 		csp := serve(mux, http.MethodGet, "/", nil).Header().Get("Content-Security-Policy")
