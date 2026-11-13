@@ -11,6 +11,9 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
+			// SEC-167 (c): registered only by registerServiceWorker() in
+			// src/lib/service-worker-registration.ts, behind the casa-sw policy.
+			serviceWorker: { register: false },
 			adapter: adapter({
 				// SPA mode (ADR-030 item 2): every unknown path gets the app shell.
 				fallback: 'index.html',

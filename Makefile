@@ -111,8 +111,11 @@ web-fmt:
 web-lint:
 	cd web && pnpm exec svelte-kit sync && pnpm exec eslint --max-warnings 0 .
 
+# The service workers have their own tsconfig (WebWorker types), which svelte-check
+# does not read.
 web-check:
 	cd web && pnpm exec svelte-kit sync && pnpm exec svelte-check --fail-on-warnings
+	cd web && pnpm exec tsc -p src/service-worker && pnpm exec tsc -p emergency
 
 web-vuln: $(OSV_SCANNER)
 	$(OSV_SCANNER) scan source --lockfile $(WEB_LOCKFILE)
