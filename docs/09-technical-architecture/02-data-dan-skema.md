@@ -274,8 +274,11 @@ recovery_token (                          -- SEC-24: tautan email sekali pakai, 
   account_id   uuid NOT NULL REFERENCES account(id),
   created_at   timestamptz NOT NULL,
   expires_at   timestamptz NOT NULL,
-  used_at      timestamptz NULL
+  used_at      timestamptz NULL           -- reset kredensial (ChangePassword, CompleteRecovery) mengisi
+                                          -- used_at semua token terbuka akun itu: tautan lama mati
 )
+CREATE INDEX recovery_token_account_open ON recovery_token (account_id) WHERE used_at IS NULL;
+                                          -- migrasi 00003 (FS-1 1.4 PR B)
 
 setup_token (                             -- SEC-158 (b); 09.4 §2: terikat satu email, 7 hari
   token_hash   bytea PRIMARY KEY,
