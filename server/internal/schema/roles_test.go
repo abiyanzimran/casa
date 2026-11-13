@@ -29,15 +29,19 @@ func TestRoles(t *testing.T) {
 		}
 	})
 
-	t.Run("SEC-09 application roles are not members of migrator", func(t *testing.T) {
-		for _, role := range roles[1:] {
-			var member bool
-			if err := db.QueryRowContext(t.Context(),
-				`SELECT pg_has_role($1, 'migrator', 'MEMBER')`, role).Scan(&member); err != nil {
+	// roles.sql resets attributes, not memberships. A membership would hand
+	// over another role's rights: migrator's tables (owner, so no RLS),
+	// lifecycle_rw's DELETE, or built-in roles such as pg_read_server_files.
+	t.Run("SEC-09 database roles are members of no other role", func(t *testing.T) {
+		for _, role := range roles {
+			var granted string
+			if err := db.QueryRowContext(t.Context(), `
+				SELECT coalesce(string_agg(roleid::regrole::text, ', ' ORDER BY 1), '')
+				  FROM pg_auth_members WHERE member = $1::regrole`, role).Scan(&granted); err != nil {
 				t.Fatalf("role %s: %v", role, err)
 			}
-			if member {
-				t.Errorf("role %s is a member of migrator, so it owns every table and bypasses row-level security", role)
+			if granted != "" {
+				t.Errorf("role %s is a member of %v", role, granted)
 			}
 		}
 	})
