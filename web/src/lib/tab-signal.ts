@@ -12,8 +12,8 @@ export type TabSignal = { kind: WipeKind; unsentDropped: number } | { kind: 'app
 
 const wipeKinds: readonly unknown[] = ['sign_out', 'session_revoked', 'household_exit'];
 
-// Messages from another app version (an old tab after an update) or anything malformed are
-// not signals.
+// Anything malformed is not a signal. Signals carry no app version: an old tab still open
+// after an update reads them with its own copy of this check, so the shape only grows.
 function isTabSignal(data: unknown): data is TabSignal {
 	if (typeof data !== 'object' || data === null || !('kind' in data)) return false;
 	if (data.kind === 'app_lock') return true;
