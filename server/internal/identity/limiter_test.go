@@ -251,6 +251,44 @@ func TestLimiter(t *testing.T) {
 			}
 		}
 	})
+	t.Run("a full table makes room for 1% of its keys in one scan, in the order of 10.1 §8.1", func(t *testing.T) {
+		// One scan per new key would cost O(n) under the mutex for every
+		// request of a flood; one scan per 1% of the table amortises it.
+		l, clock := newTestLimiter(20, false)
+		l.maxKeys = 1000
+		for i := range 5 { // the oldest keys, but penalised: kept while others can go
+			fail(t, l, fmt.Sprintf("p%d", i), 20)
+			clock.advance(time.Millisecond)
+		}
+		for i := range l.maxKeys - 5 {
+			fail(t, l, fmt.Sprint(i), 1)
+			clock.advance(time.Millisecond)
+		}
+		fail(t, l, "new0", 1)
+		if l.scans != 1 || len(l.keys) != l.maxKeys-9 {
+			t.Fatalf("%d scans, %d keys; want 1 scan that left room for 10 (%d keys)", l.scans, len(l.keys), l.maxKeys-9)
+		}
+		for i := range 10 {
+			if _, kept := l.keys[fmt.Sprint(i)]; kept {
+				t.Fatalf("key %d, among the 10 oldest below the threshold, was kept", i)
+			}
+		}
+		for i := range 5 {
+			if _, kept := l.keys[fmt.Sprintf("p%d", i)]; !kept {
+				t.Fatalf("penalised key p%d was evicted before keys below the threshold", i)
+			}
+		}
+		for i := 1; i < 10; i++ {
+			fail(t, l, fmt.Sprintf("new%d", i), 1)
+		}
+		if l.scans != 1 {
+			t.Fatalf("%d scans for the 9 new keys that fit, want none more", l.scans)
+		}
+		fail(t, l, "new10", 1)
+		if l.scans != 2 {
+			t.Fatalf("%d scans, want a second one once the room is used", l.scans)
+		}
+	})
 	t.Run("a full table of penalised keys refuses new keys without a scan until one can be forgotten", func(t *testing.T) {
 		l, clock := newTestLimiter(20, true)
 		l.refusesWhenFull = true
@@ -381,4 +419,23 @@ func TestAddressKey(t *testing.T) {
 			t.Fatalf("keys %q and %q, want equal", a, b)
 		}
 	})
+}
+
+// BenchmarkLimiterFullTable is the cost of one new key in a full table of
+// maxLimiterKeys keys during a flood, scans included (10.1 §8.1 item 2).
+func BenchmarkLimiterFullTable(b *testing.B) {
+	l, clock := newTestLimiter(20, false)
+	for i := range maxLimiterKeys {
+		l.keys[fmt.Sprint(i)] = limiterKey{failures: 1, lastFailure: clock.now.Add(time.Duration(i))}
+	}
+	clock.advance(time.Second)
+	b.ResetTimer()
+	for i := range b.N {
+		ok, done := l.Attempt(fmt.Sprintf("new%d", i))
+		if !ok {
+			b.Fatal("a new key was refused")
+		}
+		done(Failed)
+	}
+	b.ReportMetric(float64(l.scans)/float64(b.N), "scans/op")
 }

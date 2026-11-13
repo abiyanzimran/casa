@@ -2,6 +2,7 @@ package identity
 
 import (
 	"net/netip"
+	"slices"
 	"sync"
 	"time"
 )
@@ -15,6 +16,8 @@ const (
 	forgetAfter = time.Hour
 	// maxLimiterKeys bounds the memory of each limiter's key table.
 	maxLimiterKeys = 100_000
+	// evictBatchDivisor: a scan of a full table makes room for 1/100 of it.
+	evictBatchDivisor = 100
 )
 
 // Limiter counts consecutive failures per key: after threshold failures, the
@@ -42,6 +45,8 @@ type Limiter struct {
 	// can be forgotten before this time, so a new key is refused without
 	// another scan (a flood of new keys costs no O(n) scan each).
 	fullUntil time.Time
+	// scans counts the scans of a full table, for the tests.
+	scans int
 }
 
 type limiterKey struct {
@@ -128,44 +133,61 @@ func (l *Limiter) live(key string, now time.Time) (limiterKey, bool) {
 	return k, ok
 }
 
-// evict makes room for one key (10.1 §8.1 item 2): it drops keys idle for
-// forgetAfter, or else the key below the threshold whose last failure is
-// oldest. If every key reached its threshold, a table guarding a password
-// (refusesWhenFull) keeps them all until they are forgotten, even when their
-// current wait is over, so a flood of invented keys cannot reset a real
-// account's count: it reports false and sets fullUntil to the earliest time
-// a key can be forgotten. Every other table drops the penalised key with the
-// oldest last failure, so a flood cannot close sign-up or recovery.
+// evict makes room in a full table (10.1 §8.1 item 2): it drops keys idle
+// for forgetAfter, then keys below the threshold, oldest last failure first.
+// If those are not enough, a table guarding a password (refusesWhenFull)
+// keeps its penalised keys until they are forgotten, even when their current
+// wait is over, so a flood of invented keys cannot reset a real account's
+// count: it reports false and sets fullUntil to the earliest time a key can
+// be forgotten. Every other table goes on to drop penalised keys, oldest
+// last failure first, so a flood cannot close sign-up or recovery.
 //
-// ponytail: an O(n) scan of at most maxLimiterKeys, only when the table is
-// full; a heap by last failure if a full table becomes common.
+// One scan makes room for evictBatch keys, not one, so a flood of new keys
+// costs one O(n) scan per 1% of the table, not per key.
+//
+// ponytail: a full sort of the candidates once per evictBatch new keys; a
+// heap by last failure if a full table becomes common.
 func (l *Limiter) evict(now time.Time) bool {
-	var oldest, penalisedOldest string
+	l.scans++
+	type candidate struct {
+		key         string
+		lastFailure time.Time
+	}
+	var below, penalised []candidate
 	var forgettable time.Time
 	for key, k := range l.keys {
 		switch {
 		case !now.Before(k.lastFailure.Add(forgetAfter)):
 			delete(l.keys, key)
 		case k.failures >= l.threshold:
+			penalised = append(penalised, candidate{key, k.lastFailure})
 			if at := k.lastFailure.Add(forgetAfter); forgettable.IsZero() || at.Before(forgettable) {
-				forgettable, penalisedOldest = at, key
+				forgettable = at
 			}
-		case oldest == "" || k.lastFailure.Before(l.keys[oldest].lastFailure):
-			oldest = key
+		default:
+			below = append(below, candidate{key, k.lastFailure})
 		}
+	}
+	need := max(1, l.maxKeys/evictBatchDivisor) - (l.maxKeys - len(l.keys))
+	drop := func(candidates []candidate) {
+		if need <= 0 {
+			return
+		}
+		slices.SortFunc(candidates, func(a, b candidate) int { return a.lastFailure.Compare(b.lastFailure) })
+		for _, c := range candidates[:min(need, len(candidates))] {
+			delete(l.keys, c.key)
+		}
+		need -= len(candidates)
+	}
+	drop(below)
+	if !l.refusesWhenFull {
+		drop(penalised)
 	}
 	if len(l.keys) < l.maxKeys {
 		return true
 	}
-	if oldest == "" && l.refusesWhenFull {
-		l.fullUntil = forgettable
-		return false
-	}
-	if oldest == "" {
-		oldest = penalisedOldest
-	}
-	delete(l.keys, oldest)
-	return true
+	l.fullUntil = forgettable
+	return false
 }
 
 // rateLimit is one RPC's rate limit: an account (or email) key and a
