@@ -1,12 +1,16 @@
 package database_test
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"slices"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -152,11 +156,11 @@ func TestScope(t *testing.T) {
 		// both settings and would hide a leak, so the checks are plain pool
 		// queries outside them.
 		one := oneConnection(t, d)
-		scope := database.Scope{HouseholdID: h1, AccountID: account}
+		scope := database.Scope{HouseholdID: h1, AccountID: account, Email: "a@example.test", TokenHash: []byte{1}}
 
 		requireNoScope := func(after string) {
 			t.Helper()
-			for _, setting := range []string{"app.household_id", "app.account_id"} {
+			for _, setting := range []string{"app.household_id", "app.account_id", "app.email", "app.token_hash"} {
 				var value string
 				if err := one.QueryRow(ctx, "SELECT coalesce(current_setting($1, true), '')", setting).Scan(&value); err != nil {
 					t.Fatal(err)
@@ -276,6 +280,24 @@ func TestScope(t *testing.T) {
 		}
 	})
 
+	t.Run("the email and the token hash are set when given", func(t *testing.T) {
+		for _, c := range []struct {
+			scope            database.Scope
+			email, tokenHash string
+		}{
+			{database.Scope{Email: "a@example.test", TokenHash: []byte{1, 2}}, "a@example.test", "0102"},
+			{database.Scope{}, "", ""},
+		} {
+			var email, tokenHash string
+			err := database.Read(ctx, app, c.scope, func(tx pgx.Tx) error {
+				return tx.QueryRow(ctx, "SELECT current_setting('app.email'), current_setting('app.token_hash')").Scan(&email, &tokenHash)
+			})
+			if err != nil || email != c.email || tokenHash != c.tokenHash {
+				t.Errorf("scope %+v: app.email = %q, app.token_hash = %q, err %v; want %q, %q", c.scope, email, tokenHash, err, c.email, c.tokenHash)
+			}
+		}
+	})
+
 	t.Run("the account is set when given", func(t *testing.T) {
 		for _, c := range []struct {
 			scope database.Scope
@@ -291,6 +313,132 @@ func TestScope(t *testing.T) {
 			if err != nil || got != c.want {
 				t.Errorf("scope %+v: app.account_id = %q, err %v; want %q", c.scope, got, err, c.want)
 			}
+		}
+	})
+}
+
+// counterProbe is a household table two writers update at once.
+const counterProbe = `
+	CREATE TABLE counter_probe (household_id uuid PRIMARY KEY, n int NOT NULL);
+	ALTER TABLE counter_probe ENABLE ROW LEVEL SECURITY;
+	ALTER TABLE counter_probe FORCE ROW LEVEL SECURITY;
+	CREATE POLICY household ON counter_probe
+		USING (household_id = current_setting('app.household_id')::uuid)
+		WITH CHECK (household_id = current_setting('app.household_id')::uuid);
+	GRANT SELECT, INSERT, UPDATE ON counter_probe TO app_rw;`
+
+// TestWriteRetries proves the retry of 09.2 §6 (lead ruling Q1 on the 1.4
+// plan: 5 retries after the first attempt).
+func TestWriteRetries(t *testing.T) {
+	d := databasetest.Migrated(t)
+	ctx := t.Context()
+	app := d.Pool(t, "app_rw")
+	serializationFailure := &pgconn.PgError{Code: "40001"}
+
+	// failing returns an fn that fails with err on its first n calls, and
+	// the counter of its calls.
+	failing := func(n int32, err error) (func(pgx.Tx) error, *atomic.Int32) {
+		calls := &atomic.Int32{}
+		return func(pgx.Tx) error {
+			if calls.Add(1) <= n {
+				return err
+			}
+			return nil
+		}, calls
+	}
+
+	t.Run("a serialization failure is retried up to 5 times", func(t *testing.T) {
+		fn, calls := failing(5, serializationFailure)
+		if err := database.Write(ctx, app, database.Scope{}, fn); err != nil || calls.Load() != 6 {
+			t.Fatalf("err %v after %d calls, want nil after 6", err, calls.Load())
+		}
+	})
+	t.Run("a deadlock is retried", func(t *testing.T) {
+		fn, calls := failing(1, &pgconn.PgError{Code: "40P01"})
+		if err := database.Write(ctx, app, database.Scope{}, fn); err != nil || calls.Load() != 2 {
+			t.Fatalf("err %v after %d calls, want nil after 2", err, calls.Load())
+		}
+	})
+	t.Run("after 5 retries the error is ErrRetryExhausted", func(t *testing.T) {
+		fn, calls := failing(100, serializationFailure)
+		err := database.Write(ctx, app, database.Scope{}, fn)
+		if !errors.Is(err, database.ErrRetryExhausted) || databasetest.PgErrorCode(err) != "40001" || calls.Load() != 6 {
+			t.Fatalf("err %v after %d calls, want ErrRetryExhausted wrapping 40001 after 6", err, calls.Load())
+		}
+	})
+	t.Run("other errors are not retried", func(t *testing.T) {
+		fn, calls := failing(100, errSentinel)
+		if err := database.Write(ctx, app, database.Scope{}, fn); !errors.Is(err, errSentinel) || calls.Load() != 1 {
+			t.Fatalf("err %v after %d calls, want the sentinel after 1", err, calls.Load())
+		}
+	})
+	t.Run("a read is never retried", func(t *testing.T) {
+		fn, calls := failing(100, serializationFailure)
+		if err := database.Read(ctx, app, database.Scope{}, fn); databasetest.PgErrorCode(err) != "40001" || calls.Load() != 1 {
+			t.Fatalf("err %v after %d calls, want 40001 after 1", err, calls.Load())
+		}
+	})
+	t.Run("a cancelled context stops the retries", func(t *testing.T) {
+		cancelled, cancel := context.WithCancel(ctx)
+		calls := 0
+		err := database.Write(cancelled, app, database.Scope{}, func(pgx.Tx) error {
+			calls++
+			cancel()
+			return serializationFailure
+		})
+		if !errors.Is(err, context.Canceled) || calls != 1 {
+			t.Fatalf("err %v after %d calls, want context.Canceled after 1", err, calls)
+		}
+	})
+	t.Run("two conflicting writers both commit", func(t *testing.T) {
+		if _, err := d.Pool(t, "migrator").Exec(ctx, counterProbe); err != nil {
+			t.Fatal(err)
+		}
+		h := newUUID()
+		scope := database.Scope{HouseholdID: h}
+		err := database.Write(ctx, app, scope, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, "INSERT INTO counter_probe VALUES ($1, 0)", h)
+			return err
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Both first attempts read n before either writes, so one of them
+		// cannot serialize and must run again.
+		var arrived sync.WaitGroup
+		arrived.Add(2)
+		var calls atomic.Int32
+		errs := make(chan error, 2)
+		for range 2 {
+			go func() {
+				first := true
+				errs <- database.Write(ctx, app, scope, func(tx pgx.Tx) error {
+					calls.Add(1)
+					var n int
+					if err := tx.QueryRow(ctx, "SELECT n FROM counter_probe").Scan(&n); err != nil {
+						return err
+					}
+					if first {
+						first = false
+						arrived.Done()
+						arrived.Wait()
+					}
+					_, err := tx.Exec(ctx, "UPDATE counter_probe SET n = $1", n+1)
+					return err
+				})
+			}()
+		}
+		for range 2 {
+			if err := <-errs; err != nil {
+				t.Fatalf("writer: %v", err)
+			}
+		}
+		var n int
+		err = database.Read(ctx, app, scope, func(tx pgx.Tx) error {
+			return tx.QueryRow(ctx, "SELECT n FROM counter_probe").Scan(&n)
+		})
+		if err != nil || n != 2 || calls.Load() < 3 {
+			t.Fatalf("n = %d after %d calls, err %v; want 2 after at least 3", n, calls.Load(), err)
 		}
 	})
 }
