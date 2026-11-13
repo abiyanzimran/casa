@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima seluruhnya.** **Butir 1, 2, 3, dan 5** diterima atas saran lead lewat **keputusan 56** (12 November 2026, selama S6; jawaban pemilik produk "Terima semua (Saran)", [_progress.md](../_progress.md), "Keputusan pemilik produk 56 sampai 58"). **Butir 4** diterima atas saran lead lewat keputusan 44 (12 November 2026; jawabannya "Ya, 60/80 hari (Saran)", [_progress.md](../_progress.md), "Penutupan pertanyaan terbuka sebelum S6"). Semula Diusulkan (S5). Butir 1 diselaraskan dengan keputusan 45 (server uji sementara sampai menjelang GR-2) |
-| Tanggal | 12 November 2026 (S5; diperbarui S5 fase D; butir 4 diselaraskan dengan keputusan 42; keputusan 44 dan 45; S6: keputusan 56; catatan web lebih dulu sesudah S6) |
+| Tanggal | 12 November 2026 (S5; diperbarui S5 fase D; butir 4 diselaraskan dengan keputusan 42; keputusan 44 dan 45; S6: keputusan 56; catatan web lebih dulu sesudah S6); 13 November 2026 (FS-1 1.3: sumber versi minimum `web` diselaraskan dengan ADR-030 butir 9) |
 | Pengusul | `architect` |
 | Mengubah | ADR-022 butir 1 (**diterima**, keputusan 44): batas keras 80 hari sejak build iOS terakhir diunggah ke TestFlight, sasaran tetap 60. Semula ADR-022 butir 1, keputusan pemilik produk sendiri (17 keputusan 32), berbunyi paling lambat setiap 90 hari, sasaran 60 |
 | Rincian | [14 §6](../14-engineering-roadmap.md#6-strategi-rilis); [09.4 §1, §5](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -95,7 +95,7 @@ Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md) butir 3, 9. Butir 2 dan 
     4. Klien mendapat versi baru saat aplikasi dibuka berikutnya (ADR-030 butir 9).
 - **Butir 5, kompatibilitas:**
   - Bagi web, **versi klien minimum berlaku sejak pilot**, berbeda dari bunyi butir 5 "di pilot tidak dibangun". Alasannya: service worker dapat terus menyajikan bundel lama yang memuat celah (TM-45), dan pengelola tidak dapat memperbarui browser seperti memasang build.
-  - Kode galat `CLIENT_UPGRADE_REQUIRED` dan konstanta versi minimum per platform dari butir 5 dibangun sekarang, dengan satu nilai untuk `web`. Nilai `ios` dan `android` tetap tidak dipakai di pilot.
+  - Kode galat `CLIENT_UPGRADE_REQUIRED` dan versi minimum per platform dari butir 5 dibangun sekarang, dengan satu nilai untuk `web`. Nilai `ios` dan `android` tetap tidak dipakai di pilot. Catatan 13 November 2026 (FS-1 1.3, kontrak dasar; putusan lead Q2): versi minimum `web` adalah konfigurasi server (flag `casa serve`) dengan nilai bawaan konstanta di kode, sesuai ADR-030 butir 9, bukan konstanta saja.
   - Perintah yang ditolak tetap di antrean.
   - **Rollback web** adalah memasang biner sebelumnya. Klien yang sudah memuat bundel lebih baru tetap dilayani selama kontraknya kompatibel, dan `buf breaking` menjaganya.
 - **Konsekuensi:** satu catatan aplikasi iOS kedua dan pembagian jatah Xcode Cloud baru diperlukan di jalur iOS native. FS-1 langkah 7 hanya menyiapkan instans staging dan subdomainnya.

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi C** dengan kalimat ES §8 di butir 3 (pertanyaan S4-1 (iii), huruf A). Kata-katanya: "yang penting kan versi stable, versi stable ga musti dari 1 kan? apalagi yang baru? cek goolge aja" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat). Bacaan lead: rilis 0.x final, bukan pra-rilis, boleh dipakai, sama dengan bunyi butir 3; dikukuhkan dengan "lanjut". Kalimat itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §8 |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 (FS-1 1.2: butir 6, modul tidak langsung) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 (FS-1 1.2: butir 6, modul tidak langsung); 13 November 2026 (FS-1 1.3: butir 7, SDK Go hasil generate BSR) |
 | Pengusul | `architect` |
 | Mengubah | `ENGINEERING-STANDARDS.md` §8 (satu kalimat, butir 3; disetujui pemilik produk) |
 | Rincian | [09.1 §2, §5, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-012](ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 5 |
@@ -69,6 +69,10 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    6. bila kode kita mengimpor modul itu secara langsung, ia menjadi dependensi langsung dan butir 1 dan 2 berlaku penuh (baris sendiri bila 0.x).
 
    Yang pertama diterima lewat butir ini (PR #13, ditarik pgx v5 dan goose v3): `github.com/jackc/pgservicefile` (pseudo-version `v0.0.0-20240606120523-5a60cdf6a761`, satu-satunya versi di [pkg.go.dev/github.com/jackc/pgservicefile?tab=versions](https://pkg.go.dev/github.com/jackc/pgservicefile?tab=versions), tanpa tanda deprecated, diakses 13 November 2026) **[Terverifikasi]**, `github.com/mfridman/interpolate` v0.2.0, `github.com/sethvargo/go-retry` v0.5.0, `golang.org/x/sync` v0.25.0, dan `golang.org/x/text` v0.44.0 (versi menurut PR #13).
+7. **SDK Go hasil generate BSR** (catatan 13 November 2026, FS-1 1.3, kontrak dasar; putusan lead Q8). Modul Go yang dibangkitkan Buf Schema Registry, misalnya `buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go` yang diimpor kode hasil generate kita, bernomor `v<versi plugin>-<waktu komit modul>-<12 karakter ID komit>.<revisi plugin>`. Dokumentasi Buf menyebut bagian waktu dan komit sebagai "pre-release" dalam sintaks semver, dan revisi plugin sebagai build metadata ([buf.build/docs/bsr/generated-sdks/go](https://buf.build/docs/bsr/generated-sdks/go/), diakses 13 November 2026) **[Terverifikasi]**; versi terbaru modul itu saat dicek `v1.36.12-20260825204119-511051f7f437.2` ([proxy.golang.org, `@latest`](https://proxy.golang.org/buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/@latest), diakses 13 November 2026) **[Terverifikasi]**. Bentuk ini adalah **build beralamat komit** dari modul sumber yang sudah dirilis, bukan pra-rilis (alpha, beta, RC, nightly) dalam arti ES §8 dan butir 4, dan diterima tanpa ADR pengecualian bila:
+   1. versi plugin pembangkitnya dan versi modul sumbernya (komit di `buf.lock`) dipatok, dan komit di versi Go sama dengan komit di `buf.lock`;
+   2. keduanya dicatat di PR yang memasang atau menaikkannya (ES §8 "Recorded"), bersama label rilis modul sumber yang menunjuk komit itu bila ada;
+   3. versi plugin pembangkitnya sendiri bukan pra-rilis dan, bila 0.x, memenuhi butir 1.
 
 ## Konsekuensi
 

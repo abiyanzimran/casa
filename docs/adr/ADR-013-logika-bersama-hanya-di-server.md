@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi A**, termasuk pengecualian ES §2 di butir 3, disetujui tegas sesuai ES baris 3 (S4-1 (ii) A). Kata-katanya: "hp boleh ikut, validasi di app dan server wajib jadi a" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat; dikukuhkan dengan "lanjut"). Kontrak (butir 4 sampai 6) diterima lewat D-100. Pengecualian itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §2 |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan web lebih dulu sesudah S6) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4; catatan web lebih dulu sesudah S6); 13 November 2026 (FS-1 1.3: butir 4, detail galat per medan dan nama kode di enum) |
 | Pengusul | `architect` |
 | Mengubah | Menuntaskan 06 S-9 (tanpa perkiraan offline di pilot) |
 | Rincian | [09.1 §3, §4](../09-technical-architecture/01-pilihan-teknologi.md); [09.2 §10](../09-technical-architecture/02-data-dan-skema.md); [09.4 §4](../09-technical-architecture/04-operasi-uji-biaya.md) |
@@ -74,3 +74,10 @@ Mencatat [ADR-030](ADR-030-klien-web-pwa-lebih-dulu.md). Butir 1 dan 2 tidak ber
 - **Butir 5, pustaka klien:** `@connectrpc/connect-web` 2.x (18 §5.13.1). Dari browser hanya unary dan server streaming; kontrak tidak memakai client streaming atau bidi.
 - **Butir 6:** kode non-UI web (klien API, antrean, sinkron, bantuan isian) dipisah dari komponen layar, seperti di aplikasi native.
 - **Konsekuensi pertama di atas berubah:** TypeScript menjadi bahasa keempat di repositori, untuk klien web saja. Tidak ada langkah build khusus macOS sampai jalur iOS native dimulai.
+
+## Catatan 13 November 2026 (FS-1 1.3, kontrak dasar)
+
+Putusan lead atas pertanyaan rencana 1.3 (Q5, Q7). Keputusan di atas tidak berubah; butir 4 diperjelas.
+
+- **Galat per medan:** detailnya memakai pesan kontrak `buf.validate.Violations` dari modul protovalidate (jalur medan dan `rule_id`, ter-generate untuk semua bahasa), dikirim dengan kode Connect `InvalidArgument`. Enum `ErrorCode` tidak memuat nilai per medan; yang dimaksud "kode galat per medan" di butir 3 dan 4 adalah detail itu.
+- **Nama kode di dokumen dan di enum:** nama kode galat di dokumen (`session_expired`, `session_revoked`, `WRITE_FROZEN`, `NOTICE_UNREAD`, `CLIENT_UPGRADE_REQUIRED`, dan yang menyusul) dipetakan ke enum `ErrorCode` sebagai `ERROR_CODE_<NAMA_HURUF_BESAR>` (misalnya `ERROR_CODE_SESSION_EXPIRED`), karena aturan `buf lint` STANDARD mewajibkan awalan nama enum pada setiap nilai.

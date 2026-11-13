@@ -33,6 +33,8 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 | `care`, `shopping`, `maintenance`, `plan` (Tier 2) | Sesuai 06 §13 dan tier-2.md | Tabel masing-masing | 06 §13 |
 | `schema` (infrastruktur, `internal/schema`) | Migrasi goose (§10) dan tabel infrastruktur yang tidak dimiliki modul domain. Catatan 13 November 2026 (FS-1 tugas 1.2): `currency` dibuat di tugas 1.2. Baris `idempotency_record` ditulis jalur perintah di dalam transaksi perintah itu (§8); `schema` memiliki DDL-nya | `currency`, `idempotency_record` | ADR-016 butir 8, 9, 11 |
 | `database` (infrastruktur, `internal/database`) | Catatan 13 November 2026 (FS-1 tugas 1.2): transaksi bercakupan. `Scope` membawa konteks (`app.household_id` atau `app.account_id`) yang dipasang `SET LOCAL` di awal transaksi; `Write` membuka transaksi `SERIALIZABLE`, `Read` membuka `REPEATABLE READ READ ONLY` (§3 lapis 4, §6). Tidak mengimpor paket `internal/` lain | Tanpa tabel | ADR-016 |
+| `api` (lapisan API, `internal/api`) | Catatan 13 November 2026 (FS-1 1.3, kontrak dasar): server Connect tempat setiap layanan mendaftar, mux HTTP dengan `/healthz` (09.4 §3) dan batas ukuran permintaan (09.4 §1), serta satu interseptor batas dengan urutan tetap: deskriptor metode → `request_context` → versi klien minimum (perintah tulis dari `web`) → kunci idempotensi (perintah tulis, §8) → protovalidate atas seluruh pesan. Versi diperiksa sebelum validasi badan, sehingga klien lama mendapat `CLIENT_UPGRADE_REQUIRED` dan perintahnya tetap di antrean | Tanpa tabel | ADR-013 butir 4; ADR-005; ADR-030 butir 9; SEC-169 (d) |
+| `gen/casa/v1` (kode hasil generate, `internal/gen/casa/v1`) | Catatan 13 November 2026 (FS-1 1.3, kontrak dasar): kode Go hasil `buf generate` dari `proto/casa/v1`. Tidak disunting tangan (ES §2) dan dibangkitkan ulang di CI yang menolak beda (14 §4.6). Tidak mengimpor paket `internal/` lain | Tanpa tabel | ADR-013 butir 4 |
 | `read` | **Satu jalur baca**: `can_read(member, object)`, proyeksi layar, laporan, ekspor, dan masukan `AI` | Tanpa tabel; fungsi dipakai semua modul | SEC-06; LM-07 |
 
 **Aturan dependensi** (diperiksa uji arsitektur di CI, ADR-014):
@@ -42,6 +44,7 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 3. `chat` tidak membaca isi objek lain. Kartu dirender dari `read` saat ditarik (INV-A44).
 4. Tidak ada modul yang membaca `read_state` atau `presence` selain `chat` (LM-11; INV-A45).
 5. Paket infrastruktur (catatan 13 November 2026, FS-1 tugas 1.2): `internal/database` tidak mengimpor paket `internal/` lain. Yang boleh mengimpor `schema` hanya `cmd/casa` (perintah `casa migrate`) dan `internal/database/databasetest` (menyiapkan basis data uji lewat migrasi yang sama); modul domain tidak mengimpornya.
+6. Lapisan API dan kode hasil generate (catatan 13 November 2026, FS-1 1.3, kontrak dasar): `internal/gen/casa/v1` tidak mengimpor paket `internal/` lain. `internal/api` hanya mengimpor `internal/gen/casa/v1`, dan tidak pernah `internal/schema`. `cmd/casa` mengimpor `internal/api` dan `internal/schema`. Tepi baru, misalnya `internal/api` ke modul domain sejak layanan pertama (1.4), ditambahkan ke aturan ini dan ke daftar izin uji arsitektur (`allowedImports`) di PR yang sama.
 
 ```mermaid
 flowchart LR
@@ -448,7 +451,9 @@ ADR-005 menyerahkan tiga hal ke dokumen 09. Ketiganya ditetapkan di sini.
 | **Cara keunikan dijaga** | `PRIMARY KEY (scope_id, idempotency_key)` pada `idempotency_record`, ditulis dalam transaksi yang sama dengan efeknya. Dua kiriman bersamaan: satu commit; yang lain mendapat pelanggaran unique atau `40001`, dicoba ulang, menemukan rekamannya, lalu mengembalikan hasil pertama (INV-10). Untuk entri uang, `entry.idempotency_key` juga unik per rumah tangga |
 | **Jangka simpan** | **Perintah uang (entri):** permanen, karena kuncinya kolom `entry`. Antrean offline berapa lama pun tidak dapat menghasilkan entri ganda. **Perintah lain:** `idempotency_record` disimpan **90 hari**. Klien tidak mengirim otomatis perintah non-uang yang lebih tua dari **30 hari**; perintah itu ditampilkan kepada pemiliknya untuk dikirim ulang atau dibuang **[Usulan]**. Selisih 60 hari itu memberi ruang bagi jam perangkat yang salah |
 
-Perintah tingkat akun (masuk, membuat rumah tangga, menerima undangan) memakai `scope_id = account_id`.
+**Perintah tulis** (catatan 13 November 2026, FS-1 1.3, kontrak dasar) adalah RPC yang membawa opsi metode `CommandOptions`, yaitu satu baris di tabel jenis perintah (09.3 §1), baik perintah antrean maupun perintah daring biasa. Hanya perintah tulis yang wajib membawa kunci idempotensi; server menolak perintah tulis tanpa kunci. RPC `identity` (masuk, autentikasi ulang, pembaruan token, pemulihan lewat email) berada di luar tabel jenis perintah dan tidak membawa kunci idempotensi dari mekanisme ini (09.3 §1).
+
+Perintah tingkat akun di dalam tabel jenis perintah (membuat rumah tangga, menerima undangan) memakai `scope_id = account_id`.
 
 ---
 
@@ -471,7 +476,7 @@ Perintah tingkat akun (masuk, membuat rumah tangga, menerima undangan) memakai `
 |---|---|
 | Basis data | Migrasi berversi dengan goose, masing-masing dengan arah naik dan turun (ES §7). Pola **expand–contract**: tambah kolom atau tabel, isi, alihkan kode, baru kemudian hapus yang lama di rilis berikutnya. Biner sebelumnya tetap berjalan di atas skema baru, sehingga rollback cukup dengan memasang biner lama. Baris inti uang tidak pernah ditulis ulang oleh migrasi (INV-09). Migrasi data atas entri dilakukan dengan entri baru, bukan `UPDATE` |
 | Kontrak API | Aturan protobuf: nomor medan tidak dipakai ulang, medan hanya ditambah, nilai enum tak dikenal ditangani klien sebagai "tidak dikenal" yang aman. `buf breaking` memblokir merge yang merusak kompatibilitas |
-| Aplikasi lama di tangan pengguna | Server menerima versi kontrak sampai N−1 (tahap publik). Di bawah itu server membalas `upgrade_required`, dan aplikasi menampilkan layar perbarui. Di pilot cukup N |
+| Aplikasi lama di tangan pengguna | Server menerima versi kontrak sampai N−1 (tahap publik). Di bawah itu server membalas `CLIENT_UPGRADE_REQUIRED` (ADR-028 butir 5; nama diselaraskan 13 November 2026, FS-1 1.3), dan aplikasi menampilkan layar perbarui. Di pilot cukup N bagi native; bagi web versi minimum berlaku sejak pilot (ADR-030 butir 9) |
 | Basis data perangkat | Basis data lokal diperlakukan sebagai **cache yang dapat dibangun ulang**: bila skemanya berubah tidak kompatibel, cache dibuang dan disinkron ulang dari server. **Kecuali tabel antrean perintah**, yang skemanya dijaga stabil dan dimigrasi, karena isinya belum ada di server |
 
 ---
