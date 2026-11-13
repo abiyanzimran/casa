@@ -35,6 +35,8 @@ const (
 	// IdentityServiceRefreshSessionProcedure is the procedure name of the IdentityService's
 	// RefreshSession RPC.
 	IdentityServiceRefreshSessionProcedure = "/casa.v1.IdentityService/RefreshSession"
+	// IdentityServiceSignOutProcedure is the procedure name of the IdentityService's SignOut RPC.
+	IdentityServiceSignOutProcedure = "/casa.v1.IdentityService/SignOut"
 )
 
 var (
@@ -66,6 +68,13 @@ var (
 			Procedure:  IdentityServiceRefreshSessionProcedure,
 		}
 	})
+	identityServiceSignOutSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("SignOut"),
+			Procedure:  IdentityServiceSignOutProcedure,
+		}
+	})
 )
 
 // IdentityServiceClient is a client for the casa.v1.IdentityService service.
@@ -83,6 +92,9 @@ type IdentityServiceClient interface {
 	// Rotates a native session's tokens. A refresh token used a second time
 	// revokes its session (SEC-15).
 	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
+	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
+	// exempt from NOTICE_UNREAD.
+	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
 }
 
 // NewIdentityServiceClient constructs a client for the casa.v1.IdentityService service. Multiple
@@ -106,6 +118,9 @@ type IdentityServiceHandler interface {
 	// Rotates a native session's tokens. A refresh token used a second time
 	// revokes its session (SEC-15).
 	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
+	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
+	// exempt from NOTICE_UNREAD.
+	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
 }
 
 // RegisterIdentityServiceHandler registers svc as the casa.v1.IdentityService implementation on
@@ -117,6 +132,7 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 		connect.Method{Spec: identityServiceCompleteSignUpSpec(), Handler: adapter.completeSignUp},
 		connect.Method{Spec: identityServiceSignInSpec(), Handler: adapter.signIn},
 		connect.Method{Spec: identityServiceRefreshSessionSpec(), Handler: adapter.refreshSession},
+		connect.Method{Spec: identityServiceSignOutSpec(), Handler: adapter.signOut},
 	)
 }
 
@@ -137,6 +153,10 @@ func (UnimplementedIdentityServiceHandler) SignIn(context.Context, *v1.SignInReq
 
 func (UnimplementedIdentityServiceHandler) RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.RefreshSession is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.SignOut is not implemented")
 }
 
 type identityServiceClient struct {
@@ -170,6 +190,14 @@ func (c *identityServiceClient) SignIn(ctx context.Context, req *v1.SignInReques
 func (c *identityServiceClient) RefreshSession(ctx context.Context, req *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
 	var res v1.RefreshSessionResponse
 	if err := c.client.CallUnary(ctx, identityServiceRefreshSessionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) SignOut(ctx context.Context, req *v1.SignOutRequest) (*v1.SignOutResponse, error) {
+	var res v1.SignOutResponse
+	if err := c.client.CallUnary(ctx, identityServiceSignOutSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -219,6 +247,18 @@ func (h identityServiceHandler) refreshSession(ctx context.Context, _ connect.Sp
 		return err
 	}
 	res, err := h.svc.RefreshSession(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) signOut(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.SignOutRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.SignOut(ctx, &req)
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,9 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 var allowedImports = map[string][]string{
 	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/identity", "internal/schema"},
 	"cmd/idcheck":                        {},
-	"internal/api":                       {"internal/database", "internal/gen/casa/v1", "internal/gen/casa/v1/casav1connect", "internal/identity"},
+	"internal/api":                       {"internal/command", "internal/database", "internal/gen/casa/v1", "internal/gen/casa/v1/casav1connect", "internal/identity"},
+	"internal/command":                   {"internal/command/commanddb", "internal/database"},
+	"internal/command/commanddb":         {},
 	"internal/architecture":              {},
 	"internal/database":                  {},
 	"internal/database/databasetest":     {"internal/schema"},

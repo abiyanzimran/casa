@@ -236,3 +236,10 @@ func revokeSession(ctx context.Context, q *identitydb.Queries, account, session 
 		Detail: pgtype.Text{String: reason, Valid: true}, OccurredAt: now,
 	})
 }
+
+// SignOut revokes session (reason 'user') and records it in the security
+// trail (09.3 §1 "keluar akun"; SEC-16). It runs inside the command
+// transaction of tx, whose scope is the session's account.
+func (s *Service) SignOut(ctx context.Context, tx pgx.Tx, session Session) error {
+	return revokeSession(ctx, identitydb.New(tx), session.AccountID, session.ID, "user", s.config.Now())
+}

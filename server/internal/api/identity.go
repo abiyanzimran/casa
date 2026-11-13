@@ -7,21 +7,28 @@ import (
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"connectrpc.com/connect/v2"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/abiyanzimran/casa/server/internal/command"
 	"github.com/abiyanzimran/casa/server/internal/database"
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/identity"
 )
 
-// RegisterIdentityService serves casa.v1.IdentityService with s.
-func RegisterIdentityService(server *connect.Server, s *identity.Service) {
-	casav1connect.RegisterIdentityServiceHandler(server, identityHandler{s})
+// RegisterIdentityService serves casa.v1.IdentityService with s; its write
+// commands run on pool through command.Run.
+func RegisterIdentityService(server *connect.Server, pool *pgxpool.Pool, s *identity.Service) {
+	casav1connect.RegisterIdentityServiceHandler(server, identityHandler{pool: pool, s: s})
 }
 
-type identityHandler struct{ s *identity.Service }
+type identityHandler struct {
+	pool *pgxpool.Pool
+	s    *identity.Service
+}
 
 func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignUpRequest) (*casav1.StartSignUpResponse, error) {
 	if err := h.s.StartSignUp(ctx, clientOf(ctx, req.GetRequestContext()), req.GetSetupToken(), req.GetEmail()); err != nil {
@@ -52,6 +59,19 @@ func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.Refresh
 		return nil, identityError(err)
 	}
 	return &casav1.RefreshSessionResponse{Tokens: sessionTokens(tokens)}, nil
+}
+
+func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest) (*casav1.SignOutResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	res, err := command.Run(ctx, h.pool, database.Scope{AccountID: session.AccountID},
+		casav1connect.IdentityServiceSignOutProcedure, req.GetRequestContext().GetIdempotencyKey(), req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.SignOutResponse, error) {
+			return &casav1.SignOutResponse{}, h.s.SignOut(ctx, tx, session)
+		})
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return res, nil
 }
 
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
@@ -103,6 +123,9 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrSessionRevoked):
 		return errorWithDetail(connect.CodeUnauthenticated, "session revoked",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED})
+	case errors.Is(err, command.ErrIdempotencyConflict):
+		return errorWithDetail(connect.CodeFailedPrecondition, "idempotency conflict",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_IDEMPOTENCY_CONFLICT})
 	case errors.Is(err, database.ErrRetryExhausted):
 		return errorWithDetail(connect.CodeAborted, "retry exhausted",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RETRY_EXHAUSTED})

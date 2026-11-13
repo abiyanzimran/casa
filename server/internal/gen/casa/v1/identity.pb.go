@@ -493,11 +493,91 @@ func (x *SessionTokens) GetAccessTokenExpiresAt() *timestamppb.Timestamp {
 	return nil
 }
 
+type SignOutRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SignOutRequest) Reset() {
+	*x = SignOutRequest{}
+	mi := &file_casa_v1_identity_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignOutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignOutRequest) ProtoMessage() {}
+
+func (x *SignOutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignOutRequest.ProtoReflect.Descriptor instead.
+func (*SignOutRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SignOutRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+type SignOutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SignOutResponse) Reset() {
+	*x = SignOutResponse{}
+	mi := &file_casa_v1_identity_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignOutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignOutResponse) ProtoMessage() {}
+
+func (x *SignOutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignOutResponse.ProtoReflect.Descriptor instead.
+func (*SignOutResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{10}
+}
+
 var File_casa_v1_identity_proto protoreflect.FileDescriptor
 
 const file_casa_v1_identity_proto_rawDesc = "" +
 	"\n" +
-	"\x16casa/v1/identity.proto\x12\acasa.v1\x1a\x1bbuf/validate/validate.proto\x1a\x15casa/v1/request.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x01\n" +
+	"\x16casa/v1/identity.proto\x12\acasa.v1\x1a\x1bbuf/validate/validate.proto\x1a\x15casa/v1/command.proto\x1a\x15casa/v1/request.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x01\n" +
 	"\x12StartSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12$\n" +
 	"\vsetup_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\n" +
@@ -525,12 +605,16 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\rSessionTokens\x12&\n" +
 	"\faccess_token\x18\x01 \x01(\tB\x03\x80\x01\x01R\vaccessToken\x12(\n" +
 	"\rrefresh_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\frefreshToken\x12Q\n" +
-	"\x17access_token_expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt2\xbc\x02\n" +
+	"\x17access_token_expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt\"Z\n" +
+	"\x0eSignOutRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\"\x11\n" +
+	"\x0fSignOutResponse2\x84\x03\n" +
 	"\x0fIdentityService\x12H\n" +
 	"\vStartSignUp\x12\x1b.casa.v1.StartSignUpRequest\x1a\x1c.casa.v1.StartSignUpResponse\x12Q\n" +
 	"\x0eCompleteSignUp\x12\x1e.casa.v1.CompleteSignUpRequest\x1a\x1f.casa.v1.CompleteSignUpResponse\x129\n" +
 	"\x06SignIn\x12\x16.casa.v1.SignInRequest\x1a\x17.casa.v1.SignInResponse\x12Q\n" +
-	"\x0eRefreshSession\x12\x1e.casa.v1.RefreshSessionRequest\x1a\x1f.casa.v1.RefreshSessionResponseB\x9a\x01\n" +
+	"\x0eRefreshSession\x12\x1e.casa.v1.RefreshSessionRequest\x1a\x1f.casa.v1.RefreshSessionResponse\x12F\n" +
+	"\aSignOut\x12\x17.casa.v1.SignOutRequest\x1a\x18.casa.v1.SignOutResponse\"\b\x82\xb5\x18\x04\b\x00\x18\x01B\x9a\x01\n" +
 	"\vcom.casa.v1B\rIdentityProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
 var (
@@ -545,7 +629,7 @@ func file_casa_v1_identity_proto_rawDescGZIP() []byte {
 	return file_casa_v1_identity_proto_rawDescData
 }
 
-var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_casa_v1_identity_proto_goTypes = []any{
 	(*StartSignUpRequest)(nil),     // 0: casa.v1.StartSignUpRequest
 	(*StartSignUpResponse)(nil),    // 1: casa.v1.StartSignUpResponse
@@ -556,31 +640,36 @@ var file_casa_v1_identity_proto_goTypes = []any{
 	(*RefreshSessionRequest)(nil),  // 6: casa.v1.RefreshSessionRequest
 	(*RefreshSessionResponse)(nil), // 7: casa.v1.RefreshSessionResponse
 	(*SessionTokens)(nil),          // 8: casa.v1.SessionTokens
-	(*RequestContext)(nil),         // 9: casa.v1.RequestContext
-	(*timestamppb.Timestamp)(nil),  // 10: google.protobuf.Timestamp
+	(*SignOutRequest)(nil),         // 9: casa.v1.SignOutRequest
+	(*SignOutResponse)(nil),        // 10: casa.v1.SignOutResponse
+	(*RequestContext)(nil),         // 11: casa.v1.RequestContext
+	(*timestamppb.Timestamp)(nil),  // 12: google.protobuf.Timestamp
 }
 var file_casa_v1_identity_proto_depIdxs = []int32{
-	9,  // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	9,  // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	11, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	11, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
 	8,  // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
-	9,  // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
+	11, // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
 	8,  // 4: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
-	9,  // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
+	11, // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
 	8,  // 6: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
-	10, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 8: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
-	2,  // 9: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
-	4,  // 10: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
-	6,  // 11: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
-	1,  // 12: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
-	3,  // 13: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
-	5,  // 14: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
-	7,  // 15: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
-	12, // [12:16] is the sub-list for method output_type
-	8,  // [8:12] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	12, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
+	11, // 8: casa.v1.SignOutRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 9: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
+	2,  // 10: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
+	4,  // 11: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
+	6,  // 12: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
+	9,  // 13: casa.v1.IdentityService.SignOut:input_type -> casa.v1.SignOutRequest
+	1,  // 14: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
+	3,  // 15: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
+	5,  // 16: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
+	7,  // 17: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
+	10, // 18: casa.v1.IdentityService.SignOut:output_type -> casa.v1.SignOutResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_identity_proto_init() }
@@ -588,6 +677,7 @@ func file_casa_v1_identity_proto_init() {
 	if File_casa_v1_identity_proto != nil {
 		return
 	}
+	file_casa_v1_command_proto_init()
 	file_casa_v1_request_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -595,7 +685,7 @@ func file_casa_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_identity_proto_rawDesc), len(file_casa_v1_identity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

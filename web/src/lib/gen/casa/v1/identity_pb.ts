@@ -5,6 +5,7 @@
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
+import { file_casa_v1_command } from "./command_pb";
 import type { RequestContext } from "./request_pb";
 import { file_casa_v1_request } from "./request_pb";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
@@ -15,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/identity.proto.
  */
 export const file_casa_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcDK8AgoPSWRlbnRpdHlTZXJ2aWNlEkgKC1N0YXJ0U2lnblVwEhsuY2FzYS52MS5TdGFydFNpZ25VcFJlcXVlc3QaHC5jYXNhLnYxLlN0YXJ0U2lnblVwUmVzcG9uc2USUQoOQ29tcGxldGVTaWduVXASHi5jYXNhLnYxLkNvbXBsZXRlU2lnblVwUmVxdWVzdBofLmNhc2EudjEuQ29tcGxldGVTaWduVXBSZXNwb25zZRI5CgZTaWduSW4SFi5jYXNhLnYxLlNpZ25JblJlcXVlc3QaFy5jYXNhLnYxLlNpZ25JblJlc3BvbnNlElEKDlJlZnJlc2hTZXNzaW9uEh4uY2FzYS52MS5SZWZyZXNoU2Vzc2lvblJlcXVlc3QaHy5jYXNhLnYxLlJlZnJlc2hTZXNzaW9uUmVzcG9uc2VCmgEKC2NvbS5jYXNhLnYxQg1JZGVudGl0eVByb3RvUAFaP2dpdGh1Yi5jb20vYWJpeWFuemltcmFuL2Nhc2Evc2VydmVyL2ludGVybmFsL2dlbi9jYXNhL3YxO2Nhc2F2MaICA0NYWKoCB0Nhc2EuVjHKAgdDYXNhXFYx4gITQ2FzYVxWMVxHUEJNZXRhZGF0YeoCCENhc2E6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_casa_v1_request, file_google_protobuf_timestamp]);
+  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKCg5TaWduT3V0UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiEQoPU2lnbk91dFJlc3BvbnNlMoQDCg9JZGVudGl0eVNlcnZpY2USSAoLU3RhcnRTaWduVXASGy5jYXNhLnYxLlN0YXJ0U2lnblVwUmVxdWVzdBocLmNhc2EudjEuU3RhcnRTaWduVXBSZXNwb25zZRJRCg5Db21wbGV0ZVNpZ25VcBIeLmNhc2EudjEuQ29tcGxldGVTaWduVXBSZXF1ZXN0Gh8uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlc3BvbnNlEjkKBlNpZ25JbhIWLmNhc2EudjEuU2lnbkluUmVxdWVzdBoXLmNhc2EudjEuU2lnbkluUmVzcG9uc2USUQoOUmVmcmVzaFNlc3Npb24SHi5jYXNhLnYxLlJlZnJlc2hTZXNzaW9uUmVxdWVzdBofLmNhc2EudjEuUmVmcmVzaFNlc3Npb25SZXNwb25zZRJGCgdTaWduT3V0EhcuY2FzYS52MS5TaWduT3V0UmVxdWVzdBoYLmNhc2EudjEuU2lnbk91dFJlc3BvbnNlIgiCtRgECAAYAUKaAQoLY29tLmNhc2EudjFCDUlkZW50aXR5UHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.StartSignUpRequest
@@ -228,9 +229,40 @@ export const SessionTokensSchema: GenMessage<SessionTokens> = /*@__PURE__*/
   messageDesc(file_casa_v1_identity, 8);
 
 /**
+ * @generated from message casa.v1.SignOutRequest
+ */
+export type SignOutRequest = Message<"casa.v1.SignOutRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+};
+
+/**
+ * Describes the message casa.v1.SignOutRequest.
+ * Use `create(SignOutRequestSchema)` to create a new message.
+ */
+export const SignOutRequestSchema: GenMessage<SignOutRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 9);
+
+/**
+ * @generated from message casa.v1.SignOutResponse
+ */
+export type SignOutResponse = Message<"casa.v1.SignOutResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.SignOutResponse.
+ * Use `create(SignOutResponseSchema)` to create a new message.
+ */
+export const SignOutResponseSchema: GenMessage<SignOutResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 10);
+
+/**
  * IdentityService is the identity module's API: closed sign-up, sign-in and
  * sessions (09.2 §1; SEC-11, SEC-12, SEC-15, SEC-158). Its RPCs are outside
- * the command kind table and carry no idempotency key (09.2 §8; 09.3 §1).
+ * the command kind table and carry no idempotency key (09.2 §8; 09.3 §1),
+ * except the write commands that carry the casa.v1.command option.
  * Every password and token field is debug_redact, so it never appears in a
  * printed message.
  *
@@ -281,6 +313,17 @@ export const IdentityService: GenService<{
     methodKind: "unary";
     input: typeof RefreshSessionRequestSchema;
     output: typeof RefreshSessionResponseSchema;
+  },
+  /**
+   * Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
+   * exempt from NOTICE_UNREAD.
+   *
+   * @generated from rpc casa.v1.IdentityService.SignOut
+   */
+  signOut: {
+    methodKind: "unary";
+    input: typeof SignOutRequestSchema;
+    output: typeof SignOutResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_identity, 0);

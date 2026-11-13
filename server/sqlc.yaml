@@ -23,3 +23,16 @@ sql:
             go_type: time.Time
           - db_type: pg_catalog.interval
             go_type: time.Duration
+  - engine: postgresql
+    schema:
+      - internal/schema/00001_currency.sql
+      - internal/schema/00002_identity.sql
+    queries: internal/command/queries.sql
+    gen:
+      go:
+        package: commanddb
+        out: internal/command/commanddb
+        sql_package: pgx/v5
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time

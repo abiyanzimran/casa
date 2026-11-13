@@ -3,12 +3,14 @@ syntax = "proto3";
 package casa.v1;
 
 import "buf/validate/validate.proto";
+import "casa/v1/command.proto";
 import "casa/v1/request.proto";
 import "google/protobuf/timestamp.proto";
 
 // IdentityService is the identity module's API: closed sign-up, sign-in and
 // sessions (09.2 §1; SEC-11, SEC-12, SEC-15, SEC-158). Its RPCs are outside
-// the command kind table and carry no idempotency key (09.2 §8; 09.3 §1).
+// the command kind table and carry no idempotency key (09.2 §8; 09.3 §1),
+// except the write commands that carry the casa.v1.command option.
 // Every password and token field is debug_redact, so it never appears in a
 // printed message.
 service IdentityService {
@@ -25,6 +27,14 @@ service IdentityService {
   // Rotates a native session's tokens. A refresh token used a second time
   // revokes its session (SEC-15).
   rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  // Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
+  // exempt from NOTICE_UNREAD.
+  rpc SignOut(SignOutRequest) returns (SignOutResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      notice_exempt: true
+    };
+  }
 }
 
 message StartSignUpRequest {
@@ -91,3 +101,9 @@ message SessionTokens {
   string refresh_token = 2 [debug_redact = true];
   google.protobuf.Timestamp access_token_expires_at = 3;
 }
+
+message SignOutRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+message SignOutResponse {}

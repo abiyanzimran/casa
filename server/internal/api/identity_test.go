@@ -3,6 +3,7 @@ package api_test
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -88,7 +89,7 @@ func startIdentity(t *testing.T) *identityHarness {
 		},
 	})
 	server := api.NewServer(api.Version{}, service.Authenticate)
-	api.RegisterIdentityService(server, service)
+	api.RegisterIdentityService(server, h.pool, service)
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
 	server.Register(connect.Method{
 		Spec: connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read", Schema: h.probeRead},
@@ -144,6 +145,35 @@ func (h *identityHarness) authenticated(accessToken string) error {
 	ctx, info := connect.NewClientContext(context.Background())
 	info.RequestHeader().Set("Authorization", "Bearer "+accessToken)
 	return h.probe.CallUnary(ctx, connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read"}, req, &emptypb.Empty{})
+}
+
+// bearer is a context whose request carries accessToken.
+func bearer(accessToken string) context.Context {
+	ctx, info := connect.NewClientContext(context.Background())
+	if accessToken != "" {
+		info.RequestHeader().Set("Authorization", "Bearer "+accessToken)
+	}
+	return ctx
+}
+
+// commandRC is a request context with a fresh idempotency key.
+func commandRC() *casav1.RequestContext {
+	rc := identityRC(ios)
+	rc.IdempotencyKey = uuid4()
+	return rc
+}
+
+func uuid4() string {
+	var b [16]byte
+	_, _ = rand.Read(b[:])
+	b[6] = b[6]&0x0f | 0x40
+	b[8] = b[8]&0x3f | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+func (h *identityHarness) signOut(accessToken string) error {
+	_, err := h.client.SignOut(bearer(accessToken), &casav1.SignOutRequest{RequestContext: commandRC()})
+	return err
 }
 
 func (h *identityHarness) signIn(email, password string) (*casav1.SessionTokens, error) {
@@ -654,5 +684,45 @@ func TestSessions(t *testing.T) {
 			RequestContext: identityRC(casav1.ClientKind_CLIENT_KIND_WEB), Email: "owner@example.test", Password: password,
 		})
 		wantCode(t, err, connect.CodeUnimplemented)
+	})
+}
+
+func TestSignOut(t *testing.T) {
+	password := strings.Repeat("sign out ", 3) // built, so no secret scanner sees a literal
+	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+	t.Run("sign-out revokes the session on the server", func(t *testing.T) {
+		// SEC-164 (b) cited, not named: its web parts come with 1.5.
+		h := startIdentity(t)
+		tokens := h.signUp(t, "owner@example.test", password)
+		wantOK(t, h.signOut(tokens.GetAccessToken()))
+		wantErrorCode(t, h.authenticated(tokens.GetAccessToken()), connect.CodeUnauthenticated, revoked)
+		_, err := h.refresh(tokens.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'user'"); n != 1 {
+			t.Fatalf("%d sessions revoked by the user, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'user'"); n != 1 {
+			t.Fatalf("%d session_revoked events, want 1", n)
+		}
+		if n := h.count(t, `SELECT count(*) FROM idempotency_record r JOIN session s ON r.scope_id = s.account_id
+			WHERE r.command = '/casa.v1.IdentityService/SignOut'`); n != 1 {
+			t.Fatalf("%d idempotency records scoped to the account, want 1", n)
+		}
+	})
+	t.Run("sign-out needs a session", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		wantCode(t, h.signOut(""), connect.CodeUnauthenticated)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NOT NULL"); n != 0 {
+			t.Fatalf("%d sessions revoked, want none", n)
+		}
+	})
+	t.Run("sign-out needs an idempotency key", func(t *testing.T) {
+		// ADR-005; 09.2 §8: a write command without a key is refused.
+		h := startIdentity(t)
+		tokens := h.signUp(t, "owner@example.test", password)
+		_, err := h.client.SignOut(bearer(tokens.GetAccessToken()), &casav1.SignOutRequest{RequestContext: identityRC(ios)})
+		wantCode(t, err, connect.CodeInvalidArgument)
+		wantOK(t, h.authenticated(tokens.GetAccessToken()))
 	})
 }

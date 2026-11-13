@@ -84,6 +84,14 @@ func TestContract(t *testing.T) {
 			probeMethod{name: "Revoke", command: &casav1.CommandOptions{HoldSeconds: proto.Uint32(0), Protective: true}},
 			"casa.apitest.v1.ProbeService.Revoke: protective but not notice_exempt",
 		},
+		// 09.3 §1 NOTICE_UNREAD "Uji kontrak": notice_exempt but not
+		// protective is only sign-out, export and the acknowledgement.
+		// SEC-34 is cited, not named.
+		{
+			"a notice_exempt command that is not protective is sign-out, export, or acknowledgement",
+			probeMethod{name: "Archive", command: &casav1.CommandOptions{HoldSeconds: proto.Uint32(0), NoticeExempt: true}},
+			"casa.apitest.v1.ProbeService.Archive: notice_exempt but neither protective nor sign-out, export, or acknowledgement",
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
