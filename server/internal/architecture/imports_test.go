@@ -18,8 +18,9 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 // backed by 09.2 §1 (its diagram or "Aturan dependensi") needs 09.2 §1 updated
 // by the architect first.
 var allowedImports = map[string][]string{
-	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/identity", "internal/schema"},
+	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/identity", "internal/schema", "internal/webbundle"},
 	"cmd/idcheck":                        {},
+	"cmd/webpreview":                     {"internal/api", "internal/webbundle"},
 	"internal/api":                       {"internal/command", "internal/database", "internal/gen/casa/v1", "internal/gen/casa/v1/casav1connect", "internal/identity"},
 	"internal/command":                   {"internal/command/commanddb", "internal/database"},
 	"internal/command/commanddb":         {},
@@ -31,6 +32,9 @@ var allowedImports = map[string][]string{
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
 	"internal/schema":                    {},
+	// Only cmd/casa and cmd/webpreview embed the bundle; internal/api takes it
+	// as an fs.FS (FS-1 1.5 plan, Tugas 1).
+	"internal/webbundle": {},
 }
 
 func TestModuleImportsFollowTheAllowList(t *testing.T) {

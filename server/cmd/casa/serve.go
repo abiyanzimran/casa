@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net"
 	"net/http"
@@ -14,7 +15,12 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	"github.com/abiyanzimran/casa/server/internal/identity"
+	"github.com/abiyanzimran/casa/server/internal/webbundle"
 )
+
+// embeddedBundle holds the web bundle under dist/; tests replace it so they
+// do not depend on whether make bundle-copy has run.
+var embeddedBundle fs.FS = webbundle.FS
 
 const serveUsage = "usage: casa serve -mail-dir directory [-listen address] [-origin url] [-minimum-web-version MAJOR.MINOR.PATCH]\n"
 
@@ -43,6 +49,11 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "casa serve: -minimum-web-version: %v\n%s", err, serveUsage)
 		return 2
+	}
+	bundle, err := openBundle(stderr)
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
+		return 1
 	}
 	pool, err := openAppPool(ctx)
 	if err == nil {
@@ -79,7 +90,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	}
 	_, _ = fmt.Fprintf(stdout, "casa serve: listening on %s\n", listener.Addr())
 	server := &http.Server{
-		Handler: api.NewMux(apiServer),
+		Handler: api.NewMux(apiServer, bundle),
 		// [Usulan]: bounds a client that never finishes its headers.
 		ReadHeaderTimeout: 10 * time.Second,
 		// step 7 (09.4 TLS): ReadTimeout and IdleTimeout before the binary faces the internet; no WriteTimeout (SSE)
@@ -104,4 +115,20 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// openBundle reads the embedded web bundle (ADR-030 item 3). A binary built
+// without it serves the API only and says so (plan decision 2, lead ruling
+// Q5); the release binary is always built with make casa.
+func openBundle(stderr io.Writer) (*api.Bundle, error) {
+	files, err := fs.Sub(embeddedBundle, "dist")
+	if err != nil {
+		return nil, fmt.Errorf("open the web bundle: %w", err)
+	}
+	bundle, err := api.NewBundle(files)
+	if errors.Is(err, api.ErrNoBundle) {
+		_, _ = fmt.Fprintln(stderr, "casa serve: no web bundle in this binary; build it with make casa")
+		return nil, nil
+	}
+	return bundle, err
 }

@@ -6,9 +6,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
@@ -21,43 +23,96 @@ func served(t *testing.T) (mailDir string) {
 	return t.TempDir()
 }
 
-func TestServe(t *testing.T) {
-	t.Run("serves /healthz until the context ends", func(t *testing.T) {
-		mailDir := served(t)
-		ctx, cancel := context.WithCancel(t.Context())
-		defer cancel()
-		stdoutReader, stdoutWriter := io.Pipe()
-		var stderr strings.Builder
-		done := make(chan int, 1)
-		go func() {
-			done <- run(ctx, []string{"serve", "-mail-dir", mailDir, "-listen", "127.0.0.1:0"}, stdoutWriter, &stderr)
-			_ = stdoutWriter.Close()
-		}()
-		line, err := bufio.NewReader(stdoutReader).ReadString('\n')
-		if err != nil {
-			t.Fatalf("reading stdout: %v", err)
-		}
-		address, ok := strings.CutPrefix(strings.TrimSuffix(line, "\n"), "casa serve: listening on ")
-		if !ok || !strings.HasPrefix(address, "127.0.0.1:") {
-			t.Fatalf("stdout = %q, want \"casa serve: listening on 127.0.0.1:<port>\\n\"", line)
-		}
-		res, err := http.Get("http://" + address + "/healthz")
-		if err != nil {
-			t.Fatal(err)
-		}
-		body, err := io.ReadAll(res.Body)
-		_ = res.Body.Close()
-		if err != nil || res.StatusCode != http.StatusOK || string(body) != "ok\n" {
-			t.Fatalf("GET /healthz = %d %q (%v), want 200 \"ok\\n\"", res.StatusCode, body, err)
-		}
-		cancel()
+// TestMain gives every test a web bundle, so no test depends on whether
+// make bundle-copy has filled the embedded copy (plan decision 2).
+func TestMain(m *testing.M) {
+	embeddedBundle = fstest.MapFS{"dist/index.html": {Data: []byte("<!doctype html><title>Casa</title>")}}
+	os.Exit(m.Run())
+}
+
+// startServe runs casa serve on a free port until the returned cancel is
+// called; wait then returns its exit code and stderr.
+func startServe(t *testing.T) (address string, cancel func(), wait func() (int, string)) {
+	t.Helper()
+	mailDir := served(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+	stdoutReader, stdoutWriter := io.Pipe()
+	var stderr strings.Builder
+	done := make(chan int, 1)
+	go func() {
+		done <- run(ctx, []string{"serve", "-mail-dir", mailDir, "-listen", "127.0.0.1:0"}, stdoutWriter, &stderr)
+		_ = stdoutWriter.Close()
+	}()
+	line, err := bufio.NewReader(stdoutReader).ReadString('\n')
+	if err != nil {
+		t.Fatalf("reading stdout: %v", err)
+	}
+	address, ok := strings.CutPrefix(strings.TrimSuffix(line, "\n"), "casa serve: listening on ")
+	if !ok || !strings.HasPrefix(address, "127.0.0.1:") {
+		t.Fatalf("stdout = %q, want \"casa serve: listening on 127.0.0.1:<port>\\n\"", line)
+	}
+	wait = func() (int, string) {
+		t.Helper()
 		select {
 		case code := <-done:
-			if code != 0 {
-				t.Fatalf("exit code = %d, stderr %q; want 0", code, stderr.String())
-			}
+			return code, stderr.String()
 		case <-time.After(15 * time.Second):
 			t.Fatal("serve did not return within 15 s of the context ending")
+			return 0, ""
+		}
+	}
+	return address, cancel, wait
+}
+
+// get fetches path from the server at address.
+func get(t *testing.T, address, path string) (*http.Response, string) {
+	t.Helper()
+	res, err := http.Get("http://" + address + path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := io.ReadAll(res.Body)
+	_ = res.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return res, string(body)
+}
+
+func TestServe(t *testing.T) {
+	t.Run("serves /healthz until the context ends", func(t *testing.T) {
+		address, cancel, wait := startServe(t)
+		if res, body := get(t, address, "/healthz"); res.StatusCode != http.StatusOK || body != "ok\n" {
+			t.Fatalf("GET /healthz = %d %q, want 200 \"ok\\n\"", res.StatusCode, body)
+		}
+		if res, body := get(t, address, "/"); res.StatusCode != http.StatusOK || !strings.Contains(body, "<title>Casa</title>") {
+			t.Fatalf("GET / = %d %q, want 200 and the app page", res.StatusCode, body)
+		}
+		cancel()
+		if code, stderr := wait(); code != 0 || stderr != "" {
+			t.Fatalf("exit code = %d, stderr %q; want 0 and nothing", code, stderr)
+		}
+	})
+	t.Run("serves the API without a web bundle and says so", func(t *testing.T) {
+		// Plan decision 2 (lead ruling Q5): the API still serves; the static
+		// routes answer 404, with the security headers (SEC-166).
+		withBundle := embeddedBundle
+		embeddedBundle = fstest.MapFS{"dist/.gitkeep": {Data: []byte("")}}
+		t.Cleanup(func() { embeddedBundle = withBundle })
+		address, cancel, wait := startServe(t)
+		if res, body := get(t, address, "/healthz"); res.StatusCode != http.StatusOK || body != "ok\n" {
+			t.Fatalf("GET /healthz = %d %q, want 200 \"ok\\n\"", res.StatusCode, body)
+		}
+		res, body := get(t, address, "/")
+		if res.StatusCode != http.StatusNotFound || res.Header.Get("Content-Security-Policy") == "" ||
+			res.Header.Get("X-Content-Type-Options") != "nosniff" || res.Header.Get("Cache-Control") != "no-store" {
+			t.Fatalf("GET / = %d %q, header %v; want 404 with the security headers", res.StatusCode, body, res.Header)
+		}
+		cancel()
+		want := "casa serve: no web bundle in this binary; build it with make casa\n"
+		if code, stderr := wait(); code != 0 || stderr != want {
+			t.Fatalf("exit code = %d, stderr %q; want 0 and %q", code, stderr, want)
 		}
 	})
 	t.Run("fails when the address is in use", func(t *testing.T) {

@@ -62,7 +62,7 @@ func startProbe(t *testing.T) *probe {
 		server.Register(p.method(string(m.Name()), m, m.Input()))
 	}
 	server.Register(p.method("Schemaless", nil, read.Input()))
-	srv := httptest.NewServer(api.NewMux(server))
+	srv := httptest.NewServer(api.NewMux(server, nil))
 	t.Cleanup(srv.Close)
 	p.url = srv.URL
 	p.client = connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL))
