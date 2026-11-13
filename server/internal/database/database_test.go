@@ -3,6 +3,7 @@ package database_test
 import (
 	"crypto/rand"
 	"errors"
+	"slices"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -27,6 +28,23 @@ const rlsProbe = `
 		USING (household_id = current_setting('app.household_id')::uuid)
 		WITH CHECK (household_id = current_setting('app.household_id')::uuid);
 	GRANT SELECT, INSERT, UPDATE, DELETE ON rls_probe TO app_rw;`
+
+// mixedOwnerProbes carry the mixed-owner policies of 09.2 §3 word for word:
+// idempotency_probe as idempotency_record, job_probe as job.
+const mixedOwnerProbes = `
+	CREATE TABLE idempotency_probe (scope_id uuid NOT NULL);
+	ALTER TABLE idempotency_probe ENABLE ROW LEVEL SECURITY;
+	ALTER TABLE idempotency_probe FORCE ROW LEVEL SECURITY;
+	CREATE POLICY scope ON idempotency_probe
+		USING (scope_id = nullif(current_setting('app.household_id', true), '')::uuid
+		    OR scope_id = nullif(current_setting('app.account_id', true), '')::uuid);
+	CREATE TABLE job_probe (household_id uuid);
+	ALTER TABLE job_probe ENABLE ROW LEVEL SECURITY;
+	ALTER TABLE job_probe FORCE ROW LEVEL SECURITY;
+	CREATE POLICY household ON job_probe
+		USING (household_id = nullif(current_setting('app.household_id', true), '')::uuid
+		    OR (household_id IS NULL AND nullif(current_setting('app.household_id', true), '') IS NULL));
+	GRANT SELECT, INSERT ON idempotency_probe, job_probe TO app_rw;`
 
 var errSentinel = errors.New("sentinel")
 
@@ -133,16 +151,7 @@ func TestScope(t *testing.T) {
 		// One connection, so every call below reuses it. Read and Write set
 		// both settings and would hide a leak, so the checks are plain pool
 		// queries outside them.
-		config, err := pgxpool.ParseConfig(d.URL("app_rw"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		config.MaxConns = 1
-		one, err := pgxpool.NewWithConfig(ctx, config)
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer one.Close()
+		one := oneConnection(t, d)
 		scope := database.Scope{HouseholdID: h1, AccountID: account}
 
 		requireNoScope := func(after string) {
@@ -166,11 +175,78 @@ func TestScope(t *testing.T) {
 			t.Fatal(err)
 		}
 		requireNoScope("a committed write")
-		err = database.Write(ctx, one, scope, func(pgx.Tx) error { return errSentinel })
+		err := database.Write(ctx, one, scope, func(pgx.Tx) error { return errSentinel })
 		if !errors.Is(err, errSentinel) {
 			t.Fatalf("err = %v, want it to wrap the error of fn", err)
 		}
 		requireNoScope("a failed write")
+	})
+
+	t.Run("SEC-08 the nullif policies of 09.2 §3 hold on a reused connection", func(t *testing.T) {
+		if _, err := d.Pool(t, "migrator").Exec(ctx, mixedOwnerProbes); err != nil {
+			t.Fatal(err)
+		}
+		one := oneConnection(t, d)
+
+		// The hazard 09.2 §3 documents: a connection that never set the
+		// setting reads NULL, but after one SET LOCAL it reads '' for good,
+		// so the bare cast fails instead of giving NULL.
+		const bare = "SELECT current_setting('app.household_id', true)::uuid IS NULL"
+		var isNull bool
+		if err := one.QueryRow(ctx, bare).Scan(&isNull); err != nil || !isNull {
+			t.Fatalf("fresh connection: %s = %t, err %v; want true", bare, isNull, err)
+		}
+		for _, w := range []struct {
+			scope     database.Scope
+			statement string
+			arg       any
+		}{
+			{database.Scope{HouseholdID: h1, AccountID: account}, "INSERT INTO idempotency_probe VALUES ($1)", h1},
+			{database.Scope{HouseholdID: h1, AccountID: account}, "INSERT INTO job_probe VALUES ($1)", h1},
+			{database.Scope{AccountID: account}, "INSERT INTO idempotency_probe VALUES ($1)", account},
+			{database.Scope{}, "INSERT INTO job_probe VALUES ($1)", pgtype.UUID{}},
+		} {
+			err := database.Write(ctx, one, w.scope, func(tx pgx.Tx) error {
+				_, err := tx.Exec(ctx, w.statement, w.arg)
+				return err
+			})
+			if err != nil {
+				t.Fatalf("%s with scope %+v: %v", w.statement, w.scope, err)
+			}
+		}
+		if _, err := one.Exec(ctx, bare); databasetest.PgErrorCode(err) != "22P02" {
+			t.Errorf("after SET LOCAL: %s err = %v, want invalid uuid '' (22P02)", bare, err)
+		}
+
+		for _, c := range []struct {
+			name  string
+			scope database.Scope
+			query string
+			want  []pgtype.UUID
+		}{
+			// An account-level command after a household one reads its own
+			// record and not the household's.
+			{"account-level idempotency", database.Scope{AccountID: account},
+				"SELECT scope_id FROM idempotency_probe", []pgtype.UUID{account}},
+			// A system job is visible only outside a household.
+			{"jobs outside a household", database.Scope{},
+				"SELECT household_id FROM job_probe", []pgtype.UUID{{}}},
+			{"jobs of household 1", database.Scope{HouseholdID: h1},
+				"SELECT household_id FROM job_probe", []pgtype.UUID{h1}},
+		} {
+			var got []pgtype.UUID
+			err := database.Read(ctx, one, c.scope, func(tx pgx.Tx) error {
+				rows, err := tx.Query(ctx, c.query)
+				if err != nil {
+					return err
+				}
+				got, err = pgx.CollectRows(rows, pgx.RowTo[pgtype.UUID])
+				return err
+			})
+			if err != nil || !slices.Equal(got, c.want) {
+				t.Errorf("%s: rows %v, err %v; want %v", c.name, got, err, c.want)
+			}
+		}
 	})
 
 	t.Run("write is serializable and read is repeatable read and read only", func(t *testing.T) {
@@ -217,6 +293,23 @@ func TestScope(t *testing.T) {
 			}
 		}
 	})
+}
+
+// oneConnection is an app_rw pool of one connection, so every call on it
+// reuses the same session and a setting left behind would show.
+func oneConnection(t *testing.T, d databasetest.Database) *pgxpool.Pool {
+	t.Helper()
+	config, err := pgxpool.ParseConfig(d.URL("app_rw"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.MaxConns = 1
+	pool, err := pgxpool.NewWithConfig(t.Context(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(pool.Close)
+	return pool
 }
 
 func countIn(t *testing.T, app *pgxpool.Pool, household pgtype.UUID) int {
