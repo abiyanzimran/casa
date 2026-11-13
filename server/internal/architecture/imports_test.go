@@ -29,6 +29,8 @@ var allowedImports = map[string][]string{
 	"internal/database/databasetest":     {"internal/schema"},
 	"internal/gen/casa/v1":               {},
 	"internal/gen/casa/v1/casav1connect": {"internal/gen/casa/v1"},
+	"internal/household":                 {"internal/database", "internal/household/householddb"},
+	"internal/household/householddb":     {},
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
 	"internal/schema":                    {},
