@@ -7,7 +7,7 @@ Casa is a household app for a husband and wife: they know the state of their hou
 | Folder | Contents |
 |---|---|
 | `server/` | Go server (`casa` binary) |
-| `proto/` | API contract (Protobuf); from task 1.3 |
+| `proto/` | API contract (Protobuf) |
 | `web/` | Web client (PWA); from task 1.1b |
 | `golden/` | Golden test vectors for the client input aids; later in FS-1 step 1 |
 | `scripts/` | Helper scripts used by the `Makefile` |
@@ -28,9 +28,10 @@ Casa is a household app for a husband and wife: they know the state of their hou
 ```sh
 make check-server
 make check-web
+make check-contract
 ```
 
-`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `make check` runs both.
+`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
 
 ## Database
 
@@ -43,3 +44,23 @@ make db-down
 ```
 
 `server-test` reads the cluster from `CASA_TEST_ADMIN_URL`, by default `postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable`; without a reachable cluster the database tests fail, they are never skipped. On a real cluster, `server/internal/schema/roles.sql` is run once by a superuser to create the database roles, and `casa migrate` then applies the migrations as `migrator`.
+
+## Contract
+
+`proto/` is the one source of the API contract. The generated Go (`server/internal/gen/`) and TypeScript (`web/src/lib/gen/`) are committed and never edited by hand. After changing a `.proto` file:
+
+```sh
+make web-install      # once: protoc-gen-es comes from the web dev dependencies
+make proto-generate   # regenerate both, then commit the result
+make check-contract   # buf format, buf lint, buf breaking against origin/main, generated code up to date
+```
+
+`proto-breaking` compares with `refs/remotes/origin/main` (`BUF_AGAINST_REF=...` to use another ref), so fetch it first.
+
+## Server
+
+```sh
+cd server && go run ./cmd/casa serve -listen 127.0.0.1:8080
+```
+
+`GET /healthz` answers `ok`. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
