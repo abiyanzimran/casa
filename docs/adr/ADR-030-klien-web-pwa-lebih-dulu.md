@@ -72,11 +72,12 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
    - Staging di origin lain (subdomain terpisah), dengan bundel staging yang tidak pernah masuk biner produksi (SEC-179).
    - Server tidak mengirim header CORS; permintaan lintas origin gagal di browser.
 4. **Batas bawah browser** (SEC-160 (e)) **[Usulan]**:
-   - Safari, iOS, dan iPadOS **17** ke atas (alasan: `Clear-Site-Data` dan `navigator.storage.estimate()` di Safari 17; 10.5).
+   - Safari, iOS, dan iPadOS **17.5** ke atas (alasan: `Clear-Site-Data` dan `navigator.storage.estimate()` di Safari 17, 10.5; CSS `light-dark()` di Safari 17.5, catatan di bawah).
    - Chromium yang masih menerima pembaruan keamanan (Chrome, Edge, Samsung Internet).
    - Firefox tidak diuji di pilot; boleh berjalan bila lolos deteksi fitur.
-   - **Deteksi fitur** saat dibuka: IndexedDB, service worker, `navigator.storage`, Web Crypto `subtle`, Web Locks, `BroadcastChannel`, dan `crypto.randomUUID`. Bila salah satu tidak ada, aplikasi tidak memuat layar masuk dan menampilkan kalimat browser tidak didukung.
+   - **Deteksi fitur** saat dibuka: IndexedDB, service worker, `navigator.storage`, Web Crypto `subtle`, Web Locks, `BroadcastChannel`, `crypto.randomUUID`, dan `CSS.supports('color', 'light-dark(#000, #fff)')`. Bila salah satu tidak ada, aplikasi tidak memuat layar masuk dan menampilkan kalimat browser tidak didukung.
    - Catatan 13 November 2026 (FS-1 tugas 1.9a): `BroadcastChannel` (siaran antartab, butir 10) dan `crypto.randomUUID` (idempotency key UUIDv4, ADR-005, ADR-017) ditambahkan. Keduanya Baseline "Widely available" sejak Maret 2022 ([MDN BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel); [MDN Crypto.randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)) dan ada sejak Safari 15.4, iOS mengikuti ([BCD `api/BroadcastChannel.json`, `api/Crypto.json`](https://github.com/mdn/browser-compat-data); semuanya diakses 13 November 2026) **[Terverifikasi]**, jadi tidak menggeser batas bawah Safari 17. `crypto.randomUUID` hanya ada di konteks aman (HTTPS atau `localhost`).
+   - Catatan 13 November 2026 (FS-1 1.9a): batas bawah Safari, iOS, dan iPadOS naik dari 17 ke **17.5**, dan `CSS.supports('color', 'light-dark(#000, #fff)')` menjadi fitur kedelapan di deteksi fitur. Alasannya, token warna memakai CSS `light-dark()`, yang ada sejak Safari 17.5 (iOS mengikuti) dan Chrome 123, tanpa catatan dan tanpa implementasi parsial (BCD `css/types/color.json`, kunci `css.types.color.light-dark`, [github.com/mdn/browser-compat-data](https://github.com/mdn/browser-compat-data), diakses 13 November 2026) **[Terverifikasi]**. Bahwa setiap perangkat yang dapat menjalankan iOS 17.0 sampai 17.4 juga dapat diperbarui ke 17.5 adalah simpulan bahwa 17.5 rilis titik dalam iOS 17, bukan bunyi sumber yang diperiksa **[Usulan]**. Chromium yang masih menerima pembaruan keamanan sudah di atas 123, jadi batas Chromium tidak berubah.
    - **Yang diuji:**
      - Safari 26 di web app layar utama iPhone 13 dan iPad mini 7;
      - Chrome di Galaxy A55;
@@ -119,7 +120,7 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
      - `Cross-Origin-Opener-Policy: same-origin` dan `Cross-Origin-Resource-Policy: same-origin`;
      - `Permissions-Policy` mematikan `camera`, `microphone`, `geolocation`, `payment`, `usb`;
      - HSTS `max-age` sekurangnya satu tahun dengan `includeSubDomains`;
-     - API dan SSE `Cache-Control: no-store`; `index.html` dan service worker `no-cache`; berkas berhash `immutable`.
+     - API dan SSE `Cache-Control: no-store`; halaman aplikasi (`/`) dan service worker `no-cache`; berkas berhash `immutable`.
    - Uji header di CI (09.4 §4) memblokir merge.
 
 ### Rantai pasok dan rilis
@@ -136,6 +137,7 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
 9. **Build, service worker, dan versi** (SEC-169):
    - **Build:** bundel dibangun hanya di CI dari komit bertanda. Daftar hash setiap berkas disimpan sebagai artefak CI. Deploy memasang biner yang memuat bundel itu tanpa build ulang di VPS. Runbook rilis membandingkan hash biner di VPS dengan artefak CI.
    - **Cache service worker:** hanya app shell berhash. Tidak pernah jawaban API, SSE, foto, atau halaman berisi data.
+   - Catatan 13 November 2026 (FS-1 1.9a): halaman aplikasi (entri SPA) di app shell disimpan dan disajikan di bawah URL `/`, bukan `/index.html`. Alasannya, Vite preview menjawab `/index.html` dengan 404, dan `http.FileServer` Go mengalihkan `/index.html` ke `/`. Berkas build-nya tetap bernama `index.html` (butir 7). Aturan header tidak berubah: halaman aplikasi (`/`) dan service worker mendapat `Cache-Control: no-cache` (butir 7).
    - **Pergantian versi:** versi baru menunggu (`skipWaiting` tidak otomatis). Ia aktif saat aplikasi dibuka berikutnya, atau atas ketukan "Muat ulang" ketika tidak ada isian terbuka. Antrean tidak pernah dibuang.
    - **Versi klien di kontrak** (ADR-013 catatan web): setiap permintaan membawa `client_kind` dan `client_version`. Server menolak perintah tulis dari versi di bawah versi minimum `web` dengan kode `CLIENT_UPGRADE_REQUIRED` (nama dari ADR-028 butir 5); perintah tetap di antrean.
    - **Bentuk `client_version`** (catatan 13 November 2026, FS-1 1.3, kontrak dasar; putusan lead Q1): angka `MAJOR.MINOR.PATCH`, tanpa awalan (bukan `v1.2.3`) dan tanpa pra-rilis atau metadata build, sama untuk `web`, `ios`, dan `android`. Ketiga bagian dibandingkan sebagai bilangan (`1.10.0` di atas `1.9.0`). Nilai lain ditolak server sebagai galat validasi.
@@ -249,7 +251,7 @@ Kriteria: ringan di perangkat pilot (brief §1 "instant cold start"); dukungan P
 |---|---|
 | Urutan web lebih dulu; stack O-1 A, O-2 A, O-3 A; satu origin; sesi, CSRF, CSP; npm dengan pnpm dan OSV-Scanner; service worker dan versi minimum; Web Push; bunyi ES §2, §3, §8 (butir 15 sampai 17) disetujui pemilik produk dan dipasang (13 November 2026) | — |
 | PBKDF2 600.000 | Waktu derivasi di perangkat: prototipe FS-1 langkah 1 |
-| Batas bawah Safari 17 | Kebijakan Trusted Types Svelte, gaya inline, host push non-Apple: prototipe FS-1 langkah 1 sampai 2. |
+| Batas bawah Safari 17.5 | Kebijakan Trusted Types Svelte, gaya inline, host push non-Apple: prototipe FS-1 langkah 1 sampai 2. |
 | Urutan sesudah GR-2: iOS native lalu Android native (bawaan 69.5, diterima atas saran lead) | Kapan jalur iOS native dimulai di antara gelombang Tier 2: pemilik produk di GR-2 |
 | Sumber Mac: AWS EC2 Mac atau Mac pinjaman (bawaan 69.6) | Pilihan di antara keduanya: saat jalur iOS native dimulai |
 | — | Ukuran app shell ≤ 500 KB: dikukuhkan sesudah prototipe |
