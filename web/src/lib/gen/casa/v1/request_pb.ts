@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/request.proto.
  */
 export const file_casa_v1_request: GenFile = /*@__PURE__*/
-  fileDesc("ChVjYXNhL3YxL3JlcXVlc3QucHJvdG8SB2Nhc2EudjEirAIKDlJlcXVlc3RDb250ZXh0EjQKC2NsaWVudF9raW5kGAEgASgOMhMuY2FzYS52MS5DbGllbnRLaW5kQgq6SAeCAQQQASAAEl4KDmNsaWVudF92ZXJzaW9uGAIgASgJQka6SENyQTI/XigwfFsxLTldWzAtOV17MCw1fSlcLigwfFsxLTldWzAtOV17MCw1fSlcLigwfFsxLTldWzAtOV17MCw1fSkkEhYKDnVzZXJfaW5pdGlhdGVkGAMgASgIEmwKD2lkZW1wb3RlbmN5X2tleRgEIAEoCUJTukhQ2AEBcksySV4oP2kpWzAtOWEtZl17OH0tWzAtOWEtZl17NH0tNFswLTlhLWZdezN9LVs4OWFiXVswLTlhLWZdezN9LVswLTlhLWZdezEyfSQqbAoKQ2xpZW50S2luZBIbChdDTElFTlRfS0lORF9VTlNQRUNJRklFRBAAEhMKD0NMSUVOVF9LSU5EX0lPUxABEhcKE0NMSUVOVF9LSU5EX0FORFJPSUQQAhITCg9DTElFTlRfS0lORF9XRUIQA0KZAQoLY29tLmNhc2EudjFCDFJlcXVlc3RQcm90b1ABWj9naXRodWIuY29tL2FiaXlhbnppbXJhbi9jYXNhL3NlcnZlci9pbnRlcm5hbC9nZW4vY2FzYS92MTtjYXNhdjGiAgNDWFiqAgdDYXNhLlYxygIHQ2FzYVxWMeICE0Nhc2FcVjFcR1BCTWV0YWRhdGHqAghDYXNhOjpWMWIGcHJvdG8z", [file_buf_validate_validate]);
+  fileDesc("ChVjYXNhL3YxL3JlcXVlc3QucHJvdG8SB2Nhc2EudjEirAIKDlJlcXVlc3RDb250ZXh0EjQKC2NsaWVudF9raW5kGAEgASgOMhMuY2FzYS52MS5DbGllbnRLaW5kQgq6SAeCAQQQASAAEl4KDmNsaWVudF92ZXJzaW9uGAUgASgJQka6SENyQTI/XigwfFsxLTldWzAtOV17MCw1fSlcLigwfFsxLTldWzAtOV17MCw1fSlcLigwfFsxLTldWzAtOV17MCw1fSkkEhYKDnVzZXJfaW5pdGlhdGVkGAMgASgIEmwKD2lkZW1wb3RlbmN5X2tleRgEIAEoCUJTukhQ2AEBcksySV4oP2kpWzAtOWEtZl17OH0tWzAtOWEtZl17NH0tNFswLTlhLWZdezN9LVs4OWFiXVswLTlhLWZdezN9LVswLTlhLWZdezEyfSQqbAoKQ2xpZW50S2luZBIbChdDTElFTlRfS0lORF9VTlNQRUNJRklFRBAAEhMKD0NMSUVOVF9LSU5EX0lPUxABEhcKE0NMSUVOVF9LSU5EX0FORFJPSUQQAhITCg9DTElFTlRfS0lORF9XRUIQA0KZAQoLY29tLmNhc2EudjFCDFJlcXVlc3RQcm90b1ABWj9naXRodWIuY29tL2FiaXlhbnppbXJhbi9jYXNhL3NlcnZlci9pbnRlcm5hbC9nZW4vY2FzYS92MTtjYXNhdjGiAgNDWFiqAgdDYXNhLlYxygIHQ2FzYVxWMeICE0Nhc2FcVjFcR1BCTWV0YWRhdGHqAghDYXNhOjpWMWIGcHJvdG8z", [file_buf_validate_validate]);
 
 /**
  * RequestContext is field 1 of every RPC request, named request_context
@@ -33,7 +33,7 @@ export type RequestContext = Message<"casa.v1.RequestContext"> & {
    * or pre-release, compared by number with the server's minimum version for
    * the client kind (ADR-030 item 9; ADR-028 item 5; SEC-169 (d)).
    *
-   * @generated from field: string client_version = 2;
+   * @generated from field: string client_version = 5;
    */
   clientVersion: string;
 

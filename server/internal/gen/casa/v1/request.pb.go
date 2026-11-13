@@ -86,7 +86,7 @@ type RequestContext struct {
 	// The client build version, MAJOR.MINOR.PATCH in decimal without a prefix
 	// or pre-release, compared by number with the server's minimum version for
 	// the client kind (ADR-030 item 9; ADR-028 item 5; SEC-169 (d)).
-	ClientVersion string `protobuf:"bytes,2,opt,name=client_version,json=clientVersion,proto3" json:"client_version,omitempty"`
+	ClientVersion string `protobuf:"bytes,5,opt,name=client_version,json=clientVersion,proto3" json:"client_version,omitempty"`
 	// True only when the request comes from a user action, not from a
 	// background sync or retry; it drives the shared-mode idle timer (09.4 §2;
 	// ADR-030 item 5; SEC-165 (g)).
@@ -168,7 +168,7 @@ const file_casa_v1_request_proto_rawDesc = "" +
 	"\vclient_kind\x18\x01 \x01(\x0e2\x13.casa.v1.ClientKindB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\n" +
 	"clientKind\x12m\n" +
-	"\x0eclient_version\x18\x02 \x01(\tBF\xbaHCrA2?^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$R\rclientVersion\x12%\n" +
+	"\x0eclient_version\x18\x05 \x01(\tBF\xbaHCrA2?^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$R\rclientVersion\x12%\n" +
 	"\x0euser_initiated\x18\x03 \x01(\bR\ruserInitiated\x12|\n" +
 	"\x0fidempotency_key\x18\x04 \x01(\tBS\xbaHP\xd8\x01\x01rK2I^(?i)[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$R\x0eidempotencyKey*l\n" +
 	"\n" +
