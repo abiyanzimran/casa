@@ -1846,6 +1846,14 @@ body:not(:has(.lembar[open])) .selubung {
   background-color: var(--sisip);
 }
 
+/* Label over value: "Dapur" and the amount share the row, the amount centred across both lines
+   (ux-designer, 08 §17.8 rule 2) */
+.kategori .kata {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .kategori .kata > :first-child {
   font-size: var(--ukuran-terkecil);
   color: var(--tinta-2);
