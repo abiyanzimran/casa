@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package casa.v1;
+
+import "buf/validate/validate.proto";
+
+// The kind of client that sends a request (ADR-013 web note; 09.2 §5.1
+// session.client_kind).
+enum ClientKind {
+  CLIENT_KIND_UNSPECIFIED = 0;
+  CLIENT_KIND_IOS = 1;
+  CLIENT_KIND_ANDROID = 2;
+  CLIENT_KIND_WEB = 3;
+}
+
+// RequestContext is field 1 of every RPC request, named request_context
+// (14 §4.6; the contract test in server/internal/api enforces it). The server
+// checks it at the boundary before any handler runs (ES §4).
+message RequestContext {
+  // Required: an unspecified kind is rejected (ADR-013 web note).
+  ClientKind client_kind = 1 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // The client build version, MAJOR.MINOR.PATCH in decimal without a prefix
+  // or pre-release, compared by number with the server's minimum version for
+  // the client kind (ADR-030 item 9; ADR-028 item 5; SEC-169 (d)).
+  string client_version = 2 [(buf.validate.field).string.pattern = "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"];
+  // True only when the request comes from a user action, not from a
+  // background sync or retry; it drives the shared-mode idle timer (09.4 §2;
+  // ADR-030 item 5; SEC-165 (g)).
+  bool user_initiated = 3;
+  // One key per user intent, made when the intent is born and kept across
+  // retries (ADR-005; 09.2 §8). A UUIDv4; upper case is accepted because
+  // Swift's UUID().uuidString writes it. The server requires it on every
+  // write command (a method with the casa.v1.command option) and ignores it
+  // elsewhere.
+  string idempotency_key = 4 [(buf.validate.field) = {
+    ignore: IGNORE_IF_ZERO_VALUE
+    string: {pattern: "^(?i)[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"}
+  }];
+}

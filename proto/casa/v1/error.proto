@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package casa.v1;
+
+// ErrorCode is the one domain error enum of the contract (ADR-013 item 4).
+// A client acts on ErrorDetail.code, never on the Connect code alone. Names in
+// the documents (session_expired, WRITE_FROZEN) become ERROR_CODE_<NAME> here,
+// as buf lint requires. A task adds the codes it is the first to return.
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  // A write command from a client below the minimum version for its kind; the
+  // command stays in the client's queue (ADR-028 item 5 and web note;
+  // ADR-030 item 9; SEC-169 (d)).
+  ERROR_CODE_CLIENT_UPGRADE_REQUIRED = 1;
+  // The session ended by its idle or absolute limit (ADR-030 item 5;
+  // SEC-161 (d)).
+  ERROR_CODE_SESSION_EXPIRED = 2;
+  // The session was revoked (ADR-030 item 5; SEC-172).
+  ERROR_CODE_SESSION_REVOKED = 3;
+  // The server is in write freeze; retryable, and the command stays queued
+  // (ADR-028 item 3; 09.3 §1).
+  ERROR_CODE_WRITE_FROZEN = 4;
+  // The account has an unacknowledged notice version; retryable, and the
+  // command stays queued (SEC-34; 09.3 §1).
+  ERROR_CODE_NOTICE_UNREAD = 5;
+}
+
+// ErrorDetail is the Connect error detail that carries the domain error code
+// (ADR-013 item 4). Per-field validation errors carry buf.validate.Violations
+// instead.
+message ErrorDetail {
+  ErrorCode code = 1;
+}
