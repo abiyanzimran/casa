@@ -7,7 +7,8 @@
 // 2. A second build with BUNDLE_CHECK=1 writes hidden source maps into a
 //    temporary directory; every node_modules package named in them must be on
 //    the allowlist, and the list must not be empty and must contain svelte, so
-//    an unreadable or empty map cannot pass.
+//    an unreadable or empty map cannot pass. The service worker's map must be among
+//    them, so its code is checked too.
 // 3. static/ holds no script or WebAssembly file (SEC-168 (d)).
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
@@ -28,10 +29,6 @@ const allowed = new Set([
 	// item 8, lead's note of 13 November 2026). Not for Casa code to import.
 	'devalue'
 ]);
-const allowedPrefixes = ['workbox-']; // pulled in by @vite-pwa/sveltekit
-
-/** @param {string} name */
-const isAllowed = (name) => allowed.has(name) || allowedPrefixes.some((p) => name.startsWith(p));
 
 /** @param {Record<string, string>} env */
 function build(env) {
@@ -89,6 +86,13 @@ try {
 	build({ BUNDLE_CHECK: '1', BUNDLE_CHECK_OUT: checkDir });
 	const maps = files(checkDir).filter((file) => file.endsWith('.map'));
 	if (maps.length === 0) problems.push('no source maps were written, so nothing was checked');
+	// The service worker runs in the browser too (SEC-167, SEC-169), so its packages count.
+	if (
+		existsSync('src/service-worker') &&
+		!maps.some((map) => map.endsWith('service-worker.js.map'))
+	) {
+		problems.push('service worker source map not found, so its packages were not checked');
+	}
 	for (const map of maps) {
 		/** @type {unknown} */
 		const parsed = JSON.parse(readFileSync(map, 'utf8'));
@@ -111,7 +115,7 @@ const found = [...packages].sort();
 console.log(`Packages in the client bundle: ${found.join(', ') || '(none)'}`);
 if (found.length === 0) problems.push('no package found in the source maps');
 if (!packages.has('svelte')) problems.push('svelte not found in the source maps');
-for (const name of found.filter((n) => !isAllowed(n))) {
+for (const name of found.filter((n) => !allowed.has(n))) {
 	problems.push(`${name} is not on the ADR-030 item 8 bundle allowlist`);
 }
 

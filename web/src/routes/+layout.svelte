@@ -2,11 +2,19 @@
 	import type { Snippet } from 'svelte';
 	import '#lib/design/tokens.css';
 	import { missingFeatures } from '#lib/device.js';
+	import { registerServiceWorker } from '#lib/service-worker-registration.js';
 
 	let { children }: { children: Snippet } = $props();
 
 	// SEC-160 (e): checked once at start; without a required feature nothing else loads (LY-97).
 	const unsupported = missingFeatures().length > 0;
+
+	$effect(() => {
+		if (unsupported) return;
+		registerServiceWorker().catch((error: unknown) => {
+			console.error(error);
+		});
+	});
 </script>
 
 {#if unsupported}
