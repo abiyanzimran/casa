@@ -10,9 +10,9 @@
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO app_rw, job_runner, lifecycle_rw;
 
--- Only the named roles may connect; PUBLIC gets nothing. Whether staging and
--- production get separate roles is open, architect decision before GR-2
--- (09.2 §3 layer 5 vs ADR-028 item 1).
+-- Only the named roles may connect; PUBLIC gets nothing. Staging and
+-- production are kept apart by a separate PostgreSQL cluster per environment
+-- (09.2 §3 layer 5; ADR-028 item 1), not by role names.
 -- +goose StatementBegin
 DO $$
 BEGIN
