@@ -156,13 +156,12 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 // session that ended since it was read is ErrSessionExpired (fail closed).
 func (s *Service) touch(ctx context.Context, session Session, now time.Time, after time.Duration) (Session, error) {
 	if now.Sub(session.LastUsedAt) <= after {
-		return session, nil
+		return session, nil // no transaction
 	}
+	var touched Session
 	err := database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
-		touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: session.ID})
-		if err == nil && touched == 0 {
-			err = ErrSessionExpired // it ended since the read: fail closed
-		}
+		var err error
+		touched, err = touchSession(ctx, identitydb.New(tx), session, now, after)
 		return err
 	})
 	if errors.Is(err, ErrSessionExpired) {
@@ -170,6 +169,21 @@ func (s *Service) touch(ctx context.Context, session Session, now time.Time, aft
 	}
 	if err != nil {
 		return Session{}, fmt.Errorf("touch the session: %w", err)
+	}
+	return touched, nil
+}
+
+// touchSession is touch inside the caller's transaction.
+func touchSession(ctx context.Context, q *identitydb.Queries, session Session, now time.Time, after time.Duration) (Session, error) {
+	if now.Sub(session.LastUsedAt) <= after {
+		return session, nil
+	}
+	touched, err := q.TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: session.ID})
+	switch {
+	case err != nil:
+		return Session{}, err
+	case touched == 0:
+		return Session{}, ErrSessionExpired // it ended since the read: fail closed
 	}
 	session.LastUsedAt = now
 	return session, nil

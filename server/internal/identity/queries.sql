@@ -72,14 +72,58 @@ SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout,
  WHERE token_hash = @token_hash;
 
 -- name: GetSessionByCookieHash :one
--- SEC-161 (a), (c): a web request's cookie value is the current, the
--- previous, or a discarded value of at most one session; served by the
--- unique index on token_hash and the partial indexes session_prev_token and
+-- SEC-161 (a), (c); 10.1 §5.1: a web request's cookie value is the current,
+-- the previous, or the discarded value of at most one session. This lookup,
+-- before the account is known and without a lock, finds only the account;
+-- GetSessionByCookieHashForUpdate decides. Served by the unique index on
+-- token_hash and the partial indexes session_prev_token and
 -- session_discarded_token (09.2 §3, §5.1).
-SELECT id, account_id, client_kind, device_mode, token_hash = @token_hash AS current, token_issued_at,
-       token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+SELECT account_id
   FROM session
  WHERE token_hash = @token_hash OR prev_token_hash = @token_hash OR discarded_token_hash = @token_hash;
+
+-- name: GetSessionByCookieHashForUpdate :one
+-- SEC-161 (c) note 1.5 rule (4): one decision per row. The row is locked for
+-- the transaction that classifies the value and writes the outcome (plan 1.5
+-- decision 12); served by the same indexes as GetSessionByCookieHash.
+SELECT id, account_id, client_kind, device_mode,
+       token_hash = @token_hash AS current,
+       coalesce(prev_token_hash = @token_hash, false)::boolean AS previous,
+       coalesce(discarded_token_hash = @token_hash, false)::boolean AS discarded,
+       token_issued_at, token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = @token_hash OR prev_token_hash = @token_hash OR discarded_token_hash = @token_hash
+   FOR UPDATE;
+
+-- name: ConfirmCookie :exec
+-- SEC-161 (c) note 1.5 rule (1): the browser brought the current value back,
+-- so it holds it.
+UPDATE session SET token_confirmed_at = @now::timestamptz
+ WHERE id = @id AND token_confirmed_at IS NULL;
+
+-- name: RotateCookie :one
+-- SEC-161 (c): a new current value; the old one serves as the previous value
+-- until prev_valid_until, and the new one is not confirmed yet. Fail closed
+-- like TouchSession.
+UPDATE session
+   SET prev_token_hash = token_hash, prev_valid_until = @prev_valid_until::timestamptz,
+       token_hash = @token_hash, token_issued_at = @now, token_confirmed_at = NULL
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now
+RETURNING absolute_expiry;
+
+-- name: ReissueCookie :one
+-- SEC-161 (c) note 1.5 rules (2), (3): the current value never reached the
+-- browser; it is discarded (and remembered), a new one is issued, and the
+-- presented value is the previous one with a new window. Fail closed like
+-- TouchSession.
+UPDATE session
+   SET discarded_token_hash = token_hash, token_hash = @token_hash,
+       prev_token_hash = @presented, prev_valid_until = @prev_valid_until::timestamptz,
+       token_issued_at = @now, token_confirmed_at = NULL
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now
+RETURNING absolute_expiry;
 
 -- name: TouchSession :execrows
 -- The base of the idle limit. Fail closed: an ended session is never moved,

@@ -12,6 +12,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const confirmCookie = `-- name: ConfirmCookie :exec
+UPDATE session SET token_confirmed_at = $1::timestamptz
+ WHERE id = $2 AND token_confirmed_at IS NULL
+`
+
+type ConfirmCookieParams struct {
+	Now time.Time
+	ID  pgtype.UUID
+}
+
+// SEC-161 (c) note 1.5 rule (1): the browser brought the current value back,
+// so it holds it.
+func (q *Queries) ConfirmCookie(ctx context.Context, arg ConfirmCookieParams) error {
+	_, err := q.db.Exec(ctx, confirmCookie, arg.Now, arg.ID)
+	return err
+}
+
 const getAccountIDByEmail = `-- name: GetAccountIDByEmail :one
 SELECT id FROM account WHERE email = $1
 `
@@ -107,18 +124,43 @@ func (q *Queries) GetSession(ctx context.Context, id pgtype.UUID) (GetSessionRow
 }
 
 const getSessionByCookieHash = `-- name: GetSessionByCookieHash :one
-SELECT id, account_id, client_kind, device_mode, token_hash = $1 AS current, token_issued_at,
-       token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+SELECT account_id
   FROM session
  WHERE token_hash = $1 OR prev_token_hash = $1 OR discarded_token_hash = $1
 `
 
-type GetSessionByCookieHashRow struct {
+// SEC-161 (a), (c); 10.1 §5.1: a web request's cookie value is the current,
+// the previous, or the discarded value of at most one session. This lookup,
+// before the account is known and without a lock, finds only the account;
+// GetSessionByCookieHashForUpdate decides. Served by the unique index on
+// token_hash and the partial indexes session_prev_token and
+// session_discarded_token (09.2 §3, §5.1).
+func (q *Queries) GetSessionByCookieHash(ctx context.Context, tokenHash []byte) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getSessionByCookieHash, tokenHash)
+	var account_id pgtype.UUID
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
+const getSessionByCookieHashForUpdate = `-- name: GetSessionByCookieHashForUpdate :one
+SELECT id, account_id, client_kind, device_mode,
+       token_hash = $1 AS current,
+       coalesce(prev_token_hash = $1, false)::boolean AS previous,
+       coalesce(discarded_token_hash = $1, false)::boolean AS discarded,
+       token_issued_at, token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = $1 OR prev_token_hash = $1 OR discarded_token_hash = $1
+   FOR UPDATE
+`
+
+type GetSessionByCookieHashForUpdateRow struct {
 	ID               pgtype.UUID
 	AccountID        pgtype.UUID
 	ClientKind       string
 	DeviceMode       string
 	Current          bool
+	Previous         bool
+	Discarded        bool
 	TokenIssuedAt    time.Time
 	TokenConfirmedAt pgtype.Timestamptz
 	PrevValidUntil   pgtype.Timestamptz
@@ -128,19 +170,20 @@ type GetSessionByCookieHashRow struct {
 	RevokedAt        pgtype.Timestamptz
 }
 
-// SEC-161 (a), (c): a web request's cookie value is the current, the
-// previous, or a discarded value of at most one session; served by the
-// unique index on token_hash and the partial indexes session_prev_token and
-// session_discarded_token (09.2 §3, §5.1).
-func (q *Queries) GetSessionByCookieHash(ctx context.Context, tokenHash []byte) (GetSessionByCookieHashRow, error) {
-	row := q.db.QueryRow(ctx, getSessionByCookieHash, tokenHash)
-	var i GetSessionByCookieHashRow
+// SEC-161 (c) note 1.5 rule (4): one decision per row. The row is locked for
+// the transaction that classifies the value and writes the outcome (plan 1.5
+// decision 12); served by the same indexes as GetSessionByCookieHash.
+func (q *Queries) GetSessionByCookieHashForUpdate(ctx context.Context, tokenHash []byte) (GetSessionByCookieHashForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getSessionByCookieHashForUpdate, tokenHash)
+	var i GetSessionByCookieHashForUpdateRow
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
 		&i.ClientKind,
 		&i.DeviceMode,
 		&i.Current,
+		&i.Previous,
+		&i.Discarded,
 		&i.TokenIssuedAt,
 		&i.TokenConfirmedAt,
 		&i.PrevValidUntil,
@@ -459,6 +502,41 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 	return err
 }
 
+const reissueCookie = `-- name: ReissueCookie :one
+UPDATE session
+   SET discarded_token_hash = token_hash, token_hash = $1,
+       prev_token_hash = $2, prev_valid_until = $3::timestamptz,
+       token_issued_at = $4, token_confirmed_at = NULL
+ WHERE id = $5 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $4 AND absolute_expiry > $4
+RETURNING absolute_expiry
+`
+
+type ReissueCookieParams struct {
+	TokenHash      []byte
+	Presented      []byte
+	PrevValidUntil time.Time
+	Now            time.Time
+	ID             pgtype.UUID
+}
+
+// SEC-161 (c) note 1.5 rules (2), (3): the current value never reached the
+// browser; it is discarded (and remembered), a new one is issued, and the
+// presented value is the previous one with a new window. Fail closed like
+// TouchSession.
+func (q *Queries) ReissueCookie(ctx context.Context, arg ReissueCookieParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, reissueCookie,
+		arg.TokenHash,
+		arg.Presented,
+		arg.PrevValidUntil,
+		arg.Now,
+		arg.ID,
+	)
+	var absolute_expiry time.Time
+	err := row.Scan(&absolute_expiry)
+	return absolute_expiry, err
+}
+
 const revokeSession = `-- name: RevokeSession :execrows
 UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
  WHERE id = $3 AND revoked_at IS NULL
@@ -545,6 +623,37 @@ func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenPa
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const rotateCookie = `-- name: RotateCookie :one
+UPDATE session
+   SET prev_token_hash = token_hash, prev_valid_until = $1::timestamptz,
+       token_hash = $2, token_issued_at = $3, token_confirmed_at = NULL
+ WHERE id = $4 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $3 AND absolute_expiry > $3
+RETURNING absolute_expiry
+`
+
+type RotateCookieParams struct {
+	PrevValidUntil time.Time
+	TokenHash      []byte
+	Now            time.Time
+	ID             pgtype.UUID
+}
+
+// SEC-161 (c): a new current value; the old one serves as the previous value
+// until prev_valid_until, and the new one is not confirmed yet. Fail closed
+// like TouchSession.
+func (q *Queries) RotateCookie(ctx context.Context, arg RotateCookieParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, rotateCookie,
+		arg.PrevValidUntil,
+		arg.TokenHash,
+		arg.Now,
+		arg.ID,
+	)
+	var absolute_expiry time.Time
+	err := row.Scan(&absolute_expiry)
+	return absolute_expiry, err
 }
 
 const touchSession = `-- name: TouchSession :execrows

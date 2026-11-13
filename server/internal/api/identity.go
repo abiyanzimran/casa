@@ -100,6 +100,17 @@ func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.Reauthe
 	if err != nil {
 		return nil, identityError(err)
 	}
+	if session.ClientKind == "web" {
+		// SEC-161 (c): a re-authentication always rotates the cookie
+		// (session fixation); plan 1.5 decision 12.
+		cookie, err := h.s.RotateCookie(ctx, session)
+		if err != nil {
+			return nil, identityError(err)
+		}
+		if err := setSessionCookie(ctx, cookie); err != nil {
+			return nil, identityError(err)
+		}
+	}
 	return &casav1.ReauthenticateResponse{ExpiresAt: timestamppb.New(expiresAt)}, nil
 }
 

@@ -48,11 +48,7 @@ func openSession(ctx context.Context, tx pgx.Tx, account pgtype.UUID, client Cli
 		return Tokens{}, pgtype.UUID{}, err
 	}
 	if client.Kind == "web" {
-		cookie := Cookie{Value: token}
-		if mode == "personal" {
-			cookie.MaxAge = lifetime // plan 1.5 decision 7: the remaining absolute lifetime
-		}
-		return Tokens{Cookie: cookie}, session, nil
+		return Tokens{Cookie: sessionCookie(token, mode, now.Add(lifetime), now)}, session, nil
 	}
 	refresh, refreshHash := newToken()
 	err = q.InsertRefreshToken(ctx, identitydb.InsertRefreshTokenParams{

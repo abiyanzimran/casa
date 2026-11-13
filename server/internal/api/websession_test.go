@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -736,4 +738,393 @@ func TestCookieSession(t *testing.T) {
 		at(t, start, 12*60)
 		wantErrorCode(t, h.read(sameOrigin(used), web, true), connect.CodeUnauthenticated, expired)
 	})
+}
+
+// newCookie returns the session cookie a response set, checked for the
+// attributes every session cookie has, or nil for none; more than one fails
+// the test (a response sets at most one session cookie).
+func newCookie(t *testing.T, info *connect.CallInfo) *http.Cookie {
+	t.Helper()
+	if len(info.ResponseHeader().Values("Set-Cookie")) == 0 {
+		return nil
+	}
+	cookie, line := sessionCookie(t, info)
+	wantHostCookie(t, cookie, line)
+	return cookie
+}
+
+// webRead calls the probe Read from the app with cookie as a user's action
+// and returns the session cookie the response set (nil for none), which a
+// browser would store.
+func (h *identityHarness) webRead(t *testing.T, cookie string) (*http.Cookie, error) {
+	t.Helper()
+	ctx := sameOrigin(cookie)
+	info, _ := connect.CallInfoForClientContext(ctx)
+	err := h.read(ctx, web, true)
+	return newCookie(t, info), err
+}
+
+func TestCookieRotation(t *testing.T) {
+	// SEC-161 (c) and its note "FS-1 tugas 1.5" rules (1) to (5); plan 1.5
+	// decision 12. The clock is the test's: no sleep.
+	password, next := strings.Repeat("cookie rotation ", 2), strings.Repeat("rotated again ", 2) // built, so no secret scanner sees a literal
+	const email = "owner@example.test"
+	const day = 24 * time.Hour
+	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+
+	// served reads with cookie and wants it served without a new cookie.
+	served := func(t *testing.T, h *identityHarness, cookie string) {
+		t.Helper()
+		got, err := h.webRead(t, cookie)
+		wantOK(t, err)
+		if got != nil {
+			t.Fatal("the response set a new cookie; want none")
+		}
+	}
+	// rotated reads with cookie and wants it served with a new value, which
+	// it returns.
+	rotated := func(t *testing.T, h *identityHarness, cookie string) *http.Cookie {
+		t.Helper()
+		got, err := h.webRead(t, cookie)
+		wantOK(t, err)
+		if got == nil || got.Value == cookie {
+			t.Fatal("no new cookie value; want one")
+		}
+		return got
+	}
+	// revocations counts the sessions revoked for reuse and their rows in
+	// the security trail.
+	revocations := func(t *testing.T, h *identityHarness) (sessions, events int) {
+		t.Helper()
+		return h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'reuse_detected'"),
+			h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'reuse_detected'")
+	}
+	wantNoRevocation := func(t *testing.T, h *identityHarness) {
+		t.Helper()
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NOT NULL"); n != 0 {
+			t.Fatalf("%d sessions revoked, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked'"); n != 0 {
+			t.Fatalf("%d session_revoked rows in the security trail, want none", n)
+		}
+	}
+	wantReuseRevoked := func(t *testing.T, h *identityHarness) {
+		t.Helper()
+		if sessions, events := revocations(t, h); sessions != 1 || events != 1 {
+			t.Fatalf("%d sessions revoked for reuse with %d security_event rows; want 1 and 1", sessions, events)
+		}
+	}
+	// lostRotation signs in, rotates the value at 15 minutes and drops the
+	// new cookie, as a response the browser never stored; it returns the
+	// value the browser still holds, the dropped one, and the rotation time.
+	lostRotation := func(t *testing.T, h *identityHarness) (held, dropped string, at time.Time) {
+		t.Helper()
+		h.signUp(t, email, password)
+		held = h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		return held, rotated(t, h, held).Value, h.clock.Now()
+	}
+
+	t.Run("the cookie value changes after 15 minutes", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		signedIn := h.clock.Now()
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15*time.Minute - time.Second)
+		served(t, h, a) // 14:59
+		h.clock.advance(time.Second)
+		b := rotated(t, h, a) // 15:00
+		// Plan 1.5 decision 7: Max-Age is the remaining absolute lifetime.
+		if want := int((180*day - 15*time.Minute).Seconds()); b.MaxAge != want {
+			t.Fatalf("Max-Age %d, want %d", b.MaxAge, want)
+		}
+		served(t, h, b.Value)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE token_issued_at = $1", signedIn.Add(15*time.Minute)); n != 1 {
+			t.Fatal("the rotation did not record when the new value was issued")
+		}
+
+		// A shared session's new value is a session cookie too (SEC-165 (a)).
+		shared := h.webSignIn(t, email, password, shared)
+		h.clock.advance(15 * time.Minute)
+		sharedNext, err := h.webRead(t, shared)
+		wantOK(t, err)
+		if sharedNext == nil || sharedNext.Value == shared || sharedNext.MaxAge != 0 || sharedNext.RawExpires != "" {
+			t.Fatal("shared rotation: want a new value in a cookie without Max-Age or Expires")
+		}
+		wantNoRevocation(t, h)
+	})
+
+	t.Run("the previous value serves for 60 seconds", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		b := rotated(t, h, a)
+		served(t, h, b.Value) // the browser stored it: confirmed
+		h.clock.advance(59 * time.Second)
+		served(t, h, a) // a request that left before the rotation
+		served(t, h, b.Value)
+		wantNoRevocation(t, h)
+	})
+
+	t.Run("a lost new cookie does not revoke the session", func(t *testing.T) {
+		// Focus 1 of plan 1.5; SEC-161 (c) note 1.5 rule (2): the dropped
+		// value was never confirmed, so the server issues again.
+		h := startIdentity(t)
+		a, b, at := lostRotation(t, h)
+		h.clock.advance(at.Add(61 * time.Second).Sub(h.clock.Now()))
+		c := rotated(t, h, a)
+		if c.Value == b {
+			t.Fatal("the reissue sent the dropped value again; want a new one")
+		}
+		if want := int((180*day - 15*time.Minute - 61*time.Second).Seconds()); c.MaxAge != want {
+			t.Fatalf("Max-Age %d, want %d", c.MaxAge, want)
+		}
+		wantNoRevocation(t, h)
+		served(t, h, a) // the presented value got a new 60-second window
+		served(t, h, c.Value)
+		wantNoRevocation(t, h)
+	})
+
+	t.Run("SEC-161 (c) a previous value used after the new one revokes the session", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		at := h.clock.Now()
+		b := rotated(t, h, a)
+		h.clock.advance(time.Second)
+		served(t, h, b.Value) // used once: confirmed (rule (1))
+		h.clock.advance(at.Add(61 * time.Second).Sub(h.clock.Now()))
+		_, err := h.webRead(t, a)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		wantReuseRevoked(t, h)
+		_, err = h.webRead(t, b.Value)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		wantReuseRevoked(t, h)
+	})
+
+	t.Run("a discarded value revokes the session", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (3): only a second holder can bring the
+		// value the browser never received.
+		h := startIdentity(t)
+		a, b, at := lostRotation(t, h)
+		h.clock.advance(at.Add(61 * time.Second).Sub(h.clock.Now()))
+		c := rotated(t, h, a)
+		wantNoRevocation(t, h)
+		_, err := h.webRead(t, b)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		wantReuseRevoked(t, h)
+		_, err = h.webRead(t, c.Value)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+	})
+
+	t.Run("an unknown value is no session, never a revocation", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (5): the server cannot tell whose it is,
+		// so the browser keeps its local data.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		b := rotated(t, h, a)
+		served(t, h, b.Value)
+		h.clock.advance(15 * time.Minute)
+		c := rotated(t, h, b.Value)
+		served(t, h, c.Value)
+		h.clock.advance(2 * time.Minute)
+		// a is two rotations old: no longer current, previous or discarded.
+		for _, value := range []string{tokenOf(t), a} {
+			got, err := h.webRead(t, value)
+			wantCode(t, err, connect.CodeUnauthenticated)
+			if d := details(t, err); d != nil || got != nil {
+				t.Fatalf("details %v, new cookie %t; want neither (sign in again)", d, got != nil)
+			}
+		}
+		wantNoRevocation(t, h)
+		served(t, h, c.Value)
+	})
+
+	t.Run("two requests at the rotation point rotate once", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		cookies := h.concurrentReads(t, a, a)
+		if len(cookies) != 1 {
+			t.Fatalf("%d new cookies, want exactly 1", len(cookies))
+		}
+		h.clock.advance(59 * time.Second)
+		served(t, h, a) // the other request's value keeps its window
+		served(t, h, cookies[0])
+		wantNoRevocation(t, h)
+	})
+
+	t.Run("two requests with the old value after the window reissue once", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (4): one decision per row, so the second
+		// is the previous value inside the new window, and no response sets
+		// a value the first already discarded.
+		h := startIdentity(t)
+		a, _, at := lostRotation(t, h)
+		h.clock.advance(at.Add(61 * time.Second).Sub(h.clock.Now()))
+		cookies := h.concurrentReads(t, a, a)
+		if len(cookies) != 1 {
+			t.Fatalf("%d new cookies, want exactly 1", len(cookies))
+		}
+		wantNoRevocation(t, h)
+		served(t, h, cookies[0])
+		wantNoRevocation(t, h)
+	})
+
+	t.Run("a rotation on a failing request still delivers the new cookie", func(t *testing.T) {
+		// Plan 1.5 decision 11 step 3: the boundary sets it before the
+		// handler runs.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		ctx := sameOrigin(a)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		rc := commandRC()
+		rc.ClientKind = web
+		_, err := h.client.ChangePassword(ctx, &casav1.ChangePasswordRequest{RequestContext: rc, NewPassword: next})
+		wantErrorCode(t, err, connect.CodePermissionDenied, casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED)
+		b := newCookie(t, info)
+		if b == nil || b.Value == a {
+			t.Fatal("the failing request set no new cookie; want one")
+		}
+		served(t, h, b.Value)
+	})
+
+	t.Run("a web re-authentication rotates the cookie", func(t *testing.T) {
+		// SEC-161 (c): "selalu saat masuk, autentikasi ulang, dan
+		// pemulihan" (closes session fixation); sign-in and recovery open a
+		// new session, so this is the re-authentication. Native sessions
+		// never get a cookie (SEC-161 (b)).
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		reauth := func(ctx context.Context, kind casav1.ClientKind, password string) (*connect.CallInfo, error) {
+			info, _ := connect.CallInfoForClientContext(ctx)
+			_, err := h.client.Reauthenticate(ctx, &casav1.ReauthenticateRequest{
+				RequestContext: identityRC(kind), Password: password, Purpose: casav1.ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD,
+			})
+			return info, err
+		}
+
+		info, err := reauth(sameOrigin(a), web, next) // wrong password: no rotation
+		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED)
+		if newCookie(t, info) != nil {
+			t.Fatal("a failed re-authentication set a cookie; want none")
+		}
+		info, err = reauth(sameOrigin(a), web, password)
+		wantOK(t, err)
+		b := newCookie(t, info)
+		if b == nil || b.Value == a || b.MaxAge != int((180*day).Seconds()) {
+			t.Fatal("a web re-authentication set no new cookie, or one without the remaining lifetime; want one")
+		}
+		served(t, h, b.Value)
+		served(t, h, a) // inside its 60-second window
+		info, err = reauth(bearer(tokens.GetAccessToken()), ios, password)
+		wantOK(t, err)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+			t.Fatalf("a native re-authentication set %d cookies, want none", n)
+		}
+		// At the rotation point the boundary rotates and the handler rotates
+		// again: the response carries only the last value.
+		h.clock.advance(15 * time.Minute)
+		info, err = reauth(sameOrigin(b.Value), web, password)
+		wantOK(t, err)
+		c := newCookie(t, info)
+		if c == nil || c.Value == b.Value {
+			t.Fatal("a web re-authentication at the rotation point set no new cookie; want one")
+		}
+		served(t, h, c.Value)
+
+		rc := commandRC()
+		rc.ClientKind = web
+		_, err = h.client.ChangePassword(sameOrigin(c.Value), &casav1.ChangePasswordRequest{RequestContext: rc, NewPassword: next})
+		wantOK(t, err) // the grant belongs to the session, not to a value
+	})
+
+	t.Run("a personal cookie in its last second is sent expired, never as a session cookie", func(t *testing.T) {
+		// Plan 1.5 decision 7: Max-Age is the remaining lifetime rounded
+		// down; under a second it would round to none, which makes a
+		// session cookie, so it is sent as already expired.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		signedIn := h.clock.Now()
+		cookie := h.webSignIn(t, email, password, personal)
+		for range 180 / 29 {
+			h.clock.advance(29 * day) // inside the 30-day idle limit
+			cookie = rotated(t, h, cookie).Value
+		}
+		h.clock.advance(signedIn.Add(180*day - 500*time.Millisecond).Sub(h.clock.Now()))
+		ctx := sameOrigin(cookie)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantOK(t, h.read(ctx, web, true))
+		last := newCookie(t, info)
+		line := info.ResponseHeader().Get("Set-Cookie")
+		if last == nil || last.MaxAge >= 0 || !strings.Contains(line, "; Max-Age=0") {
+			t.Fatalf("Set-Cookie %q; want Max-Age=0", cookieShape(line))
+		}
+	})
+}
+
+// concurrentReads sends one web read per cookie value and returns the new
+// cookie values the responses set; every read must succeed. The reads are
+// made to overlap: a transaction of the test locks the values' session row
+// until every read waits on that lock, so all of them decide on the row at
+// once (SEC-161 (c) note 1.5 rule (4)).
+func (h *identityHarness) concurrentReads(t *testing.T, cookies ...string) []string {
+	t.Helper()
+	ctx := t.Context()
+	lock, err := h.admin.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = lock.Rollback(ctx) }()
+	hash := sha256.Sum256(decodeToken(t, cookies[0]))
+	if _, err := lock.Exec(ctx, "SELECT 1 FROM session WHERE token_hash = $1 OR prev_token_hash = $1 FOR UPDATE", hash[:]); err != nil {
+		t.Fatal(err)
+	}
+	infos := make([]*connect.CallInfo, len(cookies))
+	errs := make([]error, len(cookies))
+	var wg sync.WaitGroup
+	for i, cookie := range cookies {
+		call := sameOrigin(cookie)
+		infos[i], _ = connect.CallInfoForClientContext(call)
+		wg.Go(func() { errs[i] = h.read(call, web, true) })
+	}
+	for waiting := 0; waiting < len(cookies); { // no sleep: each query takes its own time
+		if err := ctx.Err(); err != nil {
+			t.Fatal(err)
+		}
+		if err := h.admin.QueryRow(ctx, `
+			SELECT count(*) FROM pg_stat_activity
+			 WHERE datname = current_database() AND wait_event_type = 'Lock'`).Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := lock.Rollback(ctx); err != nil {
+		t.Fatal(err)
+	}
+	wg.Wait()
+	var values []string
+	for i, info := range infos {
+		wantOK(t, errs[i])
+		if cookie := newCookie(t, info); cookie != nil {
+			values = append(values, cookie.Value)
+		}
+	}
+	return values
+}
+
+// tokenOf returns a well-formed random token that no session holds.
+func tokenOf(t *testing.T) string {
+	t.Helper()
+	var raw [32]byte
+	if _, err := rand.Read(raw[:]); err != nil {
+		t.Fatal(err)
+	}
+	return base64.RawURLEncoding.EncodeToString(raw[:])
 }

@@ -28,23 +28,31 @@ func sessionCookieValue(header *connect.Header) (string, bool) {
 	return cookie.Value, true
 }
 
-// setSessionCookie adds c to the response as the session cookie: Path=/,
+// setSessionCookie sets c as the response's session cookie: Path=/,
 // Secure, HttpOnly, SameSite=Strict, no Domain, and Max-Age in whole seconds
-// rounded down, or none for a session cookie (plan 1.5 decision 7). The
-// value goes only into this header, never into a body or a log (SEC-161
-// (b); SEC-44). Without the call's response headers it fails closed, so a
-// committed session is never answered as opened without its cookie; the
-// error never carries the value.
+// rounded down, or none for a session cookie (plan 1.5 decision 7). A
+// Max-Age under one second is sent as Max-Age=0, an expired cookie: rounded
+// down to none it would make a personal cookie a session cookie. It replaces
+// a cookie set earlier in the same call, so a response that rotated the
+// value at the boundary and again in the handler carries only the last value
+// (SEC-161 (c)). The value goes only into this header, never into a body or
+// a log (SEC-161 (b); SEC-44). Without the call's response headers it fails
+// closed, so a committed session is never answered as opened without its
+// cookie; the error never carries the value.
 func setSessionCookie(ctx context.Context, c identity.Cookie) error {
 	info, ok := connect.CallInfoForServerContext(ctx)
 	if !ok {
 		return errors.New("no call info to set the session cookie on")
 	}
+	maxAge := int(c.MaxAge / time.Second)
+	if c.MaxAge > 0 && maxAge == 0 {
+		maxAge = -1 // net/http writes Max-Age=0
+	}
 	cookie := http.Cookie{
 		Name: sessionCookieName, Value: c.Value, Path: "/",
 		Secure: true, HttpOnly: true, SameSite: http.SameSiteStrictMode,
-		MaxAge: int(c.MaxAge / time.Second),
+		MaxAge: maxAge,
 	}
-	info.ResponseHeader().Add("Set-Cookie", cookie.String())
+	info.ResponseHeader().Set("Set-Cookie", cookie.String())
 	return nil
 }
