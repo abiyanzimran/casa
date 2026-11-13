@@ -10,7 +10,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/abiyanzimran/casa/server/internal/database"
+	"github.com/abiyanzimran/casa/server/internal/identity/identitydb"
 )
 
 // Errors a caller maps to a response; each stands for every reason behind it,
@@ -219,4 +224,28 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 			hash:   randomBytes(int(config.Password.KeyBytes)),
 		},
 	}
+}
+
+// SignupVia is how account was made: "setup_token" (SEC-158 (b)) or
+// "invitation" (SEC-158 (a)), read in the account's own scope. Only an
+// account made with a setup token may create a household (FR-FAM-001/AC-10).
+func (s *Service) SignupVia(ctx context.Context, account pgtype.UUID) (string, error) {
+	var via string
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		via, err = identitydb.New(tx).GetSignupVia(ctx, account)
+		return err
+	})
+	return via, err
+}
+
+// RecordSecurityEvent writes one line of account's security trail, without
+// a session, in tx whose scope is the account (SEC-16, SEC-39 (b)): the
+// entry point for a line another module's command causes, such as an
+// operator notice version or its acknowledgement (SEC-34; 09.2 §1 item 9:
+// the API layer composes it), through the same query identity uses. detail
+// never holds a token, a password, an email or other content.
+func RecordSecurityEvent(ctx context.Context, tx pgx.Tx, account pgtype.UUID, kind, detail string, at time.Time) error {
+	return identitydb.New(tx).InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
+		AccountID: account, Kind: kind, Detail: pgtype.Text{String: detail, Valid: detail != ""}, OccurredAt: at,
+	})
 }

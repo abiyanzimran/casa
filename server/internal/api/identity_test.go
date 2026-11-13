@@ -20,6 +20,7 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -77,6 +78,9 @@ type identityHarness struct {
 	mailErr   error
 	// logs is the service's log, read after service.Wait.
 	logs bytes.Buffer
+	// noticeHeld is the server's NOTICE_UNREAD check, set by a register
+	// function before the server serves; nil holds nothing.
+	noticeHeld func(context.Context, pgtype.UUID) (bool, error)
 }
 
 // failMail makes every later mail fail with err.
@@ -86,7 +90,9 @@ func (h *identityHarness) failMail(err error) {
 	h.mailErr = err
 }
 
-func startIdentity(t *testing.T) *identityHarness {
+// startIdentity starts the identity service; register adds other services
+// to the same server before it serves.
+func startIdentity(t *testing.T, register ...func(*connect.Server, *identityHarness)) *identityHarness {
 	t.Helper()
 	d := databasetest.Migrated(t)
 	h := &identityHarness{
@@ -111,8 +117,16 @@ func startIdentity(t *testing.T) *identityHarness {
 	h.service = service
 	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{
 		Bearer: service.Authenticate, Cookie: service.AuthenticateCookie, UserAction: service.TouchUserAction,
+	}, func(ctx context.Context, account pgtype.UUID) (bool, error) {
+		if h.noticeHeld == nil {
+			return false, nil
+		}
+		return h.noticeHeld(ctx, account)
 	})
 	api.RegisterIdentityService(server, h.pool, service)
+	for _, r := range register {
+		r(server, h)
+	}
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
 	server.Register(connect.Method{
 		Spec: connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read", Schema: h.probeRead},

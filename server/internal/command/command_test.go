@@ -223,6 +223,28 @@ func TestRun(t *testing.T) {
 			t.Fatalf("scope_id %v, %v; want the account %v", scopeID, err, h.scope.AccountID)
 		}
 	})
+	t.Run("an account-level command keeps the account as scope id when a household is set", func(t *testing.T) {
+		// 09.2 §8: CreateHousehold and AcceptInvitation carry a household in the
+		// transaction but keep scope_id = account_id.
+		h := start(t)
+		household := newUUID()
+		key := uuidString(newUUID())
+		scope := database.Scope{HouseholdID: household, AccountID: h.scope.AccountID}
+		if _, err := RunForAccount(t.Context(), h.pool, scope, procedure, key, wrapperspb.String("a"), h.count); err != nil {
+			t.Fatal(err)
+		}
+		var scopeID pgtype.UUID
+		if err := h.admin.QueryRow(t.Context(), "SELECT scope_id FROM idempotency_record").Scan(&scopeID); err != nil || scopeID != h.scope.AccountID {
+			t.Fatalf("scope_id %v, %v; want the account %v", scopeID, err, h.scope.AccountID)
+		}
+		resend := database.Scope{HouseholdID: newUUID(), AccountID: h.scope.AccountID}
+		if got, err := RunForAccount(t.Context(), h.pool, resend, procedure, key, wrapperspb.String("a"), h.count); err != nil || got.GetValue() != 1 {
+			t.Fatalf("resend under another household: %v, %v; want the stored response", got, err)
+		}
+		if h.applied != 1 || h.records(t) != 1 {
+			t.Fatalf("applied %d, records %d; want 1 each", h.applied, h.records(t))
+		}
+	})
 }
 
 func TestStored(t *testing.T) {

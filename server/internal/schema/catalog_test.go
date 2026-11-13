@@ -19,7 +19,7 @@ var tables = map[string]tableRule{
 		policy: "cmd=SELECT roles={public} PERMISSIVE using=true check=",
 		source: "09.2 §3 \"Tabel global\", §5.1; ADR-008"},
 	"account": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
-		policy: lookupPolicy("((id = "+settingAccount+") OR (email = "+settingEmail+"))", "(id = "+settingAccount+")"),
+		policy: policyText("((id = "+settingAccount+") OR (email = "+settingEmail+"))", "(id = "+settingAccount+")"),
 		source: "09.2 §3 \"Tabel global\", §5.1; lead rulings Q2, Q3 on the 1.4 plan"},
 	"credential": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"salt", "hash", "time_cost", "memory_kib", "parallelism", "updated_at"},
@@ -30,7 +30,7 @@ var tables = map[string]tableRule{
 		// or ua_summary (SEC-165).
 		updates: []string{"token_hash", "token_issued_at", "last_used_at", "revoked_at", "revoke_reason",
 			"prev_token_hash", "prev_valid_until", "token_confirmed_at", "discarded_token_hash"},
-		policy: lookupPolicy("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+
+		policy: policyText("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+
 			") OR (prev_token_hash = "+settingTokenHash+") OR (discarded_token_hash = "+settingTokenHash+"))",
 			"(account_id = "+settingAccount+")"),
 		source: "09.2 §3 \"Tabel global\", §5.1; SEC-15, SEC-161 (c); lead rulings Q2, Q3 on the 1.4 plan; plan 1.5 decision 15"},
@@ -48,11 +48,11 @@ var tables = map[string]tableRule{
 		source:  "09.2 §3 \"Tabel global\"; SEC-24; lead rulings Q2, Q3 on the 1.4 plan"},
 	"setup_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"used_at", "account_id"},
-		policy:  lookupPolicy("(token_hash = "+settingTokenHash+")", "(token_hash = "+settingTokenHash+")"),
+		policy:  policyText("(token_hash = "+settingTokenHash+")", "(token_hash = "+settingTokenHash+")"),
 		source:  "09.2 §3 \"Tabel global\", §5.1; SEC-158 (b); 09.4 §2; lead rulings Q2, Q3 on the 1.4 plan"},
 	"signup_verification": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"token_hash", "expires_at", "used_at"},
-		policy: lookupPolicy("((token_hash = "+settingTokenHash+") OR (setup_token_hash = "+settingTokenHash+"))",
+		policy: policyText("((token_hash = "+settingTokenHash+") OR (setup_token_hash = "+settingTokenHash+"))",
 			"(setup_token_hash = "+settingTokenHash+")"),
 		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158; lead rulings Q2, Q4, Q8 on the 1.4 plan"},
 	"security_event": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
@@ -61,6 +61,42 @@ var tables = map[string]tableRule{
 	"idempotency_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		policy: "cmd=ALL roles={public} PERMISSIVE using=((scope_id = " + settingHousehold + ") OR (scope_id = " + settingAccount + ")) check=",
 		source: "09.2 §3 \"Tabel infrastruktur dengan pemilik campuran\", §5.1, §8"},
+	// 00005_household: the household tables (09.2 §5.1, note of 14 November
+	// 2026; plan 1.6 decisions 2, 3). app_rw never deletes a household row.
+	"household": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"version"},
+		policy:  policyText("(id = "+strictHousehold+")", "(id = "+strictHousehold+")"),
+		source:  "09.2 §3 note of 14 November 2026, §5.1; plan 1.6 decisions 2, 3"},
+	"membership": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: policyText("((household_id = "+settingHousehold+") OR (("+settingHousehold+" IS NULL) AND (account_id = "+settingAccount+")))",
+			"(household_id = "+settingHousehold+")"),
+		source: "09.2 §3 note of 14 November 2026, §5.1; 10.1 §5.1 note 1.6 item 1; 06 §3.1"},
+	"approval_authority": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		source: "09.2 §5.1 note of 14 November 2026; 06 §3.1"},
+	"household_rule": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		source: "09.2 §5.1 note of 14 November 2026; 06 §3.1"},
+	// No writer until Tier 3 (06 §3.1 row "Hubungan"; FR-FAM-006/AC-3).
+	"relationship": {grants: map[string]string{"app_rw": "SELECT"},
+		source: "09.2 §5.1 note of 14 November 2026; 06 §3.1"},
+	"invitation": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"token_hash", "state", "invitee_account_id", "invitee_display_name", "closed_at", "version"},
+		policy: policyText("((household_id = "+settingHousehold+") OR (("+settingHousehold+" IS NULL) AND (token_hash = "+settingTokenHash+
+			")) OR (("+settingHousehold+" IS NULL) AND (invitee_account_id = "+settingAccount+")))",
+			"(household_id = "+settingHousehold+")"),
+		source: "09.2 §3 note of 14 November 2026, §5.1; 10.1 §5.1 note 1.6 item 1; 06 §3.6"},
+	// Append-only for app_rw (FR-FAM-020/AC-6; ADR-016 item 5).
+	"object_event": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		source: "09.2 §5.1 note of 14 November 2026; 06 §2.5, INV-A01"},
+	// 00006_consent_record: a global table of household (plan 1.6 decision 9).
+	"consent_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: ownAccount,
+		source: "09.2 §3 note of 14 November 2026, §5.1; SEC-80 note of 14 November 2026, SEC-109 (a)"},
+	// 00007_operator_notice_ack: a global table of household (plan 1.6
+	// decision 6); history stays, only the acknowledgement is filled in.
+	"operator_notice_ack": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"acknowledged_at"},
+		policy:  ownAccount,
+		source:  "09.2 §3 note of 14 November 2026, §5.1; SEC-34; 10.1 §11 note of 14 November 2026"},
 }
 
 type tableRule struct {
@@ -69,8 +105,10 @@ type tableRule struct {
 	// updates are the only columns app_rw may UPDATE, as column grants
 	// (10.1 §5.1 rule 2; 09.2 §3).
 	updates []string
-	// policy is the one policy of a global table as PostgreSQL deparses it,
-	// in the form of householdPolicy's check below.
+	// policy is the one policy of the table as PostgreSQL deparses it. A
+	// global table always declares it; for a household table empty means
+	// householdPolicy exactly, and only the tables with lookup clauses of
+	// 09.2 §3 (note of 14 November 2026) declare their own.
 	policy string
 	source string
 }
@@ -83,23 +121,47 @@ const (
 	settingEmail     = "(NULLIF(current_setting('app.email'::text, true), ''::text))::citext"
 	settingTokenHash = "decode(NULLIF(current_setting('app.token_hash'::text, true), ''::text), 'hex'::text)" //nolint:gosec // G101: a policy expression naming a setting, no credential
 	settingHousehold = "(NULLIF(current_setting('app.household_id'::text, true), ''::text))::uuid"
+	// strictHousehold is H of 09.2 §3 layer 4, without missing_ok: a
+	// transaction that sets no household fails instead of reading nothing.
+	strictHousehold = "(current_setting('app.household_id'::text))::uuid"
 )
 
 // The policies of the identity tables of 09.2 §3 "Tabel global": a lookup
 // clause only in USING, never in WITH CHECK (10.1 §5.1 rule 1).
 var (
-	ownAccount     = lookupPolicy("(account_id = "+settingAccount+")", "(account_id = "+settingAccount+")")
-	accountOrToken = lookupPolicy("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+"))",
+	ownAccount     = policyText("(account_id = "+settingAccount+")", "(account_id = "+settingAccount+")")
+	accountOrToken = policyText("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+"))",
 		"(account_id = "+settingAccount+")")
 )
 
-func lookupPolicy(using, check string) string {
+// policyText is one FOR ALL policy as tablePolicies prints it.
+func policyText(using, check string) string {
 	return "cmd=ALL roles={public} PERMISSIVE using=" + using + " check=" + check
 }
 
-// householdPolicy is the one policy of every household table, as PostgreSQL
-// deparses 09.2 §3 layer 4.
-const householdPolicy = "(household_id = (current_setting('app.household_id'::text))::uuid)"
+// householdPolicy is the one policy of every household table that declares
+// none, as PostgreSQL deparses 09.2 §3 layer 4.
+var householdPolicy = policyText("(household_id = "+strictHousehold+")", "(household_id = "+strictHousehold+")")
+
+// householdColumn is the column that names a household table's household:
+// the household table's own key is id (09.2 §3 note of 14 November 2026).
+func householdColumn(table string) string {
+	if table == "household" {
+		return "id"
+	}
+	return "household_id"
+}
+
+// keyExceptions are the unique indexes whose key does not start with
+// household_id, each a recorded exception to 09.2 §3 layer 2, with its exact
+// definition: both are keyed by the caller's own account and hold one
+// membership and one open acceptance per account across households (09.2
+// §5.1, note on decision 20 of the 1.6 plan). The household table itself is
+// the third exception.
+var keyExceptions = map[string]string{
+	"membership_one_household": "CREATE UNIQUE INDEX membership_one_household ON public.membership USING btree (account_id) WHERE (account_id IS NOT NULL)",
+	"invitation_invitee":       "CREATE UNIQUE INDEX invitation_invitee ON public.invitation USING btree (invitee_account_id) WHERE (state = 'accepted'::text)",
+}
 
 var allPrivileges = []string{"SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER", "MAINTAIN"}
 
@@ -161,7 +223,7 @@ func TestCatalog(t *testing.T) {
 		}
 	})
 
-	t.Run("SEC-08 a household table has exactly one policy, the household policy", func(t *testing.T) {
+	t.Run("SEC-08 a household table has exactly one policy, its declared policy", func(t *testing.T) {
 		for name, rule := range tables {
 			hasHouseholdID := queryBool(t, db, `
 				SELECT EXISTS (SELECT FROM pg_attribute
@@ -173,13 +235,15 @@ func TestCatalog(t *testing.T) {
 				}
 				continue
 			}
-			if !hasHouseholdID {
+			if !hasHouseholdID && householdColumn(name) == "household_id" {
 				t.Errorf("household table %s has no household_id column", name)
 			}
-			policies := tablePolicies(t, db, name)
-			want := "cmd=ALL roles={public} PERMISSIVE using=" + householdPolicy + " check=" + householdPolicy
-			if len(policies) != 1 || policies[0] != want {
-				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s", name, strings.Join(policies, "\n"), want)
+			want := rule.policy
+			if want == "" {
+				want = householdPolicy
+			}
+			if policies := tablePolicies(t, db, name); len(policies) != 1 || policies[0] != want {
+				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s (%s)", name, strings.Join(policies, "\n"), want, rule.source)
 			}
 		}
 	})
@@ -287,11 +351,42 @@ func TestCatalog(t *testing.T) {
 		}
 	})
 
+	t.Run("a household's currency cannot change under an amount (INV-35)", func(t *testing.T) {
+		// 09.2 §5.2 item 4; ADR-016: every (household_id, currency) foreign
+		// key to household is ON UPDATE RESTRICT.
+		got := queryStrings(t, db, `
+			SELECT format('%s %s', con.conrelid::regclass, pg_get_constraintdef(con.oid))
+			  FROM pg_constraint con
+			 WHERE con.contype = 'f' AND con.confrelid = 'public.household'::regclass
+			   AND (SELECT attname FROM pg_attribute WHERE attrelid = con.conrelid AND attnum = con.conkey[2]) = 'currency'
+			   AND con.confupdtype <> 'r'
+			 ORDER BY 1`)
+		for _, key := range got {
+			t.Errorf("%s is not ON UPDATE RESTRICT", key)
+		}
+		if n := queryStrings(t, db, `
+			SELECT conname::text FROM pg_constraint
+			 WHERE contype = 'f' AND confrelid = 'public.household'::regclass AND cardinality(conkey) = 2`); len(n) == 0 {
+			t.Error("no currency foreign key to household found")
+		}
+	})
+
 	t.Run("household_id leads every key of a household table (SEC-02)", func(t *testing.T) {
+		// An exception exists exactly as declared, so it cannot widen
+		// unnoticed.
+		for name, want := range keyExceptions {
+			got := queryStrings(t, db, "SELECT coalesce(pg_get_indexdef(to_regclass(format('public.%I', $1::text))), 'missing')", name)
+			if len(got) != 1 || got[0] != want {
+				t.Errorf("key exception %s: %v, want exactly %q", name, got, want)
+			}
+		}
 		for name, rule := range tables {
-			if rule.global {
+			// The household table's key is its own id; its currency
+			// foreign key names the product table (09.2 §5.1).
+			if rule.global || name == "household" {
 				continue
 			}
+			// A foreign key to the household table leads with its id.
 			bad := queryStrings(t, db, `
 				WITH t AS (SELECT format('public.%I', $1::text)::regclass AS oid)
 				SELECT pg_get_constraintdef(con.oid)
@@ -300,14 +395,16 @@ func TestCatalog(t *testing.T) {
 				   AND ((SELECT attname FROM pg_attribute
 				          WHERE attrelid = con.conrelid AND attnum = con.conkey[1]) IS DISTINCT FROM 'household_id'
 				        OR (con.contype = 'f' AND (SELECT attname FROM pg_attribute
-				              WHERE attrelid = con.confrelid AND attnum = con.confkey[1]) IS DISTINCT FROM 'household_id'))
+				              WHERE attrelid = con.confrelid AND attnum = con.confkey[1])
+				            IS DISTINCT FROM CASE WHEN con.confrelid = 'public.household'::regclass THEN 'id' ELSE 'household_id' END))
 				UNION ALL
 				SELECT pg_get_indexdef(i.indexrelid)
 				  FROM pg_index i, t
 				 WHERE i.indrelid = t.oid AND i.indisunique
+				   AND i.indexrelid::regclass::text <> ALL ($2::text[])
 				   AND (SELECT attname FROM pg_attribute
 				         WHERE attrelid = i.indrelid AND attnum = i.indkey[0]) IS DISTINCT FROM 'household_id'
-				 ORDER BY 1`, name)
+				 ORDER BY 1`, name, slices.Collect(maps.Keys(keyExceptions)))
 			for _, key := range bad {
 				t.Errorf("table %s: %s does not start with household_id (SEC-02; 09.2 §3 layer 2)", name, key)
 			}

@@ -400,6 +400,10 @@ object_event (                            -- 06 §2.5: Peristiwa per objek
 -- the foreign key columns to be null; if any of them are null, the row is not required to have a match",
 -- postgresql.org/docs/18/sql-createtable.html, diakses 14 November 2026) [Terverifikasi], sehingga baris
 -- tanpa jumlah tidak menghalangi ganti mata uang sebelum ada baris uang (FR-FAM-001/AC-8, langkah 2; 07 T-45).
+-- Catatan 14 November 2026 (putusan lead, tinjauan Tugas 1, sudah di 00005_household.sql): karena itu juga,
+-- household_rule dan object_event mendapat FK biasa (household_id) → household (id), sebab FK kompositnya
+-- tidak diperiksa saat currency atau actor NULL (baris pilot biasa, setiap Peristiwa invitee dan system);
+-- FK (household_id, currency) memakai ON UPDATE RESTRICT (§5.2 butir 4).
 household (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL, time_zone text NOT NULL,
   currency char(3) NOT NULL DEFAULT 'IDR' REFERENCES currency (code),
@@ -420,7 +424,10 @@ membership (                              -- 06 §3.1 peran dan izin. Sampai F06
 )
 CREATE UNIQUE INDEX membership_one_household ON membership (account_id) WHERE account_id IS NOT NULL;
                                           -- keanggotaan akun sendiri (§3 lapis 1) dan aturan produk pilot
-                                          -- "satu rumah tangga per akun"; lihat catatan balapan di bawah
+                                          -- "satu rumah tangga per akun"; lihat catatan balapan di bawah.
+                                          -- Catatan 14 November 2026 (putusan lead, tinjauan Tugas 1):
+                                          -- tidak ada indeks membership_account; migrasi F-FAM-009 yang
+                                          -- menghapus indeks unik ini menambah indeks biasa (account_id)
 approval_authority (                      -- 06 §3.1 wewenang persetujuan
   household_id, member_id, request_type text NOT NULL CHECK (request_type IN ('all')),
   limit_amount bigint NULL, currency char(3) NULL,   -- §7: jumlah selalu berpasangan; keduanya NULL = tanpa batas
@@ -428,7 +435,7 @@ approval_authority (                      -- 06 §3.1 wewenang persetujuan
   CHECK ((limit_amount IS NULL) = (currency IS NULL)),
   PRIMARY KEY (household_id, member_id, request_type, valid_from),
   FOREIGN KEY (household_id, member_id) REFERENCES membership,
-  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT   -- §5.2 butir 4
 )
 household_rule (                          -- 06 §3.1 aturan rumah tangga; tidak dapat diubah, versi baru = baris baru
   household_id, version int NOT NULL,
@@ -438,7 +445,8 @@ household_rule (                          -- 06 §3.1 aturan rumah tangga; tidak
   created_at timestamptz NOT NULL,
   CHECK ((request_threshold IS NULL) = (currency IS NULL)),
   PRIMARY KEY (household_id, version),
-  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+  FOREIGN KEY (household_id) REFERENCES household (id),   -- komposit di bawah tidak diperiksa saat currency NULL
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT   -- §5.2 butir 4
 )  -- approval_mode ditambah request (langkah 4, expand) bersama resolve_approvers: belum ada aturan yang membacanya
 relationship (                            -- 06 §3.1 hubungan: tabel ada, tanpa baris di pilot
   household_id, member_id, other_member_id, kind text NOT NULL,
@@ -497,6 +505,30 @@ CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE 
 --     penerimaan terbuka per akun; F04 sesudah penerima membuat rumah tangga → STATE_CHANGED, undangan
 --     'withdrawn', tanpa membership, dan baris object_event-nya sama medan demi medan (selain pengenal dan
 --     waktu) dengan penarikan F05 sungguhan; F02 yang dijawab 17 → nol baris baru dan satu hitungan tokenUse.
+-- Catatan 14 November 2026 (FS-1 tugas 1.6, putusan architect atas X3; mengubah putusan Q8, 06 §3.6
+-- "Gugur karena waktu"): undangan 'accepted' yang lewat masa berlakunya. Predikat indeks tidak dapat
+-- memuat waktu sekarang (baris indeks hanya dinilai ulang saat baris ditulis), jadi gugur harus ditulis.
+-- Aturannya: **jalur tanpa token menulis gugur lebih dulu; jalur token tidak pernah menulis.**
+--   * Penulisan gugur: database.Write tersendiri dengan Scope{HouseholdID: household_id baris yang ditemukan,
+--     AccountID}, compare-and-set atas version, state IN ('open','accepted'), expires_at <= now →
+--     'expired', actor_kind 'system', rule 'invitation.expired', closed_at = expires_at, dan server_time
+--     Peristiwanya = expires_at (saat gugur berlaku; waktu penulisan tidak disimpan, supaya tidak membuka kapan
+--     penerima atau pengundang memakai aplikasi). Kalah compare-and-set → tidak ada tulisan. Sesudahnya
+--     perintah berjalan di transaksinya sendiri.
+--   * CreateHousehold dan F02 (sebelum token dibaca, sesudah tahan pemberitahuan): pencarian
+--     invitee_account_id = A menemukan penerimaan akun sendiri; yang lewat ditulis gugur lalu tidak
+--     menghalangi; yang belum lewat → 17. Urutan F02: tahan, keanggotaan dan penerimaan sendiri (termasuk
+--     penulisan gugur ini), pernyataan usia, token. Waktunya hanya bergantung pada keadaan akun pemanggil.
+--   * WithdrawAcceptance atas penerimaan sendiri yang lewat: gugur ditulis, jawaban STATE_CHANGED.
+--   * F01, F03, F04, IssueInvitationLink atas undangan rumah tangga sendiri yang lewat: gugur ditulis, lalu
+--     F01 berlanjut dan yang lain menjawab STATE_CHANGED.
+--   * F02 dan PreviewInvitation lewat token atas undangan yang lewat: tidak menulis, penolakan token seragam
+--     (alasan Q8 tetap).
+--   * Uji: penerimaan lewat 7 hari tanpa F04 → penerima dapat F02 undangan lain dan CreateHousehold;
+--     WithdrawAcceptance → STATE_CHANGED dan undangan 'expired'; server_time Peristiwa = expires_at.
+--   * security-privacy memeriksa: server_time = expires_at cukup menyembunyikan waktu aktivitas dari
+--     rumah tangga pengundang; dan di 1.7 baris reader_feed untuk gugur yang ditulis belakangan tidak
+--     membuka waktu itu lewat saat munculnya di umpan.
 object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR-016 butir 5)
   household_id,
   object_kind  text NOT NULL CHECK (object_kind IN ('household','invitation')),  -- diperluas tiap modul penulis
@@ -507,11 +539,17 @@ object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR
   actor        uuid NULL,                 -- member_id
   rule         text NULL,                 -- system: pengenal aturan pemicu, mis. 'invitation.expired'
   command      text NOT NULL, from_state text NULL, to_state text NOT NULL,
+                                          -- catatan 14 November 2026 (putusan lead, tinjauan PR A 1.6): command =
+                                          -- kata kerja snake_case 06 §3.6 (pembuatan rumah tangga
+                                          -- 'create_household' dengan to_state 'created'; undangan 'invite',
+                                          -- 'accept_invitation', 'cancel_invitation', …); state = nama state
+                                          -- bahasa Inggris ('open', 'accepted', …)
   idempotency_key uuid NULL, server_time timestamptz NOT NULL,
   CHECK ((actor_kind = 'member') = (actor IS NOT NULL)),
   CHECK ((actor_kind = 'system') = (rule IS NOT NULL)),
   CHECK (actor_kind <> 'invitee' OR object_kind = 'invitation'),
   PRIMARY KEY (household_id, object_kind, object_id, seq),
+  FOREIGN KEY (household_id) REFERENCES household (id),   -- komposit di bawah tidak diperiksa saat actor NULL
   FOREIGN KEY (household_id, actor) REFERENCES membership (household_id, member_id)
 )  -- terms_version (INV-A01) ditambah request bersama request_terms
 operator_notice_ack (                     -- tabel global (§3); SEC-34; FR-FAM-019/AC-3 riwayat
@@ -519,7 +557,14 @@ operator_notice_ack (                     -- tabel global (§3); SEC-34; FR-FAM-
   version int NOT NULL,
   text_sha256 bytea NOT NULL,             -- SHA-256 teks yang sudah diisi nama pengelola: identitas versi bagi akun
   issued_at timestamptz NOT NULL, acknowledged_at timestamptz NULL,
-  PRIMARY KEY (account_id, variant, version, text_sha256)
+  issue_seq int NOT NULL,                 -- catatan 14 November 2026 (putusan security-privacy, 10.1 sebelum
+                                          -- §11.3): satu baris per terbitan, bukan per identitas. Terbit bila
+                                          -- identitas sekarang ≠ identitas baris issue_seq terbesar akun itu
+                                          -- (A → B → A menerbitkan A lagi); INSERT dengan issue_seq = terbesar + 1
+                                          -- ON CONFLICT DO NOTHING, jadi dua pertama-terlihat serentak menulis satu
+                                          -- baris dan satu jejak. Ditahan selama baris terbesar belum diakui;
+                                          -- pengakuan hanya atas baris terbesar dengan hash yang sama
+  PRIMARY KEY (account_id, issue_seq)
 )  -- hash atas penyandian berawalan panjang dari varian, nomor, judul, dan setiap paragraf beserta tanda
    -- fiturnya; pengakuan membawa hash yang ditampilkan (10.1 catatan 14 November 2026 sesudah SEC-159, Q3 (a), (b))
 consent_record (                          -- tabel global (§3); SEC-80, SEC-109 (a); tanpa tanggal lahir

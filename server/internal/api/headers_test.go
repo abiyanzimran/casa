@@ -63,7 +63,7 @@ func wantSecurityHeaders(t *testing.T, header http.Header, csp, cacheControl, re
 // always fails, through NewMux.
 func newFixtureMux(t *testing.T) http.Handler {
 	t.Helper()
-	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{})
+	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{}, nil)
 	server.Register(connect.Method{
 		Spec: connect.Spec{Procedure: casav1connect.IdentityServiceSignInProcedure},
 		Handler: func(context.Context, connect.Spec, connect.ServerStream) error {

@@ -16,6 +16,7 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/connect/v2/connectproto"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -60,23 +61,36 @@ var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().
 //  6. a write command from a web client is at least minimumWebVersion, else
 //     CodeFailedPrecondition with CLIENT_UPGRADE_REQUIRED (ADR-030 item 9;
 //     SEC-169 (d));
+//     6a. a write command that is not notice_exempt, or a procedure in
+//     noticeHeldProcedures, from an account noticeHeld reports as held, is
+//     CodeFailedPrecondition with NOTICE_UNREAD (SEC-34; 09.3 §1
+//     "Mekanisme"; plan 1.6 decision 7);
 //  7. a write command carries an idempotency key, else CodeInvalidArgument
 //     (ADR-005; 09.2 §8);
 //  8. the whole request, idempotency key form included, is valid
 //     (protovalidate), else CodeInvalidArgument.
 //
-// The version is checked before the body and before the key's form, so an old
-// client whose request no longer passes the current rules still gets the
-// retryable
-// CLIENT_UPGRADE_REQUIRED and keeps the command in its queue, rather than a
-// rejection that drops it (SEC-169 (d); ADR-030 item 9). A write command is a
-// method with the casa.v1.command option (09.3 §1; lead ruling Q4).
+// The hold of step 6a defers, it does not refuse: it comes before the key and
+// the body, so the command is neither validated in full nor recorded in
+// idempotency_record, and the same command is applied once after the
+// acknowledgement (09.3 §1). The version is checked before the body and
+// before the key's form, so an old client whose request no longer passes the
+// current rules still gets the retryable CLIENT_UPGRADE_REQUIRED and keeps
+// the command in its queue, rather than a rejection that drops it (SEC-169
+// (d); ADR-030 item 9). A write command is a method with the casa.v1.command
+// option (09.3 §1; lead ruling Q4).
 // Validation errors carry a buf.validate.Violations detail (lead ruling Q5).
 // Connect serves GET only for NO_SIDE_EFFECTS methods, which the contract
 // has none of; step 2 would refuse one with the cookie.
-func NewServer(minimumWebVersion Version, origin string, sessions Sessions) *connect.Server {
-	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion, origin: origin, sessions: sessions}.intercept)
+func NewServer(minimumWebVersion Version, origin string, sessions Sessions, noticeHeld func(context.Context, pgtype.UUID) (bool, error)) *connect.Server {
+	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion, origin: origin, sessions: sessions, noticeHeld: noticeHeld}.intercept)
 }
+
+// noticeHeldProcedures are the online RPCs outside the command kind table
+// that NOTICE_UNREAD still holds, by full procedure name (10.1 §11 note of
+// 14 November 2026 (d); plan 1.6 decision 7). The identity RPCs and reads
+// are never held (09.3 §1).
+var noticeHeldProcedures = map[string]bool{}
 
 // Sessions authenticates the requests outside publicProcedures.
 type Sessions struct {
@@ -128,6 +142,9 @@ type boundary struct {
 	// origin is the app's origin, scheme://host[:port], as browsers send it.
 	origin   string
 	sessions Sessions
+	// noticeHeld reports whether an account has an unacknowledged notice
+	// version (NoticeHeld).
+	noticeHeld func(context.Context, pgtype.UUID) (bool, error)
 }
 
 func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
@@ -153,7 +170,12 @@ func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
 			}
 			ctx = context.WithValue(ctx, sessionKey{}, session)
 		}
-		return next(ctx, spec, &checkedStream{ServerStream: stream, ctx: ctx, header: header, boundary: b, method: method})
+		command, _ := proto.GetExtension(method.Options(), casav1.E_Command).(*casav1.CommandOptions)
+		isCommand := proto.HasExtension(method.Options(), casav1.E_Command)
+		return next(ctx, spec, &checkedStream{
+			ServerStream: stream, ctx: ctx, header: header, boundary: b, method: method, command: isCommand,
+			held: isCommand && !command.GetNoticeExempt() || noticeHeldProcedures[spec.Procedure],
+		})
 	}
 }
 
@@ -220,6 +242,8 @@ type checkedStream struct {
 	header   *connect.Header
 	boundary boundary
 	method   protoreflect.MethodDescriptor
+	command  bool // a write command (09.3 §1)
+	held     bool // subject to NOTICE_UNREAD (step 6a)
 }
 
 func (s *checkedStream) Receive(msg any) error {
@@ -230,10 +254,10 @@ func (s *checkedStream) Receive(msg any) error {
 	if !ok {
 		return connect.Errorf(connect.CodeInternal, "procedure %s received a %T, not a proto message", s.method.FullName(), msg)
 	}
-	return s.boundary.check(s.ctx, s.header, request, proto.HasExtension(s.method.Options(), casav1.E_Command))
+	return s.boundary.check(s.ctx, s.header, request, s.command, s.held)
 }
 
-func (b boundary) check(ctx context.Context, header *connect.Header, request proto.Message, command bool) error {
+func (b boundary) check(ctx context.Context, header *connect.Header, request proto.Message, command, held bool) error {
 	descriptor := request.ProtoReflect().Descriptor()
 	if err := protovalidate.Validate(request, protovalidate.WithFilter(requestContextOnly(descriptor))); err != nil {
 		return validationError(err)
@@ -255,11 +279,36 @@ func (b boundary) check(ctx context.Context, header *connect.Header, request pro
 				&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_CLIENT_UPGRADE_REQUIRED})
 		}
 	}
+	// WRITE_FROZEN comes before this step when ADR-028 item 3 is built
+	// (09.3 §1 order: protective, WRITE_FROZEN, NOTICE_UNREAD).
+	if held {
+		if err := b.checkNotice(ctx); err != nil {
+			return err
+		}
+	}
 	if command && requestContext.GetIdempotencyKey() == "" {
 		return missingIdempotencyKey(descriptor)
 	}
 	if err := protovalidate.Validate(request); err != nil {
 		return validationError(err)
+	}
+	return nil
+}
+
+// checkNotice is step 6a of NewServer, in its own transaction (09.3 §1
+// "Mekanisme").
+func (b boundary) checkNotice(ctx context.Context) error {
+	session, ok := SessionFrom(ctx)
+	if !ok { // unreachable: no public procedure is a command or held; fail closed
+		return connect.NewError(connect.CodeInternal, "internal error")
+	}
+	held, err := b.noticeHeld(ctx, session.AccountID)
+	if err != nil {
+		return householdError(err)
+	}
+	if held {
+		return errorWithDetail(connect.CodeFailedPrecondition, "notice unread",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_NOTICE_UNREAD})
 	}
 	return nil
 }

@@ -166,13 +166,16 @@ func startsWithRequestContext(request protoreflect.MessageDescriptor) bool {
 	return rules.GetRequired()
 }
 
+// noticeExemptNotProtective are the commands 09.3 §1 lets skip
+// NOTICE_UNREAD without being protective: sign-out and the notice
+// acknowledgement; export is added by its task.
+var noticeExemptNotProtective = []string{
+	"casa.v1.IdentityService.SignOut",
+	"casa.v1.HouseholdService.AcknowledgeOperatorNotice",
+}
+
 // commandViolations checks one row of the command kind table (09.3 §1;
 // 14 §4.6; ADR-028 item 3).
-// noticeExemptNotProtective are the commands 09.3 §1 lets skip
-// NOTICE_UNREAD without being protective: sign-out; export and the notice
-// acknowledgement are added by their tasks.
-var noticeExemptNotProtective = []string{"casa.v1.IdentityService.SignOut"}
-
 func commandViolations(command *casav1.CommandOptions) []string {
 	var rules []string
 	if command.HoldSeconds == nil {

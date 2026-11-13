@@ -18,6 +18,7 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/connect/v2/connectproto"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -62,6 +63,7 @@ type probe struct {
 	client  *connect.Client
 	gzipped *connect.Client // sends gzip-compressed requests
 	calls   map[string]*atomic.Int32
+	held    atomic.Bool // the NOTICE_UNREAD check's answer for every account
 }
 
 func startProbe(t *testing.T) *probe {
@@ -76,7 +78,7 @@ func startProbe(t *testing.T) *probe {
 			session, err := probeAuthenticate(true)(ctx, cookie)
 			return identity.CookieSession{Session: session}, err
 		},
-	})
+	}, func(context.Context, pgtype.UUID) (bool, error) { return p.held.Load(), nil })
 	methods := p.file.Services().Get(0).Methods()
 	read := methods.ByName("Read")
 	for i := range methods.Len() {
@@ -295,6 +297,24 @@ func TestBoundaryChecks(t *testing.T) {
 			t.Fatalf("violation paths = %q, want %q", got, want)
 		}
 		p.wantCalls(t, "Read", 0)
+	})
+	// 09.3 §1 "Mekanisme": the NOTICE_UNREAD hold comes after the version
+	// check and before the idempotency key and the body (plan 1.6 decision 7).
+	t.Run("the notice hold comes after the version check and before the key and the body", func(t *testing.T) {
+		p := startProbe(t)
+		p.held.Store(true)
+		err := p.call(p.client, "Write", rc(web, "1.0.0", ""), "toolong")
+		if got := errorCodes(t, err); !slices.Equal(got, upgradeRequired) {
+			t.Fatalf("below the minimum: error codes = %v, want %v", got, upgradeRequired)
+		}
+		err = p.call(p.client, "Write", rc(web, "2.0.0", ""), "toolong")
+		wantCode(t, err, connect.CodeFailedPrecondition)
+		if got, want := errorCodes(t, err), []casav1.ErrorCode{casav1.ErrorCode_ERROR_CODE_NOTICE_UNREAD}; !slices.Equal(got, want) {
+			t.Fatalf("error codes = %v, want %v", got, want)
+		}
+		wantOK(t, p.call(p.client, "Read", rc(web, "2.0.0", ""), ""))
+		p.wantCalls(t, "Write", 0)
+		p.wantCalls(t, "Read", 1)
 	})
 	t.Run("a write command without an idempotency key never reaches the handler (ADR-005)", func(t *testing.T) {
 		p := startProbe(t)

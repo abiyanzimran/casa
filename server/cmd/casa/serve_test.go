@@ -16,10 +16,13 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
 
-// served gives serve its database credential and returns a mail directory.
+// served gives serve its database and operator-name credentials and
+// returns a mail directory.
 func served(t *testing.T) (mailDir string) {
 	t.Helper()
-	withCredential(t, appDatabaseURL, databasetest.Migrated(t).URL("app_rw"))
+	withCredentials(t, map[string]string{ //nolint:gosec // G101: a test database URL and a test name, no secret
+		appDatabaseURL: databasetest.Migrated(t).URL("app_rw"), operatorNameCredential: "Pengelola Uji",
+	})
 	return t.TempDir()
 }
 
@@ -203,6 +206,21 @@ func TestServe(t *testing.T) {
 		code, _, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
 		if code != 1 || !strings.HasPrefix(stderr, "casa serve: read credential app-database-url:") {
 			t.Fatalf("exit %d, stderr %q; want 1 and the missing credential", code, stderr)
+		}
+	})
+	t.Run("fails without the operator-name credential", func(t *testing.T) {
+		// 09.3 §1 "Mekanisme": {pengelola} of the operator notice is filled
+		// from this credential; without it no notice can be shown (SEC-34).
+		database := databasetest.Migrated(t).URL("app_rw")
+		withCredential(t, appDatabaseURL, database)
+		code, _, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+		if code != 1 || !strings.HasPrefix(stderr, "casa serve: read credential operator-name:") {
+			t.Fatalf("exit %d, stderr %q; want 1 and the missing credential", code, stderr)
+		}
+		withCredentials(t, map[string]string{appDatabaseURL: database, operatorNameCredential: " "})
+		code, _, stderr = runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+		if want := "casa serve: credential operator-name is empty\n"; code != 1 || stderr != want {
+			t.Fatalf("exit %d, stderr %q; want 1 and %q", code, stderr, want)
 		}
 	})
 	t.Run("never prints the connection string", func(t *testing.T) {

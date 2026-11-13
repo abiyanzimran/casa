@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	_ "time/tzdata" // the IANA database for household time zones, whatever the host has (06 §2.4)
 )
 
 const usage = "usage: casa <command>\n"

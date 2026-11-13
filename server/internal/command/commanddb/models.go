@@ -19,6 +19,23 @@ type Account struct {
 	SignupVia string
 }
 
+type ApprovalAuthority struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+	RequestType string
+	LimitAmount pgtype.Int8
+	Currency    pgtype.Text
+	ValidFrom   time.Time
+	ValidUntil  pgtype.Timestamptz
+}
+
+type ConsentRecord struct {
+	AccountID   pgtype.UUID
+	Kind        string
+	TextVersion int32
+	RecordedAt  time.Time
+}
+
 type Credential struct {
 	AccountID   pgtype.UUID
 	Salt        []byte
@@ -34,6 +51,26 @@ type Currency struct {
 	Exponent int16
 }
 
+type Household struct {
+	ID                 pgtype.UUID
+	Name               string
+	TimeZone           string
+	Currency           string
+	IncomeSourceMarket string
+	Version            int64
+	CreatedAt          time.Time
+}
+
+type HouseholdRule struct {
+	HouseholdID      pgtype.UUID
+	Version          int32
+	PresetID         string
+	RequestThreshold pgtype.Int8
+	Currency         pgtype.Text
+	AgreementMode    string
+	CreatedAt        time.Time
+}
+
 type IdempotencyRecord struct {
 	ScopeID        pgtype.UUID
 	IdempotencyKey pgtype.UUID
@@ -41,6 +78,55 @@ type IdempotencyRecord struct {
 	RequestHash    []byte
 	Response       []byte
 	CreatedAt      time.Time
+}
+
+type Invitation struct {
+	HouseholdID        pgtype.UUID
+	ID                 pgtype.UUID
+	Inviter            pgtype.UUID
+	TokenHash          []byte
+	State              string
+	InviteeAccountID   pgtype.UUID
+	InviteeDisplayName pgtype.Text
+	CreatedAt          time.Time
+	ExpiresAt          time.Time
+	ClosedAt           pgtype.Timestamptz
+	Version            int64
+}
+
+type Membership struct {
+	HouseholdID   pgtype.UUID
+	MemberID      pgtype.UUID
+	AccountID     pgtype.UUID
+	DisplayName   pgtype.Text
+	Role          string
+	PermissionSet string
+	JoinedAt      time.Time
+}
+
+type ObjectEvent struct {
+	HouseholdID    pgtype.UUID
+	ObjectKind     string
+	ObjectID       pgtype.UUID
+	Seq            int64
+	ActorKind      string
+	Actor          pgtype.UUID
+	Rule           pgtype.Text
+	Command        string
+	FromState      pgtype.Text
+	ToState        string
+	IdempotencyKey pgtype.UUID
+	ServerTime     time.Time
+}
+
+type OperatorNoticeAck struct {
+	AccountID      pgtype.UUID
+	IssueSeq       int32
+	Variant        string
+	Version        int32
+	TextSha256     []byte
+	IssuedAt       time.Time
+	AcknowledgedAt pgtype.Timestamptz
 }
 
 type ReauthGrant struct {
@@ -68,6 +154,13 @@ type RefreshToken struct {
 	AccountID pgtype.UUID
 	CreatedAt time.Time
 	UsedAt    pgtype.Timestamptz
+}
+
+type Relationship struct {
+	HouseholdID   pgtype.UUID
+	MemberID      pgtype.UUID
+	OtherMemberID pgtype.UUID
+	Kind          string
 }
 
 type SecurityEvent struct {

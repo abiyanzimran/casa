@@ -258,6 +258,15 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrReauthRequired):
 		return errorWithDetail(connect.CodePermissionDenied, "re-authentication required",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED})
+	}
+	return commandError(err)
+}
+
+// commandError maps the errors of the write-command path every module
+// shares; any other error is internal and its text never reaches the client
+// (09.2 §3 layer 3).
+func commandError(err error) error {
+	switch {
 	case errors.Is(err, command.ErrIdempotencyConflict):
 		return errorWithDetail(connect.CodeFailedPrecondition, "idempotency conflict",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_IDEMPOTENCY_CONFLICT})
@@ -271,11 +280,22 @@ func identityError(err error) error {
 // passwordTooCommon reports the password field in the same Violations form
 // as protovalidate's own rules (SEC-11; lead ruling Q5 on the 1.3 plan).
 func passwordTooCommon(field protoreflect.FieldDescriptor) error {
-	violation := validate.Violation_builder{
+	return invalidFields(fieldViolation(field, "password.common", "password is on the common password list"))
+}
+
+// fieldViolation is a rule the server checks beyond the contract, on one
+// field, in the form of protovalidate's own violations.
+func fieldViolation(field protoreflect.FieldDescriptor, ruleID, message string) *validate.Violation {
+	return validate.Violation_builder{
 		Field:   validate.FieldPath_builder{Elements: []*validate.FieldPathElement{fieldPathElement(field)}}.Build(),
-		RuleId:  proto.String("password.common"),
-		Message: proto.String("password is on the common password list"),
+		RuleId:  proto.String(ruleID),
+		Message: proto.String(message),
 	}.Build()
+}
+
+// invalidFields is the invalid-argument answer with violations, as the
+// boundary's validation gives it (lead ruling Q5 on the 1.3 plan).
+func invalidFields(violations ...*validate.Violation) error {
 	return errorWithDetail(connect.CodeInvalidArgument, "invalid request",
-		validate.Violations_builder{Violations: []*validate.Violation{violation}}.Build())
+		validate.Violations_builder{Violations: violations}.Build())
 }

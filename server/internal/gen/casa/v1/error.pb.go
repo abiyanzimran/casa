@@ -63,6 +63,22 @@ const (
 	// The command needs a valid re-authentication of this session (SEC-13,
 	// SEC-151 (7)).
 	ErrorCode_ERROR_CODE_REAUTH_REQUIRED ErrorCode = 11
+	// The account has not made the adult age statement of the current text
+	// version; nothing was written (SEC-80; ADR-013 note 1.6).
+	ErrorCode_ERROR_CODE_AGE_DECLARATION_REQUIRED ErrorCode = 12
+	// The account may not create a household: it was made through an
+	// invitation, or it is already a member of a household (SEC-158 (a);
+	// FAM.md FR-FAM-001 AC-5, AC-10; ADR-013 note 1.6).
+	ErrorCode_ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED ErrorCode = 13
+	// The object the command acts on is no longer in the state the client
+	// saw, such as an acknowledgement of a notice version that is not the
+	// latest; nothing was written, and no state is disclosed (10.1 §11 note
+	// of 14 November 2026 (b); ADR-013 note 1.6).
+	ErrorCode_ERROR_CODE_STATE_CHANGED ErrorCode = 14
+	// The account is already a member of a household, or a concurrent
+	// command made it one (pilot server rule; 09.2 §5.1 note on decision 20;
+	// ADR-013 note 1.6).
+	ErrorCode_ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER ErrorCode = 17
 )
 
 // Enum value maps for ErrorCode.
@@ -80,20 +96,28 @@ var (
 		9:  "ERROR_CODE_RETRY_EXHAUSTED",
 		10: "ERROR_CODE_IDEMPOTENCY_CONFLICT",
 		11: "ERROR_CODE_REAUTH_REQUIRED",
+		12: "ERROR_CODE_AGE_DECLARATION_REQUIRED",
+		13: "ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED",
+		14: "ERROR_CODE_STATE_CHANGED",
+		17: "ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER",
 	}
 	ErrorCode_value = map[string]int32{
-		"ERROR_CODE_UNSPECIFIED":             0,
-		"ERROR_CODE_CLIENT_UPGRADE_REQUIRED": 1,
-		"ERROR_CODE_SESSION_EXPIRED":         2,
-		"ERROR_CODE_SESSION_REVOKED":         3,
-		"ERROR_CODE_WRITE_FROZEN":            4,
-		"ERROR_CODE_NOTICE_UNREAD":           5,
-		"ERROR_CODE_TOKEN_REJECTED":          6,
-		"ERROR_CODE_RATE_LIMITED":            7,
-		"ERROR_CODE_CREDENTIALS_REJECTED":    8,
-		"ERROR_CODE_RETRY_EXHAUSTED":         9,
-		"ERROR_CODE_IDEMPOTENCY_CONFLICT":    10,
-		"ERROR_CODE_REAUTH_REQUIRED":         11,
+		"ERROR_CODE_UNSPECIFIED":                    0,
+		"ERROR_CODE_CLIENT_UPGRADE_REQUIRED":        1,
+		"ERROR_CODE_SESSION_EXPIRED":                2,
+		"ERROR_CODE_SESSION_REVOKED":                3,
+		"ERROR_CODE_WRITE_FROZEN":                   4,
+		"ERROR_CODE_NOTICE_UNREAD":                  5,
+		"ERROR_CODE_TOKEN_REJECTED":                 6,
+		"ERROR_CODE_RATE_LIMITED":                   7,
+		"ERROR_CODE_CREDENTIALS_REJECTED":           8,
+		"ERROR_CODE_RETRY_EXHAUSTED":                9,
+		"ERROR_CODE_IDEMPOTENCY_CONFLICT":           10,
+		"ERROR_CODE_REAUTH_REQUIRED":                11,
+		"ERROR_CODE_AGE_DECLARATION_REQUIRED":       12,
+		"ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED": 13,
+		"ERROR_CODE_STATE_CHANGED":                  14,
+		"ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER":       17,
 	}
 )
 
@@ -177,7 +201,7 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\n" +
 	"\x13casa/v1/error.proto\x12\acasa.v1\"5\n" +
 	"\vErrorDetail\x12&\n" +
-	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\x90\x03\n" +
+	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\xaf\x04\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ERROR_CODE_CLIENT_UPGRADE_REQUIRED\x10\x01\x12\x1e\n" +
@@ -191,7 +215,11 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\x1aERROR_CODE_RETRY_EXHAUSTED\x10\t\x12#\n" +
 	"\x1fERROR_CODE_IDEMPOTENCY_CONFLICT\x10\n" +
 	"\x12\x1e\n" +
-	"\x1aERROR_CODE_REAUTH_REQUIRED\x10\vB\x97\x01\n" +
+	"\x1aERROR_CODE_REAUTH_REQUIRED\x10\v\x12'\n" +
+	"#ERROR_CODE_AGE_DECLARATION_REQUIRED\x10\f\x12-\n" +
+	")ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED\x10\r\x12\x1c\n" +
+	"\x18ERROR_CODE_STATE_CHANGED\x10\x0e\x12'\n" +
+	"#ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER\x10\x11B\x97\x01\n" +
 	"\vcom.casa.v1B\n" +
 	"ErrorProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
