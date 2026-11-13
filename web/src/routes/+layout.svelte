@@ -45,9 +45,9 @@
 		<!-- 08 §25.6 LY-97 -->
 		<p>
 			Browser ini belum bisa menjalankan Casa dengan aman. Perbarui browser ini, atau buka Casa di
-			browser lain yang lebih baru. Bila Casa terbuka di dalam aplikasi lain atau di jendela
-			pribadi, buka di browser biasa.
+			browser lain yang lebih baru.
 		</p>
+		<p>Bila Casa terbuka di dalam aplikasi lain atau di jendela pribadi, buka di browser biasa.</p>
 	</main>
 {:else if !wiping}
 	{@render children()}
@@ -69,5 +69,8 @@
 	}
 	p {
 		margin: 0;
+	}
+	p + p {
+		margin-top: var(--jarak-3);
 	}
 </style>
