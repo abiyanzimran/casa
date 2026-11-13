@@ -26,8 +26,8 @@ SELECT setup_token_hash, email, expires_at, used_at, gen_random_uuid()::uuid AS 
  WHERE token_hash = @token_hash;
 
 -- name: InsertAccount :exec
-INSERT INTO account (id, email, created_at, signup_via)
-VALUES (@id, @email, @created_at, 'setup_token');
+INSERT INTO account (id, email, created_at, signup_via, display_name)
+VALUES (@id, @email, @created_at, 'setup_token', '');
 
 -- name: UseSetupToken :execrows
 -- SEC-158: the token ends with the account it opened.

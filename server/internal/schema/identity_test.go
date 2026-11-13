@@ -74,7 +74,7 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 			sql  string
 			args []any
 		}{
-			{"INSERT INTO account (id, email, created_at, signup_via) VALUES ($1, $2, $3, 'setup_token')",
+			{"INSERT INTO account (id, email, created_at, display_name, signup_via) VALUES ($1, $2, $3, '', 'setup_token')",
 				[]any{f.account, email, now}},
 			{`INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, parallelism, updated_at)
 			  VALUES ($1, '\x00', '\x00', 1, 64, 1, $2)`, []any{f.account, now}},
@@ -239,7 +239,7 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 			if _, err := tx.Exec(ctx, "SELECT set_config('app.email', $1, true)", a.email); err != nil {
 				return err
 			}
-			_, err := tx.Exec(ctx, "INSERT INTO account (email, created_at, signup_via) VALUES ($1, now(), 'setup_token')", a.email+".x")
+			_, err := tx.Exec(ctx, "INSERT INTO account (email, created_at, display_name, signup_via) VALUES ($1, now(), '', 'setup_token')", a.email+".x")
 			return err
 		})
 		if code := databasetest.PgErrorCode(err); code != "42501" {
@@ -371,7 +371,7 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 	t.Run("an email is unique without regard to case", func(t *testing.T) {
 		id := randomUUID()
 		err := database.Write(ctx, app, database.Scope{AccountID: id}, func(tx pgx.Tx) error {
-			_, err := tx.Exec(ctx, "INSERT INTO account (id, email, created_at, signup_via) VALUES ($1, 'OWNER@example.TEST', now(), 'setup_token')", id)
+			_, err := tx.Exec(ctx, "INSERT INTO account (id, email, created_at, display_name, signup_via) VALUES ($1, 'OWNER@example.TEST', now(), '', 'setup_token')", id)
 			return err
 		})
 		if code := databasetest.PgErrorCode(err); code != "23505" {

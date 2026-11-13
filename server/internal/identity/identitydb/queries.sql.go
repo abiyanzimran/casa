@@ -215,8 +215,8 @@ func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrant
 }
 
 const insertAccount = `-- name: InsertAccount :exec
-INSERT INTO account (id, email, created_at, signup_via)
-VALUES ($1, $2, $3, 'setup_token')
+INSERT INTO account (id, email, created_at, signup_via, display_name)
+VALUES ($1, $2, $3, 'setup_token', '')
 `
 
 type InsertAccountParams struct {

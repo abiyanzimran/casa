@@ -13,6 +13,7 @@ sql:
       - internal/schema/00001_currency.sql
       - internal/schema/00002_identity.sql
       - internal/schema/00003_credential_reset.sql
+      - internal/schema/00004_display_name.sql
     queries: internal/identity/queries.sql
     gen:
       go:
@@ -29,6 +30,7 @@ sql:
       - internal/schema/00001_currency.sql
       - internal/schema/00002_identity.sql
       - internal/schema/00003_credential_reset.sql
+      - internal/schema/00004_display_name.sql
     queries: internal/command/queries.sql
     gen:
       go:

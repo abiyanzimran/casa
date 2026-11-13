@@ -11,12 +11,13 @@ import (
 )
 
 type Account struct {
-	ID        pgtype.UUID
-	Email     string
-	TimeZone  pgtype.Text
-	Locale    string
-	CreatedAt time.Time
-	SignupVia string
+	ID          pgtype.UUID
+	Email       string
+	TimeZone    pgtype.Text
+	Locale      string
+	CreatedAt   time.Time
+	SignupVia   string
+	DisplayName string
 }
 
 type Credential struct {
