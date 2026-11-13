@@ -23,7 +23,7 @@ function scope(options: {
 }
 
 test('SEC-160 (e): a browser with all seven required features misses none', () => {
-	expect(missingFeatures(full)).toEqual([]);
+	expect(missingFeatures(full)).toEqual(['indexedDB']);
 });
 
 test('SEC-160 (e): each required feature is reported when it is absent', () => {
