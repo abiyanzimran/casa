@@ -71,7 +71,7 @@ Judul halaman: **"Casa · Beranda"** (§25.9).
 
 **Dok** (Ringkas; §19.13.6): pil `navigasi` 64, padding mendatar 8; empat tab 64 × 64, masing-masing ikon 24 dan **label tampak di bawahnya** (jarak 4, 13 px 600). Beranda (`house`; terpilih: **pil `pil-navigasi` 64 × 56 yang melingkupi ikon `house-fill` dan label "Beranda"**, keduanya `navigasi`, padding dalam 6 tegak dan 8 mendatar, `aria-current="page"`; lencana "2"), Uang (`wallet`), Chat (`chat-circle`, lencana "2"), Saya (`user`). Tab tidak terpilih: ikon Regular dan label `di-atas-navigasi`, tanpa pil. Nama aksesibel tab adalah labelnya ditambah lencana sebagai teks ("Chat, 2 belum dibaca"). Lencana berangka 16, `sorot` dengan angka `di-atas-sorot`, cincin 2 px warna permukaan di bawahnya. Tombol Catat: bulat 56, `aksen`, ikon `plus` 24 `di-atas-aksen`, nama aksesibel "Catat". Lebar dok dan Catat: 8 + 4 × 64 + 8 + 8 + 56 = 336.
 
-**Rail** (Sedang dan Lebar; §19.13.6): lebar 80, menempel di kiri setinggi viewport, latar `kertas`. Dari atas: padding 16, simpul 32, jarak 16, tombol Catat (bulat 56 `aksen`, ikon `plus` 24, label tampak "Catat" 13 px 600 `tinta` di bawahnya; satu tombol 80 × 76), jarak 24, lalu empat tujuan 80 × 64 dengan ikon 24 dan label di bawahnya. Terpilih: **pil `tinta` 64 × 56 yang melingkupi ikon Fill dan label**, keduanya `kartu`; tidak terpilih: ikon Regular dan label `tinta`. Lencana sama dengan dok.
+**Rail** (Sedang dan Lebar; §19.13.6): lebar 80, menempel di kiri setinggi viewport, latar `kertas`. Urutan DOM dan fokus sama dengan urutan tampak (§19.13.6): simpul, Catat, lalu `nav` tujuan; satu DOM di semua lebar, `order` CSS hanya memindahkan Catat ke kanan di dok dan bilah atas. Dari atas: padding 16, simpul 32, jarak 16, tombol Catat (bulat 56 `aksen`, ikon `plus` 24, label tampak "Catat" 13 px 600 `tinta` di bawahnya; satu tombol 80 × 76), jarak 24, lalu empat tujuan 80 × 64 dengan ikon 24 dan label di bawahnya. Terpilih: **pil `tinta` 64 × 56 yang melingkupi ikon Fill dan label**, keduanya `kartu`; tidak terpilih: ikon Regular dan label `tinta`. Lencana sama dengan dok.
 
 **Grup tab** (Sangat lebar): empat tab 48 berikon 24 dan berlabel; terpilih pil `tinta` yang melingkupi ikon Fill dan label `kartu`; `aria-current="page"`; lencana sama dengan dok. Bila tidak muat, tab bertumpuk (ikon di atas label, pil 64 × 56); label tidak pernah disembunyikan. Tombol "Catat": pil biru 48, padding 24, ikon `plus` 20 dan kata "Catat".
 
@@ -102,14 +102,14 @@ Setiap kartu: `kartu`, sudut 20, judul di dalam kartu sebagai kepala kartu tingg
 |---|---|---|---|
 | 1 | Kepala kartu | Ikon `clock` · "Menunggu"; kanan chip "Lihat semua" (tautan ke LY-21) | Chip `sisip`, label `tinta` 500, tinggi 32, area 48 |
 | 2 | Subjudul | "Menunggu kamu" | `judul-subbagian` |
-| 3 | Butir 1 | Lingkaran glif **tunai** (`money`; `sisip`, glif `tinta-2`) · "Terima dari Sari" · Rp200.000; di bawahnya tombol hitam "Sudah terima" tinggi 40 | `angka-baris`; tombol `tinta` + `kartu` |
-| 4 | Butir 2 | Lingkaran `hand-coins` · "Sari minta anggaran" · di bawahnya "Kulkas baru" `tinta-2` · Rp7.850.000 · `caret-right`; seluruh baris satu tautan, 72 | `angka-baris` |
+| 3 | Butir 1 | "Terima dari Sari" · Rp200.000, baris 56; di bawahnya tombol hitam "Sudah terima" tinggi 40 | `angka-baris`; tombol `tinta` + `kartu` |
+| 4 | Butir 2 | "Sari minta anggaran" · di bawahnya "Kulkas baru" `tinta-2` · Rp7.850.000 · `caret-right`, jumlah sebaris dengan judul; seluruh baris satu tautan, 72 | `angka-baris` |
 | 5 | Subjudul | "Menunggu Sari" | `judul-subbagian` |
-| 6 | Butir 3 | Lingkaran `hand-coins` · "Kamu minta anggaran" · di bawahnya "Servis motor, sejak Rab 08.15" `tinta-2` · Rp650.000; tanpa tombol | `angka-baris` |
+| 6 | Butir 3 | "Kamu minta anggaran" · di bawahnya "Servis motor, sejak Rab 08.15" `tinta-2` · Rp650.000 sebaris dengan judul; tanpa tombol | `angka-baris` |
 
-Setiap baris daftar di kartu 3 dan 4 punya lingkaran 40 di kiri (§19.13.5 "Baris daftar": semua atau tidak satu pun). Lingkaran ikon antarmuka: isi `sisip`, glif `aksen-tinta`; lingkaran glif tempat uang: glif `tinta-2`.
+Baris daftar di kartu 3 dan 4 **tanpa lingkaran depan**, di semua lebar (§19.13.5 "Baris daftar": di kartu Beranda tidak satu pun, supaya jumlah tidak turun baris di 390 dan di kolom samping). Isi baris mulai di tepi isi kartu, sejajar dengan judul kartu dan subjudul. Jumlah selalu sebaris dengan judul baris; tidak pernah di baris sendiri (§25.11 pemeriksaan 23).
 
-**Kartu 4, Minggu ini** (§6.1 bagian 7): kepala kartu ikon `calendar` · "Minggu ini". Baris 72 dengan lingkaran `receipt` untuk tagihan dan `hand-coins` untuk persetujuan: "Listrik" · "Sen, 16 Nov" · Rp850.000 (`receipt`); "Cicilan motor" · "Rab, 18 Nov" · Rp1.275.000 (`receipt`); "Makan malam" · "sisa" · Rp25.000 (`hand-coins`) dengan tombol abu "Selesaikan" tinggi 40 di bawahnya.
+**Kartu 4, Minggu ini** (§6.1 bagian 7): kepala kartu ikon `calendar` · "Minggu ini". Baris 72 tanpa lingkaran depan: "Listrik" · "Sen, 16 Nov" · Rp850.000; "Cicilan motor" · "Rab, 18 Nov" · Rp1.275.000; "Makan malam" · "sisa" · Rp25.000 dengan tombol abu "Selesaikan" tinggi 40 di bawahnya.
 
 **Kartu 5, Anggaran** (§6.1 bagian 8)
 
