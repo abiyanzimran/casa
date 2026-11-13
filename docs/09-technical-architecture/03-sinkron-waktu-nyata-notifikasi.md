@@ -310,7 +310,7 @@ Setiap penangan **idempoten** dan dapat dijalankan lebih dari sekali. Coba ulang
 | `ops.invariant_check` | Malam | Berkas 02 §5.2 butir 3 |
 | `ops.backup_verify` | Harian | Berkas 04 §5 |
 
-Catatan 13 November 2026 (FS-1 1.4, putusan lead Q9): pekerjaan `identity.send_mail` (email verifikasi pendaftaran dan pemulihan, dengan coba ulang idempoten dan waktu tanggap permintaan pemulihan yang seragam) ditambahkan ke tabel ini di FS-1 1.7, bersama modul `jobs`. Sampai saat itu `identity` mengirim email secara sinkron sesudah commit, ke direktori email palsu (`-mail-dir`) di mesin pengembang dan server uji; pengirim SES menyusul di langkah 7 (ADR-026).
+Catatan 13 November 2026 (FS-1 1.4, putusan lead Q9): pekerjaan `identity.send_mail` (email verifikasi pendaftaran dan pemulihan, dengan coba ulang idempoten dan waktu tanggap permintaan pemulihan yang seragam) ditambahkan ke tabel ini di FS-1 1.7, bersama modul `jobs`. Sampai saat itu email verifikasi pendaftaran dikirim `identity` secara sinkron sesudah commit, sedangkan email pemulihan disimpan lalu dikirim sesudah respons, di dalam proses yang sama dan tanpa coba ulang (FS-1 1.4 PR B); keduanya ke direktori email palsu (`-mail-dir`) di mesin pengembang dan server uji; pengirim SES menyusul di langkah 7 (ADR-026).
 
 ---
 
