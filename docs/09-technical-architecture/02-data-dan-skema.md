@@ -231,12 +231,21 @@ session (
   absolute_expiry  timestamptz NOT NULL,  -- web pribadi +180 hari; web bersama +12 jam; native +180 hari [Usulan] (1.4 Q5)
   token_issued_at  timestamptz NOT NULL,  -- 1.4: dasar umur token akses 15 menit (SEC-15); 1.5: dasar rotasi cookie 15 menit
   revoked_at       timestamptz NULL,
-  revoke_reason    text NULL CHECK (revoke_reason IN ('user','reuse_detected','exit','purge','recovery')),
-                                          -- 'recovery' sejak 1.4: pemulihan mencabut semua sesi lain (SEC-24);
-                                          -- berakhir karena umur tidak dicatat di sini
+  revoke_reason    text NULL CHECK (revoke_reason IN ('user','reuse_detected','exit','purge','recovery',
+                                                          'password_changed')),
+                                          -- 'recovery' sejak 1.4, 'password_changed' sejak migrasi
+                                          -- 00003_credential_reset (1.4 PR B): keduanya mencabut semua sesi
+                                          -- lain (SEC-24); berakhir karena umur tidak dicatat di sini
   CHECK (client_kind = 'web' OR device_mode = 'personal')   -- mode bersama hanya di web
 )
 CREATE INDEX session_account_live ON session (account_id) WHERE revoked_at IS NULL;  -- cabut semua (SEC-24)
+-- Pencabutan fail-closed (SEC-24, 1.4 PR B): pemulihan atau ganti kata sandi mencabut SEMUA sesi akun
+-- dengan revoked_at IS NULL (ChangePassword mempertahankan sesinya sendiri), termasuk yang sudah
+-- berakhir karena umur. Baris security_event 'session_revoked' ditulis hanya untuk sesi yang saat itu
+-- masih hidup (dalam batas diam dan batas mutlak).
+-- Sesi berakhir tidak dapat dihidupkan lagi (SEC-15): touch (last_used_at) dan rotasi token akses
+-- menolak sesi yang dicabut, melewati batas diam, atau melewati absolute_expiry di dalam SQL-nya
+-- sendiri (syarat WHERE), dan dijawab SESSION_REVOKED atau SESSION_EXPIRED.
 
 -- Catatan 13 November 2026 (FS-1 1.4, putusan lead Q3 dan Q8): tabel identity lain. Semua token
 -- 32 byte acak; yang disimpan hanya SHA-256-nya. Kebijakan RLS di §3 ("Tabel global").
@@ -313,7 +322,7 @@ security_event (                          -- jejak keamanan; tambah-saja (ADR-01
   session_id   uuid NULL REFERENCES session(id),
   kind         text NOT NULL CHECK (kind IN
                  ('sign_in','session_revoked','reauthentication','password_changed','recovery')),
-  detail       text NULL,                 -- session_revoked: user | reuse_detected | recovery;
+  detail       text NULL,                 -- session_revoked: user | reuse_detected | recovery | password_changed;
                                           -- reauthentication: tujuannya. Tidak pernah token, kata sandi, atau email
   occurred_at  timestamptz NOT NULL
 )
