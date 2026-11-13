@@ -1,8 +1,9 @@
 # Single source of the CI gate commands: CI calls these targets and nothing
 # else, so a local run and a CI run check the same things (ES §2, §7).
 # Gates: QG-01 format and lint, QG-02 duplication, QG-03 vulnerabilities,
-# QG-05 tests, QG-06 ID traceability (docs/14-engineering-roadmap.md §5.1,
-# §4.13), plus the repository secrets check (09.4 §5).
+# QG-04 contract, QG-05 tests, QG-06 ID traceability
+# (docs/14-engineering-roadmap.md §5.1, §4.6, §4.13), plus the repository
+# secrets check (09.4 §5).
 
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
@@ -24,10 +25,19 @@ OSV_SCANNER := $(CURDIR)/.cache/osv-scanner-$(OSV_SCANNER_VERSION)/osv-scanner
 # Overridable on the command line to prove the gate red on a throwaway lockfile.
 WEB_LOCKFILE := web/pnpm-lock.yaml
 
+BUF_VERSION := 1.75.0
+# SHA-256 of buf-Linux-x86_64 from
+# https://github.com/bufbuild/buf/releases/tag/v1.75.0 (sha256.txt)
+BUF_SHA256 := fad1e38d6909bbb583a4da81d8c02a01046e2cd663bde7e337dd24277393764b
+BUF := $(CURDIR)/.cache/buf-$(BUF_VERSION)/buf
+# The contract buf breaking compares against (QG-04: the main branch).
+BUF_AGAINST_REF ?= refs/remotes/origin/main
+
 .PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
+.PHONY: check-contract proto-fmt proto-lint proto-breaking proto-generate proto-generated
 
-check: check-server check-web
+check: check-server check-web check-contract
 
 check-server: server-fmt server-lint server-vuln server-test cpd-go idcheck secrets
 
@@ -95,6 +105,51 @@ $(GOLANGCI_LINT):
 		$(GOLANGCI_LINT_SHA256) $@.tar.gz
 	tar -xzf $@.tar.gz -C $(@D) --strip-components=1 golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64/golangci-lint
 	rm $@.tar.gz
+
+# Contract gates (QG-04; 14 §4.6): proto/ is the one source of the API
+# contract (ES §2; ADR-013 item 4).
+check-contract: proto-fmt proto-lint proto-breaking proto-generated
+
+proto-fmt: $(BUF)
+	$(BUF) format --diff --exit-code
+
+proto-lint: $(BUF)
+	$(BUF) lint
+
+# A missing ref fails: a gate that compares nothing is never green.
+# ponytail: the "no contract on the ref yet" branch exists only until the first
+# contract (FS-1 1.3) is on main; the follow-up change removes it.
+proto-breaking: $(BUF)
+	if ! git rev-parse --verify -q '$(BUF_AGAINST_REF)^{commit}' >/dev/null; then \
+		echo "proto-breaking: $(BUF_AGAINST_REF) not found; fetch it first"; exit 1; \
+	fi; \
+	if ! git cat-file -e '$(BUF_AGAINST_REF):buf.yaml' 2>/dev/null; then \
+		echo "proto-breaking: no contract on $(BUF_AGAINST_REF) yet (first contract, FS-1 1.3)"; exit 0; \
+	fi; \
+	$(BUF) breaking --against '.git#ref=$(BUF_AGAINST_REF)'
+
+# Writes the Go and TypeScript code of the contract (buf.gen.yaml); --clean
+# removes stale output first. protoc-gen-es comes from web-install.
+proto-generate: $(BUF)
+	$(BUF) generate --clean
+
+# The committed generated code must be exactly what the contract generates
+# (14 §4.6 item 2; ES §2): no hand edit, no missed regeneration, no
+# uncommitted new file.
+proto-generated: proto-generate
+	if ! git diff --exit-code -- server/internal/gen web/src/lib/gen \
+		|| [ -n "$$(git status --porcelain -- server/internal/gen web/src/lib/gen)" ]; then \
+		git status --short -- server/internal/gen web/src/lib/gen; \
+		echo "proto-generated: generated code differs from the contract; run make proto-generate and commit"; \
+		exit 1; \
+	fi
+
+# ponytail: linux-amd64 only, like golangci-lint above.
+$(BUF):
+	scripts/fetch-verified.sh \
+		https://github.com/bufbuild/buf/releases/download/v$(BUF_VERSION)/buf-Linux-x86_64 \
+		$(BUF_SHA256) $@
+	chmod +x $@
 
 # Web client gates (ADR-030 items 8 and 18). web-install comes first; the
 # others assume web/node_modules is in place.

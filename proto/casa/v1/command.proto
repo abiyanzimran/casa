@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package casa.v1;
+
+import "google/protobuf/descriptor.proto";
+
+// CommandOptions is one row of the command kind table (09.3 §1; ADR-028
+// item 3; ADR-013 item 4): every write command carries it as the
+// casa.v1.command method option, and server and clients read the same values
+// from generated code, so there is no second hand-written list.
+message CommandOptions {
+  // The undo window in seconds, held on the device before the command is sent
+  // (09.3 §1; 08 §9.3). Every command declares it, 0 included.
+  optional uint32 hold_seconds = 1;
+  // A protective command (SEC-151 (1) to (7)): never held (hold_seconds 0),
+  // sent ahead of the queue, and exempt from WRITE_FROZEN and NOTICE_UNREAD
+  // (ADR-028 item 3; 09.3 §1).
+  bool protective = 2;
+  // Exempt from NOTICE_UNREAD (SEC-34; 09.3 §1). Every protective command is
+  // notice_exempt.
+  bool notice_exempt = 3;
+}
+
+extend google.protobuf.MethodOptions {
+  // Marks a method as a write command (09.3 §1). 50000 is the first number of
+  // the range Protobuf reserves for in-house options.
+  CommandOptions command = 50000;
+}

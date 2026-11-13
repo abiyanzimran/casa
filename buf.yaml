@@ -1,0 +1,14 @@
+# The API contract, defined once (ES §2; ADR-013 item 4; 14 §4.6). Checked by
+# buf format, buf lint, and buf breaking in CI (QG-01, QG-04).
+version: v2
+modules:
+  - path: proto
+deps:
+  - buf.build/bufbuild/protovalidate
+lint:
+  use:
+    - STANDARD
+breaking:
+  # FILE is the strictest set: connect-web's JSON depends on field names too.
+  use:
+    - FILE
