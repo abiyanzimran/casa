@@ -13,10 +13,6 @@ import (
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 )
 
-// TestContract holds the rules every RPC of the contract follows (14 §4.6;
-// 09.3 §1; 09.1 §4). Each rule runs on the real contract (no violation) and on
-// a probe file that breaks only that rule (exactly that violation), so a rule
-// that checks nothing fails here, not later.
 // protoFilesOnDisk counts the .proto files of the contract, so a package
 // casaFiles does not see cannot pass the contract test unchecked.
 func protoFilesOnDisk(t *testing.T) int {
@@ -34,6 +30,10 @@ func protoFilesOnDisk(t *testing.T) int {
 	return count
 }
 
+// TestContract holds the rules every RPC of the contract follows (14 §4.6;
+// 09.3 §1; 09.1 §4). Each rule runs on the real contract (no violation) and on
+// a probe file that breaks only that rule (exactly that violation), so a rule
+// that checks nothing fails here, not later.
 func TestContract(t *testing.T) {
 	t.Run("the real contract has no violation", func(t *testing.T) {
 		files := casaFiles(t)

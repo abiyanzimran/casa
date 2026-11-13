@@ -258,6 +258,16 @@ func TestBoundaryChecks(t *testing.T) {
 		}
 		p.wantCalls(t, "Read", 0)
 	})
+	t.Run("a write command from a web client with a malformed client version is rejected", func(t *testing.T) {
+		// Step 2 checks client_version before the version check reads it.
+		p := startProbe(t)
+		err := p.call(p.client, "Write", rc(web, "1.2", uuidV4), "")
+		wantCode(t, err, connect.CodeInvalidArgument)
+		if got, want := violationPaths(t, err), []string{"request_context.client_version"}; !slices.Equal(got, want) {
+			t.Fatalf("violation paths = %q, want %q", got, want)
+		}
+		p.wantCalls(t, "Write", 0)
+	})
 	t.Run("the request body is validated after the version check", func(t *testing.T) {
 		p := startProbe(t)
 		err := p.call(p.client, "Write", rc(web, "2.0.0", uuidV4), "toolong")
