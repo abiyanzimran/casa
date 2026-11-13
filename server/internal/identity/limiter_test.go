@@ -201,6 +201,15 @@ func TestLimiter(t *testing.T) {
 		if k, ok := l.keys["attacked"]; !ok || k.failures != 20 || len(l.keys) > l.maxKeys {
 			t.Fatalf("%d keys, attacked %+v kept %t; want at most %d and attacked kept with 20 failures", len(l.keys), k, ok, l.maxKeys)
 		}
+		fail(t, l, "attacked", 1) // the 21st waits 2 s, as without the flood
+		clock.advance(2*time.Second - time.Millisecond)
+		if allowed(l, "attacked") {
+			t.Fatal("allowed before the 2 s wait of the 21st failure")
+		}
+		clock.advance(time.Millisecond)
+		if !allowed(l, "attacked") {
+			t.Fatal("refused after the 2 s wait of the 21st failure")
+		}
 	})
 	t.Run("a full table of penalised keys refuses a new key", func(t *testing.T) {
 		l, clock := newTestLimiter(20, true)
@@ -215,6 +224,60 @@ func TestLimiter(t *testing.T) {
 		clock.advance(time.Hour)
 		if !allowed(l, "new") {
 			t.Fatal("a new key refused although every key is forgotten")
+		}
+	})
+	t.Run("a full table of penalised keys refuses new keys without a scan until one can be forgotten", func(t *testing.T) {
+		l, clock := newTestLimiter(20, true)
+		l.maxKeys = 10
+		start := clock.now
+		for i := range l.maxKeys {
+			fail(t, l, fmt.Sprint(i), 20)
+			clock.advance(time.Minute)
+		}
+		if allowed(l, "new") {
+			t.Fatal("a new key was allowed with no room")
+		}
+		if want := start.Add(forgetAfter); !l.fullUntil.Equal(want) {
+			t.Fatalf("fullUntil %v, want %v: the first key's last failure + 1 h", l.fullUntil, want)
+		}
+		// Until then the table is not scanned: an idle key planted in it
+		// stays, and the new key is still refused.
+		l.keys["idle"] = limiterKey{failures: 1, lastFailure: start.Add(-2 * forgetAfter)}
+		delete(l.keys, "9")
+		if allowed(l, "new") {
+			t.Fatal("a new key was allowed before fullUntil")
+		}
+		if _, kept := l.keys["idle"]; !kept {
+			t.Fatal("the table was scanned before fullUntil")
+		}
+		clock.now = start.Add(forgetAfter)
+		if !allowed(l, "new") {
+			t.Fatal("a new key refused once a key can be forgotten")
+		}
+	})
+	t.Run("a withdrawn attempt does not move the wait", func(t *testing.T) {
+		// NotTried and an address key's Succeeded take back their count;
+		// they must take back their time too (10.1 §8.1).
+		for _, outcome := range []Outcome{NotTried, Succeeded} {
+			l, clock := newTestLimiter(20, false)
+			fail(t, l, "k", 20)
+			start := clock.now
+			clock.advance(time.Second) // the wait after 20 failures is over
+			ok, done := l.Attempt("k")
+			if !ok {
+				t.Fatal("refused after the wait")
+			}
+			done(outcome)
+			if k := l.keys["k"]; k.failures != 20 || !k.lastFailure.Equal(start) {
+				t.Fatalf("outcome %d: key %+v, want 20 failures, last at %v", outcome, k, start)
+			}
+			if !allowed(l, "k") {
+				t.Fatalf("outcome %d: the withdrawn attempt restarted the wait", outcome)
+			}
+			clock.now = start.Add(forgetAfter)
+			if _, ok := l.live("k", clock.now); ok {
+				t.Fatalf("outcome %d: the withdrawn attempt delayed forgetting", outcome)
+			}
 		}
 	})
 	t.Run("email and address keys live in separate tables", func(t *testing.T) {

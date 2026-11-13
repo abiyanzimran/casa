@@ -34,6 +34,10 @@ type Limiter struct {
 	now             func() time.Time
 	mu              sync.Mutex
 	keys            map[string]limiterKey
+	// fullUntil: the table is full of keys past their threshold and none
+	// can be forgotten before this time, so a new key is refused without
+	// another scan (a flood of new keys costs no O(n) scan each).
+	fullUntil time.Time
 }
 
 type limiterKey struct {
@@ -71,14 +75,18 @@ func (l *Limiter) Attempt(key string) (allowed bool, done func(Outcome)) {
 	defer l.mu.Unlock()
 	now := l.now()
 	k, ok := l.live(key, now)
-	if ok && l.waiting(k, now) || !ok && len(l.keys) >= l.maxKeys && !l.evict(now) {
+	if ok && l.waiting(k, now) || !ok && len(l.keys) >= l.maxKeys && (now.Before(l.fullUntil) || !l.evict(now)) {
 		return false, func(Outcome) {}
 	}
 	l.keys[key] = limiterKey{failures: k.failures + 1, lastFailure: now}
-	return true, func(outcome Outcome) { l.end(key, outcome) }
+	return true, func(outcome Outcome) { l.end(key, outcome, k.lastFailure, now) }
 }
 
-func (l *Limiter) end(key string, outcome Outcome) {
+// end takes back a withdrawn attempt (NotTried, or Succeeded on a key a
+// success does not clear): its count, and its time, previous, unless a
+// later attempt has set the time since (attemptedAt no longer matches), so a
+// withdrawn attempt moves neither the wait nor the forgetting.
+func (l *Limiter) end(key string, outcome Outcome, previous, attemptedAt time.Time) {
 	if outcome == Failed {
 		return
 	}
@@ -91,6 +99,9 @@ func (l *Limiter) end(key string, outcome Outcome) {
 		delete(l.keys, key)
 	default:
 		k.failures--
+		if k.lastFailure.Equal(attemptedAt) && !previous.IsZero() {
+			k.lastFailure = previous
+		}
 		l.keys[key] = k
 	}
 }
@@ -114,17 +125,22 @@ func (l *Limiter) live(key string, now time.Time) (limiterKey, bool) {
 // the key below the threshold whose last failure is oldest. A key that
 // reached the threshold stays until it is forgotten, even when its current
 // wait is over, so a flood of invented keys cannot reset a real account's
-// count (10.1 §8.1). It reports false when nothing could go.
+// count (10.1 §8.1). It reports false when nothing could go, and then sets
+// fullUntil to the earliest time a key can be forgotten.
 //
 // ponytail: an O(n) scan of at most maxLimiterKeys, only when the table is
 // full; a heap by last failure if a full table becomes common.
 func (l *Limiter) evict(now time.Time) bool {
 	var oldest string
+	var forgettable time.Time
 	for key, k := range l.keys {
 		switch {
 		case !now.Before(k.lastFailure.Add(forgetAfter)):
 			delete(l.keys, key)
 		case k.failures >= l.threshold:
+			if at := k.lastFailure.Add(forgetAfter); forgettable.IsZero() || at.Before(forgettable) {
+				forgettable = at
+			}
 		case oldest == "" || k.lastFailure.Before(l.keys[oldest].lastFailure):
 			oldest = key
 		}
@@ -133,6 +149,7 @@ func (l *Limiter) evict(now time.Time) bool {
 		return true
 	}
 	if oldest == "" {
+		l.fullUntil = forgettable
 		return false
 	}
 	delete(l.keys, oldest)
