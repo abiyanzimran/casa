@@ -23,6 +23,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ReauthPurpose is the one action a re-authentication grants (SEC-13).
+type ReauthPurpose int32
+
+const (
+	ReauthPurpose_REAUTH_PURPOSE_UNSPECIFIED     ReauthPurpose = 0
+	ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD ReauthPurpose = 1
+)
+
+// Enum value maps for ReauthPurpose.
+var (
+	ReauthPurpose_name = map[int32]string{
+		0: "REAUTH_PURPOSE_UNSPECIFIED",
+		1: "REAUTH_PURPOSE_CHANGE_PASSWORD",
+	}
+	ReauthPurpose_value = map[string]int32{
+		"REAUTH_PURPOSE_UNSPECIFIED":     0,
+		"REAUTH_PURPOSE_CHANGE_PASSWORD": 1,
+	}
+)
+
+func (x ReauthPurpose) Enum() *ReauthPurpose {
+	p := new(ReauthPurpose)
+	*p = x
+	return p
+}
+
+func (x ReauthPurpose) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReauthPurpose) Descriptor() protoreflect.EnumDescriptor {
+	return file_casa_v1_identity_proto_enumTypes[0].Descriptor()
+}
+
+func (ReauthPurpose) Type() protoreflect.EnumType {
+	return &file_casa_v1_identity_proto_enumTypes[0]
+}
+
+func (x ReauthPurpose) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ReauthPurpose.Descriptor instead.
+func (ReauthPurpose) EnumDescriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{0}
+}
+
 type StartSignUpRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
@@ -573,6 +620,200 @@ func (*SignOutResponse) Descriptor() ([]byte, []int) {
 	return file_casa_v1_identity_proto_rawDescGZIP(), []int{10}
 }
 
+type ReauthenticateRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	// No minimum: a wrong password of any length gets CREDENTIALS_REJECTED.
+	Password      string        `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Purpose       ReauthPurpose `protobuf:"varint,3,opt,name=purpose,proto3,enum=casa.v1.ReauthPurpose" json:"purpose,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReauthenticateRequest) Reset() {
+	*x = ReauthenticateRequest{}
+	mi := &file_casa_v1_identity_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReauthenticateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReauthenticateRequest) ProtoMessage() {}
+
+func (x *ReauthenticateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReauthenticateRequest.ProtoReflect.Descriptor instead.
+func (*ReauthenticateRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ReauthenticateRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *ReauthenticateRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *ReauthenticateRequest) GetPurpose() ReauthPurpose {
+	if x != nil {
+		return x.Purpose
+	}
+	return ReauthPurpose_REAUTH_PURPOSE_UNSPECIFIED
+}
+
+type ReauthenticateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReauthenticateResponse) Reset() {
+	*x = ReauthenticateResponse{}
+	mi := &file_casa_v1_identity_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReauthenticateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReauthenticateResponse) ProtoMessage() {}
+
+func (x *ReauthenticateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReauthenticateResponse.ProtoReflect.Descriptor instead.
+func (*ReauthenticateResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ReauthenticateResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+type ChangePasswordRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	// At least 12 characters and not on the common password list (SEC-11).
+	NewPassword   string `protobuf:"bytes,2,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangePasswordRequest) Reset() {
+	*x = ChangePasswordRequest{}
+	mi := &file_casa_v1_identity_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangePasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangePasswordRequest) ProtoMessage() {}
+
+func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
+func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ChangePasswordRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *ChangePasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+type ChangePasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangePasswordResponse) Reset() {
+	*x = ChangePasswordResponse{}
+	mi := &file_casa_v1_identity_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangePasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangePasswordResponse) ProtoMessage() {}
+
+func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangePasswordResponse.ProtoReflect.Descriptor instead.
+func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{14}
+}
+
 var File_casa_v1_identity_proto protoreflect.FileDescriptor
 
 const file_casa_v1_identity_proto_rawDesc = "" +
@@ -608,13 +849,31 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x17access_token_expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt\"Z\n" +
 	"\x0eSignOutRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\"\x11\n" +
-	"\x0fSignOutResponse2\x84\x03\n" +
+	"\x0fSignOutResponse\"\xc8\x01\n" +
+	"\x15ReauthenticateRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12'\n" +
+	"\bpassword\x18\x02 \x01(\tB\v\xbaH\x05r\x03\x18\x80\b\x80\x01\x01R\bpassword\x12<\n" +
+	"\apurpose\x18\x03 \x01(\x0e2\x16.casa.v1.ReauthPurposeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\apurpose\"S\n" +
+	"\x16ReauthenticateResponse\x129\n" +
+	"\n" +
+	"expires_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x93\x01\n" +
+	"\x15ChangePasswordRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x120\n" +
+	"\fnew_password\x18\x02 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\vnewPassword\"\x18\n" +
+	"\x16ChangePasswordResponse*S\n" +
+	"\rReauthPurpose\x12\x1e\n" +
+	"\x1aREAUTH_PURPOSE_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eREAUTH_PURPOSE_CHANGE_PASSWORD\x10\x012\xb6\x04\n" +
 	"\x0fIdentityService\x12H\n" +
 	"\vStartSignUp\x12\x1b.casa.v1.StartSignUpRequest\x1a\x1c.casa.v1.StartSignUpResponse\x12Q\n" +
 	"\x0eCompleteSignUp\x12\x1e.casa.v1.CompleteSignUpRequest\x1a\x1f.casa.v1.CompleteSignUpResponse\x129\n" +
 	"\x06SignIn\x12\x16.casa.v1.SignInRequest\x1a\x17.casa.v1.SignInResponse\x12Q\n" +
 	"\x0eRefreshSession\x12\x1e.casa.v1.RefreshSessionRequest\x1a\x1f.casa.v1.RefreshSessionResponse\x12F\n" +
-	"\aSignOut\x12\x17.casa.v1.SignOutRequest\x1a\x18.casa.v1.SignOutResponse\"\b\x82\xb5\x18\x04\b\x00\x18\x01B\x9a\x01\n" +
+	"\aSignOut\x12\x17.casa.v1.SignOutRequest\x1a\x18.casa.v1.SignOutResponse\"\b\x82\xb5\x18\x04\b\x00\x18\x01\x12Q\n" +
+	"\x0eReauthenticate\x12\x1e.casa.v1.ReauthenticateRequest\x1a\x1f.casa.v1.ReauthenticateResponse\x12]\n" +
+	"\x0eChangePassword\x12\x1e.casa.v1.ChangePasswordRequest\x1a\x1f.casa.v1.ChangePasswordResponse\"\n" +
+	"\x82\xb5\x18\x06\b\x00\x10\x01\x18\x01B\x9a\x01\n" +
 	"\vcom.casa.v1B\rIdentityProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
 var (
@@ -629,47 +888,61 @@ func file_casa_v1_identity_proto_rawDescGZIP() []byte {
 	return file_casa_v1_identity_proto_rawDescData
 }
 
-var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_casa_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_casa_v1_identity_proto_goTypes = []any{
-	(*StartSignUpRequest)(nil),     // 0: casa.v1.StartSignUpRequest
-	(*StartSignUpResponse)(nil),    // 1: casa.v1.StartSignUpResponse
-	(*CompleteSignUpRequest)(nil),  // 2: casa.v1.CompleteSignUpRequest
-	(*CompleteSignUpResponse)(nil), // 3: casa.v1.CompleteSignUpResponse
-	(*SignInRequest)(nil),          // 4: casa.v1.SignInRequest
-	(*SignInResponse)(nil),         // 5: casa.v1.SignInResponse
-	(*RefreshSessionRequest)(nil),  // 6: casa.v1.RefreshSessionRequest
-	(*RefreshSessionResponse)(nil), // 7: casa.v1.RefreshSessionResponse
-	(*SessionTokens)(nil),          // 8: casa.v1.SessionTokens
-	(*SignOutRequest)(nil),         // 9: casa.v1.SignOutRequest
-	(*SignOutResponse)(nil),        // 10: casa.v1.SignOutResponse
-	(*RequestContext)(nil),         // 11: casa.v1.RequestContext
-	(*timestamppb.Timestamp)(nil),  // 12: google.protobuf.Timestamp
+	(ReauthPurpose)(0),             // 0: casa.v1.ReauthPurpose
+	(*StartSignUpRequest)(nil),     // 1: casa.v1.StartSignUpRequest
+	(*StartSignUpResponse)(nil),    // 2: casa.v1.StartSignUpResponse
+	(*CompleteSignUpRequest)(nil),  // 3: casa.v1.CompleteSignUpRequest
+	(*CompleteSignUpResponse)(nil), // 4: casa.v1.CompleteSignUpResponse
+	(*SignInRequest)(nil),          // 5: casa.v1.SignInRequest
+	(*SignInResponse)(nil),         // 6: casa.v1.SignInResponse
+	(*RefreshSessionRequest)(nil),  // 7: casa.v1.RefreshSessionRequest
+	(*RefreshSessionResponse)(nil), // 8: casa.v1.RefreshSessionResponse
+	(*SessionTokens)(nil),          // 9: casa.v1.SessionTokens
+	(*SignOutRequest)(nil),         // 10: casa.v1.SignOutRequest
+	(*SignOutResponse)(nil),        // 11: casa.v1.SignOutResponse
+	(*ReauthenticateRequest)(nil),  // 12: casa.v1.ReauthenticateRequest
+	(*ReauthenticateResponse)(nil), // 13: casa.v1.ReauthenticateResponse
+	(*ChangePasswordRequest)(nil),  // 14: casa.v1.ChangePasswordRequest
+	(*ChangePasswordResponse)(nil), // 15: casa.v1.ChangePasswordResponse
+	(*RequestContext)(nil),         // 16: casa.v1.RequestContext
+	(*timestamppb.Timestamp)(nil),  // 17: google.protobuf.Timestamp
 }
 var file_casa_v1_identity_proto_depIdxs = []int32{
-	11, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	11, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	8,  // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
-	11, // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
-	8,  // 4: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
-	11, // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
-	8,  // 6: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
-	12, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
-	11, // 8: casa.v1.SignOutRequest.request_context:type_name -> casa.v1.RequestContext
-	0,  // 9: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
-	2,  // 10: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
-	4,  // 11: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
-	6,  // 12: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
-	9,  // 13: casa.v1.IdentityService.SignOut:input_type -> casa.v1.SignOutRequest
-	1,  // 14: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
-	3,  // 15: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
-	5,  // 16: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
-	7,  // 17: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
-	10, // 18: casa.v1.IdentityService.SignOut:output_type -> casa.v1.SignOutResponse
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	16, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	16, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	9,  // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
+	16, // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
+	9,  // 4: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
+	16, // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
+	9,  // 6: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
+	17, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
+	16, // 8: casa.v1.SignOutRequest.request_context:type_name -> casa.v1.RequestContext
+	16, // 9: casa.v1.ReauthenticateRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 10: casa.v1.ReauthenticateRequest.purpose:type_name -> casa.v1.ReauthPurpose
+	17, // 11: casa.v1.ReauthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
+	16, // 12: casa.v1.ChangePasswordRequest.request_context:type_name -> casa.v1.RequestContext
+	1,  // 13: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
+	3,  // 14: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
+	5,  // 15: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
+	7,  // 16: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
+	10, // 17: casa.v1.IdentityService.SignOut:input_type -> casa.v1.SignOutRequest
+	12, // 18: casa.v1.IdentityService.Reauthenticate:input_type -> casa.v1.ReauthenticateRequest
+	14, // 19: casa.v1.IdentityService.ChangePassword:input_type -> casa.v1.ChangePasswordRequest
+	2,  // 20: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
+	4,  // 21: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
+	6,  // 22: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
+	8,  // 23: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
+	11, // 24: casa.v1.IdentityService.SignOut:output_type -> casa.v1.SignOutResponse
+	13, // 25: casa.v1.IdentityService.Reauthenticate:output_type -> casa.v1.ReauthenticateResponse
+	15, // 26: casa.v1.IdentityService.ChangePassword:output_type -> casa.v1.ChangePasswordResponse
+	20, // [20:27] is the sub-list for method output_type
+	13, // [13:20] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_identity_proto_init() }
@@ -684,13 +957,14 @@ func file_casa_v1_identity_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_identity_proto_rawDesc), len(file_casa_v1_identity_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   11,
+			NumEnums:      1,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_casa_v1_identity_proto_goTypes,
 		DependencyIndexes: file_casa_v1_identity_proto_depIdxs,
+		EnumInfos:         file_casa_v1_identity_proto_enumTypes,
 		MessageInfos:      file_casa_v1_identity_proto_msgTypes,
 	}.Build()
 	File_casa_v1_identity_proto = out.File

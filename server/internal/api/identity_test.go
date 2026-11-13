@@ -726,3 +726,183 @@ func TestSignOut(t *testing.T) {
 		wantOK(t, h.authenticated(tokens.GetAccessToken()))
 	})
 }
+
+func (h *identityHarness) reauthenticate(accessToken, password string) (*casav1.ReauthenticateResponse, error) {
+	return h.client.Reauthenticate(bearer(accessToken), &casav1.ReauthenticateRequest{
+		RequestContext: identityRC(ios), Password: password, Purpose: casav1.ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD,
+	})
+}
+
+func (h *identityHarness) changePassword(accessToken, newPassword string) error {
+	_, err := h.client.ChangePassword(bearer(accessToken), &casav1.ChangePasswordRequest{
+		RequestContext: commandRC(), NewPassword: newPassword,
+	})
+	return err
+}
+
+func TestReauthentication(t *testing.T) {
+	const email = "owner@example.test"
+	// Built, so no secret scanner sees a literal.
+	password, next := strings.Repeat("reauth ", 3), strings.Repeat("changed ", 3)
+	reauthRequired := casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED
+
+	t.Run("SEC-13 a password change without re-authentication is refused without effect", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		wantErrorCode(t, h.changePassword(tokens.GetAccessToken(), next), connect.CodePermissionDenied, reauthRequired)
+		_, err := h.signIn(email, password)
+		wantOK(t, err)
+		if n := h.count(t, "SELECT count(*) FROM idempotency_record"); n != 0 {
+			t.Fatalf("%d idempotency records, want none", n)
+		}
+	})
+	t.Run("SEC-13 a re-authentication older than 5 minutes is refused", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		res, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		if got, want := res.GetExpiresAt().AsTime(), h.clock.Now().Add(5*time.Minute); !got.Equal(want) {
+			t.Fatalf("expires_at %v, want %v", got, want)
+		}
+		h.clock.advance(5*time.Minute - time.Second)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+		for _, age := range []time.Duration{5 * time.Minute, 6 * time.Minute} { // 6: the SEC-13 test value
+			tokens, err := h.signIn(email, next) // a fresh session: an access token lives 15 minutes
+			wantOK(t, err)
+			_, err = h.reauthenticate(tokens.GetAccessToken(), next)
+			wantOK(t, err)
+			h.clock.advance(age)
+			wantErrorCode(t, h.changePassword(tokens.GetAccessToken(), password), connect.CodePermissionDenied, reauthRequired)
+		}
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+	t.Run("SEC-13 a re-authentication serves one action", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+		wantErrorCode(t, h.changePassword(tokens.GetAccessToken(), password), connect.CodePermissionDenied, reauthRequired)
+	})
+	t.Run("a re-authentication is bound to its session and purpose", func(t *testing.T) {
+		h := startIdentity(t)
+		first := h.signUp(t, email, password)
+		second, err := h.signIn(email, password)
+		wantOK(t, err)
+		_, err = h.reauthenticate(first.GetAccessToken(), password)
+		wantOK(t, err)
+		wantErrorCode(t, h.changePassword(second.GetAccessToken(), next), connect.CodePermissionDenied, reauthRequired)
+		for _, purpose := range []casav1.ReauthPurpose{casav1.ReauthPurpose_REAUTH_PURPOSE_UNSPECIFIED, 99} {
+			_, err := h.client.Reauthenticate(bearer(second.GetAccessToken()), &casav1.ReauthenticateRequest{
+				RequestContext: identityRC(ios), Password: password, Purpose: purpose,
+			})
+			wantCode(t, err, connect.CodeInvalidArgument)
+		}
+		wantOK(t, h.changePassword(first.GetAccessToken(), next))
+	})
+	t.Run("a re-authentication needs a session", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		_, err := h.reauthenticate("", password)
+		wantCode(t, err, connect.CodeUnauthenticated)
+	})
+	t.Run("a wrong password at re-authentication is rejected and rate limited", func(t *testing.T) {
+		// SEC-12 cited, not named; 10.1 §8.1 row Reauthenticate.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		for range 20 {
+			_, err := h.reauthenticate(tokens.GetAccessToken(), "a wrong passphrase")
+			wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED)
+		}
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+		if n := h.count(t, "SELECT count(*) FROM reauth_grant"); n != 0 {
+			t.Fatalf("%d grants, want none", n)
+		}
+	})
+	t.Run("after a password change only the new password signs in", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+		_, err = h.signIn(email, password)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED)
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+	t.Run("a new password on the common list is refused", func(t *testing.T) {
+		// SEC-11; the grant is not consumed.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		err = h.changePassword(tokens.GetAccessToken(), "password1234")
+		wantCode(t, err, connect.CodeInvalidArgument)
+		if got, want := violations(t, err), []string{"new_password password.common"}; !slices.Equal(got, want) {
+			t.Fatalf("violations %v, want %v", got, want)
+		}
+		err = h.changePassword(tokens.GetAccessToken(), "elevenchars")
+		if got, want := violations(t, err), []string{"new_password string.min_len"}; !slices.Equal(got, want) {
+			t.Fatalf("violations %v, want %v", got, want)
+		}
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+	})
+	t.Run("re-authentication and a password change are written to the account's security trail", func(t *testing.T) {
+		// FR-FAM-022/AC-5 cited, not named: its screen comes later.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+		var kinds []string
+		rows, err := h.admin.Query(t.Context(), `SELECT kind || ':' || coalesce(detail, '') FROM security_event
+			WHERE session_id IS NOT NULL AND kind <> 'sign_in' ORDER BY occurred_at, kind DESC`)
+		if err == nil {
+			kinds, err = pgx.CollectRows(rows, pgx.RowTo[string])
+		}
+		if want := []string{"reauthentication:change_password", "password_changed:"}; err != nil || !slices.Equal(kinds, want) {
+			t.Fatalf("events %v (%v), want %v", kinds, err, want)
+		}
+	})
+	t.Run("the change-password request leaves no password trace", func(t *testing.T) {
+		// SEC-11; decision 8 of the 1.4 plan.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), next))
+		cleared := sha256.Sum256(nil) // the request without request_context and new_password
+		if n := h.count(t, "SELECT count(*) FROM idempotency_record WHERE request_hash = $1", cleared[:]); n != 1 {
+			t.Fatalf("%d records with the cleared request hash, want 1", n)
+		}
+		sum := sha256.Sum256([]byte(next))
+		traces := []string{next, fmt.Sprintf("%x", sum)}
+		rows, err := h.admin.Query(t.Context(), "SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+		if err != nil {
+			t.Fatal(err)
+		}
+		tables, err := pgx.CollectRows(rows, pgx.RowTo[string])
+		if err != nil || len(tables) < 10 {
+			t.Fatalf("tables %v, %v", tables, err)
+		}
+		found := func(trace string) (holding []string) {
+			for _, table := range tables {
+				query := fmt.Sprintf("SELECT count(*) FROM %s t WHERE strpos(t::text, $1) > 0", pgx.Identifier{table}.Sanitize())
+				if h.count(t, query, trace) != 0 {
+					holding = append(holding, table)
+				}
+			}
+			return holding
+		}
+		if got := found(email); len(got) == 0 { // the scan finds what is there
+			t.Fatal("the scan does not find the email")
+		}
+		for _, trace := range traces {
+			if got := found(trace); len(got) != 0 {
+				t.Errorf("tables %v hold a trace of the new password", got)
+			}
+		}
+	})
+}

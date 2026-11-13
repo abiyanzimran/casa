@@ -60,6 +60,9 @@ const (
 	// The idempotency key was used before with another request; the client
 	// must not resend it (09.2 §8).
 	ErrorCode_ERROR_CODE_IDEMPOTENCY_CONFLICT ErrorCode = 10
+	// The command needs a valid re-authentication of this session (SEC-13,
+	// SEC-151 (7)).
+	ErrorCode_ERROR_CODE_REAUTH_REQUIRED ErrorCode = 11
 )
 
 // Enum value maps for ErrorCode.
@@ -76,6 +79,7 @@ var (
 		8:  "ERROR_CODE_CREDENTIALS_REJECTED",
 		9:  "ERROR_CODE_RETRY_EXHAUSTED",
 		10: "ERROR_CODE_IDEMPOTENCY_CONFLICT",
+		11: "ERROR_CODE_REAUTH_REQUIRED",
 	}
 	ErrorCode_value = map[string]int32{
 		"ERROR_CODE_UNSPECIFIED":             0,
@@ -89,6 +93,7 @@ var (
 		"ERROR_CODE_CREDENTIALS_REJECTED":    8,
 		"ERROR_CODE_RETRY_EXHAUSTED":         9,
 		"ERROR_CODE_IDEMPOTENCY_CONFLICT":    10,
+		"ERROR_CODE_REAUTH_REQUIRED":         11,
 	}
 )
 
@@ -172,7 +177,7 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\n" +
 	"\x13casa/v1/error.proto\x12\acasa.v1\"5\n" +
 	"\vErrorDetail\x12&\n" +
-	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\xf0\x02\n" +
+	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\x90\x03\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ERROR_CODE_CLIENT_UPGRADE_REQUIRED\x10\x01\x12\x1e\n" +
@@ -185,7 +190,8 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\x1fERROR_CODE_CREDENTIALS_REJECTED\x10\b\x12\x1e\n" +
 	"\x1aERROR_CODE_RETRY_EXHAUSTED\x10\t\x12#\n" +
 	"\x1fERROR_CODE_IDEMPOTENCY_CONFLICT\x10\n" +
-	"B\x97\x01\n" +
+	"\x12\x1e\n" +
+	"\x1aERROR_CODE_REAUTH_REQUIRED\x10\vB\x97\x01\n" +
 	"\vcom.casa.v1B\n" +
 	"ErrorProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 

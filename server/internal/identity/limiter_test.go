@@ -365,8 +365,7 @@ func TestLimiter(t *testing.T) {
 	})
 	t.Run("each limiter has the table policy of 10.1 §8.1", func(t *testing.T) {
 		// Item 2, last column: only the tables guarding a password refuse
-		// new keys when full of penalised keys. Reauthenticate (refuse) and
-		// StartRecovery (evict) come with PR B.
+		// new keys when full of penalised keys.
 		s := New(nil, Config{Now: time.Now, Password: cheapParams})
 		for _, c := range []struct {
 			name   string
@@ -376,6 +375,8 @@ func TestLimiter(t *testing.T) {
 			{"SignIn email", s.signIn.account, true},
 			{"SignIn address", s.signIn.address, false},
 			{"token use address", s.tokenUse.address, false},
+			{"Reauthenticate account", s.reauth.account, true},
+			{"Reauthenticate address", s.reauth.address, false},
 		} {
 			if c.l.refusesWhenFull != c.refuse {
 				t.Errorf("%s: refusesWhenFull %t, want %t", c.name, c.l.refusesWhenFull, c.refuse)

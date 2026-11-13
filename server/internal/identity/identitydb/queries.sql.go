@@ -220,6 +220,30 @@ func (q *Queries) InsertCredential(ctx context.Context, arg InsertCredentialPara
 	return err
 }
 
+const insertReauthGrant = `-- name: InsertReauthGrant :exec
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type InsertReauthGrantParams struct {
+	SessionID pgtype.UUID
+	AccountID pgtype.UUID
+	Purpose   string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantParams) error {
+	_, err := q.db.Exec(ctx, insertReauthGrant,
+		arg.SessionID,
+		arg.AccountID,
+		arg.Purpose,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
 const insertRefreshToken = `-- name: InsertRefreshToken :exec
 INSERT INTO refresh_token (token_hash, session_id, account_id, created_at)
 VALUES ($1, $2, $3, $4)
@@ -374,6 +398,39 @@ func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) erro
 	return err
 }
 
+const updateCredential = `-- name: UpdateCredential :execrows
+UPDATE credential
+   SET salt = $1, hash = $2, time_cost = $3, memory_kib = $4,
+       parallelism = $5, updated_at = $6
+ WHERE account_id = $7
+`
+
+type UpdateCredentialParams struct {
+	Salt        []byte
+	Hash        []byte
+	TimeCost    int32
+	MemoryKib   int32
+	Parallelism int16
+	UpdatedAt   time.Time
+	AccountID   pgtype.UUID
+}
+
+func (q *Queries) UpdateCredential(ctx context.Context, arg UpdateCredentialParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateCredential,
+		arg.Salt,
+		arg.Hash,
+		arg.TimeCost,
+		arg.MemoryKib,
+		arg.Parallelism,
+		arg.UpdatedAt,
+		arg.AccountID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const upsertSignupVerification = `-- name: UpsertSignupVerification :exec
 INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
 VALUES ($1, 'setup_token', $2, $3, $4, $5)
@@ -398,6 +455,30 @@ func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignup
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const useReauthGrant = `-- name: UseReauthGrant :execrows
+UPDATE reauth_grant g SET used_at = $1::timestamptz
+ WHERE g.used_at IS NULL AND g.id = (
+	SELECT o.id FROM reauth_grant o
+	 WHERE o.session_id = $2 AND o.purpose = $3 AND o.used_at IS NULL AND o.expires_at > $1
+	 LIMIT 1)
+`
+
+type UseReauthGrantParams struct {
+	Now       time.Time
+	SessionID pgtype.UUID
+	Purpose   string
+}
+
+// Uses one open grant of the session for purpose (SEC-13); served by
+// reauth_grant_open.
+func (q *Queries) UseReauthGrant(ctx context.Context, arg UseReauthGrantParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useReauthGrant, arg.Now, arg.SessionID, arg.Purpose)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const useRefreshToken = `-- name: UseRefreshToken :execrows

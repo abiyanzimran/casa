@@ -92,3 +92,22 @@ UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
 -- name: RotateAccessToken :exec
 UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_at = @now
  WHERE id = @id;
+
+-- name: InsertReauthGrant :exec
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
+VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at);
+
+-- name: UseReauthGrant :execrows
+-- Uses one open grant of the session for purpose (SEC-13); served by
+-- reauth_grant_open.
+UPDATE reauth_grant g SET used_at = @now::timestamptz
+ WHERE g.used_at IS NULL AND g.id = (
+	SELECT o.id FROM reauth_grant o
+	 WHERE o.session_id = @session_id AND o.purpose = @purpose AND o.used_at IS NULL AND o.expires_at > @now
+	 LIMIT 1);
+
+-- name: UpdateCredential :execrows
+UPDATE credential
+   SET salt = @salt, hash = @hash, time_cost = @time_cost, memory_kib = @memory_kib,
+       parallelism = @parallelism, updated_at = @updated_at
+ WHERE account_id = @account_id;

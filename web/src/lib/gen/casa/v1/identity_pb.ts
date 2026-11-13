@@ -2,8 +2,8 @@
 // @generated from file casa/v1/identity.proto (package casa.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
 import { file_casa_v1_command } from "./command_pb";
 import type { RequestContext } from "./request_pb";
@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/identity.proto.
  */
 export const file_casa_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKCg5TaWduT3V0UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiEQoPU2lnbk91dFJlc3BvbnNlMoQDCg9JZGVudGl0eVNlcnZpY2USSAoLU3RhcnRTaWduVXASGy5jYXNhLnYxLlN0YXJ0U2lnblVwUmVxdWVzdBocLmNhc2EudjEuU3RhcnRTaWduVXBSZXNwb25zZRJRCg5Db21wbGV0ZVNpZ25VcBIeLmNhc2EudjEuQ29tcGxldGVTaWduVXBSZXF1ZXN0Gh8uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlc3BvbnNlEjkKBlNpZ25JbhIWLmNhc2EudjEuU2lnbkluUmVxdWVzdBoXLmNhc2EudjEuU2lnbkluUmVzcG9uc2USUQoOUmVmcmVzaFNlc3Npb24SHi5jYXNhLnYxLlJlZnJlc2hTZXNzaW9uUmVxdWVzdBofLmNhc2EudjEuUmVmcmVzaFNlc3Npb25SZXNwb25zZRJGCgdTaWduT3V0EhcuY2FzYS52MS5TaWduT3V0UmVxdWVzdBoYLmNhc2EudjEuU2lnbk91dFJlc3BvbnNlIgiCtRgECAAYAUKaAQoLY29tLmNhc2EudjFCDUlkZW50aXR5UHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
+  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJKCg5TaWduT3V0UmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiEQoPU2lnbk91dFJlc3BvbnNlIqUBChVSZWF1dGhlbnRpY2F0ZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh0KCHBhc3N3b3JkGAIgASgJQguAAQG6SAVyAxiACBIzCgdwdXJwb3NlGAMgASgOMhYuY2FzYS52MS5SZWF1dGhQdXJwb3NlQgq6SAeCAQQQASAAIkgKFlJlYXV0aGVudGljYXRlUmVzcG9uc2USLgoKZXhwaXJlc19hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAidgoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIjCgxuZXdfcGFzc3dvcmQYAiABKAlCDYABAbpIB3IFEAwYgAgiGAoWQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSpTCg1SZWF1dGhQdXJwb3NlEh4KGlJFQVVUSF9QVVJQT1NFX1VOU1BFQ0lGSUVEEAASIgoeUkVBVVRIX1BVUlBPU0VfQ0hBTkdFX1BBU1NXT1JEEAEytgQKD0lkZW50aXR5U2VydmljZRJICgtTdGFydFNpZ25VcBIbLmNhc2EudjEuU3RhcnRTaWduVXBSZXF1ZXN0GhwuY2FzYS52MS5TdGFydFNpZ25VcFJlc3BvbnNlElEKDkNvbXBsZXRlU2lnblVwEh4uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlcXVlc3QaHy5jYXNhLnYxLkNvbXBsZXRlU2lnblVwUmVzcG9uc2USOQoGU2lnbkluEhYuY2FzYS52MS5TaWduSW5SZXF1ZXN0GhcuY2FzYS52MS5TaWduSW5SZXNwb25zZRJRCg5SZWZyZXNoU2Vzc2lvbhIeLmNhc2EudjEuUmVmcmVzaFNlc3Npb25SZXF1ZXN0Gh8uY2FzYS52MS5SZWZyZXNoU2Vzc2lvblJlc3BvbnNlEkYKB1NpZ25PdXQSFy5jYXNhLnYxLlNpZ25PdXRSZXF1ZXN0GhguY2FzYS52MS5TaWduT3V0UmVzcG9uc2UiCIK1GAQIABgBElEKDlJlYXV0aGVudGljYXRlEh4uY2FzYS52MS5SZWF1dGhlbnRpY2F0ZVJlcXVlc3QaHy5jYXNhLnYxLlJlYXV0aGVudGljYXRlUmVzcG9uc2USXQoOQ2hhbmdlUGFzc3dvcmQSHi5jYXNhLnYxLkNoYW5nZVBhc3N3b3JkUmVxdWVzdBofLmNhc2EudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSIKgrUYBggAEAEYAUKaAQoLY29tLmNhc2EudjFCDUlkZW50aXR5UHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.StartSignUpRequest
@@ -259,6 +259,112 @@ export const SignOutResponseSchema: GenMessage<SignOutResponse> = /*@__PURE__*/
   messageDesc(file_casa_v1_identity, 10);
 
 /**
+ * @generated from message casa.v1.ReauthenticateRequest
+ */
+export type ReauthenticateRequest = Message<"casa.v1.ReauthenticateRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * No minimum: a wrong password of any length gets CREDENTIALS_REJECTED.
+   *
+   * @generated from field: string password = 2;
+   */
+  password: string;
+
+  /**
+   * @generated from field: casa.v1.ReauthPurpose purpose = 3;
+   */
+  purpose: ReauthPurpose;
+};
+
+/**
+ * Describes the message casa.v1.ReauthenticateRequest.
+ * Use `create(ReauthenticateRequestSchema)` to create a new message.
+ */
+export const ReauthenticateRequestSchema: GenMessage<ReauthenticateRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 11);
+
+/**
+ * @generated from message casa.v1.ReauthenticateResponse
+ */
+export type ReauthenticateResponse = Message<"casa.v1.ReauthenticateResponse"> & {
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 1;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message casa.v1.ReauthenticateResponse.
+ * Use `create(ReauthenticateResponseSchema)` to create a new message.
+ */
+export const ReauthenticateResponseSchema: GenMessage<ReauthenticateResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 12);
+
+/**
+ * @generated from message casa.v1.ChangePasswordRequest
+ */
+export type ChangePasswordRequest = Message<"casa.v1.ChangePasswordRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * At least 12 characters and not on the common password list (SEC-11).
+   *
+   * @generated from field: string new_password = 2;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message casa.v1.ChangePasswordRequest.
+ * Use `create(ChangePasswordRequestSchema)` to create a new message.
+ */
+export const ChangePasswordRequestSchema: GenMessage<ChangePasswordRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 13);
+
+/**
+ * @generated from message casa.v1.ChangePasswordResponse
+ */
+export type ChangePasswordResponse = Message<"casa.v1.ChangePasswordResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.ChangePasswordResponse.
+ * Use `create(ChangePasswordResponseSchema)` to create a new message.
+ */
+export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 14);
+
+/**
+ * ReauthPurpose is the one action a re-authentication grants (SEC-13).
+ *
+ * @generated from enum casa.v1.ReauthPurpose
+ */
+export enum ReauthPurpose {
+  /**
+   * @generated from enum value: REAUTH_PURPOSE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: REAUTH_PURPOSE_CHANGE_PASSWORD = 1;
+   */
+  CHANGE_PASSWORD = 1,
+}
+
+/**
+ * Describes the enum casa.v1.ReauthPurpose.
+ */
+export const ReauthPurposeSchema: GenEnum<ReauthPurpose> = /*@__PURE__*/
+  enumDesc(file_casa_v1_identity, 0);
+
+/**
  * IdentityService is the identity module's API: closed sign-up, sign-in and
  * sessions (09.2 §1; SEC-11, SEC-12, SEC-15, SEC-158). Its RPCs are outside
  * the command kind table and carry no idempotency key (09.2 §8; 09.3 §1),
@@ -324,6 +430,30 @@ export const IdentityService: GenService<{
     methodKind: "unary";
     input: typeof SignOutRequestSchema;
     output: typeof SignOutResponseSchema;
+  },
+  /**
+   * Checks the caller's password again and grants one action of purpose in
+   * this session for 5 minutes (SEC-13). A wrong password gets
+   * CREDENTIALS_REJECTED; attempts are rate limited per account and per
+   * address (SEC-12; 10.1 §8.1).
+   *
+   * @generated from rpc casa.v1.IdentityService.Reauthenticate
+   */
+  reauthenticate: {
+    methodKind: "unary";
+    input: typeof ReauthenticateRequestSchema;
+    output: typeof ReauthenticateResponseSchema;
+  },
+  /**
+   * Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
+   * this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
+   *
+   * @generated from rpc casa.v1.IdentityService.ChangePassword
+   */
+  changePassword: {
+    methodKind: "unary";
+    input: typeof ChangePasswordRequestSchema;
+    output: typeof ChangePasswordResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_identity, 0);

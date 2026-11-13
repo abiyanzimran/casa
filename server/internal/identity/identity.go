@@ -33,6 +33,9 @@ var (
 	ErrSessionExpired = errors.New("session expired")
 	// ErrSessionRevoked: the session was revoked (SEC-15, SEC-24).
 	ErrSessionRevoked = errors.New("session revoked")
+	// ErrReauthRequired: the action needs an open re-authentication of this
+	// session for its purpose (SEC-13).
+	ErrReauthRequired = errors.New("re-authentication required")
 )
 
 // Lifetimes of SEC-15 and 09.4 §2, and of the native session (lead ruling Q5
@@ -42,13 +45,16 @@ const (
 	nativeIdleTimeout        = 30 * 24 * time.Hour
 	nativeAbsoluteLifetime   = 180 * 24 * time.Hour
 	verificationLinkLifetime = 30 * time.Minute // lead ruling Q4 on the 1.4 plan [Usulan]
+	reauthLifetime           = 5 * time.Minute  // SEC-13 [Asumsi]; 09.4 §2
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
-// address; SignIn by email and by address.
+// address; SignIn by email and by address; Reauthenticate by account and by
+// address.
 const (
 	tokenUseThreshold = 20
 	signInThreshold   = 20
+	reauthThreshold   = 20
 )
 
 // touchAfter is how stale last_used_at may get before a request updates it,
@@ -105,9 +111,10 @@ type Service struct {
 	hasher   *hasher
 	tokenUse rateLimit
 	signIn   rateLimit
+	reauth   rateLimit
 	// decoy is verified when the email has no credential, so a sign-in
 	// costs one hash whatever the reason it fails (SEC-12).
-	decoy passwordHash
+	decoy PasswordHash
 }
 
 // New returns the identity service over pool.
@@ -118,7 +125,8 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 		hasher:   newHasher(config.Password),
 		tokenUse: newRateLimit(0, tokenUseThreshold, false, config.Now),
 		signIn:   newRateLimit(signInThreshold, signInThreshold, true, config.Now),
-		decoy: passwordHash{
+		reauth:   newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
+		decoy: PasswordHash{
 			params: config.Password,
 			salt:   randomBytes(int(config.Password.SaltBytes)),
 			hash:   randomBytes(int(config.Password.KeyBytes)),

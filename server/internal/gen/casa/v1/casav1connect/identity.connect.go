@@ -37,6 +37,12 @@ const (
 	IdentityServiceRefreshSessionProcedure = "/casa.v1.IdentityService/RefreshSession"
 	// IdentityServiceSignOutProcedure is the procedure name of the IdentityService's SignOut RPC.
 	IdentityServiceSignOutProcedure = "/casa.v1.IdentityService/SignOut"
+	// IdentityServiceReauthenticateProcedure is the procedure name of the IdentityService's
+	// Reauthenticate RPC.
+	IdentityServiceReauthenticateProcedure = "/casa.v1.IdentityService/Reauthenticate"
+	// IdentityServiceChangePasswordProcedure is the procedure name of the IdentityService's
+	// ChangePassword RPC.
+	IdentityServiceChangePasswordProcedure = "/casa.v1.IdentityService/ChangePassword"
 )
 
 var (
@@ -75,6 +81,20 @@ var (
 			Procedure:  IdentityServiceSignOutProcedure,
 		}
 	})
+	identityServiceReauthenticateSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("Reauthenticate"),
+			Procedure:  IdentityServiceReauthenticateProcedure,
+		}
+	})
+	identityServiceChangePasswordSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("ChangePassword"),
+			Procedure:  IdentityServiceChangePasswordProcedure,
+		}
+	})
 )
 
 // IdentityServiceClient is a client for the casa.v1.IdentityService service.
@@ -95,6 +115,14 @@ type IdentityServiceClient interface {
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
 	// exempt from NOTICE_UNREAD.
 	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
+	// Checks the caller's password again and grants one action of purpose in
+	// this session for 5 minutes (SEC-13). A wrong password gets
+	// CREDENTIALS_REJECTED; attempts are rate limited per account and per
+	// address (SEC-12; 10.1 §8.1).
+	Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error)
+	// Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
+	// this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
+	ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error)
 }
 
 // NewIdentityServiceClient constructs a client for the casa.v1.IdentityService service. Multiple
@@ -121,6 +149,14 @@ type IdentityServiceHandler interface {
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
 	// exempt from NOTICE_UNREAD.
 	SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error)
+	// Checks the caller's password again and grants one action of purpose in
+	// this session for 5 minutes (SEC-13). A wrong password gets
+	// CREDENTIALS_REJECTED; attempts are rate limited per account and per
+	// address (SEC-12; 10.1 §8.1).
+	Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error)
+	// Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
+	// this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
+	ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error)
 }
 
 // RegisterIdentityServiceHandler registers svc as the casa.v1.IdentityService implementation on
@@ -133,6 +169,8 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 		connect.Method{Spec: identityServiceSignInSpec(), Handler: adapter.signIn},
 		connect.Method{Spec: identityServiceRefreshSessionSpec(), Handler: adapter.refreshSession},
 		connect.Method{Spec: identityServiceSignOutSpec(), Handler: adapter.signOut},
+		connect.Method{Spec: identityServiceReauthenticateSpec(), Handler: adapter.reauthenticate},
+		connect.Method{Spec: identityServiceChangePasswordSpec(), Handler: adapter.changePassword},
 	)
 }
 
@@ -157,6 +195,14 @@ func (UnimplementedIdentityServiceHandler) RefreshSession(context.Context, *v1.R
 
 func (UnimplementedIdentityServiceHandler) SignOut(context.Context, *v1.SignOutRequest) (*v1.SignOutResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.SignOut is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.Reauthenticate is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.ChangePassword is not implemented")
 }
 
 type identityServiceClient struct {
@@ -198,6 +244,22 @@ func (c *identityServiceClient) RefreshSession(ctx context.Context, req *v1.Refr
 func (c *identityServiceClient) SignOut(ctx context.Context, req *v1.SignOutRequest) (*v1.SignOutResponse, error) {
 	var res v1.SignOutResponse
 	if err := c.client.CallUnary(ctx, identityServiceSignOutSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) Reauthenticate(ctx context.Context, req *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error) {
+	var res v1.ReauthenticateResponse
+	if err := c.client.CallUnary(ctx, identityServiceReauthenticateSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) ChangePassword(ctx context.Context, req *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error) {
+	var res v1.ChangePasswordResponse
+	if err := c.client.CallUnary(ctx, identityServiceChangePasswordSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -259,6 +321,30 @@ func (h identityServiceHandler) signOut(ctx context.Context, _ connect.Spec, str
 		return err
 	}
 	res, err := h.svc.SignOut(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) reauthenticate(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ReauthenticateRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.Reauthenticate(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) changePassword(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ChangePasswordRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ChangePassword(ctx, &req)
 	if err != nil {
 		return err
 	}

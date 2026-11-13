@@ -32,7 +32,9 @@ var DefaultPasswordParams = PasswordParams{Time: 3, MemoryKiB: 64 * 1024, Parall
 // (09.4 §2).
 const maxConcurrentHashes = 2
 
-type passwordHash struct {
+// PasswordHash is a password's Argon2id hash with its salt and parameters
+// (SEC-11), made outside any transaction by HashPassword.
+type PasswordHash struct {
 	params     PasswordParams
 	salt, hash []byte
 }
@@ -67,17 +69,17 @@ func (h *hasher) hold() (release func()) {
 	}
 }
 
-func (h *hasher) hash(ctx context.Context, password string) (passwordHash, error) {
+func (h *hasher) hash(ctx context.Context, password string) (PasswordHash, error) {
 	salt := randomBytes(int(h.params.SaltBytes))
 	key, err := h.derive(ctx, h.params, salt, password)
 	if err != nil {
-		return passwordHash{}, err
+		return PasswordHash{}, err
 	}
-	return passwordHash{params: h.params, salt: salt, hash: key}, nil
+	return PasswordHash{params: h.params, salt: salt, hash: key}, nil
 }
 
 // verify compares in constant time, with the parameters stored with the hash.
-func (h *hasher) verify(ctx context.Context, stored passwordHash, password string) (bool, error) {
+func (h *hasher) verify(ctx context.Context, stored PasswordHash, password string) (bool, error) {
 	key, err := h.derive(ctx, stored.params, stored.salt, password)
 	if err != nil {
 		return false, err

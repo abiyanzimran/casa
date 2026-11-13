@@ -39,6 +39,9 @@ enum ErrorCode {
   // The idempotency key was used before with another request; the client
   // must not resend it (09.2 §8).
   ERROR_CODE_IDEMPOTENCY_CONFLICT = 10;
+  // The command needs a valid re-authentication of this session (SEC-13,
+  // SEC-151 (7)).
+  ERROR_CODE_REAUTH_REQUIRED = 11;
 }
 
 // ErrorDetail is the Connect error detail that carries the domain error code

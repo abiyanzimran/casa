@@ -35,6 +35,20 @@ service IdentityService {
       notice_exempt: true
     };
   }
+  // Checks the caller's password again and grants one action of purpose in
+  // this session for 5 minutes (SEC-13). A wrong password gets
+  // CREDENTIALS_REJECTED; attempts are rate limited per account and per
+  // address (SEC-12; 10.1 §8.1).
+  rpc Reauthenticate(ReauthenticateRequest) returns (ReauthenticateResponse);
+  // Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
+  // this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      protective: true
+      notice_exempt: true
+    };
+  }
 }
 
 message StartSignUpRequest {
@@ -107,3 +121,40 @@ message SignOutRequest {
 }
 
 message SignOutResponse {}
+
+// ReauthPurpose is the one action a re-authentication grants (SEC-13).
+enum ReauthPurpose {
+  REAUTH_PURPOSE_UNSPECIFIED = 0;
+  REAUTH_PURPOSE_CHANGE_PASSWORD = 1;
+}
+
+message ReauthenticateRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No minimum: a wrong password of any length gets CREDENTIALS_REJECTED.
+  string password = 2 [
+    debug_redact = true,
+    (buf.validate.field).string.max_len = 1024
+  ];
+  ReauthPurpose purpose = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+}
+
+message ReauthenticateResponse {
+  google.protobuf.Timestamp expires_at = 1;
+}
+
+message ChangePasswordRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // At least 12 characters and not on the common password list (SEC-11).
+  string new_password = 2 [
+    debug_redact = true,
+    (buf.validate.field).string = {
+      min_len: 12
+      max_len: 1024
+    }
+  ];
+}
+
+message ChangePasswordResponse {}

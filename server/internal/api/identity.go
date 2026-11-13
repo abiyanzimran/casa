@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/abiyanzimran/casa/server/internal/command"
@@ -74,6 +75,51 @@ func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest
 	return res, nil
 }
 
+// reauthPurposes maps the contract's purposes to identity's.
+var reauthPurposes = map[casav1.ReauthPurpose]string{
+	casav1.ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD: identity.ReauthChangePassword,
+}
+
+func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.ReauthenticateRequest) (*casav1.ReauthenticateResponse, error) {
+	purpose, ok := reauthPurposes[req.GetPurpose()]
+	if !ok { // unreachable: the boundary allows only defined, non-zero purposes
+		return nil, connect.NewError(connect.CodeInternal, "internal error")
+	}
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	expiresAt, err := h.s.Reauthenticate(ctx, clientOf(ctx, req.GetRequestContext()), session, req.GetPassword(), purpose)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.ReauthenticateResponse{ExpiresAt: timestamppb.New(expiresAt)}, nil
+}
+
+func (h identityHandler) ChangePassword(ctx context.Context, req *casav1.ChangePasswordRequest) (*casav1.ChangePasswordResponse, error) {
+	session, _ := SessionFrom(ctx)
+	// Hashed before the command transaction, which may run more than once.
+	hash, err := h.s.HashPassword(ctx, req.GetNewPassword())
+	if err != nil {
+		return nil, newPasswordError(err, req)
+	}
+	res, err := command.Run(ctx, h.pool, database.Scope{AccountID: session.AccountID},
+		casav1connect.IdentityServiceChangePasswordProcedure, req.GetRequestContext().GetIdempotencyKey(), req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.ChangePasswordResponse, error) {
+			return &casav1.ChangePasswordResponse{}, h.s.ChangePassword(ctx, tx, session, hash)
+		})
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return res, nil
+}
+
+// newPasswordError is identityError, with a common password reported on
+// the request's new_password field.
+func newPasswordError(err error, request proto.Message) error {
+	if errors.Is(err, identity.ErrPasswordTooCommon) {
+		return passwordTooCommon(request.ProtoReflect().Descriptor().Fields().ByName("new_password"))
+	}
+	return identityError(err)
+}
+
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
 	return &casav1.SessionTokens{
 		AccessToken: t.AccessToken, RefreshToken: t.RefreshToken,
@@ -110,7 +156,7 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrWebSessionNotYet):
 		return connect.NewError(connect.CodeUnimplemented, "web sessions come with the cookie transport")
 	case errors.Is(err, identity.ErrPasswordTooCommon):
-		return passwordTooCommon()
+		return passwordTooCommon((&casav1.CompleteSignUpRequest{}).ProtoReflect().Descriptor().Fields().ByName("password"))
 	case errors.Is(err, identity.ErrCredentialsRejected):
 		return errorWithDetail(connect.CodeUnauthenticated, "credentials rejected",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED})
@@ -123,6 +169,9 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrSessionRevoked):
 		return errorWithDetail(connect.CodeUnauthenticated, "session revoked",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED})
+	case errors.Is(err, identity.ErrReauthRequired):
+		return errorWithDetail(connect.CodePermissionDenied, "re-authentication required",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED})
 	case errors.Is(err, command.ErrIdempotencyConflict):
 		return errorWithDetail(connect.CodeFailedPrecondition, "idempotency conflict",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_IDEMPOTENCY_CONFLICT})
@@ -135,8 +184,7 @@ func identityError(err error) error {
 
 // passwordTooCommon reports the password field in the same Violations form
 // as protovalidate's own rules (SEC-11; lead ruling Q5 on the 1.3 plan).
-func passwordTooCommon() error {
-	field := (&casav1.CompleteSignUpRequest{}).ProtoReflect().Descriptor().Fields().ByName("password")
+func passwordTooCommon(field protoreflect.FieldDescriptor) error {
 	violation := validate.Violation_builder{
 		Field:   validate.FieldPath_builder{Elements: []*validate.FieldPathElement{fieldPathElement(field)}}.Build(),
 		RuleId:  proto.String("password.common"),

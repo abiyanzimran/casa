@@ -68,7 +68,7 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 // readCredential finds the account of email and its credential. For an
 // unknown email it still runs the credential read, with a random id, and
 // returns the decoy, so both cases run the same transactions.
-func (s *Service) readCredential(ctx context.Context, email string) (account pgtype.UUID, known bool, stored passwordHash, err error) {
+func (s *Service) readCredential(ctx context.Context, email string) (account pgtype.UUID, known bool, stored PasswordHash, err error) {
 	// 10.1 §5.1 rules 3, 4: the email lookup is a read of its own and
 	// selects only the id.
 	err = database.Read(ctx, s.pool, database.Scope{Email: email}, func(tx pgx.Tx) error {
@@ -80,27 +80,37 @@ func (s *Service) readCredential(ctx context.Context, email string) (account pgt
 	if errors.Is(err, pgx.ErrNoRows) {
 		account = pgtype.UUID{Bytes: [16]byte(randomBytes(16)), Valid: true}
 	} else if err != nil {
-		return account, false, passwordHash{}, fmt.Errorf("look up the email: %w", err)
+		return account, false, PasswordHash{}, fmt.Errorf("look up the email: %w", err)
 	}
+	stored, found, err := s.credentialOf(ctx, account)
+	if err != nil {
+		return account, false, PasswordHash{}, err
+	}
+	return account, known && found, stored, nil
+}
+
+// credentialOf reads account's credential; without one it returns the decoy
+// and false.
+func (s *Service) credentialOf(ctx context.Context, account pgtype.UUID) (PasswordHash, bool, error) {
 	var row identitydb.GetCredentialRow
-	err = database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		var err error
 		row, err = identitydb.New(tx).GetCredential(ctx, account)
 		return err
 	})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		return account, false, s.decoy, nil
+		return s.decoy, false, nil
 	case err != nil:
-		return account, false, passwordHash{}, fmt.Errorf("read the credential: %w", err)
+		return PasswordHash{}, false, fmt.Errorf("read the credential: %w", err)
 	}
-	return account, known, passwordHash{
+	return PasswordHash{
 		params: PasswordParams{
 			Time: uint32(row.TimeCost), MemoryKiB: uint32(row.MemoryKib), Parallelism: uint8(row.Parallelism), //nolint:gosec // G115: stored from PasswordParams
 			KeyBytes: uint32(len(row.Hash)), SaltBytes: uint32(len(row.Salt)), //nolint:gosec // G115: 16 and 32 bytes
 		},
 		salt: row.Salt, hash: row.Hash,
-	}, nil
+	}, true, nil
 }
 
 // Authenticate returns the session of a native access token (SEC-15). A
