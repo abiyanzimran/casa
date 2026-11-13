@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -59,7 +60,9 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	defer pool.Close()
 	identityService := identity.New(pool, identity.Config{
 		Origin: *origin, SendMail: writeMail(*mailDir), Now: time.Now, Password: identity.DefaultPasswordParams,
+		Logger: slog.New(slog.NewJSONHandler(stderr, nil)), // JSON to journald (09.4 §3)
 	})
+	defer identityService.Wait() // mail started by earlier responses, before the pool closes
 	apiServer := api.NewServer(minimumWebVersion, identityService.Authenticate)
 	api.RegisterIdentityService(apiServer, pool, identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)

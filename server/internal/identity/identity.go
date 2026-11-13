@@ -6,6 +6,8 @@ package identity
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -74,6 +76,9 @@ type Config struct {
 	Now      func() time.Time
 	// Password is DefaultPasswordParams in production.
 	Password PasswordParams
+	// Logger receives the failures of work done after a response; nil is
+	// slog.Default().
+	Logger *slog.Logger
 }
 
 // MessageKind is the kind of an emailed message.
@@ -118,14 +123,27 @@ type Service struct {
 	signIn   rateLimit
 	reauth   rateLimit
 	recovery rateLimit
+	// background is the work started after a response: recovery mail
+	// until the identity.send_mail job of 1.7.
+	background sync.WaitGroup
+	logger     *slog.Logger
 	// decoy is verified when the email has no credential, so a sign-in
 	// costs one hash whatever the reason it fails (SEC-12).
 	decoy PasswordHash
 }
 
+// Wait returns when the work started after earlier responses is done; casa
+// serve calls it on shutdown.
+func (s *Service) Wait() { s.background.Wait() }
+
 // New returns the identity service over pool.
 func New(pool *pgxpool.Pool, config Config) *Service {
+	logger := config.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
 	return &Service{
+		logger:   logger,
 		pool:     pool,
 		config:   config,
 		hasher:   newHasher(config.Password),

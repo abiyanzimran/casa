@@ -22,6 +22,13 @@ func recoverable(t *testing.T, now *time.Time, password string) (s *Service, lin
 	return s, link
 }
 
+// startRecovery calls StartRecovery and waits for its mail.
+func (s *Service) startRecovery(t *testing.T, client Client, email string) error {
+	t.Helper()
+	defer s.Wait()
+	return s.StartRecovery(t.Context(), client, email)
+}
+
 func TestRecovery(t *testing.T) {
 	// Built, so no secret scanner sees a literal.
 	password, next := strings.Repeat("recover ", 3), strings.Repeat("recovered ", 3)
@@ -39,7 +46,7 @@ func TestRecovery(t *testing.T) {
 				fail(t, table.l, fmt.Sprint(i), table.threshold)
 			}
 		}
-		if err := s.StartRecovery(t.Context(), Client{Kind: "ios", Address: "203.0.113.1:443"}, "owner@example.test"); err != nil || *link == "" {
+		if err := s.startRecovery(t, Client{Kind: "ios", Address: "203.0.113.1:443"}, "owner@example.test"); err != nil || *link == "" {
 			t.Fatalf("StartRecovery: %v, link %t; want a mailed link", err, *link != "")
 		}
 		if _, err := s.CompleteRecovery(t.Context(), Client{Kind: "ios", Address: "203.0.113.2:443"}, *link, next); err != nil {
@@ -50,7 +57,7 @@ func TestRecovery(t *testing.T) {
 		// 10.1 §8.1 item 3: the token is used only after the hash ran.
 		now := time.Now()
 		s, link := recoverable(t, &now, password)
-		if err := s.StartRecovery(t.Context(), testClient, "owner@example.test"); err != nil {
+		if err := s.startRecovery(t, testClient, "owner@example.test"); err != nil {
 			t.Fatal(err)
 		}
 		s.hasher.slotWait = 20 * time.Millisecond
@@ -67,7 +74,7 @@ func TestRecovery(t *testing.T) {
 		// Lead ruling on PR B: no hash before the token is checked.
 		now := time.Now()
 		s, link := recoverable(t, &now, password)
-		if err := s.StartRecovery(t.Context(), testClient, "owner@example.test"); err != nil {
+		if err := s.startRecovery(t, testClient, "owner@example.test"); err != nil {
 			t.Fatal(err)
 		}
 		used := *link
@@ -87,10 +94,10 @@ func TestRecovery(t *testing.T) {
 	t.Run("the StartRecovery email key is kept only as a SHA-256 of the normalised email", func(t *testing.T) {
 		now := time.Now()
 		s, _ := recoverable(t, &now, password)
-		if err := s.StartRecovery(t.Context(), testClient, " Owner@Example.TEST "); err != nil {
+		if err := s.startRecovery(t, testClient, " Owner@Example.TEST "); err != nil {
 			t.Fatal(err)
 		}
-		if err := s.StartRecovery(t.Context(), testClient, "owner@example.test"); err != nil {
+		if err := s.startRecovery(t, testClient, "owner@example.test"); err != nil {
 			t.Fatal(err)
 		}
 		if n := len(s.recovery.account.keys); n != 1 {

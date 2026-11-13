@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http/httptest"
 	"slices"
 	"strings"
@@ -67,8 +68,19 @@ type identityHarness struct {
 	// probe calls an authenticated procedure, ProbeService.Read.
 	probe     *connect.Client
 	probeRead protoreflect.MethodDescriptor
+	service   *identity.Service
 	mu        sync.Mutex
 	mail      []identity.Message
+	mailErr   error
+	// logs is the service's log, read after service.Wait.
+	logs bytes.Buffer
+}
+
+// failMail makes every later mail fail with err.
+func (h *identityHarness) failMail(err error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.mailErr = err
 }
 
 func startIdentity(t *testing.T) *identityHarness {
@@ -82,13 +94,18 @@ func startIdentity(t *testing.T) *identityHarness {
 		Origin:   testOrigin,
 		Now:      h.clock.Now,
 		Password: cheapPassword,
+		Logger:   slog.New(slog.NewJSONHandler(&h.logs, nil)),
 		SendMail: func(_ context.Context, m identity.Message) error {
 			h.mu.Lock()
 			defer h.mu.Unlock()
+			if h.mailErr != nil {
+				return h.mailErr
+			}
 			h.mail = append(h.mail, m)
 			return nil
 		},
 	})
+	h.service = service
 	server := api.NewServer(api.Version{}, service.Authenticate)
 	api.RegisterIdentityService(server, h.pool, service)
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
@@ -908,8 +925,12 @@ func TestReauthentication(t *testing.T) {
 	})
 }
 
+// startRecovery calls StartRecovery and waits for its mail, which leaves
+// the request path.
 func (h *identityHarness) startRecovery(email string) (*casav1.StartRecoveryResponse, error) {
-	return h.client.StartRecovery(context.Background(), &casav1.StartRecoveryRequest{RequestContext: identityRC(ios), Email: email})
+	res, err := h.client.StartRecovery(context.Background(), &casav1.StartRecoveryRequest{RequestContext: identityRC(ios), Email: email})
+	h.service.Wait()
+	return res, err
 }
 
 func (h *identityHarness) completeRecovery(kind casav1.ClientKind, token, newPassword string) (*casav1.SessionTokens, error) {
@@ -992,18 +1013,29 @@ func TestRecovery(t *testing.T) {
 		_, err = h.signIn(email, password)
 		wantOK(t, err)
 	})
-	t.Run("SEC-12 a recovery request does not tell a registered email from an unregistered one", func(t *testing.T) {
+	t.Run("SEC-30 recovery answers alike for known and unknown email", func(t *testing.T) {
+		// SEC-12; lead ruling on PR B: the answer does not depend on the
+		// mail, which leaves the request path.
 		h := startIdentity(t)
 		h.signUp(t, email, password)
-		registered, err := h.startRecovery(email)
+		unknown, err := h.startRecovery("nobody@example.test")
 		wantOK(t, err)
-		unregistered, err := h.startRecovery("nobody@example.test")
+		known, err := h.startRecovery(email)
 		wantOK(t, err)
-		if a, b := marshal(t, registered), marshal(t, unregistered); !bytes.Equal(a, b) {
-			t.Fatalf("responses %x and %x differ", a, b)
-		}
 		if mails := h.mails(); len(mails) != 2 || mails[1].To != email {
 			t.Fatalf("%d mails, want the sign-up link and one recovery link to %s", len(mails), email)
+		}
+		h.failMail(errors.New("mail down"))
+		failed, err := h.startRecovery(email)
+		wantOK(t, err)
+		for _, res := range []*casav1.StartRecoveryResponse{known, failed} {
+			if a, b := marshal(t, res), marshal(t, unknown); !bytes.Equal(a, b) {
+				t.Fatalf("responses %x and %x differ", a, b)
+			}
+		}
+		logs := h.logs.String()
+		if !strings.Contains(logs, `"msg":"recovery mail not sent"`) || strings.Contains(logs, "owner") || strings.Contains(logs, "mail down") {
+			t.Fatalf("logs %q, want the failure logged without the email or the error text", logs)
 		}
 	})
 	t.Run("SEC-12 recovery mail for one email stops after 5 requests", func(t *testing.T) {

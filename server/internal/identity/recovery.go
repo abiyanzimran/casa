@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -15,14 +16,14 @@ import (
 )
 
 // StartRecovery mails a single-use recovery link to email when it has an
-// account, and does nothing otherwise; both answer nil (SEC-24, SEC-12).
-// Every request counts on the email key and the address key, and nothing
-// clears them (10.1 §8.1 row StartRecovery); over the limit it is
-// ErrRateLimited.
+// account, and does nothing otherwise (SEC-24). Every request counts on the
+// email key and the address key, and nothing clears them (10.1 §8.1 row
+// StartRecovery); over the limit it is ErrRateLimited.
 //
-// ponytail: the mail goes synchronously after commit, so a registered email
-// answers one write and one send slower; the identity.send_mail job of 1.7
-// takes it off the request path (10.1 §5.1 rule 6; 09.3 §9 note).
+// The answer never tells a known email from an unknown one (SEC-12, SEC-30;
+// lead ruling on PR B): on the request path both run the same one read and
+// no write. For a known email the link is stored and mailed after the
+// response, and a failure there is logged, never returned.
 func (s *Service) StartRecovery(ctx context.Context, client Client, email string) error {
 	email = strings.ToLower(strings.TrimSpace(email))
 	emailKey := sha256.Sum256([]byte(email)) // no email in memory (10.1 §8.1)
@@ -43,18 +44,32 @@ func (s *Service) StartRecovery(ctx context.Context, client Client, email string
 	case err != nil:
 		return fmt.Errorf("look up the email: %w", err)
 	}
+	// ponytail: a goroutine the process waits for on shutdown; the
+	// identity.send_mail job of 1.7 replaces it with retries (09.3 §9 note).
+	s.background.Go(func() { s.sendRecovery(context.WithoutCancel(ctx), account, email) })
+	return nil
+}
+
+// sendRecovery stores a recovery link for account and mails it to email. A
+// failure is logged with a fixed reason only: its error text could carry the
+// address (09.4 §3 log allow-list; SEC-44).
+func (s *Service) sendRecovery(ctx context.Context, account pgtype.UUID, email string) {
 	token, tokenHash := newToken()
 	now := s.config.Now()
-	err = database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
+	err := database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		return identitydb.New(tx).InsertRecoveryToken(ctx, identitydb.InsertRecoveryTokenParams{
 			TokenHash: tokenHash, AccountID: account, CreatedAt: now, ExpiresAt: now.Add(recoveryLinkLifetime),
 		})
 	})
-	if err != nil {
-		return fmt.Errorf("store the recovery link: %w", err)
+	reason := "store"
+	if err == nil {
+		// After commit only: a retried transaction must not mail twice.
+		err = s.config.SendMail(ctx, Message{To: email, Kind: MessageRecovery, Link: s.config.Origin + "/recover#" + token})
+		reason = "send"
 	}
-	// After commit only: a retried transaction must not mail twice.
-	return s.config.SendMail(ctx, Message{To: email, Kind: MessageRecovery, Link: s.config.Origin + "/recover#" + token})
+	if err != nil {
+		s.logger.LogAttrs(ctx, slog.LevelError, "recovery mail not sent", slog.String("reason", reason))
+	}
 }
 
 // CompleteRecovery sets newPassword with the emailed recovery token,
