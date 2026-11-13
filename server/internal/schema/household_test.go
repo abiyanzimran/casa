@@ -202,7 +202,9 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 				statement string
 				args      []any
 			}{
-				{insertMembership, []any{f.x, randomUUID()}},
+				// The scope's own account: a lookup clause in WITH CHECK
+				// would let exactly this row through.
+				{insertMembership, []any{f.x, f.a}},
 				{insertInvitation, []any{f.x, f.ax}},
 			} {
 				if err := tryWrite(t, app, scope, w.statement, w.args...); databasetest.PgErrorCode(err) != "42501" {
