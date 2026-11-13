@@ -19,3 +19,10 @@ fc1f66af11cb7e552643223e18999debbb26623e:docs/superpowers/plans/2026-11-13-fs1-1
 # server refuses as a password (SEC-11); it is a known-bad password, not a
 # secret of this product.
 cd4f13862f1df4e5cf7c25da27a0ff078ef0a04d:server/internal/identity/common-passwords.txt:generic-password:11871
+
+# The fake test passphrase of the 1.4 identity API tests (a constant of the
+# test files, used only against the throwaway test database), and this
+# file's own comment above that names it.
+b09ec31b728fb0a36d6de442a9d8f7957e0ff19a:.betterleaksignore:generic-password:21
+ff9f33fcd3b575ec1ce3b1560b195e3688538729:server/internal/api/identity_test.go:generic-password:214
+5a1483898be9c402add842f1beefb30576b7e375:server/internal/api/identity_test.go:generic-password:474
