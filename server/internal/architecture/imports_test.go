@@ -18,15 +18,17 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 // backed by 09.2 §1 (its diagram or "Aturan dependensi") needs 09.2 §1 updated
 // by the architect first.
 var allowedImports = map[string][]string{
-	"cmd/casa":                       {"internal/api", "internal/schema"},
-	"cmd/idcheck":                    {},
-	"internal/api":                   {"internal/gen/casa/v1"},
-	"internal/architecture":          {},
-	"internal/database":              {},
-	"internal/database/databasetest": {"internal/schema"},
-	"internal/gen/casa/v1":           {},
-	"internal/identity":              {"internal/database"},
-	"internal/schema":                {},
+	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/identity", "internal/schema"},
+	"cmd/idcheck":                        {},
+	"internal/api":                       {"internal/gen/casa/v1"},
+	"internal/architecture":              {},
+	"internal/database":                  {},
+	"internal/database/databasetest":     {"internal/schema"},
+	"internal/gen/casa/v1":               {},
+	"internal/gen/casa/v1/casav1connect": {"internal/gen/casa/v1"},
+	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
+	"internal/identity/identitydb":       {},
+	"internal/schema":                    {},
 }
 
 func TestModuleImportsFollowTheAllowList(t *testing.T) {

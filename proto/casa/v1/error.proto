@@ -23,6 +23,13 @@ enum ErrorCode {
   // The account has an unacknowledged notice version; retryable, and the
   // command stays queued (SEC-34; 09.3 §1).
   ERROR_CODE_NOTICE_UNREAD = 5;
+  // A setup, verification or recovery token is missing, malformed, unknown,
+  // expired, used, or bound to another email: one answer for every reason
+  // (SEC-30; SEC-158).
+  ERROR_CODE_TOKEN_REJECTED = 6;
+  // Too many failed attempts from this account or network address; retry
+  // later (SEC-12).
+  ERROR_CODE_RATE_LIMITED = 7;
 }
 
 // ErrorDetail is the Connect error detail that carries the domain error code

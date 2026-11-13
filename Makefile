@@ -30,16 +30,23 @@ BUF_VERSION := 1.75.0
 # https://github.com/bufbuild/buf/releases/tag/v1.75.0 (sha256.txt)
 BUF_SHA256 := fad1e38d6909bbb583a4da81d8c02a01046e2cd663bde7e337dd24277393764b
 BUF := $(CURDIR)/.cache/buf-$(BUF_VERSION)/buf
+SQLC_VERSION := 1.31.1
+# SHA-256 of sqlc_1.31.1_linux_amd64.tar.gz from
+# https://github.com/sqlc-dev/sqlc/releases/tag/v1.31.1
+SQLC_SHA256 := 497ae4fcdfa64c5b0c311ffe4c2bd991e43991e82e5367792ed78bc2dca27354
+SQLC := $(CURDIR)/.cache/sqlc-$(SQLC_VERSION)/sqlc
+
 # The contract buf breaking compares against (QG-04: the main branch).
 BUF_AGAINST_REF ?= refs/remotes/origin/main
 
 .PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
+.PHONY: sqlc-generate sqlc-generated
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
 .PHONY: check-contract proto-fmt proto-lint proto-breaking proto-generate proto-generated
 
 check: check-server check-web check-contract
 
-check-server: server-fmt server-lint server-vuln server-test cpd-go idcheck secrets
+check-server: server-fmt server-lint server-vuln sqlc-generated server-test cpd-go idcheck secrets
 
 # gofmt is taken from the toolchain go.mod selects, not whatever is on PATH.
 server-fmt:
@@ -80,6 +87,21 @@ db-down:
 server-test:
 	cd server && CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' go test -race -shuffle=on -coverprofile=coverage.out ./...
 
+# Writes the Go code of every module's queries.sql (server/sqlc.yaml): all
+# production SQL goes through sqlc, parameterized (ES §3, §4).
+sqlc-generate: $(SQLC)
+	cd server && $(SQLC) generate
+
+# The committed query code must be exactly what sqlc generates (ES §2): no
+# hand edit, no missed regeneration, no uncommitted new file.
+sqlc-generated: sqlc-generate
+	if ! git diff --exit-code -- 'server/internal/*/*db' \
+		|| [ -n "$$(git status --porcelain -- 'server/internal/*/*db')" ]; then \
+		git status --short -- 'server/internal/*/*db'; \
+		echo "sqlc-generated: generated code differs from the queries; run make sqlc-generate and commit"; \
+		exit 1; \
+	fi
+
 cpd-go:
 	scripts/cpd.sh go server
 
@@ -104,6 +126,14 @@ $(GOLANGCI_LINT):
 		https://github.com/golangci/golangci-lint/releases/download/v$(GOLANGCI_LINT_VERSION)/golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64.tar.gz \
 		$(GOLANGCI_LINT_SHA256) $@.tar.gz
 	tar -xzf $@.tar.gz -C $(@D) --strip-components=1 golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64/golangci-lint
+	rm $@.tar.gz
+
+# ponytail: linux-amd64 only, like golangci-lint above.
+$(SQLC):
+	scripts/fetch-verified.sh \
+		https://github.com/sqlc-dev/sqlc/releases/download/v$(SQLC_VERSION)/sqlc_$(SQLC_VERSION)_linux_amd64.tar.gz \
+		$(SQLC_SHA256) $@.tar.gz
+	tar -xzf $@.tar.gz -C $(@D) sqlc
 	rm $@.tar.gz
 
 # Contract gates (QG-04; 14 §4.6): proto/ is the one source of the API
