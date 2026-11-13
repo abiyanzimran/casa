@@ -207,7 +207,10 @@ UPDATE invitation
 -- member anywhere inserts nothing and returns no row (09.2 §5.1, note on
 -- decision 20): membership_one_household is the arbiter, so the conflict
 -- is found across households without reading them. The inviter's row is
--- read by an index led by household_id (at most two members, F01).
+-- read by an index led by household_id (at most two members, F01). The
+-- ON CONFLICT target relies on membership_one_household: F-FAM-009, which
+-- drops that index, must rewrite this insert, else it fails with 42P10
+-- (Internal).
 INSERT INTO membership (household_id, account_id, display_name, role, permission_set, joined_at)
 SELECT m.household_id, @account_id, @display_name, m.role, m.permission_set, @joined_at
   FROM membership m
@@ -219,6 +222,10 @@ RETURNING member_id;
 -- F04: the new member's approval authority is the inviter's in force now,
 -- from now (06 §3.1; FR-FAM-004/AC-4). By the approval_authority primary
 -- key prefix (household_id, member_id).
+-- ponytail: assumes one row per member and request type (1.6 never versions
+-- approval_authority): it copies every row in force with valid_from = now
+-- and drops valid_until. The step that first versions it (step 4, request)
+-- copies the latest row per request type and keeps its valid_until.
 INSERT INTO approval_authority (household_id, member_id, request_type, limit_amount, currency, valid_from)
 SELECT x.household_id, @member_id, x.request_type, x.limit_amount, x.currency, @valid_from::timestamptz
   FROM approval_authority x

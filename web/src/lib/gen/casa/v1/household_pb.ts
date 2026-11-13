@@ -988,7 +988,8 @@ export const HouseholdService: GenService<{
    * household owner with the role, permission set and approval authority of
    * the inviter. Only the inviter, only an accepted invitation before its
    * expiry: any other caller gets NotFound; another state, an expired
-   * acceptance (recorded as expired first) or an invitee who is no longer
+   * acceptance (recorded as expired first), a household that already has
+   * two full adult members (06 §3.6), or an invitee who is no longer
    * available gets STATE_CHANGED (09.2 §5.1, note on decision 20).
    *
    * @generated from rpc casa.v1.HouseholdService.ConfirmInvitee

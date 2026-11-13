@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"connectrpc.com/connect/v2"
-
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 )
 
@@ -166,25 +164,43 @@ func TestHouseholdSelector(t *testing.T) {
 				t.Fatalf("invitation %s is not in %s by %s", inv.id, inv.household, inv.inviter)
 			}
 		}
+		// The own household's answer to each case, run in selectorCases
+		// order on its open invitation: F01 finds it pending, the link is
+		// issued, F03 cancels it, so F04 and the rejection find it closed.
+		own := map[string]string{
+			"CreateInvitation": "invitation_pending", "IssueInvitationLink": "ok", "CancelInvitation": "ok",
+			"ConfirmInvitee": "state_changed", "RejectInvitee": "state_changed", "GetOpenInvitation": "ok",
+		}
 		for _, sel := range []struct{ household, invitation, other string }{
 			{f.x, f.xInvitation, f.y}, {f.y, f.yInvitation, f.x},
 		} {
+			if got := h.mustOpenInvitation(t, f.a, sel.household); got.GetInvitationId() != sel.invitation {
+				t.Fatalf("GetOpenInvitation with selector %s = %v, want its invitation %s", sel.household, got, sel.invitation)
+			}
 			for _, c := range selectorCases {
+				want, ok := own[c.name]
+				if !ok {
+					t.Fatalf("%s has no own-household answer", c.name)
+				}
 				before := h.householdRows(t, sel.other)
-				if err := c.call(h, f.a, sel.household, sel.invitation); connect.CodeOf(err) == connect.CodeNotFound {
-					t.Fatalf("%s with its own selector: %v", c.name, err)
+				if got := answerOf(t, c.call(h, f.a, sel.household, sel.invitation)); got != want {
+					t.Fatalf("%s with its own selector: %s, want %s", c.name, got, want)
 				}
 				if h.householdRows(t, sel.other) != before {
 					t.Fatalf("%s with selector %s changed household %s", c.name, sel.household, sel.other)
 				}
 			}
+			if n := h.count(t, "SELECT count(*) FROM invitation WHERE id = $1 AND household_id = $2 AND state = 'cancelled'",
+				sel.invitation, sel.household); n != 1 {
+				t.Fatalf("the invitation of %s was not cancelled through its own selector", sel.household)
+			}
 		}
 	})
 
-	// The clause for a membership that is no longer active comes with F06
-	// (step 6, FR-FAM-020/AC-5); the object of another household is proved
-	// here.
-	t.Run("FR-FAM-020/AC-4 an object of one household sent with the other's selector is not found", func(t *testing.T) {
+	// FR-FAM-020/AC-4, its first clause: the object of another household.
+	// Its second clause, the selector of a membership that is no longer
+	// active, comes with F06 (step 6).
+	t.Run("an object of one household sent with the other's selector is not found", func(t *testing.T) {
 		f := startTwoHouseholds(t)
 		h := f.h
 		before := h.fingerprint(t)

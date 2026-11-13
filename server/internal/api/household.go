@@ -629,8 +629,8 @@ func (s householdHandler) RejectInvitee(ctx context.Context, req *casav1.RejectI
 	return res, nil
 }
 
-// invitationStates are the contract's names of the live states (06 §3.6).
-var invitationStates = map[string]casav1.InvitationState{
+// liveInvitationStates are the contract's names of the live states (06 §3.6).
+var liveInvitationStates = map[string]casav1.InvitationState{
 	"open":     casav1.InvitationState_INVITATION_STATE_OPEN,
 	"accepted": casav1.InvitationState_INVITATION_STATE_ACCEPTED,
 }
@@ -655,7 +655,7 @@ func (s householdHandler) GetOpenInvitation(ctx context.Context, req *casav1.Get
 		return &casav1.GetOpenInvitationResponse{}, nil
 	}
 	res := &casav1.GetOpenInvitationResponse{
-		InvitationId: uuidString(inv.ID), State: invitationStates[inv.State], ExpiresAt: timestamppb.New(inv.ExpiresAt),
+		InvitationId: uuidString(inv.ID), State: liveInvitationStates[inv.State], ExpiresAt: timestamppb.New(inv.ExpiresAt),
 	}
 	if inv.InviteeAccount.Valid {
 		email, err := s.id.AccountEmail(ctx, inv.InviteeAccount)

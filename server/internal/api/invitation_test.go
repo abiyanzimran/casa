@@ -79,7 +79,8 @@ func (h *householdHarness) signInAgain(t *testing.T, m *member, email string) {
 }
 
 // addMember adds account to household as a second household owner, as test
-// data until F04 (Task 7) does it through the API; it returns the member id.
+// data for states the API does not reach in one step (a member of two
+// households, two adults beside an invitation); it returns the member id.
 func (h *householdHarness) addMember(t *testing.T, householdID, account string) string {
 	t.Helper()
 	var memberID string
@@ -93,7 +94,7 @@ func (h *householdHarness) addMember(t *testing.T, householdID, account string) 
 }
 
 // acceptAsFixture moves an open invitation to accepted by invitee, as test
-// data until F02 (Task 6) does it through the API.
+// data: the invitee need not be a signed-up account.
 func (h *householdHarness) acceptAsFixture(t *testing.T, invitationID, invitee string) {
 	t.Helper()
 	if _, err := h.admin.Exec(t.Context(), `
@@ -203,7 +204,11 @@ func TestFullAdultMembers(t *testing.T) {
 }
 
 func TestInvitations(t *testing.T) {
-	t.Run("FR-FAM-003/AC-1 a household of one adult makes one single-use invitation", func(t *testing.T) {
+	// FR-FAM-003/AC-1, the server part: the invitation and its link. The
+	// notice before creating is the client's (1.10); single use on the use
+	// side is TestAcceptInvitation's "SEC-28 an accepted token cannot be used
+	// again".
+	t.Run("a household of one adult makes one invitation with a link", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		hh := h.mustCreate(t, a)
@@ -245,7 +250,9 @@ func TestInvitations(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-003/AC-2 a second invitation is not made while one is pending", func(t *testing.T) {
+	// FR-FAM-003/AC-2, the server part: no second invitation. The app
+	// showing the existing one is 1.10.
+	t.Run("a second invitation is not made while one is pending", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		hh := h.mustCreate(t, a)
@@ -313,7 +320,10 @@ func TestInvitations(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-003/AC-4 an expired invitation lapses and a new one can be made", func(t *testing.T) {
+	// FR-FAM-003/AC-4, the inviter's part: the lapse is recorded and a new
+	// invitation can be made. "Someone tries to use it" is TestAcceptInvitation's
+	// "SEC-30 every invalid invitation gets the one token rejection".
+	t.Run("an expired invitation lapses and a new one can be made", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		hh := h.mustCreate(t, a)
@@ -340,7 +350,9 @@ func TestInvitations(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-003/AC-5 a household of two adults cannot invite", func(t *testing.T) {
+	// FR-FAM-003/AC-5, the server part: the server refuses. The membership
+	// menu without the choice (FR-FAM-012) is 1.10.
+	t.Run("a household of two adults cannot invite", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		hh := h.mustCreate(t, a)
@@ -566,10 +578,10 @@ func TestInvitations(t *testing.T) {
 		})
 	})
 
-	// SEC-151; 09.2 §6 step 2: a command checks the membership again in its
-	// own transaction, which a membership ended since the selector check
-	// fails.
-	t.Run("the membership is checked again inside the command", func(t *testing.T) {
+	// SEC-151; 09.2 §6 step 2: the check each command runs again in its own
+	// transaction. A handler test with a membership ended between the
+	// selector check and the command comes with F06 (step 6).
+	t.Run("MemberIn refuses an account outside the household", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		hh := h.mustCreate(t, a)

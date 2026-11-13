@@ -239,8 +239,9 @@ var ErrInviteeUnavailable = errors.New("invitee is a member elsewhere")
 // is ErrStateChanged [Usulan]. The invitation becomes confirmed with the
 // inviter's event; the invitee becomes a member with the inviter's role,
 // permission set and approval authority (06 §3.1; FR-FAM-004/AC-4); the
-// household records member_joined with the new member as its actor, so the
-// joining has both its actors. Confirm and Create are the only writers of
+// household records member_joined with the new member as its actor, and the
+// inviter is the actor of the invitation's confirmed event in the same
+// transaction, so the joining has both its actors (09.2 §5.1). Confirm and Create are the only writers of
 // membership (INV-A48 (a), (b)). An invitee who is a member anywhere
 // inserts nothing: ErrInviteeUnavailable, and the caller rolls tx back.
 func (s *Service) Confirm(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID, key pgtype.UUID) (Member, error) {

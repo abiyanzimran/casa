@@ -375,7 +375,8 @@ func (f *membershipFixture) check(t *testing.T, c membershipCase) {
 func TestMembershipTransitions(t *testing.T) {
 	// The other member exists only beside a second full adult: with one
 	// adult the household has no other member.
-	t.Run("INV-A48 only F04 by the inviter makes a membership, and no command changes another adult's", func(t *testing.T) {
+	// INV-A48 (d), (e) and the F06, F08 parts of (a), (b) come with step 6.
+	t.Run("INV-A48 (a), (b) only F04 by the inviter makes a membership, and no command changes another adult's", func(t *testing.T) {
 		cases := 0
 		for _, state := range invitationStates {
 			for _, after := range []bool{false, true} {
