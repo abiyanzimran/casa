@@ -39,14 +39,14 @@ SQLC := $(CURDIR)/.cache/sqlc-$(SQLC_VERSION)/sqlc
 # The contract buf breaking compares against (QG-04: the main branch).
 BUF_AGAINST_REF ?= refs/remotes/origin/main
 
-.PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
+.PHONY: check check-server server-fmt server-lint server-vuln server-test server-test-old-binary cpd-go idcheck secrets db-up db-down
 .PHONY: sqlc-generate sqlc-generated
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
 .PHONY: check-contract proto-fmt proto-lint proto-breaking proto-generate proto-generated
 
 check: check-server check-web check-contract
 
-check-server: server-fmt server-lint server-vuln sqlc-generated server-test cpd-go idcheck secrets
+check-server: server-fmt server-lint server-vuln sqlc-generated server-test server-test-old-binary cpd-go idcheck secrets
 
 # gofmt is taken from the toolchain go.mod selects, not whatever is on PATH.
 server-fmt:
@@ -93,6 +93,29 @@ db-down:
 
 server-test:
 	cd server && CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' go test -race -shuffle=on -coverprofile=coverage.out ./...
+
+# QG-05 "biner lama di skema baru" (09.4 §4 row "Migrasi"; 09.2 §10: a
+# rollback runs the old binary on the expand-contract schema). The tests of
+# BASE_REF run against databases migrated by this branch's casa binary. The
+# base ref's catalog, architecture and ID-check tests are left out: they check
+# its own old schema and imports, not the old code's behaviour.
+BASE_REF ?= refs/remotes/origin/main
+server-test-old-binary:
+	@set -e; \
+	if ! git rev-parse --verify -q '$(BASE_REF)^{commit}' >/dev/null; then \
+		echo "server-test-old-binary: $(BASE_REF) not found; fetch it first"; exit 1; \
+	fi; \
+	mkdir -p .cache; \
+	(cd server && go build -o '$(CURDIR)/.cache/casa-head' ./cmd/casa); \
+	git worktree remove --force .cache/base-tree 2>/dev/null || true; \
+	git worktree add --detach -q .cache/base-tree '$(BASE_REF)'; \
+	trap 'git worktree remove --force .cache/base-tree' EXIT; \
+	if ! grep -q CASA_TEST_MIGRATE_BINARY .cache/base-tree/server/internal/database/databasetest/databasetest.go; then \
+		echo "server-test-old-binary: $(BASE_REF) has no migrate hook yet (first, FS-1 1.4)"; exit 0; \
+	fi; \
+	cd .cache/base-tree/server && \
+	CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' CASA_TEST_MIGRATE_BINARY='$(CURDIR)/.cache/casa-head' \
+		go test -race -p 1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
 
 # Writes the Go code of every module's queries.sql (server/sqlc.yaml): all
 # production SQL goes through sqlc, parameterized (ES §3, §4).

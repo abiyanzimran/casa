@@ -15,6 +15,8 @@ import (
 	"errors"
 	"net/url"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -77,10 +79,27 @@ func Empty(t testing.TB) Database {
 	return d
 }
 
-// Migrated is Empty with every migration applied as migrator.
+// Migrated is Empty with every migration applied as migrator. With
+// CASA_TEST_MIGRATE_BINARY set, that binary's "casa migrate" applies them:
+// make server-test-old-binary runs the base ref's tests on the schema of the
+// branch's binary (QG-05; 09.4 §4 row "Migrasi"; 09.2 §10).
 func Migrated(t testing.TB) Database {
 	t.Helper()
 	d := Empty(t)
+	if binary := os.Getenv("CASA_TEST_MIGRATE_BINARY"); binary != "" {
+		credentials := t.TempDir()
+		err := os.WriteFile(filepath.Join(credentials, "migrator-database-url"), []byte(d.URL("migrator")+"\n"), 0o600)
+		if err != nil {
+			t.Fatal(err)
+		}
+		migrate := exec.CommandContext(t.Context(), binary, "migrate") //nolint:gosec // G204: the binary make server-test-old-binary built, test-only
+		migrate.Env = append(os.Environ(), "CREDENTIALS_DIRECTORY="+credentials)
+		// casa migrate never prints the connection string (ES §4).
+		if output, err := migrate.CombinedOutput(); err != nil {
+			t.Fatalf("migrate with %s: %v\n%s", binary, err, output)
+		}
+		return d
+	}
 	if _, err := schema.Up(t.Context(), d.SQL(t, "migrator")); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
