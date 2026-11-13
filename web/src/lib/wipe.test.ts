@@ -91,6 +91,34 @@ test('SEC-172 (a): every wipe step runs when one fails, and the failure is repor
 	expect(unsubscribe).toHaveBeenCalledTimes(1);
 });
 
+test('SEC-172 (a): the push subscription step runs last, after the database and caches are gone', async () => {
+	await queueOne();
+	let releaseCaches: () => void = () => undefined;
+	cacheStorage.delete.mockImplementationOnce(
+		() =>
+			new Promise<boolean>((resolve) => {
+				releaseCaches = () => {
+					resolve(true);
+				};
+			})
+	);
+	let databaseAtPush: boolean | undefined;
+	getSubscription.mockImplementationOnce(async () => {
+		databaseAtPush = await Dexie.exists('casa');
+		return { unsubscribe };
+	});
+	const wiping = wipeLocalData();
+	await vi.waitFor(() => {
+		expect(cacheStorage.delete).toHaveBeenCalled();
+	});
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	expect(getSubscription).not.toHaveBeenCalled();
+	releaseCaches();
+	await wiping;
+	expect(getSubscription).toHaveBeenCalledTimes(1);
+	expect(databaseAtPush).toBe(false);
+});
+
 test('SEC-172 (a): without notification permission there is no push subscription to look up', async () => {
 	vi.stubGlobal('Notification', { permission: 'default' });
 	await wipeLocalData();

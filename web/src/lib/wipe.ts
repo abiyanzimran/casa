@@ -15,6 +15,7 @@ async function deleteNonShellCaches(): Promise<void> {
 }
 
 async function unsubscribePush(): Promise<void> {
+	// step 4: 3 s limit, SEC-164 (c) (on getSubscription and unsubscribe, when Web Push is built).
 	// A subscription needs notification permission, so without it there is none to remove;
 	// iPhone and iPad Safari tabs have no Notification at all. This also keeps
 	// getSubscription() out of Playwright's WebKit, where it never settles.
@@ -25,16 +26,14 @@ async function unsubscribePush(): Promise<void> {
 }
 
 /**
- * Deletes the local database, every cache but the app shell, and this browser's push
- * subscription. Every step runs even when another fails; failures are then thrown together
- * (ES §1: nothing fails silently).
+ * Deletes the local database and every cache but the app shell, then this browser's push
+ * subscription. The push step runs last, once the others have settled, so a push step that
+ * hangs never leaves data behind (SEC-164 (c), SEC-172 (a)). Every step runs even when another
+ * fails; failures are then thrown together (ES §1: nothing fails silently).
  */
 export async function wipeLocalData(): Promise<void> {
-	const results = await Promise.allSettled([
-		deleteLocalDb(),
-		deleteNonShellCaches(),
-		unsubscribePush()
-	]);
+	const results = await Promise.allSettled([deleteLocalDb(), deleteNonShellCaches()]);
+	results.push(...(await Promise.allSettled([unsubscribePush()])));
 	const failures: unknown[] = results.flatMap((result) =>
 		result.status === 'rejected' ? [result.reason as unknown] : []
 	);
