@@ -54,7 +54,7 @@ const (
 // touches a native one; a shared one only by TouchUserAction (SEC-165 (g);
 // plan 1.5 decision 13).
 func (s *Service) AuthenticateCookie(ctx context.Context, cookie string) (CookieSession, error) {
-	hash, ok := hashToken(cookie)
+	hash, ok := HashToken(cookie)
 	if !ok {
 		return CookieSession{}, ErrUnauthenticated
 	}
@@ -153,7 +153,7 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 // previousCookieGrace (SEC-161 (c)). The token is made here, inside the
 // caller's transaction attempt. It also returns the hash of the new value.
 func rotateCookie(ctx context.Context, q *identitydb.Queries, session Session, now time.Time) (Cookie, []byte, error) {
-	value, hash := newToken()
+	value, hash := NewToken()
 	expiry, err := q.RotateCookie(ctx, identitydb.RotateCookieParams{
 		PrevValidUntil: now.Add(previousCookieGrace), TokenHash: hash, Now: now, ID: session.ID,
 	})
@@ -170,7 +170,7 @@ func rotateCookie(ctx context.Context, q *identitydb.Queries, session Session, n
 // browser, remembers its hash, and issues a new one; presented, the previous
 // value, gets a new window (SEC-161 (c) note 1.5 rules (2), (3)).
 func reissueCookie(ctx context.Context, q *identitydb.Queries, session Session, presented []byte, now time.Time) (Cookie, error) {
-	value, hash := newToken()
+	value, hash := NewToken()
 	expiry, err := q.ReissueCookie(ctx, identitydb.ReissueCookieParams{
 		TokenHash: hash, Presented: presented, PrevValidUntil: now.Add(previousCookieGrace), Now: now, ID: session.ID,
 	})

@@ -125,7 +125,7 @@ func (s *Service) credentialOf(ctx context.Context, account pgtype.UUID) (Passwo
 // in a cookie, SEC-161 (b)), or a token older than 15 minutes is
 // ErrUnauthenticated; a revoked or expired session says so.
 func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session, error) {
-	hash, ok := hashToken(accessToken)
+	hash, ok := HashToken(accessToken)
 	if !ok {
 		return Session{}, ErrUnauthenticated
 	}
@@ -208,7 +208,7 @@ func sessionEnded(now time.Time, revokedAt pgtype.Timestamptz, lastUsedAt time.T
 // the security trail, and gets ErrSessionRevoked; an unknown one gets
 // ErrUnauthenticated.
 func (s *Service) Refresh(ctx context.Context, refreshToken string) (Tokens, error) {
-	hash, ok := hashToken(refreshToken)
+	hash, ok := HashToken(refreshToken)
 	if !ok {
 		return Tokens{}, ErrUnauthenticated
 	}
@@ -257,8 +257,8 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (Tokens, err
 
 // rotate gives a session a new access token and a new refresh token.
 func rotate(ctx context.Context, q *identitydb.Queries, account, session pgtype.UUID, now time.Time) (Tokens, error) {
-	access, accessHash := newToken()
-	refresh, refreshHash := newToken()
+	access, accessHash := NewToken()
+	refresh, refreshHash := NewToken()
 	rotated, err := q.RotateAccessToken(ctx, identitydb.RotateAccessTokenParams{TokenHash: accessHash, Now: now, ID: session})
 	switch {
 	case err != nil:

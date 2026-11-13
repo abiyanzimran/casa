@@ -57,7 +57,7 @@ func (s *Service) StartRecovery(ctx context.Context, client Client, email string
 // failure is logged with a fixed reason only: its error text could carry the
 // address (09.4 §3 log allow-list; SEC-44).
 func (s *Service) sendRecovery(ctx context.Context, account pgtype.UUID, email string) {
-	token, tokenHash := newToken()
+	token, tokenHash := NewToken()
 	now := s.config.Now()
 	err := database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		return identitydb.New(tx).InsertRecoveryToken(ctx, identitydb.InsertRecoveryTokenParams{
@@ -105,7 +105,7 @@ func (s *Service) CompleteRecovery(ctx context.Context, client Client, recoveryT
 }
 
 func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryToken, newPassword string) (Tokens, error) {
-	tokenHash, ok := hashToken(recoveryToken)
+	tokenHash, ok := HashToken(recoveryToken)
 	if !ok {
 		return Tokens{}, ErrTokenRejected
 	}
