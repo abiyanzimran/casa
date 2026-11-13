@@ -33,6 +33,7 @@ func WithSecurityHeaders(next http.Handler, bundle *Bundle) http.Handler {
 	headers := [][2]string{
 		{"Content-Security-Policy", csp},
 		{"Strict-Transport-Security", "max-age=31536000; includeSubDomains"},
+		{"X-Content-Type-Options", "nosniff"},
 		{"Referrer-Policy", "no-referrer"},
 		{"Cross-Origin-Opener-Policy", "same-origin"},
 		{"Cross-Origin-Resource-Policy", "same-origin"},
