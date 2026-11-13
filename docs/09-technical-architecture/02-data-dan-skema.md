@@ -497,6 +497,30 @@ CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE 
 --     penerimaan terbuka per akun; F04 sesudah penerima membuat rumah tangga → STATE_CHANGED, undangan
 --     'withdrawn', tanpa membership, dan baris object_event-nya sama medan demi medan (selain pengenal dan
 --     waktu) dengan penarikan F05 sungguhan; F02 yang dijawab 17 → nol baris baru dan satu hitungan tokenUse.
+-- Catatan 14 November 2026 (FS-1 tugas 1.6, putusan architect atas X3; mengubah putusan Q8, 06 §3.6
+-- "Gugur karena waktu"): undangan 'accepted' yang lewat masa berlakunya. Predikat indeks tidak dapat
+-- memuat waktu sekarang (baris indeks hanya dinilai ulang saat baris ditulis), jadi gugur harus ditulis.
+-- Aturannya: **jalur tanpa token menulis gugur lebih dulu; jalur token tidak pernah menulis.**
+--   * Penulisan gugur: database.Write tersendiri dengan Scope{HouseholdID: household_id baris yang ditemukan,
+--     AccountID}, compare-and-set atas version, state IN ('open','accepted'), expires_at <= now →
+--     'expired', actor_kind 'system', rule 'invitation.expired', closed_at = expires_at, dan server_time
+--     Peristiwanya = expires_at (saat gugur berlaku; waktu penulisan tidak disimpan, supaya tidak membuka kapan
+--     penerima atau pengundang memakai aplikasi). Kalah compare-and-set → tidak ada tulisan. Sesudahnya
+--     perintah berjalan di transaksinya sendiri.
+--   * CreateHousehold dan F02 (sebelum token dibaca, sesudah tahan pemberitahuan): pencarian
+--     invitee_account_id = A menemukan penerimaan akun sendiri; yang lewat ditulis gugur lalu tidak
+--     menghalangi; yang belum lewat → 17. Urutan F02: tahan, keanggotaan dan penerimaan sendiri (termasuk
+--     penulisan gugur ini), pernyataan usia, token. Waktunya hanya bergantung pada keadaan akun pemanggil.
+--   * WithdrawAcceptance atas penerimaan sendiri yang lewat: gugur ditulis, jawaban STATE_CHANGED.
+--   * F01, F03, F04, IssueInvitationLink atas undangan rumah tangga sendiri yang lewat: gugur ditulis, lalu
+--     F01 berlanjut dan yang lain menjawab STATE_CHANGED.
+--   * F02 dan PreviewInvitation lewat token atas undangan yang lewat: tidak menulis, penolakan token seragam
+--     (alasan Q8 tetap).
+--   * Uji: penerimaan lewat 7 hari tanpa F04 → penerima dapat F02 undangan lain dan CreateHousehold;
+--     WithdrawAcceptance → STATE_CHANGED dan undangan 'expired'; server_time Peristiwa = expires_at.
+--   * security-privacy memeriksa: server_time = expires_at cukup menyembunyikan waktu aktivitas dari
+--     rumah tangga pengundang; dan di 1.7 baris reader_feed untuk gugur yang ditulis belakangan tidak
+--     membuka waktu itu lewat saat munculnya di umpan.
 object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR-016 butir 5)
   household_id,
   object_kind  text NOT NULL CHECK (object_kind IN ('household','invitation')),  -- diperluas tiap modul penulis
