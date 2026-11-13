@@ -86,7 +86,9 @@ func (h *identityHarness) failMail(err error) {
 	h.mailErr = err
 }
 
-func startIdentity(t *testing.T) *identityHarness {
+// startIdentity starts the identity service; register adds other services
+// to the same server before it serves.
+func startIdentity(t *testing.T, register ...func(*connect.Server, *identityHarness)) *identityHarness {
 	t.Helper()
 	d := databasetest.Migrated(t)
 	h := &identityHarness{
@@ -113,6 +115,9 @@ func startIdentity(t *testing.T) *identityHarness {
 		Bearer: service.Authenticate, Cookie: service.AuthenticateCookie, UserAction: service.TouchUserAction,
 	})
 	api.RegisterIdentityService(server, h.pool, service)
+	for _, r := range register {
+		r(server, h)
+	}
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
 	server.Register(connect.Method{
 		Spec: connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read", Schema: h.probeRead},

@@ -10,7 +10,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/abiyanzimran/casa/server/internal/database"
+	"github.com/abiyanzimran/casa/server/internal/identity/identitydb"
 )
 
 // Errors a caller maps to a response; each stands for every reason behind it,
@@ -219,4 +224,16 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 			hash:   randomBytes(int(config.Password.KeyBytes)),
 		},
 	}
+}
+
+// SignupVia is how account was made: "setup_token" (SEC-158 (b)) or
+// "invitation" (SEC-158 (a)), read in the account's own scope. Only an
+// account made with a setup token may create a household (FR-FAM-001/AC-10).
+func (s *Service) SignupVia(ctx context.Context, account pgtype.UUID) (string, error) {
+	var via string
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		via, err = identitydb.New(tx).GetSignupVia(ctx, account)
+		return err
+	})
+	return via, err
 }

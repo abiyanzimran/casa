@@ -12,6 +12,142 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const fullAdultMembers = `-- name: FullAdultMembers :many
+SELECT member_id FROM membership
+ WHERE household_id = current_setting('app.household_id')::uuid AND role = 'household_owner'
+ ORDER BY member_id
+`
+
+// SEC-10; 06 §3.2: the one definition of the full adult members, in the
+// transaction's household. In the pilot every member is a household owner
+// of two equal adults; F01 keeps a household at two adults (06 §3.6), which
+// bounds the result.
+func (q *Queries) FullAdultMembers(ctx context.Context) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, fullAdultMembers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var member_id pgtype.UUID
+		if err := rows.Scan(&member_id); err != nil {
+			return nil, err
+		}
+		items = append(items, member_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hasAgeDeclaration = `-- name: HasAgeDeclaration :one
+SELECT EXISTS (SELECT 1 FROM consent_record WHERE account_id = $1 AND kind = 'adult_age')
+`
+
+// SEC-80: a statement of any text version counts (it does not expire).
+func (q *Queries) HasAgeDeclaration(ctx context.Context, accountID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, hasAgeDeclaration, accountID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const householdMembers = `-- name: HouseholdMembers :many
+SELECT h.name AS household_name, m.member_id, m.display_name
+  FROM household h
+  JOIN membership m ON m.household_id = h.id
+ WHERE h.id = $1
+   AND EXISTS (SELECT 1 FROM membership own WHERE own.household_id = h.id AND own.account_id = $2)
+ ORDER BY m.joined_at, m.member_id
+ LIMIT 20
+`
+
+type HouseholdMembersParams struct {
+	HouseholdID pgtype.UUID
+	AccountID   pgtype.UUID
+}
+
+type HouseholdMembersRow struct {
+	HouseholdName string
+	MemberID      pgtype.UUID
+	DisplayName   pgtype.Text
+}
+
+// A household's name and members, in the household's own transaction; the
+// account filter checks the membership again (10.1 §5.1 note 1.6 item 1;
+// SEC-151). At most 20 members [Usulan].
+func (q *Queries) HouseholdMembers(ctx context.Context, arg HouseholdMembersParams) ([]HouseholdMembersRow, error) {
+	rows, err := q.db.Query(ctx, householdMembers, arg.HouseholdID, arg.AccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HouseholdMembersRow
+	for rows.Next() {
+		var i HouseholdMembersRow
+		if err := rows.Scan(&i.HouseholdName, &i.MemberID, &i.DisplayName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertAgeDeclaration = `-- name: InsertAgeDeclaration :exec
+INSERT INTO consent_record (account_id, kind, text_version, recorded_at)
+VALUES ($1, 'adult_age', $2, $3)
+`
+
+type InsertAgeDeclarationParams struct {
+	AccountID   pgtype.UUID
+	TextVersion int32
+	RecordedAt  time.Time
+}
+
+func (q *Queries) InsertAgeDeclaration(ctx context.Context, arg InsertAgeDeclarationParams) error {
+	_, err := q.db.Exec(ctx, insertAgeDeclaration, arg.AccountID, arg.TextVersion, arg.RecordedAt)
+	return err
+}
+
+const insertApprovalAuthority = `-- name: InsertApprovalAuthority :exec
+INSERT INTO approval_authority (household_id, member_id, request_type, valid_from)
+VALUES ($1, $2, 'all', $3)
+`
+
+type InsertApprovalAuthorityParams struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+	ValidFrom   time.Time
+}
+
+// 06 §3.1: every request type, no amount limit (FR-FAM-001/AC-2).
+func (q *Queries) InsertApprovalAuthority(ctx context.Context, arg InsertApprovalAuthorityParams) error {
+	_, err := q.db.Exec(ctx, insertApprovalAuthority, arg.HouseholdID, arg.MemberID, arg.ValidFrom)
+	return err
+}
+
+const insertFirstHouseholdRule = `-- name: InsertFirstHouseholdRule :exec
+INSERT INTO household_rule (household_id, version, preset_id, created_at)
+VALUES ($1, 1, 'two_equal_adults', $2)
+`
+
+type InsertFirstHouseholdRuleParams struct {
+	HouseholdID pgtype.UUID
+	CreatedAt   time.Time
+}
+
+// 06 §3.1: version 1, preset two_equal_adults, no threshold
+// (FR-FAM-001/AC-2); agreement_mode takes its default 'all'.
+func (q *Queries) InsertFirstHouseholdRule(ctx context.Context, arg InsertFirstHouseholdRuleParams) error {
+	_, err := q.db.Exec(ctx, insertFirstHouseholdRule, arg.HouseholdID, arg.CreatedAt)
+	return err
+}
+
 const insertHousehold = `-- name: InsertHousehold :exec
 INSERT INTO household (id, name, time_zone, created_at)
 VALUES ($1, $2, $3, $4)
@@ -37,4 +173,118 @@ func (q *Queries) InsertHousehold(ctx context.Context, arg InsertHouseholdParams
 		arg.CreatedAt,
 	)
 	return err
+}
+
+const insertMembership = `-- name: InsertMembership :one
+INSERT INTO membership (household_id, account_id, display_name, role, permission_set, joined_at)
+VALUES ($1, $2, $3, 'household_owner', 'two_equal_adults', $4)
+RETURNING member_id
+`
+
+type InsertMembershipParams struct {
+	HouseholdID pgtype.UUID
+	AccountID   pgtype.UUID
+	DisplayName pgtype.Text
+	JoinedAt    time.Time
+}
+
+// 06 §3.1 role and permission set; member_id is made here (ADR-017).
+func (q *Queries) InsertMembership(ctx context.Context, arg InsertMembershipParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, insertMembership,
+		arg.HouseholdID,
+		arg.AccountID,
+		arg.DisplayName,
+		arg.JoinedAt,
+	)
+	var member_id pgtype.UUID
+	err := row.Scan(&member_id)
+	return member_id, err
+}
+
+const insertObjectEvent = `-- name: InsertObjectEvent :exec
+INSERT INTO object_event (household_id, object_kind, object_id, seq, actor_kind, actor, rule,
+                          command, from_state, to_state, idempotency_key, server_time)
+VALUES ($1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12)
+`
+
+type InsertObjectEventParams struct {
+	HouseholdID    pgtype.UUID
+	ObjectKind     string
+	ObjectID       pgtype.UUID
+	Seq            int64
+	ActorKind      string
+	Actor          pgtype.UUID
+	Rule           pgtype.Text
+	Command        string
+	FromState      pgtype.Text
+	ToState        string
+	IdempotencyKey pgtype.UUID
+	ServerTime     time.Time
+}
+
+func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventParams) error {
+	_, err := q.db.Exec(ctx, insertObjectEvent,
+		arg.HouseholdID,
+		arg.ObjectKind,
+		arg.ObjectID,
+		arg.Seq,
+		arg.ActorKind,
+		arg.Actor,
+		arg.Rule,
+		arg.Command,
+		arg.FromState,
+		arg.ToState,
+		arg.IdempotencyKey,
+		arg.ServerTime,
+	)
+	return err
+}
+
+const membershipsOfAccount = `-- name: MembershipsOfAccount :many
+SELECT household_id, member_id FROM membership
+ WHERE account_id = $1
+ ORDER BY joined_at, household_id
+ LIMIT 20
+`
+
+type MembershipsOfAccountRow struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+}
+
+// The account's own memberships, in a lookup transaction (Scope{AccountID};
+// 09.2 §3 layer 1): only household_id and the row's id (plan 1.6 decision
+// 3). Served by membership_one_household; at most 20 [Usulan].
+func (q *Queries) MembershipsOfAccount(ctx context.Context, accountID pgtype.UUID) ([]MembershipsOfAccountRow, error) {
+	rows, err := q.db.Query(ctx, membershipsOfAccount, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MembershipsOfAccountRow
+	for rows.Next() {
+		var i MembershipsOfAccountRow
+		if err := rows.Scan(&i.HouseholdID, &i.MemberID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const newID = `-- name: NewID :one
+SELECT gen_random_uuid()::uuid AS id
+`
+
+// ADR-017: ids are made by gen_random_uuid. A household's id is made before
+// its write, which sets it as the transaction's household.
+func (q *Queries) NewID(ctx context.Context) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, newID)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
 }

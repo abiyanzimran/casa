@@ -87,6 +87,10 @@ var tables = map[string]tableRule{
 	// Append-only for app_rw (FR-FAM-020/AC-6; ADR-016 item 5).
 	"object_event": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		source: "09.2 §5.1 note of 14 November 2026; 06 §2.5, INV-A01"},
+	// 00006_consent_record: a global table of household (plan 1.6 decision 9).
+	"consent_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: ownAccount,
+		source: "09.2 §3 note of 14 November 2026, §5.1; SEC-80 note of 14 November 2026, SEC-109 (a)"},
 }
 
 type tableRule struct {

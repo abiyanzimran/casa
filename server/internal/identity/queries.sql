@@ -221,3 +221,8 @@ RETURNING id, (last_used_at + idle_timeout > @now::timestamptz AND absolute_expi
 -- (SEC-15, SEC-24); served by recovery_token_account_open.
 UPDATE recovery_token SET used_at = @now::timestamptz
  WHERE account_id = @account_id AND used_at IS NULL;
+
+-- name: GetSignupVia :one
+-- SEC-158: how the account was made; only (b) setup_token may create a
+-- household.
+SELECT signup_via FROM account WHERE id = @id;

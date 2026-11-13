@@ -18,6 +18,7 @@ import (
 	"unicode"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
+	"github.com/abiyanzimran/casa/server/internal/household"
 	"github.com/abiyanzimran/casa/server/internal/identity"
 	"github.com/abiyanzimran/casa/server/internal/webbundle"
 )
@@ -94,6 +95,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		UserAction: identityService.TouchUserAction,
 	})
 	api.RegisterIdentityService(apiServer, pool, identityService)
+	api.RegisterHouseholdService(apiServer, pool, household.New(pool, time.Now), identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
 		closeAll()

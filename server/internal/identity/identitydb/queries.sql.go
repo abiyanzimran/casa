@@ -282,6 +282,19 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 	return i, err
 }
 
+const getSignupVia = `-- name: GetSignupVia :one
+SELECT signup_via FROM account WHERE id = $1
+`
+
+// SEC-158: how the account was made; only (b) setup_token may create a
+// household.
+func (q *Queries) GetSignupVia(ctx context.Context, id pgtype.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getSignupVia, id)
+	var signup_via string
+	err := row.Scan(&signup_via)
+	return signup_via, err
+}
+
 const hasOpenReauthGrant = `-- name: HasOpenReauthGrant :one
 SELECT EXISTS (
 	SELECT 1 FROM reauth_grant

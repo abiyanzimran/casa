@@ -29,6 +29,13 @@ type ApprovalAuthority struct {
 	ValidUntil  pgtype.Timestamptz
 }
 
+type ConsentRecord struct {
+	AccountID   pgtype.UUID
+	Kind        string
+	TextVersion int32
+	RecordedAt  time.Time
+}
+
 type Credential struct {
 	AccountID   pgtype.UUID
 	Salt        []byte
