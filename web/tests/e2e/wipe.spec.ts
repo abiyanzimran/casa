@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
+/** Waits for the app to render, so its signal listener is installed, and for the worker. */
 async function openApp(page: Page): Promise<void> {
 	await page.goto('/');
+	await expect(page.locator('h1')).toBeVisible();
 	await page.evaluate(async () => {
 		await navigator.serviceWorker.ready;
 	});
@@ -67,10 +69,7 @@ test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell cach
 	});
 
 	for (const page of [a, b]) {
-		// Playwright's WebKit may hold back a page that is not in front, as a phone does with a
-		// tab in the background, so each page is shown while it is checked. Polled, because the
-		// page navigates in between.
-		await page.bringToFront();
+		// Polled, because the page navigates in between.
 		await expect
 			.poll(() => afterWipe(page), { timeout: 10_000 })
 			.toEqual({ newDocument: true, casaDatabase: false, probeCache: false, shellCaches: 1 });

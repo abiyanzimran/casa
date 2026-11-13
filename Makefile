@@ -132,7 +132,7 @@ web-unit:
 	cd web && pnpm exec svelte-kit sync && pnpm exec vitest run
 
 web-e2e:
-	cd web && pnpm exec playwright test
+	cd web && pnpm exec playwright test wipe --project=webkit --repeat-each=40
 
 # ponytail: linux-amd64 only, like golangci-lint above.
 $(OSV_SCANNER):
