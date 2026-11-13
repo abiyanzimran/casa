@@ -795,6 +795,46 @@ func TestReauthentication(t *testing.T) {
 		_, err = h.signIn(email, next)
 		wantOK(t, err)
 	})
+	t.Run("ADR-005 a retried ChangePassword gets the first response", func(t *testing.T) {
+		// 09.2 §8: a resend of the same command, after its grant is used,
+		// gets the stored response, not REAUTH_REQUIRED.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		request := &casav1.ChangePasswordRequest{RequestContext: commandRC(), NewPassword: next}
+		for range 2 {
+			_, err := h.client.ChangePassword(bearer(tokens.GetAccessToken()), request)
+			wantOK(t, err)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'password_changed'"); n != 1 {
+			t.Fatalf("%d password changes, want 1", n)
+		}
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+	t.Run("SEC-13 two simultaneous ChangePassword with one grant", func(t *testing.T) {
+		// One grant serves one action under concurrency; the serializable
+		// retry decides which.
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.reauthenticate(tokens.GetAccessToken(), password)
+		wantOK(t, err)
+		var wg sync.WaitGroup
+		results := make([]error, 2)
+		for i, newPassword := range []string{next, strings.Repeat("other ", 3)} {
+			wg.Go(func() { results[i] = h.changePassword(tokens.GetAccessToken(), newPassword) })
+		}
+		wg.Wait()
+		ok := slices.IndexFunc(results, func(err error) bool { return err == nil })
+		if ok < 0 || results[1-ok] == nil {
+			t.Fatalf("results %v, want exactly one success", results)
+		}
+		wantErrorCode(t, results[1-ok], connect.CodePermissionDenied, reauthRequired)
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'password_changed'"); n != 1 {
+			t.Fatalf("%d password_changed events, want 1", n)
+		}
+	})
 	t.Run("SEC-13 a re-authentication serves one action", func(t *testing.T) {
 		h := startIdentity(t)
 		tokens := h.signUp(t, email, password)
@@ -1096,7 +1136,7 @@ func TestRecovery(t *testing.T) {
 		_, err = h.completeRecovery(ios, link, next)
 		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
 	})
-	t.Run("SEC-15 a reset uses up every other recovery link", func(t *testing.T) {
+	t.Run("SEC-24 a reset uses up every other recovery link", func(t *testing.T) {
 		// Lead ruling on PR B: a recovery and a password change each leave
 		// no older recovery link usable.
 		h := startIdentity(t)

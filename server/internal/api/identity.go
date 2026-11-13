@@ -95,14 +95,21 @@ func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.Reauthe
 
 func (h identityHandler) ChangePassword(ctx context.Context, req *casav1.ChangePasswordRequest) (*casav1.ChangePasswordResponse, error) {
 	session, _ := SessionFrom(ctx)
+	scope, key := database.Scope{AccountID: session.AccountID}, req.GetRequestContext().GetIdempotencyKey()
+	// A resend gets the first response before the grant check, which the
+	// first send used up (ADR-005).
+	res, found, err := command.Stored[*casav1.ChangePasswordResponse](ctx, h.pool, scope,
+		casav1connect.IdentityServiceChangePasswordProcedure, key, req)
+	if err != nil || found {
+		return res, identityErrorOrNil(err)
+	}
 	// Hashed before the command transaction, which may run more than once;
 	// only with an open grant (lead ruling on PR B).
 	hash, err := h.s.HashNewPassword(ctx, session, req.GetNewPassword())
 	if err != nil {
 		return nil, newPasswordError(err, req)
 	}
-	res, err := command.Run(ctx, h.pool, database.Scope{AccountID: session.AccountID},
-		casav1connect.IdentityServiceChangePasswordProcedure, req.GetRequestContext().GetIdempotencyKey(), req,
+	res, err = command.Run(ctx, h.pool, scope, casav1connect.IdentityServiceChangePasswordProcedure, key, req,
 		func(ctx context.Context, tx pgx.Tx) (*casav1.ChangePasswordResponse, error) {
 			return &casav1.ChangePasswordResponse{}, h.s.ChangePassword(ctx, tx, session, hash)
 		})
@@ -110,6 +117,14 @@ func (h identityHandler) ChangePassword(ctx context.Context, req *casav1.ChangeP
 		return nil, identityError(err)
 	}
 	return res, nil
+}
+
+// identityErrorOrNil is identityError, and nil for nil.
+func identityErrorOrNil(err error) error {
+	if err == nil {
+		return nil
+	}
+	return identityError(err)
 }
 
 // newPasswordError is identityError, with a common password reported on

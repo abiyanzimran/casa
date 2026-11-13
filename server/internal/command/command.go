@@ -44,28 +44,14 @@ func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 	apply func(context.Context, pgx.Tx) (Response, error),
 ) (Response, error) {
 	var response Response
-	var key pgtype.UUID
-	if err := key.Scan(idempotencyKey); err != nil {
-		return response, fmt.Errorf("idempotency key: %w", err)
-	}
-	scopeID := scope.HouseholdID
-	if !scopeID.Valid {
-		scopeID = scope.AccountID
-	}
-	hash, err := requestHash(request)
+	r, err := newRecord(scope, procedure, idempotencyKey, request)
 	if err != nil {
 		return response, err
 	}
 	err = database.Write(ctx, pool, scope, func(tx pgx.Tx) error {
 		q := commanddb.New(tx)
-		record, err := q.GetIdempotencyRecord(ctx, commanddb.GetIdempotencyRecordParams{ScopeID: scopeID, IdempotencyKey: key})
-		switch {
-		case err == nil && (record.Command != procedure || !bytes.Equal(record.RequestHash, hash)):
-			return ErrIdempotencyConflict
-		case err == nil:
-			response = newMessage[Response]()
-			return proto.Unmarshal(record.Response, response)
-		case !errors.Is(err, pgx.ErrNoRows):
+		var found bool
+		if response, found, err = stored[Response](ctx, q, r); err != nil || found {
 			return err
 		}
 		if response, err = apply(ctx, tx); err != nil {
@@ -79,7 +65,7 @@ func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 			return err
 		}
 		return q.InsertIdempotencyRecord(ctx, commanddb.InsertIdempotencyRecordParams{
-			ScopeID: scopeID, IdempotencyKey: key, Command: procedure, RequestHash: hash, Response: stored,
+			ScopeID: r.scopeID, IdempotencyKey: r.key, Command: procedure, RequestHash: r.hash, Response: stored,
 		})
 	})
 	if err != nil {
@@ -87,6 +73,64 @@ func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 		return zero, err
 	}
 	return response, nil
+}
+
+// Stored returns the stored response of an earlier identical request, with
+// the conflict rules of Run, in a read of its own: a handler calls it before
+// work that must not repeat on a resend, such as an authorisation check the
+// first send used up or a password hash (ADR-005; 09.2 §8). Run still
+// decides; Stored only answers early.
+func Stored[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope,
+	procedure, idempotencyKey string, request proto.Message,
+) (response Response, found bool, err error) {
+	r, err := newRecord(scope, procedure, idempotencyKey, request)
+	if err != nil {
+		return response, false, err
+	}
+	err = database.Read(ctx, pool, scope, func(tx pgx.Tx) error {
+		response, found, err = stored[Response](ctx, commanddb.New(tx), r)
+		return err
+	})
+	return response, found, err
+}
+
+// record is what identifies one command's idempotency record.
+type record struct {
+	scopeID, key pgtype.UUID
+	procedure    string
+	hash         []byte
+}
+
+// newRecord: the scope id is the household, or the account for an
+// account-level command (09.2 §8).
+func newRecord(scope database.Scope, procedure, idempotencyKey string, request proto.Message) (record, error) {
+	r := record{scopeID: scope.HouseholdID, procedure: procedure}
+	if !r.scopeID.Valid {
+		r.scopeID = scope.AccountID
+	}
+	if err := r.key.Scan(idempotencyKey); err != nil {
+		return r, fmt.Errorf("idempotency key: %w", err)
+	}
+	var err error
+	r.hash, err = requestHash(request)
+	return r, err
+}
+
+// stored reads r's record: the stored response, ErrIdempotencyConflict for
+// another request under the same key, or not found.
+func stored[Response proto.Message](ctx context.Context, q *commanddb.Queries, r record) (Response, bool, error) {
+	var response Response
+	row, err := q.GetIdempotencyRecord(ctx, commanddb.GetIdempotencyRecordParams{ScopeID: r.scopeID, IdempotencyKey: r.key})
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return response, false, nil
+	case err != nil:
+		return response, false, err
+	case row.Command != r.procedure || !bytes.Equal(row.RequestHash, r.hash):
+		return response, false, ErrIdempotencyConflict
+	}
+	response = newMessage[Response]()
+	return response, true, proto.Unmarshal(row.Response, response)
 }
 
 func newMessage[M proto.Message]() M {

@@ -10,7 +10,7 @@ import (
 func TestChangePasswordCost(t *testing.T) {
 	// Built, so no secret scanner sees a literal.
 	password, next := strings.Repeat("reauth ", 3), strings.Repeat("changed ", 3)
-	t.Run("SEC-12 change password without a reauth grant runs no hash", func(t *testing.T) {
+	t.Run("SEC-13 change password without a reauth grant runs no hash", func(t *testing.T) {
 		// Lead ruling on PR B: without an open grant a session cannot spend
 		// the hash slots SignIn needs (10.1 §8.1 item 3; SEC-13).
 		now := time.Now()

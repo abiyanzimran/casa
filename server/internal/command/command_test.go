@@ -224,3 +224,26 @@ func TestRun(t *testing.T) {
 		}
 	})
 }
+
+func TestStored(t *testing.T) {
+	t.Run("answers the stored response with the conflict rules of Run", func(t *testing.T) {
+		// ADR-005; 09.2 §8.
+		h := start(t)
+		key := uuidString(newUUID())
+		stored := func(request proto.Message) (*wrapperspb.Int64Value, bool, error) {
+			return Stored[*wrapperspb.Int64Value](t.Context(), h.pool, h.scope, procedure, key, request)
+		}
+		if got, found, err := stored(wrapperspb.String("a")); err != nil || found || got != nil {
+			t.Fatalf("before Run: %v, %t, %v; want not found", got, found, err)
+		}
+		if _, err := Run(t.Context(), h.pool, h.scope, procedure, key, wrapperspb.String("a"), h.count); err != nil {
+			t.Fatal(err)
+		}
+		if got, found, err := stored(wrapperspb.String("a")); err != nil || !found || got.GetValue() != 1 {
+			t.Fatalf("after Run: %v, %t, %v; want the first response", got, found, err)
+		}
+		if _, _, err := stored(wrapperspb.String("b")); !errors.Is(err, ErrIdempotencyConflict) {
+			t.Fatalf("another request: err = %v, want ErrIdempotencyConflict", err)
+		}
+	})
+}
