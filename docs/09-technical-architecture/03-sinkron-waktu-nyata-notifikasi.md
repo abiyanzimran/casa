@@ -44,6 +44,7 @@ Asasnya:
   - ekspor;
   - pengakuan pemberitahuan itu sendiri;
   - RPC `identity` di luar antrean (masuk, autentikasi ulang, pembaruan token, pemulihan lewat email). Tanpa keempatnya, pemilik akun tidak dapat mencapai LY-05 untuk mengakui (dikukuhkan `security-privacy`, 10.1 SEC-34).
+  - Catatan 14 November 2026 (FS-1 tugas 1.6; putusan lead, dicatat `security-privacy` di SEC-151): `WithdrawAcceptance` (06 F05, penarikan oleh penerima) adalah jenis `protective` menurut SEC-151 (1), jadi juga `notice_exempt` dan tidak pernah ditahan.
   
   RPC `identity` tidak lewat tabel jenis perintah, jadi pengecualiannya ditegakkan di tempat yang sama dengan pengecualian tahan tulisnya (ADR-028 butir 3): pemeriksaan `NOTICE_UNREAD` hanya dipasang pada jalur perintah antrean dan perintah daring biasa, tidak pada RPC `identity`. Daftarnya satu tanda tambahan `notice_exempt` di tabel jenis perintah yang sama, dibaca server, Swift, dan Kotlin dari kode hasil generate. **Uji kontrak:** setiap jenis `protective` juga `notice_exempt`; jenis yang `notice_exempt` tetapi bukan `protective` hanya keluar akun, ekspor, dan pengakuan. Jadi tidak ada daftar kedua yang ditulis tangan.
 - **Setiap versi menahan, tanpa batas jumlah dan tanpa jendela** (10.1 SEC-34 aturan (5)):
@@ -88,6 +89,11 @@ Asasnya:
   - dengan versi yang belum diakui: masuk, autentikasi ulang, pembaruan token, dan pemulihan lewat email berhasil, dan LY-05 tercapai;
   - urungkan selama jeda saat ada versi yang belum diakui: tidak ada jejak di server;
   - anggota lain tetap dapat menulis.
+- **Mekanisme** (catatan 14 November 2026, FS-1 tugas 1.6; putusan `architect` atas rencana 1.6 Q3, sisi arsitektur; aturan keamanan, termasuk isi jejak keamanan per versi, milik putusan `security-privacy` atas Q3):
+  - **Teks versi ikut di biner**, di-`embed` di paket `household`, bukan baris migrasi. Versi terbit bersama build (SEC-35) tanpa tabel, kebijakan RLS, atau hak tambahan. Uji menyematkan SHA-256 templat setiap versi yang sudah terbit, sehingga versi lama tidak dapat diubah dan teks baru selalu nomor baru. `{pengelola}` diisi saat ditampilkan dari kredensial `operator-name` `casa serve`.
+  - **Identitas versi bagi akun** = (varian, nomor, SHA-256 teks yang sudah diisi), disimpan per akun di `operator_notice_ack` (09.2 §5.1). Riwayat semua versi tetap. "Versi terakhir yang diterbitkan dan yang diakui" di atas dibaca dari tabel itu.
+  - **Terbit saat pertama terlihat.** Pemeriksaan tahan, `GetOperatorNotice`, dan sinkron (sejak 1.7) yang tidak menemukan baris versi terbaru untuk akun itu menulisnya dalam satu `database.Write`, bersama satu baris jejak keamanan, hanya bila barisnya benar-benar baru (`INSERT … ON CONFLICT DO NOTHING`, jejak keamanan hanya bila ada baris yang tersisip). Jadi tepat satu baris dan satu jejak per versi per akun, juga saat dua permintaan tiba bersamaan; uji konkuren membuktikannya. Tanpa job dan tanpa tulisan lintas akun.
+  - **Langkah tahan di batas:** satu langkah interseptor sesudah versi klien minimum dan sebelum kunci idempotensi, hanya untuk perintah tulis yang tidak `notice_exempt`. Ditolak di sini, perintah tidak divalidasi penuh dan tidak tercatat di `idempotency_record` ("menunda, tidak menolak"). Pemeriksaan memakai transaksinya sendiri. Sisa yang diterima **[Usulan]**: perintah yang sudah lolos langkah ini tepat saat versi baru mulai berlaku (hanya di jendela deploy, karena versi ikut biner) diterapkan sekali sebelum tahan; tidak ada data yang hilang dan perintah berikutnya ditahan. Urutan butir 1 sampai 3 di atas dipenuhi saat `WRITE_FROZEN` dibangun (ADR-028 butir 3).
 
 **Jeda urungkan 5 detik** (dokumen 08 §9.3; angka **[Asumsi]** 08). Mekanismenya **[Usulan]**:
 
