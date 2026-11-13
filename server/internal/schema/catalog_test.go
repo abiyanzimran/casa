@@ -138,6 +138,19 @@ func TestCatalog(t *testing.T) {
 				}
 			}
 		}
+		// has_table_privilege and relacl do not see column grants, and RLS is
+		// no barrier for a role with them (any role can set
+		// app.household_id). No table may carry one until the declaration can
+		// express it (09.2 §3: job_runner's column UPDATE on job).
+		columnGrants := queryStrings(t, db, `
+			SELECT format('%s.%s %s', c.relname, a.attname, a.attacl)
+			  FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
+			 WHERE c.relnamespace = 'public'::regnamespace AND c.relname <> 'goose_db_version'
+			   AND a.attacl IS NOT NULL
+			 ORDER BY 1`)
+		for _, g := range columnGrants {
+			t.Errorf("column grant %s is not declared", g)
+		}
 	})
 
 	t.Run("goose_db_version is not reachable by application roles", func(t *testing.T) {
