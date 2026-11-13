@@ -7,6 +7,8 @@ const port = 4173;
 // test is fixed, not retried (ES §6).
 export default defineConfig({
 	testDir: 'tests/e2e',
+	// The ID checker (QG-06) reads Playwright titles from *.spec.ts only.
+	testMatch: '**/*.spec.ts',
 	forbidOnly: true,
 	retries: 0,
 	reporter: [['list'], ['html', { open: 'never' }]],

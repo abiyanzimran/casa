@@ -1,6 +1,7 @@
 # Server and web merge gates (docs/14-engineering-roadmap.md §5.1: QG-01,
-# QG-02, QG-03, QG-05) and the repository secrets check (09.4 §5). Every gate step
-# calls one Makefile target, so CI and a local run cannot drift (ES §2, §7).
+# QG-02, QG-03, QG-05, and the QG-06 ID checker) and the repository secrets
+# check (09.4 §5). Every gate step calls one Makefile target, so CI and a
+# local run cannot drift (ES §2, §7).
 name: ci
 
 on:
@@ -52,6 +53,9 @@ jobs:
       - name: cpd-go (QG-02)
         if: ${{ !cancelled() }}
         run: make cpd-go
+      - name: idcheck (QG-06)
+        if: ${{ !cancelled() }}
+        run: make idcheck
       - name: secrets
         if: ${{ !cancelled() }}
         run: make secrets
