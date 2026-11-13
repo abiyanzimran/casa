@@ -42,15 +42,17 @@ func TestCatalog(t *testing.T) {
 	d := databasetest.Migrated(t)
 	db := d.Pool(t, d.AdminRole)
 
+	// Views, materialized views and foreign tables count too: a materialized
+	// view has no row-level security, and a view runs as its owner.
 	t.Run("every table is declared", func(t *testing.T) {
 		got := queryStrings(t, db, `
 			SELECT relname FROM pg_class
-			 WHERE relnamespace = 'public'::regnamespace AND relkind IN ('r', 'p')
+			 WHERE relnamespace = 'public'::regnamespace AND relkind IN ('r', 'p', 'v', 'm', 'f')
 			   AND relname <> 'goose_db_version'
 			 ORDER BY 1`)
 		for _, name := range got {
 			if _, ok := tables[name]; !ok {
-				t.Errorf("table %s is not declared in tables", name)
+				t.Errorf("table or view %s is not declared in tables", name)
 			}
 		}
 		for _, name := range slices.Sorted(maps.Keys(tables)) {
