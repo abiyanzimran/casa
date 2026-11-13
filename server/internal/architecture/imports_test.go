@@ -18,7 +18,7 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 // backed by 09.2 §1 (its diagram or "Aturan dependensi") needs 09.2 §1 updated
 // by the architect first.
 var allowedImports = map[string][]string{
-	"cmd/casa":                       {"internal/schema"},
+	"cmd/casa":                       {"internal/api", "internal/schema"},
 	"cmd/idcheck":                    {},
 	"internal/api":                   {"internal/gen/casa/v1"},
 	"internal/architecture":          {},
