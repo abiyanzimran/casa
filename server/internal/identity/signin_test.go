@@ -16,27 +16,37 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
 
-// signedUp returns a service whose clock is *now, with one account
-// owner@example.test signed up with password.
-func signedUp(t *testing.T, now *time.Time, password string) (*Service, *pgxpool.Pool) {
+// testClient is the native client of the service-level tests.
+var testClient = Client{Kind: "ios", Version: "1.0.0", Address: "192.0.2.1:443"}
+
+// startedSignUp returns a service whose clock is *now, after StartSignUp for
+// owner@example.test, with the verification token of the emailed link.
+func startedSignUp(t *testing.T, now *time.Time) (s *Service, pool *pgxpool.Pool, verification string) {
 	t.Helper()
 	ctx := t.Context()
-	pool := databasetest.Migrated(t).Pool(t, "app_rw")
+	pool = databasetest.Migrated(t).Pool(t, "app_rw")
 	var link string
-	s := New(pool, Config{
+	s = New(pool, Config{
 		Origin: "https://casa.example", Now: func() time.Time { return *now }, Password: cheapParams,
 		SendMail: func(_ context.Context, m Message) error { link = m.Link; return nil },
 	})
-	client := Client{Kind: "ios", Version: "1.0.0", Address: "192.0.2.1:443"}
 	token, _, err := IssueSetupToken(ctx, pool, "owner@example.test", *now)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := s.StartSignUp(ctx, client, token, "owner@example.test"); err != nil {
+	if err := s.StartSignUp(ctx, testClient, token, "owner@example.test"); err != nil {
 		t.Fatal(err)
 	}
-	_, verification, _ := strings.Cut(link, "#")
-	if _, err := s.CompleteSignUp(ctx, client, verification, password); err != nil {
+	_, verification, _ = strings.Cut(link, "#")
+	return s, pool, verification
+}
+
+// signedUp returns a service whose clock is *now, with one account
+// owner@example.test signed up with password.
+func signedUp(t *testing.T, now *time.Time, password string) (*Service, *pgxpool.Pool) {
+	t.Helper()
+	s, pool, verification := startedSignUp(t, now)
+	if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password); err != nil {
 		t.Fatal(err)
 	}
 	return s, pool
@@ -108,6 +118,54 @@ func TestSignInLimits(t *testing.T) {
 		sum := sha256.Sum256([]byte("owner@example.test"))
 		if _, ok := s.signIn.account.keys[string(sum[:])]; !ok || len(s.signIn.account.keys) != 1 {
 			t.Fatalf("email keys %q, want only the SHA-256 of owner@example.test", slices.Collect(maps.Keys(s.signIn.account.keys)))
+		}
+	})
+}
+
+func TestHashSlots(t *testing.T) {
+	// 10.1 §8.1 item 3: a request that gets no hash slot ran no Argon2, so
+	// it keeps no count and uses up no token.
+	const password = "a long enough passphrase"
+	t.Run("SEC-12 an attempt that gets no hash slot is not counted", func(t *testing.T) {
+		now := time.Now()
+		s, _ := signedUp(t, &now, password)
+		s.hasher.slotWait = 20 * time.Millisecond
+		signIn := func(password string) error {
+			_, err := s.SignIn(t.Context(), testClient, "owner@example.test", password)
+			return err
+		}
+		for range 19 {
+			if err := signIn("a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
+				t.Fatalf("err = %v, want ErrCredentialsRejected", err)
+			}
+		}
+		release := s.hasher.hold()
+		for range 5 {
+			if err := signIn("a wrong passphrase"); !errors.Is(err, ErrRateLimited) {
+				t.Fatalf("with no slot: err = %v, want ErrRateLimited", err)
+			}
+		}
+		release()
+		if err := signIn("a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
+			t.Fatalf("the 20th failure: err = %v, want ErrCredentialsRejected", err)
+		}
+		if err := signIn(password); !errors.Is(err, ErrRateLimited) {
+			t.Fatalf("after 20 failures: err = %v, want ErrRateLimited", err)
+		}
+	})
+	t.Run("SEC-12 a sign-up that gets no hash slot keeps its link", func(t *testing.T) {
+		now := time.Now()
+		s, _, verification := startedSignUp(t, &now)
+		s.hasher.slotWait = 20 * time.Millisecond
+		release := s.hasher.hold()
+		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password); !errors.Is(err, ErrRateLimited) {
+			t.Fatalf("with no slot: err = %v, want ErrRateLimited", err)
+		}
+		release()
+		// The same link still opens the account: neither it nor the setup
+		// token was used up, and no account was made.
+		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password); err != nil {
+			t.Fatalf("the same link after release: %v", err)
 		}
 	})
 }

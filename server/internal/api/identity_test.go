@@ -67,7 +67,6 @@ type identityHarness struct {
 	probeRead protoreflect.MethodDescriptor
 	mu        sync.Mutex
 	mail      []identity.Message
-	service   *identity.Service
 }
 
 func startIdentity(t *testing.T) *identityHarness {
@@ -81,8 +80,6 @@ func startIdentity(t *testing.T) *identityHarness {
 		Origin:   testOrigin,
 		Now:      h.clock.Now,
 		Password: cheapPassword,
-		// Short, so the tests that hold both hash slots stay fast.
-		HashSlotWait: 20 * time.Millisecond,
 		SendMail: func(_ context.Context, m identity.Message) error {
 			h.mu.Lock()
 			defer h.mu.Unlock()
@@ -90,7 +87,6 @@ func startIdentity(t *testing.T) *identityHarness {
 			return nil
 		},
 	})
-	h.service = service
 	server := api.NewServer(api.Version{}, service.Authenticate)
 	api.RegisterIdentityService(server, service)
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
@@ -422,23 +418,6 @@ func TestSignUp(t *testing.T) {
 		wantOK(t, err)
 	})
 
-	t.Run("SEC-12 a sign-up that gets no hash slot keeps its link", func(t *testing.T) {
-		// 10.1 §8.1 item 3: the setup token and the link are used up only
-		// after the hash, so the person can retry with the same link.
-		h := startIdentity(t)
-		wantOK(t, h.startSignUp(h.issue(t, "owner@example.test"), "owner@example.test"))
-		link := h.lastLink(t)
-		release := h.service.HoldHashSlots()
-		_, err := h.completeSignUp(ios, link, password)
-		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
-		release()
-		if n := h.count(t, "SELECT count(*) FROM account"); n != 0 {
-			t.Fatalf("%d accounts, want none before the hash ran", n)
-		}
-		_, err = h.completeSignUp(ios, link, password)
-		wantOK(t, err)
-	})
-
 	t.Run("SEC-11 the database holds no password and no unsalted password hash", func(t *testing.T) {
 		h := startIdentity(t)
 		setup := h.issue(t, "owner@example.test")
@@ -562,25 +541,6 @@ func TestSessions(t *testing.T) {
 		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
 	})
 
-	t.Run("SEC-12 an attempt that gets no hash slot is not counted", func(t *testing.T) {
-		// 10.1 §8.1 item 3: only an attempt whose Argon2 ran keeps its count.
-		h := startIdentity(t)
-		h.signUp(t, "owner@example.test", password)
-		for range 19 {
-			_, err := h.signIn("owner@example.test", "a wrong passphrase")
-			wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
-		}
-		release := h.service.HoldHashSlots()
-		for range 5 {
-			_, err := h.signIn("owner@example.test", "a wrong passphrase")
-			wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
-		}
-		release()
-		_, err := h.signIn("owner@example.test", "a wrong passphrase")
-		wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
-		_, err = h.signIn("owner@example.test", password)
-		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
-	})
 	t.Run("SEC-15 a refresh token is rotated on every use", func(t *testing.T) {
 		h := startIdentity(t)
 		h.signUp(t, "owner@example.test", password)
