@@ -35,10 +35,16 @@ func CleanName(s string, max int) (clean string, rule string) {
 			if !inEmojiSequence(runes, i) {
 				return "", ruleCharacters
 			}
+		case unicode.Is(unicode.Variation_Selector, r):
+			// Allowed only on an emoji base, where it picks the emoji
+			// presentation; it is not counted (Mn).
+			if i == 0 || !unicode.Is(unicode.So, runes[i-1]) {
+				return "", ruleCharacters
+			}
 		case refused(r):
 			return "", ruleCharacters
 		case !unicode.In(r, unicode.Mn, unicode.Me):
-			// Variation selectors are Mn. ponytail: a ZWJ sequence counts
+			// ponytail: a ZWJ sequence counts
 			// per base emoji, not per grapheme; a grapheme segmenter waits
 			// for a dependency chosen when one is needed.
 			visible++
@@ -50,13 +56,20 @@ func CleanName(s string, max int) (clean string, rule string) {
 	return clean, ""
 }
 
+// brailleBlank is U+2800, a symbol (So) that shows as nothing.
+const brailleBlank = '\u2800'
+
 // refused is a SEC-155 (h) class: a control character (one line, so line
-// breaks too), a line or paragraph separator, or a format character, which
+// breaks too), a line or paragraph separator, a format character, which
 // holds the bidirectional controls (U+202A to U+202E, U+2066 to U+2069) and
-// the invisible characters such as U+200B. The one format character allowed,
-// a ZWJ inside an emoji sequence, is decided by the caller.
+// invisible characters such as U+200B, or another invisible character: the
+// default-ignorable code points that are not format characters (the Hangul
+// fillers, the combining grapheme joiner) and the braille blank. The ZWJ
+// and the variation selectors, allowed only inside an emoji sequence, are
+// decided by the caller.
 func refused(r rune) bool {
-	return unicode.In(r, unicode.Cc, unicode.Cf, unicode.Zl, unicode.Zp)
+	return r == brailleBlank ||
+		unicode.In(r, unicode.Cc, unicode.Cf, unicode.Zl, unicode.Zp, unicode.Other_Default_Ignorable_Code_Point)
 }
 
 // inEmojiSequence reports whether the ZWJ at i joins two emoji: a symbol

@@ -101,6 +101,7 @@ func (q *Queries) HouseholdMembers(ctx context.Context, arg HouseholdMembersPara
 const insertAgeDeclaration = `-- name: InsertAgeDeclaration :exec
 INSERT INTO consent_record (account_id, kind, text_version, recorded_at)
 VALUES ($1, 'adult_age', $2, $3)
+ON CONFLICT (account_id, kind, text_version) DO NOTHING
 `
 
 type InsertAgeDeclarationParams struct {
@@ -109,6 +110,9 @@ type InsertAgeDeclarationParams struct {
 	RecordedAt  time.Time
 }
 
+// A concurrent command of the same account (CreateHousehold and F02) may
+// have written the same declaration first: that is the intended end state,
+// never an error (09.2 §5.1, note on decision 20).
 func (q *Queries) InsertAgeDeclaration(ctx context.Context, arg InsertAgeDeclarationParams) error {
 	_, err := q.db.Exec(ctx, insertAgeDeclaration, arg.AccountID, arg.TextVersion, arg.RecordedAt)
 	return err

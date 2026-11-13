@@ -205,7 +205,10 @@ func TestCreateHousehold(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-001/AC-7 a household made with only a name is IDR and the Indonesian market", func(t *testing.T) {
+	// FR-FAM-001/AC-7, the part of 1.6: currency and market. The default
+	// income-source list drawn from the market belongs to the step that
+	// builds income_source (07 §3.1).
+	t.Run("a household made with only a name is IDR and the Indonesian market", func(t *testing.T) {
 		h := startHousehold(t)
 		res := h.mustCreate(t, h.signUpMember(t, "a@example.test"))
 		var currency, market string
@@ -218,7 +221,10 @@ func TestCreateHousehold(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-001/AC-5 an account that is already a member cannot create a second household", func(t *testing.T) {
+	// FR-FAM-001/AC-5, the server part (FAM.md FR-FAM-001 note of 14
+	// November 2026, Q5 (d)). The client not offering a second household
+	// belongs to 1.10.
+	t.Run("an account that is already a member is refused on the server", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")
 		h.mustCreate(t, a)
@@ -280,6 +286,39 @@ func TestCreateHousehold(t *testing.T) {
 		req := newHousehold()
 		req.AgeDeclarationVersion = 0
 		if _, err := h.create(a, req); err != nil {
+			t.Fatal(err)
+		}
+		if n := h.count(t, "SELECT count(*) FROM consent_record"); n != 1 {
+			t.Fatalf("%d consent records, want 1", n)
+		}
+	})
+
+	// 09.2 §5.1, note on decision 20: CreateHousehold racing F02 by the same
+	// account. Both passed CheckAgeDeclaration without a row; the second to
+	// write finds the first's declaration, which is the intended end state,
+	// so it never fails as Internal.
+	t.Run("a declaration written by a concurrent command is kept once without error", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpMember(t, "a@example.test")
+		account := uuidOf(t, a.account)
+		recordAge, err := h.service.CheckAgeDeclaration(t.Context(), account, 1)
+		if err != nil || recordAge != 1 {
+			t.Fatalf("CheckAgeDeclaration = %d, %v; want 1", recordAge, err)
+		}
+		if _, err := h.admin.Exec(t.Context(),
+			"INSERT INTO consent_record (account_id, kind, text_version, recorded_at) VALUES ($1, 'adult_age', 1, now())", a.account); err != nil {
+			t.Fatal(err)
+		}
+		id, err := h.service.NewHouseholdID(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = database.Write(t.Context(), h.pool, database.Scope{HouseholdID: id, AccountID: account}, func(tx pgx.Tx) error {
+			_, err := h.service.Create(t.Context(), tx, account, id,
+				household.NewHousehold{Name: "Rumah Kita", TimeZone: "Asia/Jakarta", DisplayName: "Ayu"}, recordAge, uuidOf(t, uuid4()))
+			return err
+		})
+		if err != nil {
 			t.Fatal(err)
 		}
 		if n := h.count(t, "SELECT count(*) FROM consent_record"); n != 1 {

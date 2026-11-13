@@ -40,8 +40,12 @@ VALUES (@household_id, @object_kind, @object_id, @seq, @actor_kind, @actor, @rul
 SELECT EXISTS (SELECT 1 FROM consent_record WHERE account_id = @account_id AND kind = 'adult_age');
 
 -- name: InsertAgeDeclaration :exec
+-- A concurrent command of the same account (CreateHousehold and F02) may
+-- have written the same declaration first: that is the intended end state,
+-- never an error (09.2 §5.1, note on decision 20).
 INSERT INTO consent_record (account_id, kind, text_version, recorded_at)
-VALUES (@account_id, 'adult_age', @text_version, @recorded_at);
+VALUES (@account_id, 'adult_age', @text_version, @recorded_at)
+ON CONFLICT (account_id, kind, text_version) DO NOTHING;
 
 -- name: MembershipsOfAccount :many
 -- The account's own memberships, in a lookup transaction (Scope{AccountID};

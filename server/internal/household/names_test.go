@@ -35,6 +35,17 @@ func TestCleanName(t *testing.T) {
 		{"ZWJ outside an emoji sequence", "Ru\u200Dmah", 60, "", "name.characters", false},
 		{"ZWJ at the end", "\U0001F468\u200D", 60, "", "name.characters", false},
 		{"invalid UTF-8", "Rumah\xff", 60, "", "name.characters", false},
+		// SEC-155 (h): invisible characters that are not format characters.
+		{"Hangul filler alone", "\u3164", 60, "", "name.characters", false},
+		{"Hangul fillers", "\u3164\u3164\u3164", 60, "", "name.characters", false},
+		{"Hangul choseong and jungseong fillers", "\u115F\u1160", 60, "", "name.characters", false},
+		{"halfwidth Hangul filler", "\uFFA0", 60, "", "name.characters", false},
+		{"combining grapheme joiner", "Ayu\u034F", 60, "", "name.characters", false},
+		{"variation selector outside an emoji", "Ayu\uFE0F", 60, "", "name.characters", false},
+		{"variation selector at the start", "\uFE0FAyu", 60, "", "name.characters", false},
+		{"braille blank", "\u2800", 60, "", "name.characters", false},
+		{"braille blank inside", "Ayu\u2800Budi", 60, "", "name.characters", false},
+		{"emoji with its variation selector", "\u2764\uFE0F", 60, "\u2764\uFE0F", "", true},
 		{"emoji ZWJ sequence", "Rumah " + family, 60, "Rumah " + family, "", true},
 		// ponytail ceiling: a ZWJ sequence counts per base emoji, not per
 		// grapheme, so 20 families are 60 visible characters.
