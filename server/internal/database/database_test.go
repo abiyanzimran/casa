@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -86,7 +85,7 @@ func TestScope(t *testing.T) {
 				_, err := tx.Exec(ctx, statement, h2)
 				return err
 			})
-			if code := pgErrorCode(err); code != "42501" {
+			if code := databasetest.PgErrorCode(err); code != "42501" {
 				t.Errorf("%s: err = %v, want a row-level security violation (42501)", statement, err)
 			}
 		}
@@ -109,7 +108,7 @@ func TestScope(t *testing.T) {
 			_, err := tx.Exec(ctx, "SELECT FROM rls_probe")
 			return err
 		})
-		if code := pgErrorCode(err); code != "22P02" {
+		if code := databasetest.PgErrorCode(err); code != "22P02" {
 			t.Errorf("err = %v, want invalid uuid '' (22P02)", err)
 		}
 	})
@@ -158,7 +157,7 @@ func TestScope(t *testing.T) {
 				}
 			}
 			_, err := one.Exec(ctx, "SELECT FROM rls_probe")
-			if code := pgErrorCode(err); code != "22P02" {
+			if code := databasetest.PgErrorCode(err); code != "22P02" {
 				t.Errorf("after %s, reading rls_probe outside a scope: err = %v, want 22P02", after, err)
 			}
 		}
@@ -196,7 +195,7 @@ func TestScope(t *testing.T) {
 			_, err := tx.Exec(ctx, "INSERT INTO rls_probe (household_id) VALUES ($1)", h1)
 			return err
 		})
-		if code := pgErrorCode(err); code != "25006" {
+		if code := databasetest.PgErrorCode(err); code != "25006" {
 			t.Errorf("insert in a read: err = %v, want read_only_sql_transaction (25006)", err)
 		}
 	})
@@ -236,12 +235,4 @@ func newUUID() pgtype.UUID {
 	u := pgtype.UUID{Valid: true}
 	_, _ = rand.Read(u.Bytes[:]) // never returns an error (crypto/rand, Go 1.24 and later)
 	return u
-}
-
-func pgErrorCode(err error) string {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code
-	}
-	return ""
 }

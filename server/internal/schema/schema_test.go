@@ -2,12 +2,10 @@ package schema_test
 
 import (
 	"database/sql"
-	"errors"
 	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 	"github.com/abiyanzimran/casa/server/internal/schema"
@@ -98,19 +96,11 @@ func TestCurrency(t *testing.T) {
 			"DELETE FROM currency",
 		} {
 			_, err := app.Exec(t.Context(), statement)
-			if code := pgErrorCode(err); code != "42501" {
+			if code := databasetest.PgErrorCode(err); code != "42501" {
 				t.Errorf("%s: err = %v, want insufficient_privilege (42501)", statement, err)
 			}
 		}
 	})
-}
-
-func pgErrorCode(err error) string {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		return pgErr.Code
-	}
-	return ""
 }
 
 // grantee names an aclexplode grantee; 0 is PUBLIC.

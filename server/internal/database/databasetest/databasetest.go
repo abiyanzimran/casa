@@ -12,11 +12,13 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"net/url"
 	"os"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib" // registers the "pgx" database/sql driver
 
@@ -137,4 +139,14 @@ func randomHex() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b) // never returns an error (crypto/rand, Go 1.24 and later)
 	return hex.EncodeToString(b)
+}
+
+// PgErrorCode returns the SQLSTATE of a PostgreSQL error in err's chain, or
+// the empty string.
+func PgErrorCode(err error) string {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code
+	}
+	return ""
 }
