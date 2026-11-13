@@ -59,3 +59,36 @@ VALUES (@token_hash, @session_id, @account_id, @created_at);
 -- token, a password or an email.
 INSERT INTO security_event (account_id, session_id, kind, detail, occurred_at)
 VALUES (@account_id, @session_id, @kind, @detail, @occurred_at);
+
+-- name: GetCredential :one
+SELECT salt, hash, time_cost, memory_kib, parallelism FROM credential
+ WHERE account_id = @account_id;
+
+-- name: GetSessionByTokenHash :one
+-- SEC-15: every request checks its access token here, by the unique index.
+SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = @token_hash;
+
+-- name: TouchSession :exec
+-- The base of the idle limit.
+UPDATE session SET last_used_at = @now WHERE id = @id;
+
+-- name: GetRefreshToken :one
+SELECT session_id, account_id FROM refresh_token WHERE token_hash = @token_hash;
+
+-- name: GetSession :one
+SELECT last_used_at, idle_timeout, absolute_expiry, revoked_at FROM session WHERE id = @id;
+
+-- name: UseRefreshToken :execrows
+-- SEC-15: a refresh token is used once; zero rows means it was used before.
+UPDATE refresh_token SET used_at = @now::timestamptz
+ WHERE token_hash = @token_hash AND used_at IS NULL;
+
+-- name: RevokeSession :execrows
+UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
+ WHERE id = @id AND revoked_at IS NULL;
+
+-- name: RotateAccessToken :exec
+UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_at = @now
+ WHERE id = @id;

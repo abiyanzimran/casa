@@ -18,6 +18,9 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
@@ -59,8 +62,11 @@ type identityHarness struct {
 	admin  *pgxpool.Pool
 	clock  *testClock
 	client casav1connect.IdentityServiceClient
-	mu     sync.Mutex
-	mail   []identity.Message
+	// probe calls an authenticated procedure, ProbeService.Read.
+	probe     *connect.Client
+	probeRead protoreflect.MethodDescriptor
+	mu        sync.Mutex
+	mail      []identity.Message
 }
 
 func startIdentity(t *testing.T) *identityHarness {
@@ -81,11 +87,23 @@ func startIdentity(t *testing.T) *identityHarness {
 			return nil
 		},
 	})
-	server := api.NewServer(api.Version{})
+	server := api.NewServer(api.Version{}, service.Authenticate)
 	api.RegisterIdentityService(server, service)
+	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
+	server.Register(connect.Method{
+		Spec: connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read", Schema: h.probeRead},
+		Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+			if err := stream.Receive(dynamicpb.NewMessage(h.probeRead.Input())); err != nil {
+				return err
+			}
+			return stream.Send(&emptypb.Empty{})
+		},
+	})
 	srv := httptest.NewServer(api.NewMux(server))
 	t.Cleanup(srv.Close)
-	h.client = casav1connect.NewIdentityServiceClient(connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL)))
+	client := connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL))
+	h.client = casav1connect.NewIdentityServiceClient(client)
+	h.probe = client
 	return h
 }
 
@@ -115,6 +133,29 @@ func (h *identityHarness) startSignUp(setupToken, email string) error {
 func (h *identityHarness) completeSignUp(kind casav1.ClientKind, link, password string) (*casav1.SessionTokens, error) {
 	res, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
 		RequestContext: identityRC(kind), VerificationToken: link, Password: password,
+	})
+	return res.GetTokens(), err
+}
+
+// authenticated calls an authenticated procedure with accessToken.
+func (h *identityHarness) authenticated(accessToken string) error {
+	req := dynamicpb.NewMessage(h.probeRead.Input())
+	req.Set(h.probeRead.Input().Fields().ByName("request_context"), protoreflect.ValueOfMessage(identityRC(ios).ProtoReflect()))
+	ctx, info := connect.NewClientContext(context.Background())
+	info.RequestHeader().Set("Authorization", "Bearer "+accessToken)
+	return h.probe.CallUnary(ctx, connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/Read"}, req, &emptypb.Empty{})
+}
+
+func (h *identityHarness) signIn(email, password string) (*casav1.SessionTokens, error) {
+	res, err := h.client.SignIn(context.Background(), &casav1.SignInRequest{
+		RequestContext: identityRC(ios), Email: email, Password: password,
+	})
+	return res.GetTokens(), err
+}
+
+func (h *identityHarness) refresh(refreshToken string) (*casav1.SessionTokens, error) {
+	res, err := h.client.RefreshSession(context.Background(), &casav1.RefreshSessionRequest{
+		RequestContext: identityRC(ios), RefreshToken: refreshToken,
 	})
 	return res.GetTokens(), err
 }
@@ -426,5 +467,197 @@ func TestSignUp(t *testing.T) {
 		}
 		_, err := h.completeSignUp(ios, link, password)
 		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+	})
+}
+
+func TestSessions(t *testing.T) {
+	const password = "a long enough passphrase"
+	credentialsRejected := casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED
+	rateLimited := casav1.ErrorCode_ERROR_CODE_RATE_LIMITED
+	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+	expired := casav1.ErrorCode_ERROR_CODE_SESSION_EXPIRED
+
+	// wantUnauthenticated: no detail means "refresh, then sign in".
+	wantUnauthenticated := func(t *testing.T, err error) {
+		t.Helper()
+		wantCode(t, err, connect.CodeUnauthenticated)
+		if got := details(t, err); got != nil {
+			t.Fatalf("details %v, want none", got)
+		}
+	}
+
+	t.Run("SEC-12 a failed sign-in does not tell an unknown email from a wrong password", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		_, unknown := h.signIn("nobody@example.test", password)
+		_, wrong := h.signIn("owner@example.test", "a wrong passphrase")
+		wantErrorCode(t, unknown, connect.CodeUnauthenticated, credentialsRejected)
+		if a, b := rejectionOf(t, unknown), rejectionOf(t, wrong); !a.equal(b) {
+			t.Fatalf("unknown email %+v, wrong password %+v; want identical", a, b)
+		}
+	})
+
+	t.Run("SEC-12 after 20 consecutive failed sign-ins the next waits, for any email and any letter case", func(t *testing.T) {
+		for _, email := range []string{"owner@example.test", "nobody@example.test"} {
+			h := startIdentity(t)
+			h.signUp(t, "owner@example.test", password)
+			for i := range 20 {
+				variant := strings.ToUpper(email[:1]) + email[1:]
+				if i%2 == 0 {
+					variant = " " + strings.ToUpper(email) + " "
+				}
+				_, err := h.signIn(variant, "a wrong passphrase")
+				wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
+			}
+			h.clock.advance(time.Second - time.Millisecond)
+			_, err := h.signIn(email, password)
+			wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+			if email == "owner@example.test" {
+				h.clock.advance(time.Millisecond)
+				_, err = h.signIn(email, password)
+				wantOK(t, err)
+			}
+		}
+	})
+
+	t.Run("SEC-12 one address trying many accounts is limited", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		for i := range 20 {
+			_, err := h.signIn(fmt.Sprintf("guess%d@example.test", i), password)
+			wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
+		}
+		_, err := h.signIn("owner@example.test", password)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+	})
+
+	t.Run("SEC-12 a successful sign-in does not reset the address key", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		for range 19 {
+			_, err := h.signIn("partner@example.test", password)
+			wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
+		}
+		_, err := h.signIn("owner@example.test", password)
+		wantOK(t, err)
+		_, err = h.signIn("partner@example.test", password)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
+		_, err = h.signIn("owner@example.test", password)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
+	})
+
+	t.Run("SEC-15 a refresh token is rotated on every use", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		first, err := h.signIn("owner@example.test", password)
+		wantOK(t, err)
+		wantOK(t, h.authenticated(first.GetAccessToken()))
+		second, err := h.refresh(first.GetRefreshToken())
+		wantOK(t, err)
+		if second.GetRefreshToken() == first.GetRefreshToken() || second.GetAccessToken() == first.GetAccessToken() {
+			t.Fatal("refresh returned the same tokens")
+		}
+		wantUnauthenticated(t, h.authenticated(first.GetAccessToken()))
+		wantOK(t, h.authenticated(second.GetAccessToken()))
+	})
+
+	t.Run("SEC-15 reusing a refresh token revokes the whole session", func(t *testing.T) {
+		h := startIdentity(t)
+		first := h.signUp(t, "owner@example.test", password)
+		second, err := h.refresh(first.GetRefreshToken())
+		wantOK(t, err)
+		_, err = h.refresh(first.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		_, err = h.refresh(second.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+		wantErrorCode(t, h.authenticated(second.GetAccessToken()), connect.CodeUnauthenticated, revoked)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'reuse_detected'"); n != 1 {
+			t.Fatalf("%d sessions revoked for reuse, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'reuse_detected'"); n != 1 {
+			t.Fatalf("%d session_revoked events, want 1", n)
+		}
+	})
+
+	t.Run("two refreshes with one token at once: one succeeds, the session is revoked", func(t *testing.T) {
+		// SEC-15 under concurrency; the serializable retry decides the order.
+		h := startIdentity(t)
+		first := h.signUp(t, "owner@example.test", password)
+		var wg sync.WaitGroup
+		results := make([]error, 2)
+		tokens := make([]*casav1.SessionTokens, 2)
+		for i := range 2 {
+			wg.Go(func() { tokens[i], results[i] = h.refresh(first.GetRefreshToken()) })
+		}
+		wg.Wait()
+		ok := slices.IndexFunc(results, func(err error) bool { return err == nil })
+		if ok < 0 || results[1-ok] == nil {
+			t.Fatalf("results %v, want exactly one success", results)
+		}
+		wantErrorCode(t, results[1-ok], connect.CodeUnauthenticated, revoked)
+		wantErrorCode(t, h.authenticated(tokens[ok].GetAccessToken()), connect.CodeUnauthenticated, revoked)
+	})
+
+	t.Run("an access token expires after 15 minutes and the refresh token renews it", func(t *testing.T) {
+		h := startIdentity(t)
+		first := h.signUp(t, "owner@example.test", password)
+		h.clock.advance(15*time.Minute - time.Second)
+		wantOK(t, h.authenticated(first.GetAccessToken()))
+		h.clock.advance(time.Second)
+		wantUnauthenticated(t, h.authenticated(first.GetAccessToken()))
+		second, err := h.refresh(first.GetRefreshToken())
+		wantOK(t, err)
+		wantOK(t, h.authenticated(second.GetAccessToken()))
+	})
+
+	t.Run("a native session ends after 30 idle days or 180 days", func(t *testing.T) {
+		// Lead ruling Q5 on the 1.4 plan [Usulan].
+		h := startIdentity(t)
+		idle := h.signUp(t, "owner@example.test", password)
+		h.clock.advance(30 * 24 * time.Hour)
+		wantErrorCode(t, h.authenticated(idle.GetAccessToken()), connect.CodeUnauthenticated, expired)
+		_, err := h.refresh(idle.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, expired)
+
+		active, err := h.signIn("owner@example.test", password)
+		wantOK(t, err)
+		for day := 29; day < 180; day += 29 {
+			h.clock.advance(29 * 24 * time.Hour)
+			active, err = h.refresh(active.GetRefreshToken())
+			wantOK(t, err)
+		}
+		h.clock.advance(6 * 24 * time.Hour) // day 180
+		_, err = h.refresh(active.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, expired)
+	})
+
+	t.Run("a web session is never accepted from the Authorization header", func(t *testing.T) {
+		// SEC-161 (b): a web session token travels only in a cookie (1.5).
+		h := startIdentity(t)
+		tokens := h.signUp(t, "owner@example.test", password)
+		if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web'"); err != nil {
+			t.Fatal(err)
+		}
+		wantUnauthenticated(t, h.authenticated(tokens.GetAccessToken()))
+	})
+
+	t.Run("a sign-in writes the account's security trail", func(t *testing.T) {
+		// SEC-16, SEC-39 (b).
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		_, err := h.signIn("owner@example.test", password)
+		wantOK(t, err)
+		if n := h.count(t, "SELECT count(DISTINCT session_id) FROM security_event WHERE kind = 'sign_in'"); n != 2 {
+			t.Fatalf("%d sign_in events with distinct sessions, want 2 (sign-up and sign-in)", n)
+		}
+	})
+
+	t.Run("a web client cannot sign in before the cookie transport exists (1.5)", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, "owner@example.test", password)
+		_, err := h.client.SignIn(context.Background(), &casav1.SignInRequest{
+			RequestContext: identityRC(casav1.ClientKind_CLIENT_KIND_WEB), Email: "owner@example.test", Password: password,
+		})
+		wantCode(t, err, connect.CodeUnimplemented)
 	})
 }

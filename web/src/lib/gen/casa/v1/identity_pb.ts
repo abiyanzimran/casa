@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/identity.proto.
  */
 export const file_casa_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKDAQoNU2Vzc2lvblRva2VucxIZCgxhY2Nlc3NfdG9rZW4YASABKAlCA4ABARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQESOwoXYWNjZXNzX3Rva2VuX2V4cGlyZXNfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wMq4BCg9JZGVudGl0eVNlcnZpY2USSAoLU3RhcnRTaWduVXASGy5jYXNhLnYxLlN0YXJ0U2lnblVwUmVxdWVzdBocLmNhc2EudjEuU3RhcnRTaWduVXBSZXNwb25zZRJRCg5Db21wbGV0ZVNpZ25VcBIeLmNhc2EudjEuQ29tcGxldGVTaWduVXBSZXF1ZXN0Gh8uY2FzYS52MS5Db21wbGV0ZVNpZ25VcFJlc3BvbnNlQpoBCgtjb20uY2FzYS52MUINSWRlbnRpdHlQcm90b1ABWj9naXRodWIuY29tL2FiaXlhbnppbXJhbi9jYXNhL3NlcnZlci9pbnRlcm5hbC9nZW4vY2FzYS92MTtjYXNhdjGiAgNDWFiqAgdDYXNhLlYxygIHQ2FzYVxWMeICE0Nhc2FcVjFcR1BCTWV0YWRhdGHqAghDYXNhOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_casa_v1_request, file_google_protobuf_timestamp]);
+  fileDesc("ChZjYXNhL3YxL2lkZW50aXR5LnByb3RvEgdjYXNhLnYxIoMBChJTdGFydFNpZ25VcFJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEhgKC3NldHVwX3Rva2VuGAIgASgJQgOAAQESGQoFZW1haWwYAyABKAlCCrpIB3IFGP4BYAEiFQoTU3RhcnRTaWduVXBSZXNwb25zZSKTAQoVQ29tcGxldGVTaWduVXBSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIfChJ2ZXJpZmljYXRpb25fdG9rZW4YAiABKAlCA4ABARIfCghwYXNzd29yZBgDIAEoCUINgAEBukgHcgUQDBiACCJAChZDb21wbGV0ZVNpZ25VcFJlc3BvbnNlEiYKBnRva2VucxgBIAEoCzIWLmNhc2EudjEuU2Vzc2lvblRva2VucyKBAQoNU2lnbkluUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESFwoFZW1haWwYAiABKAlCCLpIBXIDGP4BEh0KCHBhc3N3b3JkGAMgASgJQguAAQG6SAVyAxiACCI4Cg5TaWduSW5SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMibQoVUmVmcmVzaFNlc3Npb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIaCg1yZWZyZXNoX3Rva2VuGAIgASgJQgOAAQEiQAoWUmVmcmVzaFNlc3Npb25SZXNwb25zZRImCgZ0b2tlbnMYASABKAsyFi5jYXNhLnYxLlNlc3Npb25Ub2tlbnMigwEKDVNlc3Npb25Ub2tlbnMSGQoMYWNjZXNzX3Rva2VuGAEgASgJQgOAAQESGgoNcmVmcmVzaF90b2tlbhgCIAEoCUIDgAEBEjsKF2FjY2Vzc190b2tlbl9leHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcDK8AgoPSWRlbnRpdHlTZXJ2aWNlEkgKC1N0YXJ0U2lnblVwEhsuY2FzYS52MS5TdGFydFNpZ25VcFJlcXVlc3QaHC5jYXNhLnYxLlN0YXJ0U2lnblVwUmVzcG9uc2USUQoOQ29tcGxldGVTaWduVXASHi5jYXNhLnYxLkNvbXBsZXRlU2lnblVwUmVxdWVzdBofLmNhc2EudjEuQ29tcGxldGVTaWduVXBSZXNwb25zZRI5CgZTaWduSW4SFi5jYXNhLnYxLlNpZ25JblJlcXVlc3QaFy5jYXNhLnYxLlNpZ25JblJlc3BvbnNlElEKDlJlZnJlc2hTZXNzaW9uEh4uY2FzYS52MS5SZWZyZXNoU2Vzc2lvblJlcXVlc3QaHy5jYXNhLnYxLlJlZnJlc2hTZXNzaW9uUmVzcG9uc2VCmgEKC2NvbS5jYXNhLnYxQg1JZGVudGl0eVByb3RvUAFaP2dpdGh1Yi5jb20vYWJpeWFuemltcmFuL2Nhc2Evc2VydmVyL2ludGVybmFsL2dlbi9jYXNhL3YxO2Nhc2F2MaICA0NYWKoCB0Nhc2EuVjHKAgdDYXNhXFYx4gITQ2FzYVxWMVxHUEJNZXRhZGF0YeoCCENhc2E6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.StartSignUpRequest
@@ -110,6 +110,94 @@ export const CompleteSignUpResponseSchema: GenMessage<CompleteSignUpResponse> = 
   messageDesc(file_casa_v1_identity, 3);
 
 /**
+ * @generated from message casa.v1.SignInRequest
+ */
+export type SignInRequest = Message<"casa.v1.SignInRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * No email rule: a malformed email is rejected like an unknown one
+   * (SEC-12).
+   *
+   * @generated from field: string email = 2;
+   */
+  email: string;
+
+  /**
+   * @generated from field: string password = 3;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message casa.v1.SignInRequest.
+ * Use `create(SignInRequestSchema)` to create a new message.
+ */
+export const SignInRequestSchema: GenMessage<SignInRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 4);
+
+/**
+ * @generated from message casa.v1.SignInResponse
+ */
+export type SignInResponse = Message<"casa.v1.SignInResponse"> & {
+  /**
+   * @generated from field: casa.v1.SessionTokens tokens = 1;
+   */
+  tokens?: SessionTokens | undefined;
+};
+
+/**
+ * Describes the message casa.v1.SignInResponse.
+ * Use `create(SignInResponseSchema)` to create a new message.
+ */
+export const SignInResponseSchema: GenMessage<SignInResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 5);
+
+/**
+ * @generated from message casa.v1.RefreshSessionRequest
+ */
+export type RefreshSessionRequest = Message<"casa.v1.RefreshSessionRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * No validation rule, as setup_token above.
+   *
+   * @generated from field: string refresh_token = 2;
+   */
+  refreshToken: string;
+};
+
+/**
+ * Describes the message casa.v1.RefreshSessionRequest.
+ * Use `create(RefreshSessionRequestSchema)` to create a new message.
+ */
+export const RefreshSessionRequestSchema: GenMessage<RefreshSessionRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 6);
+
+/**
+ * @generated from message casa.v1.RefreshSessionResponse
+ */
+export type RefreshSessionResponse = Message<"casa.v1.RefreshSessionResponse"> & {
+  /**
+   * @generated from field: casa.v1.SessionTokens tokens = 1;
+   */
+  tokens?: SessionTokens | undefined;
+};
+
+/**
+ * Describes the message casa.v1.RefreshSessionResponse.
+ * Use `create(RefreshSessionResponseSchema)` to create a new message.
+ */
+export const RefreshSessionResponseSchema: GenMessage<RefreshSessionResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_identity, 7);
+
+/**
  * SessionTokens are a native session's tokens (SEC-15; 09.4 §2). A web
  * session gets a cookie instead (1.5; SEC-161 (b)).
  *
@@ -137,7 +225,7 @@ export type SessionTokens = Message<"casa.v1.SessionTokens"> & {
  * Use `create(SessionTokensSchema)` to create a new message.
  */
 export const SessionTokensSchema: GenMessage<SessionTokens> = /*@__PURE__*/
-  messageDesc(file_casa_v1_identity, 4);
+  messageDesc(file_casa_v1_identity, 8);
 
 /**
  * IdentityService is the identity module's API: closed sign-up, sign-in and
@@ -171,6 +259,28 @@ export const IdentityService: GenService<{
     methodKind: "unary";
     input: typeof CompleteSignUpRequestSchema;
     output: typeof CompleteSignUpResponseSchema;
+  },
+  /**
+   * Opens a native session with email and password. An unknown email and a
+   * wrong password get the same CREDENTIALS_REJECTED (SEC-12).
+   *
+   * @generated from rpc casa.v1.IdentityService.SignIn
+   */
+  signIn: {
+    methodKind: "unary";
+    input: typeof SignInRequestSchema;
+    output: typeof SignInResponseSchema;
+  },
+  /**
+   * Rotates a native session's tokens. A refresh token used a second time
+   * revokes its session (SEC-15).
+   *
+   * @generated from rpc casa.v1.IdentityService.RefreshSession
+   */
+  refreshSession: {
+    methodKind: "unary";
+    input: typeof RefreshSessionRequestSchema;
+    output: typeof RefreshSessionResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_identity, 0);

@@ -15,8 +15,7 @@ var tokenEncoding = base64.RawURLEncoding.Strict()
 // newToken returns a random token as 43 characters of unpadded base64url and
 // the SHA-256 of its raw bytes, the only form the database keeps (SEC-15).
 func newToken() (token string, hash []byte) {
-	raw := make([]byte, tokenBytes)
-	_, _ = rand.Read(raw) // never returns an error (crypto/rand, Go 1.24 and later)
+	raw := randomBytes(tokenBytes)
 	sum := sha256.Sum256(raw)
 	return tokenEncoding.EncodeToString(raw), sum[:]
 }
@@ -34,4 +33,10 @@ func hashToken(token string) (hash []byte, ok bool) {
 	}
 	sum := sha256.Sum256(raw)
 	return sum[:], true
+}
+
+func randomBytes(n int) []byte {
+	b := make([]byte, n)
+	_, _ = rand.Read(b) // never returns an error (crypto/rand, Go 1.24 and later)
+	return b
 }

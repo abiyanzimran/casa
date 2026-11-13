@@ -24,6 +24,105 @@ func (q *Queries) GetAccountIDByEmail(ctx context.Context, email string) (pgtype
 	return id, err
 }
 
+const getCredential = `-- name: GetCredential :one
+SELECT salt, hash, time_cost, memory_kib, parallelism FROM credential
+ WHERE account_id = $1
+`
+
+type GetCredentialRow struct {
+	Salt        []byte
+	Hash        []byte
+	TimeCost    int32
+	MemoryKib   int32
+	Parallelism int16
+}
+
+func (q *Queries) GetCredential(ctx context.Context, accountID pgtype.UUID) (GetCredentialRow, error) {
+	row := q.db.QueryRow(ctx, getCredential, accountID)
+	var i GetCredentialRow
+	err := row.Scan(
+		&i.Salt,
+		&i.Hash,
+		&i.TimeCost,
+		&i.MemoryKib,
+		&i.Parallelism,
+	)
+	return i, err
+}
+
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT session_id, account_id FROM refresh_token WHERE token_hash = $1
+`
+
+type GetRefreshTokenRow struct {
+	SessionID pgtype.UUID
+	AccountID pgtype.UUID
+}
+
+func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash []byte) (GetRefreshTokenRow, error) {
+	row := q.db.QueryRow(ctx, getRefreshToken, tokenHash)
+	var i GetRefreshTokenRow
+	err := row.Scan(&i.SessionID, &i.AccountID)
+	return i, err
+}
+
+const getSession = `-- name: GetSession :one
+SELECT last_used_at, idle_timeout, absolute_expiry, revoked_at FROM session WHERE id = $1
+`
+
+type GetSessionRow struct {
+	LastUsedAt     time.Time
+	IdleTimeout    time.Duration
+	AbsoluteExpiry time.Time
+	RevokedAt      pgtype.Timestamptz
+}
+
+func (q *Queries) GetSession(ctx context.Context, id pgtype.UUID) (GetSessionRow, error) {
+	row := q.db.QueryRow(ctx, getSession, id)
+	var i GetSessionRow
+	err := row.Scan(
+		&i.LastUsedAt,
+		&i.IdleTimeout,
+		&i.AbsoluteExpiry,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const getSessionByTokenHash = `-- name: GetSessionByTokenHash :one
+SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = $1
+`
+
+type GetSessionByTokenHashRow struct {
+	ID             pgtype.UUID
+	AccountID      pgtype.UUID
+	ClientKind     string
+	TokenIssuedAt  time.Time
+	LastUsedAt     time.Time
+	IdleTimeout    time.Duration
+	AbsoluteExpiry time.Time
+	RevokedAt      pgtype.Timestamptz
+}
+
+// SEC-15: every request checks its access token here, by the unique index.
+func (q *Queries) GetSessionByTokenHash(ctx context.Context, tokenHash []byte) (GetSessionByTokenHashRow, error) {
+	row := q.db.QueryRow(ctx, getSessionByTokenHash, tokenHash)
+	var i GetSessionByTokenHashRow
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.ClientKind,
+		&i.TokenIssuedAt,
+		&i.LastUsedAt,
+		&i.IdleTimeout,
+		&i.AbsoluteExpiry,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
 const getSetupTokenForEmail = `-- name: GetSetupTokenForEmail :one
 SELECT email, expires_at, used_at FROM setup_token
  WHERE token_hash = $1 AND email = $2
@@ -225,6 +324,56 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 	return err
 }
 
+const revokeSession = `-- name: RevokeSession :execrows
+UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
+ WHERE id = $3 AND revoked_at IS NULL
+`
+
+type RevokeSessionParams struct {
+	Now    time.Time
+	Reason string
+	ID     pgtype.UUID
+}
+
+func (q *Queries) RevokeSession(ctx context.Context, arg RevokeSessionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, revokeSession, arg.Now, arg.Reason, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const rotateAccessToken = `-- name: RotateAccessToken :exec
+UPDATE session SET token_hash = $1, token_issued_at = $2, last_used_at = $2
+ WHERE id = $3
+`
+
+type RotateAccessTokenParams struct {
+	TokenHash []byte
+	Now       time.Time
+	ID        pgtype.UUID
+}
+
+func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenParams) error {
+	_, err := q.db.Exec(ctx, rotateAccessToken, arg.TokenHash, arg.Now, arg.ID)
+	return err
+}
+
+const touchSession = `-- name: TouchSession :exec
+UPDATE session SET last_used_at = $1 WHERE id = $2
+`
+
+type TouchSessionParams struct {
+	Now time.Time
+	ID  pgtype.UUID
+}
+
+// The base of the idle limit.
+func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) error {
+	_, err := q.db.Exec(ctx, touchSession, arg.Now, arg.ID)
+	return err
+}
+
 const upsertSignupVerification = `-- name: UpsertSignupVerification :exec
 INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
 VALUES ($1, 'setup_token', $2, $3, $4, $5)
@@ -249,6 +398,25 @@ func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignup
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const useRefreshToken = `-- name: UseRefreshToken :execrows
+UPDATE refresh_token SET used_at = $1::timestamptz
+ WHERE token_hash = $2 AND used_at IS NULL
+`
+
+type UseRefreshTokenParams struct {
+	Now       time.Time
+	TokenHash []byte
+}
+
+// SEC-15: a refresh token is used once; zero rows means it was used before.
+func (q *Queries) UseRefreshToken(ctx context.Context, arg UseRefreshTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useRefreshToken, arg.Now, arg.TokenHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const useSetupToken = `-- name: UseSetupToken :execrows

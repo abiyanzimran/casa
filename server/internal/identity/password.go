@@ -2,7 +2,6 @@ package identity
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/subtle"
 	_ "embed" // the common password list
 	"errors"
@@ -50,8 +49,7 @@ func newHasher(params PasswordParams) *hasher {
 }
 
 func (h *hasher) hash(ctx context.Context, password string) (passwordHash, error) {
-	salt := make([]byte, h.params.SaltBytes)
-	_, _ = rand.Read(salt) // never returns an error (crypto/rand, Go 1.24 and later)
+	salt := randomBytes(int(h.params.SaltBytes))
 	key, err := h.derive(ctx, h.params, salt, password)
 	if err != nil {
 		return passwordHash{}, err

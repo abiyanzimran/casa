@@ -30,6 +30,9 @@ enum ErrorCode {
   // Too many failed attempts from this account or network address; retry
   // later (SEC-12).
   ERROR_CODE_RATE_LIMITED = 7;
+  // The email and password do not open a session, whichever of the two is
+  // wrong (SEC-12).
+  ERROR_CODE_CREDENTIALS_REJECTED = 8;
 }
 
 // ErrorDetail is the Connect error detail that carries the domain error code

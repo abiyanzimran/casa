@@ -51,6 +51,9 @@ const (
 	// Too many failed attempts from this account or network address; retry
 	// later (SEC-12).
 	ErrorCode_ERROR_CODE_RATE_LIMITED ErrorCode = 7
+	// The email and password do not open a session, whichever of the two is
+	// wrong (SEC-12).
+	ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED ErrorCode = 8
 )
 
 // Enum value maps for ErrorCode.
@@ -64,6 +67,7 @@ var (
 		5: "ERROR_CODE_NOTICE_UNREAD",
 		6: "ERROR_CODE_TOKEN_REJECTED",
 		7: "ERROR_CODE_RATE_LIMITED",
+		8: "ERROR_CODE_CREDENTIALS_REJECTED",
 	}
 	ErrorCode_value = map[string]int32{
 		"ERROR_CODE_UNSPECIFIED":             0,
@@ -74,6 +78,7 @@ var (
 		"ERROR_CODE_NOTICE_UNREAD":           5,
 		"ERROR_CODE_TOKEN_REJECTED":          6,
 		"ERROR_CODE_RATE_LIMITED":            7,
+		"ERROR_CODE_CREDENTIALS_REJECTED":    8,
 	}
 )
 
@@ -157,7 +162,7 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\n" +
 	"\x13casa/v1/error.proto\x12\acasa.v1\"5\n" +
 	"\vErrorDetail\x12&\n" +
-	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\x86\x02\n" +
+	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\xab\x02\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ERROR_CODE_CLIENT_UPGRADE_REQUIRED\x10\x01\x12\x1e\n" +
@@ -166,7 +171,8 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\x17ERROR_CODE_WRITE_FROZEN\x10\x04\x12\x1c\n" +
 	"\x18ERROR_CODE_NOTICE_UNREAD\x10\x05\x12\x1d\n" +
 	"\x19ERROR_CODE_TOKEN_REJECTED\x10\x06\x12\x1b\n" +
-	"\x17ERROR_CODE_RATE_LIMITED\x10\aB\x97\x01\n" +
+	"\x17ERROR_CODE_RATE_LIMITED\x10\a\x12#\n" +
+	"\x1fERROR_CODE_CREDENTIALS_REJECTED\x10\bB\x97\x01\n" +
 	"\vcom.casa.v1B\n" +
 	"ErrorProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 

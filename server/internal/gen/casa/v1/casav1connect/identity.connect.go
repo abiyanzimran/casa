@@ -30,6 +30,11 @@ const (
 	// IdentityServiceCompleteSignUpProcedure is the procedure name of the IdentityService's
 	// CompleteSignUp RPC.
 	IdentityServiceCompleteSignUpProcedure = "/casa.v1.IdentityService/CompleteSignUp"
+	// IdentityServiceSignInProcedure is the procedure name of the IdentityService's SignIn RPC.
+	IdentityServiceSignInProcedure = "/casa.v1.IdentityService/SignIn"
+	// IdentityServiceRefreshSessionProcedure is the procedure name of the IdentityService's
+	// RefreshSession RPC.
+	IdentityServiceRefreshSessionProcedure = "/casa.v1.IdentityService/RefreshSession"
 )
 
 var (
@@ -47,6 +52,20 @@ var (
 			Procedure:  IdentityServiceCompleteSignUpProcedure,
 		}
 	})
+	identityServiceSignInSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("SignIn"),
+			Procedure:  IdentityServiceSignInProcedure,
+		}
+	})
+	identityServiceRefreshSessionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("RefreshSession"),
+			Procedure:  IdentityServiceRefreshSessionProcedure,
+		}
+	})
 )
 
 // IdentityServiceClient is a client for the casa.v1.IdentityService service.
@@ -58,6 +77,12 @@ type IdentityServiceClient interface {
 	// Opens the account with the emailed link and the person's own password,
 	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10).
 	CompleteSignUp(context.Context, *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error)
+	// Opens a native session with email and password. An unknown email and a
+	// wrong password get the same CREDENTIALS_REJECTED (SEC-12).
+	SignIn(context.Context, *v1.SignInRequest) (*v1.SignInResponse, error)
+	// Rotates a native session's tokens. A refresh token used a second time
+	// revokes its session (SEC-15).
+	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
 }
 
 // NewIdentityServiceClient constructs a client for the casa.v1.IdentityService service. Multiple
@@ -75,6 +100,12 @@ type IdentityServiceHandler interface {
 	// Opens the account with the emailed link and the person's own password,
 	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10).
 	CompleteSignUp(context.Context, *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error)
+	// Opens a native session with email and password. An unknown email and a
+	// wrong password get the same CREDENTIALS_REJECTED (SEC-12).
+	SignIn(context.Context, *v1.SignInRequest) (*v1.SignInResponse, error)
+	// Rotates a native session's tokens. A refresh token used a second time
+	// revokes its session (SEC-15).
+	RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error)
 }
 
 // RegisterIdentityServiceHandler registers svc as the casa.v1.IdentityService implementation on
@@ -84,6 +115,8 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 	server.Register(
 		connect.Method{Spec: identityServiceStartSignUpSpec(), Handler: adapter.startSignUp},
 		connect.Method{Spec: identityServiceCompleteSignUpSpec(), Handler: adapter.completeSignUp},
+		connect.Method{Spec: identityServiceSignInSpec(), Handler: adapter.signIn},
+		connect.Method{Spec: identityServiceRefreshSessionSpec(), Handler: adapter.refreshSession},
 	)
 }
 
@@ -96,6 +129,14 @@ func (UnimplementedIdentityServiceHandler) StartSignUp(context.Context, *v1.Star
 
 func (UnimplementedIdentityServiceHandler) CompleteSignUp(context.Context, *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.CompleteSignUp is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) SignIn(context.Context, *v1.SignInRequest) (*v1.SignInResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.SignIn is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) RefreshSession(context.Context, *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.RefreshSession is not implemented")
 }
 
 type identityServiceClient struct {
@@ -113,6 +154,22 @@ func (c *identityServiceClient) StartSignUp(ctx context.Context, req *v1.StartSi
 func (c *identityServiceClient) CompleteSignUp(ctx context.Context, req *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error) {
 	var res v1.CompleteSignUpResponse
 	if err := c.client.CallUnary(ctx, identityServiceCompleteSignUpSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) SignIn(ctx context.Context, req *v1.SignInRequest) (*v1.SignInResponse, error) {
+	var res v1.SignInResponse
+	if err := c.client.CallUnary(ctx, identityServiceSignInSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) RefreshSession(ctx context.Context, req *v1.RefreshSessionRequest) (*v1.RefreshSessionResponse, error) {
+	var res v1.RefreshSessionResponse
+	if err := c.client.CallUnary(ctx, identityServiceRefreshSessionSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -138,6 +195,30 @@ func (h identityServiceHandler) completeSignUp(ctx context.Context, _ connect.Sp
 		return err
 	}
 	res, err := h.svc.CompleteSignUp(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) signIn(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.SignInRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.SignIn(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) refreshSession(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RefreshSessionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.RefreshSession(ctx, &req)
 	if err != nil {
 		return err
 	}

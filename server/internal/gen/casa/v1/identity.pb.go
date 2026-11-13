@@ -228,6 +228,209 @@ func (x *CompleteSignUpResponse) GetTokens() *SessionTokens {
 	return nil
 }
 
+type SignInRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	// No email rule: a malformed email is rejected like an unknown one
+	// (SEC-12).
+	Email         string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SignInRequest) Reset() {
+	*x = SignInRequest{}
+	mi := &file_casa_v1_identity_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignInRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignInRequest) ProtoMessage() {}
+
+func (x *SignInRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignInRequest.ProtoReflect.Descriptor instead.
+func (*SignInRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SignInRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *SignInRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *SignInRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type SignInResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tokens        *SessionTokens         `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SignInResponse) Reset() {
+	*x = SignInResponse{}
+	mi := &file_casa_v1_identity_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignInResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignInResponse) ProtoMessage() {}
+
+func (x *SignInResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignInResponse.ProtoReflect.Descriptor instead.
+func (*SignInResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SignInResponse) GetTokens() *SessionTokens {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
+type RefreshSessionRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	// No validation rule, as setup_token above.
+	RefreshToken  string `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionRequest) Reset() {
+	*x = RefreshSessionRequest{}
+	mi := &file_casa_v1_identity_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionRequest) ProtoMessage() {}
+
+func (x *RefreshSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionRequest.ProtoReflect.Descriptor instead.
+func (*RefreshSessionRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RefreshSessionRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *RefreshSessionRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+type RefreshSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tokens        *SessionTokens         `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionResponse) Reset() {
+	*x = RefreshSessionResponse{}
+	mi := &file_casa_v1_identity_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionResponse) ProtoMessage() {}
+
+func (x *RefreshSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_identity_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionResponse.ProtoReflect.Descriptor instead.
+func (*RefreshSessionResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *RefreshSessionResponse) GetTokens() *SessionTokens {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
 // SessionTokens are a native session's tokens (SEC-15; 09.4 §2). A web
 // session gets a cookie instead (1.5; SEC-161 (b)).
 type SessionTokens struct {
@@ -241,7 +444,7 @@ type SessionTokens struct {
 
 func (x *SessionTokens) Reset() {
 	*x = SessionTokens{}
-	mi := &file_casa_v1_identity_proto_msgTypes[4]
+	mi := &file_casa_v1_identity_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -253,7 +456,7 @@ func (x *SessionTokens) String() string {
 func (*SessionTokens) ProtoMessage() {}
 
 func (x *SessionTokens) ProtoReflect() protoreflect.Message {
-	mi := &file_casa_v1_identity_proto_msgTypes[4]
+	mi := &file_casa_v1_identity_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -266,7 +469,7 @@ func (x *SessionTokens) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionTokens.ProtoReflect.Descriptor instead.
 func (*SessionTokens) Descriptor() ([]byte, []int) {
-	return file_casa_v1_identity_proto_rawDescGZIP(), []int{4}
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SessionTokens) GetAccessToken() string {
@@ -307,14 +510,27 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x12verification_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\x11verificationToken\x12)\n" +
 	"\bpassword\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\bpassword\"H\n" +
 	"\x16CompleteSignUpResponse\x12.\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\xa2\x01\n" +
+	"\rSignInRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12\x1e\n" +
+	"\x05email\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xfe\x01R\x05email\x12'\n" +
+	"\bpassword\x18\x03 \x01(\tB\v\xbaH\x05r\x03\x18\x80\b\x80\x01\x01R\bpassword\"@\n" +
+	"\x0eSignInResponse\x12.\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x8b\x01\n" +
+	"\x15RefreshSessionRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12(\n" +
+	"\rrefresh_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\frefreshToken\"H\n" +
+	"\x16RefreshSessionResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\xb4\x01\n" +
 	"\rSessionTokens\x12&\n" +
 	"\faccess_token\x18\x01 \x01(\tB\x03\x80\x01\x01R\vaccessToken\x12(\n" +
 	"\rrefresh_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\frefreshToken\x12Q\n" +
-	"\x17access_token_expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt2\xae\x01\n" +
+	"\x17access_token_expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt2\xbc\x02\n" +
 	"\x0fIdentityService\x12H\n" +
 	"\vStartSignUp\x12\x1b.casa.v1.StartSignUpRequest\x1a\x1c.casa.v1.StartSignUpResponse\x12Q\n" +
-	"\x0eCompleteSignUp\x12\x1e.casa.v1.CompleteSignUpRequest\x1a\x1f.casa.v1.CompleteSignUpResponseB\x9a\x01\n" +
+	"\x0eCompleteSignUp\x12\x1e.casa.v1.CompleteSignUpRequest\x1a\x1f.casa.v1.CompleteSignUpResponse\x129\n" +
+	"\x06SignIn\x12\x16.casa.v1.SignInRequest\x1a\x17.casa.v1.SignInResponse\x12Q\n" +
+	"\x0eRefreshSession\x12\x1e.casa.v1.RefreshSessionRequest\x1a\x1f.casa.v1.RefreshSessionResponseB\x9a\x01\n" +
 	"\vcom.casa.v1B\rIdentityProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
 var (
@@ -329,30 +545,42 @@ func file_casa_v1_identity_proto_rawDescGZIP() []byte {
 	return file_casa_v1_identity_proto_rawDescData
 }
 
-var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_casa_v1_identity_proto_goTypes = []any{
 	(*StartSignUpRequest)(nil),     // 0: casa.v1.StartSignUpRequest
 	(*StartSignUpResponse)(nil),    // 1: casa.v1.StartSignUpResponse
 	(*CompleteSignUpRequest)(nil),  // 2: casa.v1.CompleteSignUpRequest
 	(*CompleteSignUpResponse)(nil), // 3: casa.v1.CompleteSignUpResponse
-	(*SessionTokens)(nil),          // 4: casa.v1.SessionTokens
-	(*RequestContext)(nil),         // 5: casa.v1.RequestContext
-	(*timestamppb.Timestamp)(nil),  // 6: google.protobuf.Timestamp
+	(*SignInRequest)(nil),          // 4: casa.v1.SignInRequest
+	(*SignInResponse)(nil),         // 5: casa.v1.SignInResponse
+	(*RefreshSessionRequest)(nil),  // 6: casa.v1.RefreshSessionRequest
+	(*RefreshSessionResponse)(nil), // 7: casa.v1.RefreshSessionResponse
+	(*SessionTokens)(nil),          // 8: casa.v1.SessionTokens
+	(*RequestContext)(nil),         // 9: casa.v1.RequestContext
+	(*timestamppb.Timestamp)(nil),  // 10: google.protobuf.Timestamp
 }
 var file_casa_v1_identity_proto_depIdxs = []int32{
-	5, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	5, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	4, // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
-	6, // 3: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
-	0, // 4: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
-	2, // 5: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
-	1, // 6: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
-	3, // 7: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	9,  // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	9,  // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	8,  // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
+	9,  // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
+	8,  // 4: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
+	9,  // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
+	8,  // 6: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
+	10, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 8: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
+	2,  // 9: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
+	4,  // 10: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
+	6,  // 11: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
+	1,  // 12: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
+	3,  // 13: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
+	5,  // 14: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
+	7,  // 15: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
+	12, // [12:16] is the sub-list for method output_type
+	8,  // [8:12] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_identity_proto_init() }
@@ -367,7 +595,7 @@ func file_casa_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_identity_proto_rawDesc), len(file_casa_v1_identity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

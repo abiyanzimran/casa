@@ -37,6 +37,22 @@ func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.Complet
 	return &casav1.CompleteSignUpResponse{Tokens: sessionTokens(tokens)}, nil
 }
 
+func (h identityHandler) SignIn(ctx context.Context, req *casav1.SignInRequest) (*casav1.SignInResponse, error) {
+	tokens, err := h.s.SignIn(ctx, clientOf(ctx, req.GetRequestContext()), req.GetEmail(), req.GetPassword())
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.SignInResponse{Tokens: sessionTokens(tokens)}, nil
+}
+
+func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.RefreshSessionRequest) (*casav1.RefreshSessionResponse, error) {
+	tokens, err := h.s.Refresh(ctx, req.GetRefreshToken())
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.RefreshSessionResponse{Tokens: sessionTokens(tokens)}, nil
+}
+
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
 	return &casav1.SessionTokens{
 		AccessToken: t.AccessToken, RefreshToken: t.RefreshToken,
@@ -74,6 +90,18 @@ func identityError(err error) error {
 		return connect.NewError(connect.CodeUnimplemented, "web sessions come with the cookie transport")
 	case errors.Is(err, identity.ErrPasswordTooCommon):
 		return passwordTooCommon()
+	case errors.Is(err, identity.ErrCredentialsRejected):
+		return errorWithDetail(connect.CodeUnauthenticated, "credentials rejected",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED})
+	case errors.Is(err, identity.ErrUnauthenticated):
+		// No detail: the client refreshes, then signs in.
+		return connect.NewError(connect.CodeUnauthenticated, "unauthenticated")
+	case errors.Is(err, identity.ErrSessionExpired):
+		return errorWithDetail(connect.CodeUnauthenticated, "session expired",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_SESSION_EXPIRED})
+	case errors.Is(err, identity.ErrSessionRevoked):
+		return errorWithDetail(connect.CodeUnauthenticated, "session revoked",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED})
 	}
 	return connect.NewError(connect.CodeInternal, "internal error").WithCause(err)
 }
