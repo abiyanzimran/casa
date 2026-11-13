@@ -6,6 +6,8 @@ package identity
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -33,6 +35,9 @@ var (
 	ErrSessionExpired = errors.New("session expired")
 	// ErrSessionRevoked: the session was revoked (SEC-15, SEC-24).
 	ErrSessionRevoked = errors.New("session revoked")
+	// ErrReauthRequired: the action needs an open re-authentication of this
+	// session for its purpose (SEC-13).
+	ErrReauthRequired = errors.New("re-authentication required")
 )
 
 // Lifetimes of SEC-15 and 09.4 §2, and of the native session (lead ruling Q5
@@ -42,14 +47,24 @@ const (
 	nativeIdleTimeout        = 30 * 24 * time.Hour
 	nativeAbsoluteLifetime   = 180 * 24 * time.Hour
 	verificationLinkLifetime = 30 * time.Minute // lead ruling Q4 on the 1.4 plan [Usulan]
+	reauthLifetime           = 5 * time.Minute  // SEC-13 [Asumsi]; 09.4 §2
+	recoveryLinkLifetime     = 30 * time.Minute // SEC-24 [Asumsi]; 09.4 §2
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
-// address; SignIn by email and by address.
+// address; SignIn by email and by address; Reauthenticate by account and by
+// address; StartRecovery by email and by address.
 const (
-	tokenUseThreshold = 20
-	signInThreshold   = 20
+	tokenUseThreshold        = 20
+	signInThreshold          = 20
+	reauthThreshold          = 20
+	recoveryEmailThreshold   = 5
+	recoveryAddressThreshold = 20
 )
+
+// afterResponseTimeout bounds the work after a response, such as a recovery
+// mail (10.1 §5.1 rule 6) [Usulan].
+const afterResponseTimeout = 30 * time.Second
 
 // touchAfter is how stale last_used_at may get before a request updates it,
 // so a burst of requests does not write on each one [Usulan].
@@ -65,6 +80,9 @@ type Config struct {
 	Now      func() time.Time
 	// Password is DefaultPasswordParams in production.
 	Password PasswordParams
+	// Logger receives the failures of work done after a response; nil is
+	// slog.Default().
+	Logger *slog.Logger
 }
 
 // MessageKind is the kind of an emailed message.
@@ -73,6 +91,8 @@ type MessageKind int
 const (
 	// MessageVerification carries the link that finishes a sign-up.
 	MessageVerification MessageKind = iota + 1
+	// MessageRecovery carries the link that sets a new password (SEC-24).
+	MessageRecovery
 )
 
 // Message is one email: a recipient and a one-time link (09.4 §2 "Pengiriman
@@ -105,20 +125,71 @@ type Service struct {
 	hasher   *hasher
 	tokenUse rateLimit
 	signIn   rateLimit
+	reauth   rateLimit
+	recovery rateLimit
+	// background is the work started after a response: recovery mail
+	// until the identity.send_mail job of 1.7.
+	background sync.WaitGroup
+	// afterResponseTimeout bounds each piece of background work.
+	afterResponseTimeout time.Duration
+	// closed refuses background work once shutdown starts; mu orders it
+	// with background.Go, so no Add runs during Close's Wait.
+	mu     sync.Mutex
+	closed bool
+	logger *slog.Logger
 	// decoy is verified when the email has no credential, so a sign-in
 	// costs one hash whatever the reason it fails (SEC-12).
-	decoy passwordHash
+	decoy PasswordHash
+}
+
+// Wait returns when the work started after earlier responses is done,
+// without refusing new work; tests call it to see that work. On shutdown
+// casa serve calls Close instead.
+func (s *Service) Wait() { s.background.Wait() }
+
+// Close refuses new background work and waits for the work already
+// started; casa serve calls it on shutdown, before closing the pool.
+func (s *Service) Close() {
+	s.mu.Lock()
+	s.closed = true
+	s.mu.Unlock()
+	s.background.Wait()
+}
+
+// afterResponse runs work after the response, bounded by
+// afterResponseTimeout and detached from the request's cancellation (10.1
+// §5.1 rule 6); false once shutdown has started.
+func (s *Service) afterResponse(ctx context.Context, work func(context.Context)) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closed {
+		return false
+	}
+	s.background.Go(func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.afterResponseTimeout)
+		defer cancel()
+		work(ctx)
+	})
+	return true
 }
 
 // New returns the identity service over pool.
 func New(pool *pgxpool.Pool, config Config) *Service {
+	logger := config.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
 	return &Service{
-		pool:     pool,
-		config:   config,
-		hasher:   newHasher(config.Password),
-		tokenUse: newRateLimit(0, tokenUseThreshold, false, config.Now),
-		signIn:   newRateLimit(signInThreshold, signInThreshold, true, config.Now),
-		decoy: passwordHash{
+		afterResponseTimeout: afterResponseTimeout,
+		logger:               logger,
+		pool:                 pool,
+		config:               config,
+		hasher:               newHasher(config.Password),
+		tokenUse:             newRateLimit(0, tokenUseThreshold, false, config.Now),
+		signIn:               newRateLimit(signInThreshold, signInThreshold, true, config.Now),
+		reauth:               newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
+		recovery:             newRateLimit(recoveryEmailThreshold, recoveryAddressThreshold, false, config.Now),
+		decoy: PasswordHash{
 			params: config.Password,
 			salt:   randomBytes(int(config.Password.SaltBytes)),
 			hash:   randomBytes(int(config.Password.KeyBytes)),

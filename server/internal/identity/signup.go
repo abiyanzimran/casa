@@ -153,7 +153,7 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		if err != nil {
 			return err
 		}
-		tokens, err = openSession(ctx, tx, account, client, now)
+		tokens, _, err = openSession(ctx, tx, account, client, now)
 		return err
 	})
 	return tokens, err

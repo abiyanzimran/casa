@@ -20,9 +20,11 @@ func TestSQLCReadsEveryMigration(t *testing.T) {
 	if err != nil || len(migrations) == 0 {
 		t.Fatalf("no migrations found (%v)", err)
 	}
+	// Every module's block reads every migration.
+	blocks := strings.Count(string(config), "- engine: postgresql")
 	for _, m := range migrations {
-		if !strings.Contains(string(config), "internal/schema/"+m) {
-			t.Errorf("migration %s is missing from sqlc.yaml schema (sqlc would generate code for an old schema)", m)
+		if n := strings.Count(string(config), "internal/schema/"+m); n != blocks {
+			t.Errorf("migration %s is in %d of the %d sqlc.yaml blocks (sqlc would generate code for an old schema)", m, n, blocks)
 		}
 	}
 }

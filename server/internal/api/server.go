@@ -68,10 +68,12 @@ func NewServer(minimumWebVersion Version, authenticate func(context.Context, str
 // publicProcedures are the only procedures served without a session: the
 // identity RPCs used before one exists (09.2 §1; SEC-15).
 var publicProcedures = map[string]bool{
-	casav1connect.IdentityServiceStartSignUpProcedure:    true,
-	casav1connect.IdentityServiceCompleteSignUpProcedure: true,
-	casav1connect.IdentityServiceSignInProcedure:         true,
-	casav1connect.IdentityServiceRefreshSessionProcedure: true,
+	casav1connect.IdentityServiceStartSignUpProcedure:      true,
+	casav1connect.IdentityServiceCompleteSignUpProcedure:   true,
+	casav1connect.IdentityServiceSignInProcedure:           true,
+	casav1connect.IdentityServiceRefreshSessionProcedure:   true,
+	casav1connect.IdentityServiceStartRecoveryProcedure:    true,
+	casav1connect.IdentityServiceCompleteRecoveryProcedure: true,
 }
 
 type sessionKey struct{}

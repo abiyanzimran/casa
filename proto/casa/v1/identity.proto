@@ -3,12 +3,14 @@ syntax = "proto3";
 package casa.v1;
 
 import "buf/validate/validate.proto";
+import "casa/v1/command.proto";
 import "casa/v1/request.proto";
 import "google/protobuf/timestamp.proto";
 
 // IdentityService is the identity module's API: closed sign-up, sign-in and
 // sessions (09.2 §1; SEC-11, SEC-12, SEC-15, SEC-158). Its RPCs are outside
-// the command kind table and carry no idempotency key (09.2 §8; 09.3 §1).
+// the command kind table and carry no idempotency key (09.2 §8; 09.3 §1),
+// except the write commands that carry the casa.v1.command option.
 // Every password and token field is debug_redact, so it never appears in a
 // printed message.
 service IdentityService {
@@ -25,6 +27,36 @@ service IdentityService {
   // Rotates a native session's tokens. A refresh token used a second time
   // revokes its session (SEC-15).
   rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  // Sends a single-use recovery link to the email when it has an account.
+  // The answer is the same empty response either way (SEC-24, SEC-12);
+  // requests are rate limited per email and per address (10.1 §8.1).
+  rpc StartRecovery(StartRecoveryRequest) returns (StartRecoveryResponse);
+  // Sets a new password with the emailed link, revokes every other session
+  // of the account, and opens a session for this device (SEC-24). Every
+  // rejection of the link is the same TOKEN_REJECTED (SEC-30).
+  rpc CompleteRecovery(CompleteRecoveryRequest) returns (CompleteRecoveryResponse);
+  // Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
+  // exempt from NOTICE_UNREAD.
+  rpc SignOut(SignOutRequest) returns (SignOutResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      notice_exempt: true
+    };
+  }
+  // Checks the caller's password again and grants one action of purpose in
+  // this session for 5 minutes (SEC-13). A wrong password gets
+  // CREDENTIALS_REJECTED; attempts are rate limited per account and per
+  // address (SEC-12; 10.1 §8.1).
+  rpc Reauthenticate(ReauthenticateRequest) returns (ReauthenticateResponse);
+  // Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
+  // this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      protective: true
+      notice_exempt: true
+    };
+  }
 }
 
 message StartSignUpRequest {
@@ -90,4 +122,77 @@ message SessionTokens {
   string access_token = 1 [debug_redact = true];
   string refresh_token = 2 [debug_redact = true];
   google.protobuf.Timestamp access_token_expires_at = 3;
+}
+
+message SignOutRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+message SignOutResponse {}
+
+// ReauthPurpose is the one action a re-authentication grants (SEC-13).
+enum ReauthPurpose {
+  REAUTH_PURPOSE_UNSPECIFIED = 0;
+  REAUTH_PURPOSE_CHANGE_PASSWORD = 1;
+}
+
+message ReauthenticateRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No minimum: a wrong password of any length gets CREDENTIALS_REJECTED.
+  string password = 2 [
+    debug_redact = true,
+    (buf.validate.field).string.max_len = 1024
+  ];
+  ReauthPurpose purpose = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+}
+
+message ReauthenticateResponse {
+  google.protobuf.Timestamp expires_at = 1;
+}
+
+message ChangePasswordRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // At least 12 characters and not on the common password list (SEC-11).
+  string new_password = 2 [
+    debug_redact = true,
+    (buf.validate.field).string = {
+      min_len: 12
+      max_len: 1024
+    }
+  ];
+}
+
+message ChangePasswordResponse {}
+
+message StartRecoveryRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string email = 2 [(buf.validate.field).string = {
+    email: true
+    max_len: 254
+  }];
+}
+
+// Always empty: it never tells a registered email from another (SEC-12).
+message StartRecoveryResponse {}
+
+message CompleteRecoveryRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No validation rule on purpose: an empty or malformed token gets the same
+  // rejection as any other invalid token (SEC-30).
+  string recovery_token = 2 [debug_redact = true];
+  // At least 12 characters and not on the common password list (SEC-11).
+  string new_password = 3 [
+    debug_redact = true,
+    (buf.validate.field).string = {
+      min_len: 12
+      max_len: 1024
+    }
+  ];
+}
+
+message CompleteRecoveryResponse {
+  SessionTokens tokens = 1;
 }

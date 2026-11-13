@@ -142,8 +142,9 @@ func (l *Limiter) live(key string, now time.Time) (limiterKey, bool) {
 // be forgotten. Every other table goes on to drop penalised keys, oldest
 // last failure first, so a flood cannot close sign-up or recovery.
 //
-// One scan makes room for evictBatch keys, not one, so a flood of new keys
-// costs one O(n) scan per 1% of the table, not per key.
+// In an evicting table one scan makes room for 1% of the table, so a flood of
+// new keys costs one O(n) scan per 1% of the table, not per key. A refusing
+// table drops only what one new key needs (item 2 (b)).
 //
 // ponytail: a full sort of the candidates once per evictBatch new keys; a
 // heap by last failure if a full table becomes common.
@@ -168,7 +169,11 @@ func (l *Limiter) evict(now time.Time) bool {
 			below = append(below, candidate{key, k.lastFailure})
 		}
 	}
-	need := max(1, l.maxKeys/evictBatchDivisor) - (l.maxKeys - len(l.keys))
+	batch := 1 // 10.1 §8.1 item 2 (b): a table guarding a password drops only what one key needs
+	if !l.refusesWhenFull {
+		batch = max(1, l.maxKeys/evictBatchDivisor)
+	}
+	need := batch - (l.maxKeys - len(l.keys))
 	drop := func(candidates []candidate) {
 		if need <= 0 {
 			return

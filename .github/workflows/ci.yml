@@ -57,6 +57,9 @@ jobs:
       - name: server-test (QG-05)
         if: ${{ !cancelled() }}
         run: make server-test
+      - name: server-test-old-binary (QG-05)
+        if: ${{ !cancelled() }}
+        run: make server-test-old-binary
       - name: cpd-go (QG-02)
         if: ${{ !cancelled() }}
         run: make cpd-go

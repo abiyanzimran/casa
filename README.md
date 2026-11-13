@@ -31,7 +31,7 @@ make check-web
 make check-contract
 ```
 
-`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole history of the checked-out branch (every commit reachable from `HEAD`). `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
+`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, the old-binary test (below), duplication check, and the secrets check over the whole history of the checked-out branch (every commit reachable from `HEAD`). `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
 
 ## Database
 
@@ -42,6 +42,8 @@ make db-up        # start it on 127.0.0.1:5432 (CASA_DB_PORT=... to use another 
 make server-test  # each test creates and drops its own database
 make db-down
 ```
+
+`make server-test-old-binary` (QG-05) builds this branch's `casa` binary and runs the tests of `refs/remotes/origin/main` (`BASE_REF=...` to use another ref; fetch it first) on databases that binary migrated, so a rollback to the old binary keeps working on the new schema (expand and contract).
 
 `server-test` reads the cluster from `CASA_TEST_ADMIN_URL`, by default `postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable`; without a reachable cluster the database tests fail, they are never skipped. On a real cluster, `server/internal/schema/roles.sql` is run once by a superuser to create the database roles, and `casa migrate` then applies the migrations as `migrator`.
 
@@ -59,7 +61,7 @@ make check-contract   # buf format, buf lint, buf breaking against origin/main, 
 
 ## Queries
 
-All production SQL is in each module's `queries.sql` (today `server/internal/identity/queries.sql`) and goes through sqlc; the generated Go (`server/internal/*/*db/`) is committed and never edited by hand. `server/sqlc.yaml` names every migration. After changing a query or a migration:
+All production SQL is in each module's `queries.sql` (today `server/internal/identity/queries.sql` and `server/internal/command/queries.sql`) and goes through sqlc; the generated Go (`server/internal/*/*db/`) is committed and never edited by hand. `server/sqlc.yaml` names every migration. After changing a query or a migration:
 
 ```sh
 make sqlc-generate    # regenerate, then commit the result
@@ -69,10 +71,10 @@ make sqlc-generated   # fails if the committed code differs (a check-server and 
 ## Server
 
 ```sh
-cd server && go run ./cmd/casa serve -listen 127.0.0.1:8080
+cd server && go run ./cmd/casa serve -mail-dir /path/to/mail -listen 127.0.0.1:8080
 ```
 
-`GET /healthz` answers `ok`. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
+`GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
 
 A setup token opens the first account of a household (closed sign-up, SEC-158 (b)). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
 
@@ -81,3 +83,8 @@ casa setup-token -email person@example.com
 ```
 
 It connects as `app_rw` with the connection string in the systemd credential `app-database-url` (`$CREDENTIALS_DIRECTORY/app-database-url`) and prints the token once; the database keeps only its SHA-256.
+
+## Identity
+
+Sign-up is closed: the person opens the emailed verification link and sets their own password. A native client then signs in with email and password and gets an access token (15 minutes, sent as `Authorization: Bearer`) and a refresh token that rotates on every use. `SignOut` revokes the session. `Reauthenticate` checks the password again and allows one `ChangePassword` within 5 minutes. `StartRecovery` mails a single-use recovery link (30 minutes); `CompleteRecovery` sets a new password with it and revokes every other session. Sign-in, re-authentication, recovery and token use are rate limited per account or email and per network address, in memory. Web sessions arrive with the cookie transport in FS-1 1.5.
+

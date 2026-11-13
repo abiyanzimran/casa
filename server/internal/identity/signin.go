@@ -56,7 +56,7 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 	var tokens Tokens
 	err = database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		var err error
-		tokens, err = openSession(ctx, tx, account, client, s.config.Now())
+		tokens, _, err = openSession(ctx, tx, account, client, s.config.Now())
 		return err
 	})
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 // readCredential finds the account of email and its credential. For an
 // unknown email it still runs the credential read, with a random id, and
 // returns the decoy, so both cases run the same transactions.
-func (s *Service) readCredential(ctx context.Context, email string) (account pgtype.UUID, known bool, stored passwordHash, err error) {
+func (s *Service) readCredential(ctx context.Context, email string) (account pgtype.UUID, known bool, stored PasswordHash, err error) {
 	// 10.1 §5.1 rules 3, 4: the email lookup is a read of its own and
 	// selects only the id.
 	err = database.Read(ctx, s.pool, database.Scope{Email: email}, func(tx pgx.Tx) error {
@@ -80,27 +80,37 @@ func (s *Service) readCredential(ctx context.Context, email string) (account pgt
 	if errors.Is(err, pgx.ErrNoRows) {
 		account = pgtype.UUID{Bytes: [16]byte(randomBytes(16)), Valid: true}
 	} else if err != nil {
-		return account, false, passwordHash{}, fmt.Errorf("look up the email: %w", err)
+		return account, false, PasswordHash{}, fmt.Errorf("look up the email: %w", err)
 	}
+	stored, found, err := s.credentialOf(ctx, account)
+	if err != nil {
+		return account, false, PasswordHash{}, err
+	}
+	return account, known && found, stored, nil
+}
+
+// credentialOf reads account's credential; without one it returns the decoy
+// and false.
+func (s *Service) credentialOf(ctx context.Context, account pgtype.UUID) (PasswordHash, bool, error) {
 	var row identitydb.GetCredentialRow
-	err = database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		var err error
 		row, err = identitydb.New(tx).GetCredential(ctx, account)
 		return err
 	})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		return account, false, s.decoy, nil
+		return s.decoy, false, nil
 	case err != nil:
-		return account, false, passwordHash{}, fmt.Errorf("read the credential: %w", err)
+		return PasswordHash{}, false, fmt.Errorf("read the credential: %w", err)
 	}
-	return account, known, passwordHash{
+	return PasswordHash{
 		params: PasswordParams{
 			Time: uint32(row.TimeCost), MemoryKiB: uint32(row.MemoryKib), Parallelism: uint8(row.Parallelism), //nolint:gosec // G115: stored from PasswordParams
 			KeyBytes: uint32(len(row.Hash)), SaltBytes: uint32(len(row.Salt)), //nolint:gosec // G115: 16 and 32 bytes
 		},
 		salt: row.Salt, hash: row.Hash,
-	}, nil
+	}, true, nil
 }
 
 // Authenticate returns the session of a native access token (SEC-15). A
@@ -135,8 +145,15 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 	}
 	if now.Sub(row.LastUsedAt) > touchAfter {
 		err := database.Write(ctx, s.pool, database.Scope{AccountID: row.AccountID}, func(tx pgx.Tx) error {
-			return identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
+			touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
+			if err == nil && touched == 0 {
+				err = ErrSessionExpired // it ended since the read: fail closed
+			}
+			return err
 		})
+		if errors.Is(err, ErrSessionExpired) {
+			return Session{}, err
+		}
 		if err != nil {
 			return Session{}, fmt.Errorf("touch the session: %w", err)
 		}
@@ -211,9 +228,12 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (Tokens, err
 func rotate(ctx context.Context, q *identitydb.Queries, account, session pgtype.UUID, now time.Time) (Tokens, error) {
 	access, accessHash := newToken()
 	refresh, refreshHash := newToken()
-	err := q.RotateAccessToken(ctx, identitydb.RotateAccessTokenParams{TokenHash: accessHash, Now: now, ID: session})
-	if err != nil {
+	rotated, err := q.RotateAccessToken(ctx, identitydb.RotateAccessTokenParams{TokenHash: accessHash, Now: now, ID: session})
+	switch {
+	case err != nil:
 		return Tokens{}, err
+	case rotated == 0:
+		return Tokens{}, ErrSessionExpired // it ended: fail closed
 	}
 	err = q.InsertRefreshToken(ctx, identitydb.InsertRefreshTokenParams{
 		TokenHash: refreshHash, SessionID: session, AccountID: account, CreatedAt: now,
@@ -235,4 +255,11 @@ func revokeSession(ctx context.Context, q *identitydb.Queries, account, session 
 		AccountID: account, SessionID: session, Kind: "session_revoked",
 		Detail: pgtype.Text{String: reason, Valid: true}, OccurredAt: now,
 	})
+}
+
+// SignOut revokes session (reason 'user') and records it in the security
+// trail (09.3 §1 "keluar akun"; SEC-16). It runs inside the command
+// transaction of tx, whose scope is the session's account.
+func (s *Service) SignOut(ctx context.Context, tx pgx.Tx, session Session) error {
+	return revokeSession(ctx, identitydb.New(tx), session.AccountID, session.ID, "user", s.config.Now())
 }

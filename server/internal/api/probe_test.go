@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -140,7 +141,13 @@ func methodViolations(method protoreflect.MethodDescriptor) []string {
 		rules = append(rules, "request field 1 is not a required casa.v1.RequestContext named request_context")
 	}
 	if proto.HasExtension(method.Options(), casav1.E_Command) {
-		rules = append(rules, commandViolations(proto.GetExtension(method.Options(), casav1.E_Command).(*casav1.CommandOptions))...)
+		command := proto.GetExtension(method.Options(), casav1.E_Command).(*casav1.CommandOptions)
+		rules = append(rules, commandViolations(command)...)
+		// 09.3 §1 NOTICE_UNREAD "Uji kontrak": notice_exempt but not
+		// protective is only sign-out, export, and the acknowledgement.
+		if command.GetNoticeExempt() && !command.GetProtective() && !slices.Contains(noticeExemptNotProtective, string(method.FullName())) {
+			rules = append(rules, "notice_exempt but neither protective nor sign-out, export, or acknowledgement")
+		}
 	}
 	violations := make([]string, len(rules))
 	for i, rule := range rules {
@@ -161,6 +168,11 @@ func startsWithRequestContext(request protoreflect.MessageDescriptor) bool {
 
 // commandViolations checks one row of the command kind table (09.3 §1;
 // 14 §4.6; ADR-028 item 3).
+// noticeExemptNotProtective are the commands 09.3 §1 lets skip
+// NOTICE_UNREAD without being protective: sign-out; export and the notice
+// acknowledgement are added by their tasks.
+var noticeExemptNotProtective = []string{"casa.v1.IdentityService.SignOut"}
+
 func commandViolations(command *casav1.CommandOptions) []string {
 	var rules []string
 	if command.HoldSeconds == nil {

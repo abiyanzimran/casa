@@ -50,6 +50,23 @@ func (q *Queries) GetCredential(ctx context.Context, accountID pgtype.UUID) (Get
 	return i, err
 }
 
+const getRecoveryToken = `-- name: GetRecoveryToken :one
+SELECT account_id, expires_at, used_at FROM recovery_token WHERE token_hash = $1
+`
+
+type GetRecoveryTokenRow struct {
+	AccountID pgtype.UUID
+	ExpiresAt time.Time
+	UsedAt    pgtype.Timestamptz
+}
+
+func (q *Queries) GetRecoveryToken(ctx context.Context, tokenHash []byte) (GetRecoveryTokenRow, error) {
+	row := q.db.QueryRow(ctx, getRecoveryToken, tokenHash)
+	var i GetRecoveryTokenRow
+	err := row.Scan(&i.AccountID, &i.ExpiresAt, &i.UsedAt)
+	return i, err
+}
+
 const getRefreshToken = `-- name: GetRefreshToken :one
 SELECT session_id, account_id FROM refresh_token WHERE token_hash = $1
 `
@@ -176,6 +193,27 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 	return i, err
 }
 
+const hasOpenReauthGrant = `-- name: HasOpenReauthGrant :one
+SELECT EXISTS (
+	SELECT 1 FROM reauth_grant
+	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz)
+`
+
+type HasOpenReauthGrantParams struct {
+	SessionID pgtype.UUID
+	Purpose   string
+	Now       time.Time
+}
+
+// The read-only check before hashing a new password; served by
+// reauth_grant_open.
+func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrantParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasOpenReauthGrant, arg.SessionID, arg.Purpose, arg.Now)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO account (id, email, created_at, signup_via)
 VALUES ($1, $2, $3, 'setup_token')
@@ -216,6 +254,52 @@ func (q *Queries) InsertCredential(ctx context.Context, arg InsertCredentialPara
 		arg.MemoryKib,
 		arg.Parallelism,
 		arg.UpdatedAt,
+	)
+	return err
+}
+
+const insertReauthGrant = `-- name: InsertReauthGrant :exec
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type InsertReauthGrantParams struct {
+	SessionID pgtype.UUID
+	AccountID pgtype.UUID
+	Purpose   string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantParams) error {
+	_, err := q.db.Exec(ctx, insertReauthGrant,
+		arg.SessionID,
+		arg.AccountID,
+		arg.Purpose,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
+const insertRecoveryToken = `-- name: InsertRecoveryToken :exec
+INSERT INTO recovery_token (token_hash, account_id, created_at, expires_at)
+VALUES ($1, $2, $3, $4)
+`
+
+type InsertRecoveryTokenParams struct {
+	TokenHash []byte
+	AccountID pgtype.UUID
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (q *Queries) InsertRecoveryToken(ctx context.Context, arg InsertRecoveryTokenParams) error {
+	_, err := q.db.Exec(ctx, insertRecoveryToken,
+		arg.TokenHash,
+		arg.AccountID,
+		arg.CreatedAt,
+		arg.ExpiresAt,
 	)
 	return err
 }
@@ -343,9 +427,58 @@ func (q *Queries) RevokeSession(ctx context.Context, arg RevokeSessionParams) (i
 	return result.RowsAffected(), nil
 }
 
-const rotateAccessToken = `-- name: RotateAccessToken :exec
+const revokeSessions = `-- name: RevokeSessions :many
+UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
+ WHERE account_id = $3 AND revoked_at IS NULL
+   AND id IS DISTINCT FROM $4::uuid
+RETURNING id, (last_used_at + idle_timeout > $1::timestamptz AND absolute_expiry > $1::timestamptz)::boolean AS live
+`
+
+type RevokeSessionsParams struct {
+	Now       time.Time
+	Reason    string
+	AccountID pgtype.UUID
+	Keep      pgtype.UUID
+}
+
+type RevokeSessionsRow struct {
+	ID   pgtype.UUID
+	Live bool
+}
+
+// Every unrevoked session of the account except keep (none when NULL),
+// expired ones too, so no path can revive one (SEC-24; lead ruling on #32:
+// fail closed); live says which were still live, for the trail. Served by
+// session_account_live.
+func (q *Queries) RevokeSessions(ctx context.Context, arg RevokeSessionsParams) ([]RevokeSessionsRow, error) {
+	rows, err := q.db.Query(ctx, revokeSessions,
+		arg.Now,
+		arg.Reason,
+		arg.AccountID,
+		arg.Keep,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RevokeSessionsRow
+	for rows.Next() {
+		var i RevokeSessionsRow
+		if err := rows.Scan(&i.ID, &i.Live); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rotateAccessToken = `-- name: RotateAccessToken :execrows
 UPDATE session SET token_hash = $1, token_issued_at = $2, last_used_at = $2
- WHERE id = $3
+ WHERE id = $3 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $2 AND absolute_expiry > $2
 `
 
 type RotateAccessTokenParams struct {
@@ -354,13 +487,19 @@ type RotateAccessTokenParams struct {
 	ID        pgtype.UUID
 }
 
-func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenParams) error {
-	_, err := q.db.Exec(ctx, rotateAccessToken, arg.TokenHash, arg.Now, arg.ID)
-	return err
+// Fail closed like TouchSession.
+func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rotateAccessToken, arg.TokenHash, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
-const touchSession = `-- name: TouchSession :exec
-UPDATE session SET last_used_at = $1 WHERE id = $2
+const touchSession = `-- name: TouchSession :execrows
+UPDATE session SET last_used_at = $1
+ WHERE id = $2 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $1 AND absolute_expiry > $1
 `
 
 type TouchSessionParams struct {
@@ -368,10 +507,47 @@ type TouchSessionParams struct {
 	ID  pgtype.UUID
 }
 
-// The base of the idle limit.
-func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) error {
-	_, err := q.db.Exec(ctx, touchSession, arg.Now, arg.ID)
-	return err
+// The base of the idle limit. Fail closed: an ended session is never moved,
+// whatever the caller checked (lead ruling on #32).
+func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) (int64, error) {
+	result, err := q.db.Exec(ctx, touchSession, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const updateCredential = `-- name: UpdateCredential :execrows
+UPDATE credential
+   SET salt = $1, hash = $2, time_cost = $3, memory_kib = $4,
+       parallelism = $5, updated_at = $6
+ WHERE account_id = $7
+`
+
+type UpdateCredentialParams struct {
+	Salt        []byte
+	Hash        []byte
+	TimeCost    int32
+	MemoryKib   int32
+	Parallelism int16
+	UpdatedAt   time.Time
+	AccountID   pgtype.UUID
+}
+
+func (q *Queries) UpdateCredential(ctx context.Context, arg UpdateCredentialParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateCredential,
+		arg.Salt,
+		arg.Hash,
+		arg.TimeCost,
+		arg.MemoryKib,
+		arg.Parallelism,
+		arg.UpdatedAt,
+		arg.AccountID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const upsertSignupVerification = `-- name: UpsertSignupVerification :exec
@@ -398,6 +574,66 @@ func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignup
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const useAccountRecoveryTokens = `-- name: UseAccountRecoveryTokens :exec
+UPDATE recovery_token SET used_at = $1::timestamptz
+ WHERE account_id = $2 AND used_at IS NULL
+`
+
+type UseAccountRecoveryTokensParams struct {
+	Now       time.Time
+	AccountID pgtype.UUID
+}
+
+// A credential reset uses up every open recovery link of the account
+// (SEC-15, SEC-24); served by recovery_token_account_open.
+func (q *Queries) UseAccountRecoveryTokens(ctx context.Context, arg UseAccountRecoveryTokensParams) error {
+	_, err := q.db.Exec(ctx, useAccountRecoveryTokens, arg.Now, arg.AccountID)
+	return err
+}
+
+const useReauthGrant = `-- name: UseReauthGrant :execrows
+UPDATE reauth_grant g SET used_at = $1::timestamptz
+ WHERE g.used_at IS NULL AND g.id = (
+	SELECT o.id FROM reauth_grant o
+	 WHERE o.session_id = $2 AND o.purpose = $3 AND o.used_at IS NULL AND o.expires_at > $1
+	 LIMIT 1)
+`
+
+type UseReauthGrantParams struct {
+	Now       time.Time
+	SessionID pgtype.UUID
+	Purpose   string
+}
+
+// Uses one open grant of the session for purpose (SEC-13); served by
+// reauth_grant_open.
+func (q *Queries) UseReauthGrant(ctx context.Context, arg UseReauthGrantParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useReauthGrant, arg.Now, arg.SessionID, arg.Purpose)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const useRecoveryToken = `-- name: UseRecoveryToken :execrows
+UPDATE recovery_token SET used_at = $1::timestamptz
+ WHERE token_hash = $2 AND used_at IS NULL AND expires_at > $1::timestamptz
+`
+
+type UseRecoveryTokenParams struct {
+	Now       time.Time
+	TokenHash []byte
+}
+
+// SEC-24: a recovery link is used once, within its lifetime.
+func (q *Queries) UseRecoveryToken(ctx context.Context, arg UseRecoveryTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useRecoveryToken, arg.Now, arg.TokenHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const useRefreshToken = `-- name: UseRefreshToken :execrows
