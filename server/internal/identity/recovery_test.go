@@ -1,9 +1,11 @@
 package identity
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -102,6 +104,42 @@ func TestRecovery(t *testing.T) {
 		}
 		if n := len(s.recovery.account.keys); n != 1 {
 			t.Fatalf("%d email keys, want 1", n)
+		}
+	})
+	t.Run("the work after a recovery response", func(t *testing.T) {
+		// 10.1 §5.1 rule 6; code-reviewer B2, S3, S4 on #32: it has a
+		// deadline, it is refused once shutdown starts, and every failure is
+		// logged with a fixed reason and no address.
+		for _, c := range []struct {
+			name   string
+			setup  func(s *Service)
+			reason string
+		}{
+			{"ends at its deadline while the mail blocks", func(s *Service) {
+				s.afterResponseTimeout = 200 * time.Millisecond
+				s.config.SendMail = func(ctx context.Context, _ Message) error { <-ctx.Done(); return ctx.Err() }
+			}, "send"},
+			{"logs a failed store", func(s *Service) { s.afterResponseTimeout = time.Nanosecond }, "store"},
+			{"is refused once shutdown starts", func(s *Service) { s.Close() }, "shutdown"},
+		} {
+			t.Run(c.name, func(t *testing.T) {
+				now := time.Now()
+				s, link := recoverable(t, &now, password)
+				var logs bytes.Buffer
+				s.logger = slog.New(slog.NewJSONHandler(&logs, nil))
+				c.setup(s)
+				start := time.Now()
+				if err := s.startRecovery(t, testClient, "owner@example.test"); err != nil {
+					t.Fatalf("StartRecovery: %v, want nil whatever happens after the response", err)
+				}
+				if elapsed := time.Since(start); elapsed > 5*time.Second {
+					t.Fatalf("the work took %v, want it ended at its deadline", elapsed)
+				}
+				got := logs.String()
+				if *link != "" || !strings.Contains(got, `"msg":"recovery mail not sent","reason":"`+c.reason+`"`) || strings.Contains(got, "owner") {
+					t.Fatalf("link sent %t, logs %q; want no mail and reason %s without the address", *link != "", got, c.reason)
+				}
+			})
 		}
 	})
 }

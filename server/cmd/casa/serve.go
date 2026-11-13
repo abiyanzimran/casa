@@ -57,16 +57,23 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
 		return 1
 	}
-	defer pool.Close()
 	identityService := identity.New(pool, identity.Config{
 		Origin: *origin, SendMail: writeMail(*mailDir), Now: time.Now, Password: identity.DefaultPasswordParams,
 		Logger: slog.New(slog.NewJSONHandler(stderr, nil)), // JSON to journald (09.4 §3)
 	})
-	defer identityService.Wait() // mail started by earlier responses, before the pool closes
+	// closeAll ends the background work, then the pool. It runs only when
+	// no handler can still use the pool: before serving, or after a clean
+	// Shutdown. After a Shutdown that timed out, handlers may still run, so
+	// the pool is left to the process exit (code-reviewer S4 on #32).
+	closeAll := func() {
+		identityService.Close()
+		pool.Close()
+	}
 	apiServer := api.NewServer(minimumWebVersion, identityService.Authenticate)
 	api.RegisterIdentityService(apiServer, pool, identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
+		closeAll()
 		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
 		return 1
 	}
@@ -91,6 +98,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "casa serve: shutdown: %v\n", err)
 		return 1
 	}
+	closeAll()
 	if err := <-served; !errors.Is(err, http.ErrServerClosed) {
 		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
 		return 1

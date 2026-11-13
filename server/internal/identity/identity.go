@@ -62,6 +62,10 @@ const (
 	recoveryAddressThreshold = 20
 )
 
+// afterResponseTimeout bounds the work after a response, such as a recovery
+// mail (10.1 §5.1 rule 6) [Usulan].
+const afterResponseTimeout = 30 * time.Second
+
 // touchAfter is how stale last_used_at may get before a request updates it,
 // so a burst of requests does not write on each one [Usulan].
 const touchAfter = time.Minute
@@ -126,7 +130,13 @@ type Service struct {
 	// background is the work started after a response: recovery mail
 	// until the identity.send_mail job of 1.7.
 	background sync.WaitGroup
-	logger     *slog.Logger
+	// afterResponseTimeout bounds each piece of background work.
+	afterResponseTimeout time.Duration
+	// closed refuses background work once shutdown starts; mu orders it
+	// with background.Go, so no Add runs during Close's Wait.
+	mu     sync.Mutex
+	closed bool
+	logger *slog.Logger
 	// decoy is verified when the email has no credential, so a sign-in
 	// costs one hash whatever the reason it fails (SEC-12).
 	decoy PasswordHash
@@ -136,6 +146,32 @@ type Service struct {
 // serve calls it on shutdown.
 func (s *Service) Wait() { s.background.Wait() }
 
+// Close refuses new background work and waits for the work already
+// started; casa serve calls it on shutdown, before closing the pool.
+func (s *Service) Close() {
+	s.mu.Lock()
+	s.closed = true
+	s.mu.Unlock()
+	s.background.Wait()
+}
+
+// afterResponse runs work after the response, bounded by
+// afterResponseTimeout and detached from the request's cancellation (10.1
+// §5.1 rule 6); false once shutdown has started.
+func (s *Service) afterResponse(ctx context.Context, work func(context.Context)) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closed {
+		return false
+	}
+	s.background.Go(func() {
+		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), s.afterResponseTimeout)
+		defer cancel()
+		work(ctx)
+	})
+	return true
+}
+
 // New returns the identity service over pool.
 func New(pool *pgxpool.Pool, config Config) *Service {
 	logger := config.Logger
@@ -143,14 +179,15 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 		logger = slog.Default()
 	}
 	return &Service{
-		logger:   logger,
-		pool:     pool,
-		config:   config,
-		hasher:   newHasher(config.Password),
-		tokenUse: newRateLimit(0, tokenUseThreshold, false, config.Now),
-		signIn:   newRateLimit(signInThreshold, signInThreshold, true, config.Now),
-		reauth:   newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
-		recovery: newRateLimit(recoveryEmailThreshold, recoveryAddressThreshold, false, config.Now),
+		afterResponseTimeout: afterResponseTimeout,
+		logger:               logger,
+		pool:                 pool,
+		config:               config,
+		hasher:               newHasher(config.Password),
+		tokenUse:             newRateLimit(0, tokenUseThreshold, false, config.Now),
+		signIn:               newRateLimit(signInThreshold, signInThreshold, true, config.Now),
+		reauth:               newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
+		recovery:             newRateLimit(recoveryEmailThreshold, recoveryAddressThreshold, false, config.Now),
 		decoy: PasswordHash{
 			params: config.Password,
 			salt:   randomBytes(int(config.Password.SaltBytes)),

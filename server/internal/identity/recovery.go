@@ -47,7 +47,9 @@ func (s *Service) StartRecovery(ctx context.Context, client Client, email string
 	}
 	// ponytail: a goroutine the process waits for on shutdown; the
 	// identity.send_mail job of 1.7 replaces it with retries (09.3 §9 note).
-	s.background.Go(func() { s.sendRecovery(context.WithoutCancel(ctx), account, email) })
+	if !s.afterResponse(ctx, func(ctx context.Context) { s.sendRecovery(ctx, account, email) }) {
+		s.mailNotSent(ctx, "shutdown")
+	}
 	return nil
 }
 
@@ -69,8 +71,14 @@ func (s *Service) sendRecovery(ctx context.Context, account pgtype.UUID, email s
 		reason = "send"
 	}
 	if err != nil {
-		s.logger.LogAttrs(ctx, slog.LevelError, "recovery mail not sent", slog.String("reason", reason))
+		s.mailNotSent(ctx, reason)
 	}
+}
+
+// mailNotSent logs a recovery mail that was not sent, with a fixed reason
+// only: an error text could carry the address (09.4 §3 allow-list; SEC-44).
+func (s *Service) mailNotSent(ctx context.Context, reason string) {
+	s.logger.LogAttrs(ctx, slog.LevelError, "recovery mail not sent", slog.String("reason", reason))
 }
 
 // CompleteRecovery sets newPassword with the emailed recovery token,

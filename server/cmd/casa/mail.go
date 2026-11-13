@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,6 +31,12 @@ func writeMail(dir string) func(context.Context, identity.Message) error {
 		}
 		name := time.Now().UTC().Format("20060102T150405.000000000Z") + "-" + kind + ".txt"
 		body := fmt.Sprintf("To: %s\nKind: %s\nLink: %s\n", m.To, kind, m.Link)
-		return os.WriteFile(filepath.Join(dir, name), []byte(body), 0o600)
+		// O_EXCL: a mail never overwrites another (code-reviewer M3 on #32).
+		f, err := os.OpenFile(filepath.Join(dir, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) //nolint:gosec // G304: the operator's -mail-dir and a generated name
+		if err != nil {
+			return err
+		}
+		_, err = f.WriteString(body)
+		return errors.Join(err, f.Close())
 	}
 }
