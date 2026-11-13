@@ -20,6 +20,7 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 var allowedImports = map[string][]string{
 	"cmd/casa":                       {"internal/schema"},
 	"cmd/idcheck":                    {},
+	"internal/api":                   {},
 	"internal/architecture":          {},
 	"internal/database":              {},
 	"internal/database/databasetest": {"internal/schema"},
