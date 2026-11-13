@@ -148,14 +148,14 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 		return Session{}, ErrUnauthenticated
 	}
 	session := Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind, DeviceMode: "personal", LastUsedAt: row.LastUsedAt}
-	return s.touch(ctx, session, now)
+	return s.touch(ctx, session, now, touchAfter)
 }
 
 // touch moves session's idle limit to now when last_used_at is more than
-// touchAfter old, so a burst of requests does not write on each one. A
+// after old; touchAfter spares a burst of requests a write on each one. A
 // session that ended since it was read is ErrSessionExpired (fail closed).
-func (s *Service) touch(ctx context.Context, session Session, now time.Time) (Session, error) {
-	if now.Sub(session.LastUsedAt) <= touchAfter {
+func (s *Service) touch(ctx context.Context, session Session, now time.Time, after time.Duration) (Session, error) {
+	if now.Sub(session.LastUsedAt) <= after {
 		return session, nil
 	}
 	err := database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {

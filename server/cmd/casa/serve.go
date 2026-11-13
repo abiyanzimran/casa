@@ -12,8 +12,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	"github.com/abiyanzimran/casa/server/internal/identity"
@@ -144,14 +146,24 @@ func openBundle(stderr io.Writer) (*api.Bundle, error) {
 }
 
 // checkOriginFlag accepts only an origin as a browser serializes it in the
-// Origin header, scheme://host[:port] in lower case without path, query,
-// fragment or user info, since the origin check compares the two as strings
-// (SEC-162 (a)); https, or http on a loopback host for development. The
-// error never repeats the value, which might hold user info.
+// Origin header, since the origin check compares the two as strings
+// (SEC-162 (a)): scheme://host[:port] in lower-case ASCII, without path,
+// query, fragment, user info, a trailing dot, an empty or default port, or a
+// port outside 1 to 65535; https, or http on a loopback host for
+// development. Anything else would fail every web request closed without
+// saying why. The error never repeats the value, which might hold user info.
 func checkOriginFlag(origin string) error {
 	u, err := url.Parse(origin)
-	if err != nil || u.Host == "" || u.Scheme+"://"+u.Host != origin || strings.ToLower(origin) != origin {
-		return errors.New("want scheme://host[:port] in lower case, without path, query, fragment or user info")
+	if err != nil || u.Host == "" || u.Scheme+"://"+u.Host != origin || strings.ToLower(origin) != origin ||
+		strings.HasSuffix(u.Host, ":") || strings.HasSuffix(u.Hostname(), ".") ||
+		strings.ContainsFunc(u.Host, func(r rune) bool { return r > unicode.MaxASCII }) {
+		return errors.New("want scheme://host[:port] in lower-case ASCII, without path, query, fragment, user info or trailing dot")
+	}
+	if port := u.Port(); port != "" {
+		n, err := strconv.Atoi(port)
+		if err != nil || n < 1 || n > 65535 || u.Scheme == "https" && n == 443 || u.Scheme == "http" && n == 80 {
+			return errors.New("want a port from 1 to 65535 other than the scheme's default, which browsers leave out")
+		}
 	}
 	switch u.Hostname() {
 	case "localhost", "127.0.0.1", "::1":

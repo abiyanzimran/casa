@@ -54,7 +54,7 @@ func (s *Service) AuthenticateCookie(ctx context.Context, cookie string) (Cookie
 	}
 	session := Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind, DeviceMode: row.DeviceMode, LastUsedAt: row.LastUsedAt}
 	if session.DeviceMode == "personal" {
-		if session, err = s.touch(ctx, session, now); err != nil {
+		if session, err = s.touch(ctx, session, now, touchAfter); err != nil {
 			return CookieSession{}, err
 		}
 	}
@@ -66,10 +66,15 @@ func (s *Service) AuthenticateCookie(ctx context.Context, cookie string) (Cookie
 // is not kept alive by background requests, and the absolute limit never
 // moves (SEC-165 (g); plan 1.5 decision 13). Any other session is left
 // alone. A session that ended since it was read is ErrSessionExpired.
+//
+// Every action moves it, without touchAfter: the client warns 60 seconds
+// before 30 minutes counted from the last input, so the server's limit must
+// count from that same action (SEC-165 (g); lead ruling on the Task 4
+// review, overriding decision 13's debounce for shared mode).
 func (s *Service) TouchUserAction(ctx context.Context, session Session) error {
 	if session.ClientKind != "web" || session.DeviceMode != "shared" {
 		return nil
 	}
-	_, err := s.touch(ctx, session, s.config.Now())
+	_, err := s.touch(ctx, session, s.config.Now(), 0)
 	return err
 }

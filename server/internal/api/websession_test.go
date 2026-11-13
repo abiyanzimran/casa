@@ -479,7 +479,10 @@ func TestCookieSession(t *testing.T) {
 
 	t.Run("SEC-162 (a) a cookie request from another origin is rejected without effect", func(t *testing.T) {
 		// Focus 2 of plan 1.5: staging on a subdomain is same-site, so only
-		// the origin check holds it (SEC-41 (d)).
+		// the origin check holds it (SEC-41 (d)). This proves SEC-162 (a)
+		// note 1.5 clause (1), a request with the cookie; a web RPC without
+		// Origin (clause (2)) and a claimed native client (clause (3)) are
+		// the two subtests after the next.
 		h := startIdentity(t)
 		h.signUp(t, email, password)
 		signedIn := h.clock.Now()
@@ -607,7 +610,10 @@ func TestCookieSession(t *testing.T) {
 	t.Run("a cookie and a bearer token together still need the origin", func(t *testing.T) {
 		h := startIdentity(t)
 		tokens := h.signUp(t, email, password)
+		signedIn := h.clock.Now()
 		cookie := h.webSignIn(t, email, password, personal)
+		// Past touchAfter, so an authenticated request would move last_used_at.
+		h.clock.advance(2 * time.Minute)
 		both := func(origin string) context.Context {
 			ctx := cookieCall(cookie, origin, "")
 			info, _ := connect.CallInfoForClientContext(ctx)
@@ -616,6 +622,7 @@ func TestCookieSession(t *testing.T) {
 		}
 		wantCrossOriginRejected(t, h.read(both(""), ios, true))
 		wantCrossOriginRejected(t, h.read(both(other), ios, true))
+		wantUntouched(t, h, cookie, signedIn)
 		// From the app's origin the bearer token decides (decision 11 step 3).
 		wantOK(t, h.read(both(testOrigin), ios, true))
 	})
@@ -675,6 +682,8 @@ func TestCookieSession(t *testing.T) {
 	t.Run("SEC-165 (g) only user-initiated requests keep a shared session alive", func(t *testing.T) {
 		// Focus 5 of plan 1.5: background requests never move the idle
 		// limit of a shared session, and nothing moves the absolute one.
+		// This proves the server half of SEC-165 (g); the client half (idle
+		// counted from input, the warning, signing itself out) is 1.10's.
 		h := startIdentity(t)
 		h.signUp(t, email, password)
 		at := func(t *testing.T, start time.Time, minute int) {
@@ -705,6 +714,18 @@ func TestCookieSession(t *testing.T) {
 		}
 		at(t, start, 59)
 		wantErrorCode(t, h.read(sameOrigin(kept), web, true), connect.CodeUnauthenticated, expired)
+
+		// Lead ruling on Task 4 review: every user action moves the idle
+		// limit, so the client's 60-second warning, counted from the last
+		// input, never comes after the server has ended the session.
+		start = h.clock.Now()
+		early := h.webSignIn(t, email, password, shared)
+		at(t, start, 1)
+		wantOK(t, h.read(sameOrigin(early), web, true))
+		h.clock.advance(29*time.Minute + 30*time.Second) // minute 30:30
+		wantOK(t, h.read(sameOrigin(early), web, false))
+		at(t, start, 31) // the action at minute 1 + 30 minutes
+		wantErrorCode(t, h.read(sameOrigin(early), web, false), connect.CodeUnauthenticated, expired)
 
 		start = h.clock.Now()
 		used := h.webSignIn(t, email, password, shared)
