@@ -36,16 +36,14 @@ func CleanName(s string, max int) (clean string, rule string) {
 				return "", ruleCharacters
 			}
 		case unicode.Is(unicode.Variation_Selector, r):
-			// The security goal is no invisible name (SEC-155 (h)): a
-			// selector after a visible base is harmless (emoji, keycap,
-			// CJK ideographic and Mongolian sequences); one that is first
-			// or follows an invisible or space rune could stand alone, and
-			// one after a plain letter makes two names that look the same
-			// ("Ayu" and "Ayu"+U+FE0F). It is not counted (Mn).
-			// ponytail: emoji tag sequences (subdivision flags) stay refused
-			// because the tag characters are Cf; allow them by a rule for
-			// a tag run after a flag base if a user needs one.
-			if i == 0 || unicode.IsSpace(runes[i-1]) || refused(runes[i-1]) || invisibleAfterLetter(runes[i-1]) {
+			// SEC-155 (h): a selector is accepted only after a base it
+			// visibly changes, else "Ayu" and "Ayu"+U+FE0F would be two
+			// names that look the same. It is not counted (Mn).
+			// ponytail: rare valid sequences outside selectorChangesBase's
+			// list are refused (and emoji tag sequences, because the tag
+			// characters are Cf); the upgrade path is the Unicode
+			// emoji-variation-sequences data.
+			if !selectorChangesBase(runes, i) {
 				return "", ruleCharacters
 			}
 		case refused(r):
@@ -79,13 +77,36 @@ func refused(r rune) bool {
 		unicode.In(r, unicode.Cc, unicode.Cf, unicode.Zl, unicode.Zp, unicode.Other_Default_Ignorable_Code_Point)
 }
 
-// invisibleAfterLetter reports whether a variation selector after base changes
-// nothing visible (SEC-155 (h)): base is a letter, other than a Han or
-// Mongolian one (ideographic and free variation selectors) or U+2139, a
-// letter-category emoji base.
-func invisibleAfterLetter(base rune) bool {
-	return unicode.IsLetter(base) && base != '\u2139' &&
-		!unicode.Is(unicode.Han, base) && !unicode.Is(unicode.Mongolian, base)
+// selectorChangesBase reports whether the variation selector at i follows a
+// base it visibly changes (SEC-155 (h)): FE0E or FE0F after a symbol (So),
+// after a keycap base only when U+20E3 follows, or after one of the text
+// emoji bases U+203C, U+2049, U+2139, U+3030, U+303D; FE00 to FE0D after a Han
+// rune or a math symbol (standardized variation sequences); E0100 to E01EF
+// after a Han rune (ideographic); 180B to 180D and 180F after a Mongolian
+// rune (free variation selectors).
+func selectorChangesBase(runes []rune, i int) bool {
+	if i == 0 {
+		return false
+	}
+	sel, base := runes[i], runes[i-1]
+	switch {
+	case sel == 0xFE0E || sel == 0xFE0F:
+		switch {
+		case unicode.Is(unicode.So, base):
+			return true
+		case base == 0x203C || base == 0x2049 || base == 0x2139 || base == 0x3030 || base == 0x303D:
+			return true
+		case base >= '0' && base <= '9' || base == '#' || base == '*':
+			return i+1 < len(runes) && runes[i+1] == 0x20E3
+		}
+		return false
+	case sel <= 0xFE0D && sel >= 0xFE00:
+		return unicode.Is(unicode.Han, base) || unicode.Is(unicode.Sm, base)
+	case sel >= 0xE0100:
+		return unicode.Is(unicode.Han, base)
+	default: // 180B to 180D, 180F
+		return unicode.Is(unicode.Mongolian, base)
+	}
 }
 
 // inEmojiSequence reports whether the ZWJ at i joins two emoji: a symbol
