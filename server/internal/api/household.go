@@ -99,7 +99,11 @@ func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.Creat
 	if errors.Is(err, household.ErrAlreadyMember) {
 		// A concurrent send of the same key won the race and made the
 		// membership: answer with its stored response (ADR-005).
-		if stored, found, serr := command.Stored[*casav1.CreateHouseholdResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req); serr == nil && found {
+		stored, found, serr := command.Stored[*casav1.CreateHouseholdResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req)
+		if serr != nil {
+			return nil, householdError(serr)
+		}
+		if found {
 			return stored, nil
 		}
 	}

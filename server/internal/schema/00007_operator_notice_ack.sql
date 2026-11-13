@@ -4,12 +4,12 @@
 -- versions: a row is one issue of a version's identity to one account,
 -- written when the identity in force differs from the one last issued to the
 -- account (a rename A→B→A issues A again; 10.1 note before §11.3), and
--- acknowledged once. The history of every issue stays (FR-FAM-019/AC-3). A global table owned by household, with
--- no foreign key to account (it would cross a module boundary); account
--- deletion removes the rows (SEC-105, step 6). The two new security trail
--- kinds record each issue and each acknowledgement (10.1 §11 note of 14
--- November 2026 (c)). Expand only: the old binary runs on it unchanged
--- (09.2 §10).
+-- acknowledged once. The history of every issue stays (FR-FAM-019/AC-3). A
+-- global table owned by household, with no foreign key to account (it would
+-- cross a module boundary); account deletion removes the rows (SEC-105,
+-- step 6). The two new security trail kinds record each issue and each
+-- acknowledgement (10.1 §11 note of 14 November 2026 (c)). Expand only: the
+-- old binary runs on it unchanged (09.2 §10).
 
 -- +goose Up
 CREATE TABLE operator_notice_ack (

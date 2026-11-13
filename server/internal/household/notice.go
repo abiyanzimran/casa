@@ -159,8 +159,12 @@ func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.U
 	if err != nil {
 		return Notice{}, false, err
 	}
-	// Not inserted only if another issue took the key; unacknowledged holds.
-	return n, inserted == 1, nil
+	if inserted != 1 {
+		// SERIALIZABLE makes this unreachable; never answer OK while the
+		// account stays held without an issued notice.
+		return Notice{}, false, errors.New("household: operator notice issue was not inserted")
+	}
+	return n, true, nil
 }
 
 // AcknowledgeNotice records account's acknowledgement of the version it was
