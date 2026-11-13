@@ -26,3 +26,4 @@ cd4f13862f1df4e5cf7c25da27a0ff078ef0a04d:server/internal/identity/common-passwor
 b09ec31b728fb0a36d6de442a9d8f7957e0ff19a:.betterleaksignore:generic-password:21
 ff9f33fcd3b575ec1ce3b1560b195e3688538729:server/internal/api/identity_test.go:generic-password:214
 5a1483898be9c402add842f1beefb30576b7e375:server/internal/api/identity_test.go:generic-password:474
+111418d7ca613b7aeb5319fbf586d022f792d22d:server/internal/identity/signin_test.go:generic-password:69
