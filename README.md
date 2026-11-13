@@ -20,7 +20,7 @@ Casa is a household app for a husband and wife: they know the state of their hou
 - Node.js: the version in `web/.nvmrc` (`nvm install` in `web/`).
 - pnpm: the version in `"packageManager"` of `web/package.json` (a newer `pnpm` switches to it automatically).
 - Playwright's Chromium and WebKit, once: `cd web && pnpm exec playwright install --with-deps chromium webkit`.
-- Docker, for PostgreSQL in tests from task 1.2.
+- Docker, for PostgreSQL 18 in the server tests.
 - `make`, `curl`, `unzip`, `sha256sum` (linux-amd64).
 
 ## Checks
@@ -30,4 +30,16 @@ make check-server
 make check-web
 ```
 
-`check-server` runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, and the Playwright tests in Chromium and WebKit. `make check` runs both.
+`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, and the Playwright tests in Chromium and WebKit. `make check` runs both.
+
+## Database
+
+The server tests run against a real PostgreSQL 18 in Docker, the image pinned in the `Makefile`, never a mock:
+
+```sh
+make db-up        # start it on 127.0.0.1:5432 (CASA_DB_PORT=... to use another port)
+make server-test  # each test creates and drops its own database
+make db-down
+```
+
+`server-test` reads the cluster from `CASA_TEST_ADMIN_URL`, by default `postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable`; without a reachable cluster the database tests fail, they are never skipped. On a real cluster, `server/internal/schema/roles.sql` is run once by a superuser to create the database roles, and `casa migrate` then applies the migrations as `migrator`.
