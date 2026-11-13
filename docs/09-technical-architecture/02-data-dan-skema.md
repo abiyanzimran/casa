@@ -584,6 +584,8 @@ ADR-005 menyerahkan tiga hal ke dokumen 09. Ketiganya ditetapkan di sini.
 
 Perintah tingkat akun di dalam tabel jenis perintah (membuat rumah tangga, menerima undangan) memakai `scope_id = account_id`.
 
+**Pengecualian atas "coba ulang mengembalikan hasil perintah pertama" (ADR-005):** `SignOut` yang dicoba ulang dengan kunci idempotensi yang sama mendapat `SESSION_REVOKED` dari session interceptor, bukan hasil kosong yang tersimpan, karena sesi yang dinamainya sudah dicabut oleh kiriman pertama. Hal ini diterima karena klien tetap berakhir dalam keadaan keluar pada kedua jalur (catatan 13 November 2026, FS-1 1.4, code-reviewer M2 pada PR #32).
+
 ---
 
 ## 9. Kendali konkurensi
