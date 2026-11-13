@@ -16,13 +16,69 @@ import (
 // adds its row here, citing the document that defines the table and its grants.
 var tables = map[string]tableRule{
 	"currency": {global: true, grants: map[string]string{"app_rw": "SELECT"},
+		policy: "cmd=SELECT roles={public} PERMISSIVE using=true check=",
 		source: "09.2 §3 \"Tabel global\", §5.1; ADR-008"},
+	"account": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: accountOrEmail,
+		source: "09.2 §3 \"Tabel global\", §5.1; lead rulings Q2, Q3 on the 1.4 plan"},
+	"credential": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: ownAccount,
+		source: "09.2 §3 \"Tabel global\"; SEC-11; lead ruling Q3 on the 1.4 plan"},
+	"session": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: accountOrToken,
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-15; lead rulings Q2, Q3 on the 1.4 plan"},
+	"refresh_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: accountOrToken,
+		source: "09.2 §3 \"Tabel global\"; SEC-15; lead rulings Q2, Q3 on the 1.4 plan"},
+	"reauth_grant": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: ownAccount,
+		source: "09.2 §3 \"Tabel global\"; SEC-13; lead ruling Q3 on the 1.4 plan"},
+	"recovery_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: accountOrToken,
+		source: "09.2 §3 \"Tabel global\"; SEC-24; lead rulings Q2, Q3 on the 1.4 plan"},
+	"setup_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: policyForAll("(token_hash = " + settingTokenHash + ")"),
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158 (b); 09.4 §2; lead rulings Q2, Q3 on the 1.4 plan"},
+	"signup_verification": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT,UPDATE"},
+		policy: policyForAll("((token_hash = " + settingTokenHash + ") OR (setup_token_hash = " + settingTokenHash + "))"),
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158; lead rulings Q2, Q4, Q8 on the 1.4 plan"},
+	"security_event": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: ownAccount,
+		source: "09.2 §3 \"Tabel global\"; SEC-16, SEC-39 (b): append-only; lead ruling Q3 on the 1.4 plan"},
+	"idempotency_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: "cmd=ALL roles={public} PERMISSIVE using=((scope_id = " + settingHousehold + ") OR (scope_id = " + settingAccount + ")) check=",
+		source: "09.2 §3 \"Tabel infrastruktur dengan pemilik campuran\", §5.1, §8"},
 }
 
 type tableRule struct {
 	global bool              // no household_id column (09.2 §3 "Tabel global")
 	grants map[string]string // role → privileges, comma-separated in the order of allPrivileges; absent role: none
+	// policy is the one policy of a global table as PostgreSQL deparses it,
+	// in the form of householdPolicy's check below.
+	policy string
 	source string
+}
+
+// The settings of 09.2 §3 as PostgreSQL deparses them in a policy: A, E and
+// T of the "Tabel global" table (lead ruling Q2 on the 1.4 plan), and the
+// household setting read with missing_ok.
+const (
+	settingAccount   = "(NULLIF(current_setting('app.account_id'::text, true), ''::text))::uuid"
+	settingEmail     = "(NULLIF(current_setting('app.email'::text, true), ''::text))::citext"
+	settingTokenHash = "decode(NULLIF(current_setting('app.token_hash'::text, true), ''::text), 'hex'::text)" //nolint:gosec // G101: a policy expression naming a setting, no credential
+	settingHousehold = "(NULLIF(current_setting('app.household_id'::text, true), ''::text))::uuid"
+)
+
+// The policies of the identity tables of 09.2 §3 "Tabel global", each with
+// USING equal to WITH CHECK.
+var (
+	ownAccount     = policyForAll("(account_id = " + settingAccount + ")")
+	accountOrEmail = policyForAll("((id = " + settingAccount + ") OR (email = " + settingEmail + "))")
+	accountOrToken = policyForAll("((account_id = " + settingAccount + ") OR (token_hash = " + settingTokenHash + "))")
+)
+
+func policyForAll(expression string) string {
+	return "cmd=ALL roles={public} PERMISSIVE using=" + expression + " check=" + expression
 }
 
 // householdPolicy is the one policy of every household table, as PostgreSQL
@@ -104,13 +160,21 @@ func TestCatalog(t *testing.T) {
 			if !hasHouseholdID {
 				t.Errorf("household table %s has no household_id column", name)
 			}
-			policies := queryStrings(t, db, `
-				SELECT format('cmd=%s roles=%s %s using=%s check=%s', cmd, roles, permissive, qual, with_check)
-				  FROM pg_policies WHERE schemaname = 'public' AND tablename = $1
-				 ORDER BY 1`, name)
+			policies := tablePolicies(t, db, name)
 			want := "cmd=ALL roles={public} PERMISSIVE using=" + householdPolicy + " check=" + householdPolicy
 			if len(policies) != 1 || policies[0] != want {
 				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s", name, strings.Join(policies, "\n"), want)
+			}
+		}
+	})
+
+	t.Run("SEC-08 every global table has exactly its declared policy", func(t *testing.T) {
+		for name, rule := range tables {
+			if !rule.global {
+				continue
+			}
+			if got := tablePolicies(t, db, name); len(got) != 1 || got[0] != rule.policy {
+				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s\n(%s)", name, strings.Join(got, "\n"), rule.policy, rule.source)
 			}
 		}
 	})
@@ -211,6 +275,15 @@ func TestCatalog(t *testing.T) {
 			}
 		}
 	})
+}
+
+// tablePolicies returns the policies of table as PostgreSQL deparses them.
+func tablePolicies(t *testing.T, db *pgxpool.Pool, table string) []string {
+	t.Helper()
+	return queryStrings(t, db, `
+		SELECT format('cmd=%s roles=%s %s using=%s check=%s', cmd, roles, permissive, qual, with_check)
+		  FROM pg_policies WHERE schemaname = 'public' AND tablename = $1
+		 ORDER BY 1`, table)
 }
 
 // tablePrivileges returns the privileges role holds on table, comma-separated
