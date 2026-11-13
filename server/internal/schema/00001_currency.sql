@@ -10,8 +10,9 @@
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO app_rw, job_runner, lifecycle_rw;
 
--- Staging and production databases do not grant each other's roles CONNECT
--- (ADR-028 item 5).
+-- Only the named roles may connect; PUBLIC gets nothing. Whether staging and
+-- production get separate roles is open, architect decision before GR-2
+-- (09.2 §3 layer 5 vs ADR-028 item 1).
 -- +goose StatementBegin
 DO $$
 BEGIN
