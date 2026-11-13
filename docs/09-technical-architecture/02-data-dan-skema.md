@@ -148,7 +148,7 @@ Satu kebijakan `FOR ALL` per tabel. `A` = `nullif(current_setting('app.account_i
 | `credential` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (salt, hash, time_cost, memory_kib, parallelism, updated_at)` |
 | `session` | `account_id = A OR token_hash = T OR prev_token_hash = T OR discarded_token_hash = T` (dua klausa terakhir sejak migrasi `00004_web_session`, FS-1 tugas 1.5) | `account_id = A` | `SELECT, INSERT, UPDATE (token_hash, token_issued_at, last_used_at, revoked_at, revoke_reason, prev_token_hash, prev_valid_until, token_confirmed_at, discarded_token_hash)`; tanpa `UPDATE` atas `device_mode` dan `ua_summary` (mode tidak berubah di tengah sesi, SEC-165) |
 | `refresh_token`, `recovery_token` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
-| `reauth_grant` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `reauth_grant` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)`; `cookie_hash` (sejak migrasi `00004_web_session`, FS-1 tugas 1.5) hanya ditulis saat `INSERT`, tanpa `UPDATE` |
 | `setup_token` | `token_hash = T` | `token_hash = T` | `SELECT, INSERT, UPDATE (used_at, account_id)` |
 | `signup_verification` | `token_hash = T OR setup_token_hash = T` | `setup_token_hash = T` | `SELECT, INSERT, UPDATE (token_hash, expires_at, used_at)` |
 | `security_event` | `account_id = A` | `account_id = A` | `SELECT, INSERT` (tambah-saja; ADR-016 butir 5) |
@@ -292,7 +292,11 @@ reauth_grant (                            -- SEC-13: terikat sesi dan tujuan, 5 
   purpose      text NOT NULL CHECK (purpose IN ('change_password')),  -- tujuan lain ditambah tugasnya
   created_at   timestamptz NOT NULL,
   expires_at   timestamptz NOT NULL,
-  used_at      timestamptz NULL
+  used_at      timestamptz NULL,
+  cookie_hash  bytea NULL                 -- Catatan 13 November 2026 (FS-1 tugas 1.5, migrasi 00004_web_session):
+                                          -- hash nilai cookie yang diterbitkan di jawaban autentikasi ulang web;
+                                          -- hibah hanya berlaku bagi permintaan yang membawa nilai itu. NULL untuk
+                                          -- sesi native. Ditulis sekali saat INSERT (10.5 SEC-161 (c) aturan (7))
 )
 CREATE INDEX reauth_grant_open ON reauth_grant (session_id, purpose) WHERE used_at IS NULL;
 
