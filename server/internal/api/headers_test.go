@@ -16,11 +16,14 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/identity"
 )
 
-// fixtureCSP is the policy of plan decision 5 for the fixture bundle.
+// fixtureCSP is the policy of plan decision 5 for the fixture bundle, with
+// style-src-attr from the SEC-166 note of FS-1 task 1.5 (the SvelteKit route
+// announcer's style attribute, by its hash).
 func fixtureCSP() string {
 	sum := sha256.Sum256([]byte(fixtureScript))
 	return "default-src 'none'; script-src 'self' 'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'; " +
-		"style-src 'self'; img-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; " +
+		"style-src 'self'; style-src-attr 'unsafe-hashes' 'sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo='; " +
+		"img-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; " +
 		"manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; " +
 		"require-trusted-types-for 'script'; trusted-types svelte-trusted-html casa-sw"
 }
@@ -114,11 +117,12 @@ func TestSecurityHeaders(t *testing.T) {
 	})
 	t.Run("the CSP allows the bundle's inline script by its hash and nothing else inline", func(t *testing.T) {
 		// Plan decision 4; ADR-030 item 7: no 'unsafe-inline', no 'unsafe-eval'.
+		// The one 'unsafe-hashes' (style-src-attr) is pinned by fixtureCSP.
 		csp := serve(mux, http.MethodGet, "/", nil).Header().Get("Content-Security-Policy")
 		sum := sha256.Sum256([]byte(fixtureScript))
 		want := "script-src 'self' 'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "';"
-		if !strings.Contains(csp, want) || strings.Contains(csp, "unsafe-") {
-			t.Fatalf("CSP = %q, want %q and no unsafe- source", csp, want)
+		if !strings.Contains(csp, want) || strings.Contains(csp, "'unsafe-inline'") || strings.Contains(csp, "'unsafe-eval'") {
+			t.Fatalf("CSP = %q, want %q and no 'unsafe-inline' or 'unsafe-eval'", csp, want)
 		}
 	})
 	t.Run("SEC-160 (b) a cross-origin preflight gets no CORS header", func(t *testing.T) {
