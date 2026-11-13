@@ -147,8 +147,8 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 }
 
 // RotateCookie gives a live web session a new cookie value whatever the age
-// of the current one; the old value serves as the previous one for
-// previousCookieGrace. A web re-authentication calls it (SEC-161 (c):
+// of the current one; the value the browser holds serves as the previous
+// one for previousCookieGrace. A web re-authentication calls it (SEC-161 (c):
 // "selalu saat … autentikasi ulang", closing session fixation; plan 1.5
 // decision 12); sign-in and recovery open a new session instead. A session
 // that ended is ErrSessionExpired.
@@ -171,9 +171,11 @@ func (s *Service) RotateCookie(ctx context.Context, session Session) (Cookie, er
 	return cookie, nil
 }
 
-// rotateCookie makes a new current value for session; the current one
-// becomes the previous one until now + previousCookieGrace (SEC-161 (c)).
-// The token is made here, inside the caller's transaction attempt.
+// rotateCookie makes a new current value for session; the value the
+// browser holds, the current one or an unconfirmed rotation's previous one
+// (query RotateCookie), serves as the previous one until now +
+// previousCookieGrace (SEC-161 (c)). The token is made here, inside the
+// caller's transaction attempt.
 func rotateCookie(ctx context.Context, q *identitydb.Queries, session Session, now time.Time) (Cookie, error) {
 	value, hash := newToken()
 	expiry, err := q.RotateCookie(ctx, identitydb.RotateCookieParams{

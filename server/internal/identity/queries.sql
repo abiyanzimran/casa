@@ -102,11 +102,19 @@ UPDATE session SET token_confirmed_at = @now::timestamptz
  WHERE id = @id AND token_confirmed_at IS NULL;
 
 -- name: RotateCookie :one
--- SEC-161 (c): a new current value; the old one serves as the previous value
--- until prev_valid_until, and the new one is not confirmed yet. Fail closed
+-- SEC-161 (c): a new current value, not confirmed yet; the value the browser
+-- holds serves as the previous one until prev_valid_until. That is the
+-- current value, unless the current value is unconfirmed while the previous
+-- one is still in its window: then the browser may hold only the previous
+-- one (a forced rotation right after the boundary rotated or reissued, or
+-- carried by the previous value), and it stays, with a new window (lead
+-- ruling on the Task 5 review). A rotation by age never meets that case: the
+-- window ends long before the current value is 15 minutes old. Fail closed
 -- like TouchSession.
 UPDATE session
-   SET prev_token_hash = token_hash, prev_valid_until = @prev_valid_until::timestamptz,
+   SET prev_token_hash = CASE WHEN token_confirmed_at IS NULL AND prev_valid_until > @now
+                              THEN prev_token_hash ELSE token_hash END,
+       prev_valid_until = @prev_valid_until::timestamptz,
        token_hash = @token_hash, token_issued_at = @now, token_confirmed_at = NULL
  WHERE id = @id AND revoked_at IS NULL
    AND last_used_at + idle_timeout > @now AND absolute_expiry > @now

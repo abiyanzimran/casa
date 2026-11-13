@@ -804,8 +804,11 @@ func TestCookieRotation(t *testing.T) {
 		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NOT NULL"); n != 0 {
 			t.Fatalf("%d sessions revoked, want none", n)
 		}
-		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked'"); n != 0 {
-			t.Fatalf("%d session_revoked rows in the security trail, want none", n)
+		// Every session opened wrote its one sign_in row; anything more is a
+		// row the rotation wrote (SEC-161 (c) note 1.5 rule (2): "tanpa
+		// baris jejak keamanan").
+		if events, sessions := h.count(t, "SELECT count(*) FROM security_event"), h.count(t, "SELECT count(*) FROM session"); events != sessions {
+			t.Fatalf("%d security_event rows for %d sessions opened; want only their sign_in rows", events, sessions)
 		}
 	}
 	wantReuseRevoked := func(t *testing.T, h *identityHarness) {
@@ -886,7 +889,10 @@ func TestCookieRotation(t *testing.T) {
 		wantNoRevocation(t, h)
 	})
 
-	t.Run("SEC-161 (c) a previous value used after the new one revokes the session", func(t *testing.T) {
+	t.Run("a previous value used after the new one revokes the session", func(t *testing.T) {
+		// SEC-161 (c): "dipakai sesudah itu, seluruh sesi dicabut dan satu
+		// baris ditulis di jejak keamanan pemiliknya"; note 1.5 rule (2)
+		// when the current value is confirmed.
 		h := startIdentity(t)
 		h.signUp(t, email, password)
 		a := h.webSignIn(t, email, password, personal)
@@ -1039,6 +1045,10 @@ func TestCookieRotation(t *testing.T) {
 			t.Fatal("a web re-authentication at the rotation point set no new cookie; want one")
 		}
 		served(t, h, c.Value)
+		// The value the browser held (b, confirmed) stays the previous one:
+		// a request with it already on its way is still served.
+		h.clock.advance(59 * time.Second)
+		served(t, h, b.Value)
 
 		rc := commandRC()
 		rc.ClientKind = web

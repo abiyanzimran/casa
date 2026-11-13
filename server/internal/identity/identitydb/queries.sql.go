@@ -627,28 +627,36 @@ func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenPa
 
 const rotateCookie = `-- name: RotateCookie :one
 UPDATE session
-   SET prev_token_hash = token_hash, prev_valid_until = $1::timestamptz,
-       token_hash = $2, token_issued_at = $3, token_confirmed_at = NULL
+   SET prev_token_hash = CASE WHEN token_confirmed_at IS NULL AND prev_valid_until > $1
+                              THEN prev_token_hash ELSE token_hash END,
+       prev_valid_until = $2::timestamptz,
+       token_hash = $3, token_issued_at = $1, token_confirmed_at = NULL
  WHERE id = $4 AND revoked_at IS NULL
-   AND last_used_at + idle_timeout > $3 AND absolute_expiry > $3
+   AND last_used_at + idle_timeout > $1 AND absolute_expiry > $1
 RETURNING absolute_expiry
 `
 
 type RotateCookieParams struct {
+	Now            time.Time
 	PrevValidUntil time.Time
 	TokenHash      []byte
-	Now            time.Time
 	ID             pgtype.UUID
 }
 
-// SEC-161 (c): a new current value; the old one serves as the previous value
-// until prev_valid_until, and the new one is not confirmed yet. Fail closed
+// SEC-161 (c): a new current value, not confirmed yet; the value the browser
+// holds serves as the previous one until prev_valid_until. That is the
+// current value, unless the current value is unconfirmed while the previous
+// one is still in its window: then the browser may hold only the previous
+// one (a forced rotation right after the boundary rotated or reissued, or
+// carried by the previous value), and it stays, with a new window (lead
+// ruling on the Task 5 review). A rotation by age never meets that case: the
+// window ends long before the current value is 15 minutes old. Fail closed
 // like TouchSession.
 func (q *Queries) RotateCookie(ctx context.Context, arg RotateCookieParams) (time.Time, error) {
 	row := q.db.QueryRow(ctx, rotateCookie,
+		arg.Now,
 		arg.PrevValidUntil,
 		arg.TokenHash,
-		arg.Now,
 		arg.ID,
 	)
 	var absolute_expiry time.Time
