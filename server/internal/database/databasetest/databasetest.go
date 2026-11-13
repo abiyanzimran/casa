@@ -75,6 +75,16 @@ func Empty(t testing.TB) Database {
 	return d
 }
 
+// Migrated is Empty with every migration applied as migrator.
+func Migrated(t testing.TB) Database {
+	t.Helper()
+	d := Empty(t)
+	if _, err := schema.Up(t.Context(), d.SQL(t, "migrator")); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	return d
+}
+
 // URL is CASA_TEST_ADMIN_URL with the user replaced by role and the database
 // by d. The test roles have no password; the test cluster trusts local
 // connections (14 §7.8).
