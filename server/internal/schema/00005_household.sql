@@ -60,9 +60,12 @@ CREATE TABLE approval_authority (
 );
 
 -- 06 §3.1 household rule: never changed; a new version is a new row.
--- approval_mode is added with request (step 4, expand).
+-- approval_mode is added with request (step 4, expand). household_id has its
+-- own foreign key: the composite one is not checked while currency is NULL
+-- (MATCH SIMPLE), which is the pilot's rule (lead ruling on Task 1 of the 1.6
+-- plan, concern 5; 09.2 §5.1 change requested).
 CREATE TABLE household_rule (
-	household_id      uuid NOT NULL,
+	household_id      uuid NOT NULL REFERENCES household (id),
 	version           int NOT NULL,
 	preset_id         text NOT NULL CHECK (preset_id IN ('two_equal_adults')),
 	request_threshold bigint NULL,

@@ -343,8 +343,11 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-020/AC-3 no household table has a column meaning husband or wife", func(t *testing.T) {
-		// PRN-03; 06 §14: neither a name nor an allowed value.
+	t.Run("no household table has a column meaning husband or wife", func(t *testing.T) {
+		// Part of FR-FAM-020/AC-3 (PRN-03; 06 §14): neither a name nor an
+		// allowed value. household_id on every object is proven by
+		// TestCatalog; the personal book on the member by the task that
+		// adds its table.
 		spouse := regexp.MustCompile(`(?i)husband|wife|suami|istri`)
 		names := queryStrings(t, admin, `
 			SELECT table_name || '.' || column_name FROM information_schema.columns
@@ -376,6 +379,18 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 			if forbidden.MatchString(name) && column != "household.income_source_market" {
 				t.Errorf("column %s holds member data FR-FAM-006/AC-3 forbids", column)
 			}
+		}
+	})
+
+	t.Run("a household rule belongs to an existing household", func(t *testing.T) {
+		// Without an amount the composite foreign key to household (id,
+		// currency) is not checked (MATCH SIMPLE), so household_id has its
+		// own (lead ruling on Task 1, concern 5).
+		missing := randomUUID()
+		err := tryWrite(t, app, database.Scope{HouseholdID: missing},
+			"INSERT INTO household_rule (household_id, version, preset_id, created_at) VALUES ($1, 1, 'two_equal_adults', now())", missing)
+		if code := databasetest.PgErrorCode(err); code != "23503" {
+			t.Errorf("a rule without a threshold for a household that does not exist: err = %v, want foreign_key_violation (23503)", err)
 		}
 	})
 
