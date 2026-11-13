@@ -119,6 +119,15 @@ type ObjectEvent struct {
 	ServerTime     time.Time
 }
 
+type OperatorNoticeAck struct {
+	AccountID      pgtype.UUID
+	Variant        string
+	Version        int32
+	TextSha256     []byte
+	IssuedAt       time.Time
+	AcknowledgedAt pgtype.Timestamptz
+}
+
 type ReauthGrant struct {
 	ID         pgtype.UUID
 	SessionID  pgtype.UUID

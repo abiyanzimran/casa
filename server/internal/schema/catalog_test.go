@@ -91,6 +91,12 @@ var tables = map[string]tableRule{
 	"consent_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		policy: ownAccount,
 		source: "09.2 §3 note of 14 November 2026, §5.1; SEC-80 note of 14 November 2026, SEC-109 (a)"},
+	// 00007_operator_notice_ack: a global table of household (plan 1.6
+	// decision 6); history stays, only the acknowledgement is filled in.
+	"operator_notice_ack": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"acknowledged_at"},
+		policy:  ownAccount,
+		source:  "09.2 §3 note of 14 November 2026, §5.1; SEC-34; 10.1 §11 note of 14 November 2026"},
 }
 
 type tableRule struct {

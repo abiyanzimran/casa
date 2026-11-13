@@ -1,0 +1,25 @@
+{
+  "title": "Siapa yang dapat melihat datamu di luar aplikasi",
+  "paragraphs": [
+    {
+      "text": "Server aplikasi ini dikelola oleh {pengelola}, yang juga anggota rumah tangga ini.",
+      "feature": ""
+    },
+    {
+      "text": "Di dalam aplikasi, pasanganmu tidak dapat melihat dana pribadimu, isi dompet campuranmu, setelan jam tenangmu, atau apa pun yang ditandai \"hanya kamu\".",
+      "feature": ""
+    },
+    {
+      "text": "Di luar aplikasi berbeda. Pengelola server dapat membuka basis data dan salinan cadangan secara langsung. Dari sana semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Aturan di aplikasi tidak mencegah itu, dan data ini tidak dienkripsi terhadap pengelola server.",
+      "feature": ""
+    },
+    {
+      "text": "Kalau kamu memakai Casa di browser atau dari ikonnya di layar utama, aplikasinya dimuat dari server yang dikelola {pengelola} setiap kali diperbarui. Pengelola server dapat mengubah aplikasi itu, juga khusus untuk akunmu, termasuk agar data yang hanya tersimpan di perangkatmu ikut terkirim.",
+      "feature": ""
+    },
+    {
+      "text": "Bila keadaan ini tidak cocok untukmu, jangan mengisi data pribadi apa pun. Kamu dapat membaca pemberitahuan ini lagi kapan saja di \"Siapa melihat apa\".",
+      "feature": ""
+    }
+  ]
+}

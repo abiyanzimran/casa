@@ -30,6 +30,12 @@ const (
 	// HouseholdServiceListMembershipsProcedure is the procedure name of the HouseholdService's
 	// ListMemberships RPC.
 	HouseholdServiceListMembershipsProcedure = "/casa.v1.HouseholdService/ListMemberships"
+	// HouseholdServiceGetOperatorNoticeProcedure is the procedure name of the HouseholdService's
+	// GetOperatorNotice RPC.
+	HouseholdServiceGetOperatorNoticeProcedure = "/casa.v1.HouseholdService/GetOperatorNotice"
+	// HouseholdServiceAcknowledgeOperatorNoticeProcedure is the procedure name of the
+	// HouseholdService's AcknowledgeOperatorNotice RPC.
+	HouseholdServiceAcknowledgeOperatorNoticeProcedure = "/casa.v1.HouseholdService/AcknowledgeOperatorNotice"
 )
 
 var (
@@ -47,6 +53,20 @@ var (
 			Procedure:  HouseholdServiceListMembershipsProcedure,
 		}
 	})
+	householdServiceGetOperatorNoticeSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("GetOperatorNotice"),
+			Procedure:  HouseholdServiceGetOperatorNoticeProcedure,
+		}
+	})
+	householdServiceAcknowledgeOperatorNoticeSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("AcknowledgeOperatorNotice"),
+			Procedure:  HouseholdServiceAcknowledgeOperatorNoticeProcedure,
+		}
+	})
 )
 
 // HouseholdServiceClient is a client for the casa.v1.HouseholdService service.
@@ -62,6 +82,18 @@ type HouseholdServiceClient interface {
 	// most 20 households of 20 members each [Usulan]. An online read, also
 	// after sync exists (plan 1.6 decision 16).
 	ListMemberships(context.Context, *v1.ListMembershipsRequest) (*v1.ListMembershipsResponse, error)
+	// Returns the operator notice in force for the caller: its latest version,
+	// with {pengelola} filled from the server's operator name, and whether the
+	// caller acknowledged it (FR-FAM-019; SEC-34). The first read of a version
+	// issues it to the account and writes one line in its security trail
+	// (09.3 §1 "Mekanisme"). Never held by NOTICE_UNREAD.
+	GetOperatorNotice(context.Context, *v1.GetOperatorNoticeRequest) (*v1.GetOperatorNoticeResponse, error)
+	// Acknowledges the version the client showed, by variant, number and
+	// text_sha256. Only the latest version releases the NOTICE_UNREAD hold;
+	// any other is refused with STATE_CHANGED and nothing is written (SEC-34;
+	// 10.1 §11 note of 14 November 2026 (b)). An online command outside the
+	// queue, exempt from NOTICE_UNREAD (09.3 §1).
+	AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error)
 }
 
 // NewHouseholdServiceClient constructs a client for the casa.v1.HouseholdService service. Multiple
@@ -83,6 +115,18 @@ type HouseholdServiceHandler interface {
 	// most 20 households of 20 members each [Usulan]. An online read, also
 	// after sync exists (plan 1.6 decision 16).
 	ListMemberships(context.Context, *v1.ListMembershipsRequest) (*v1.ListMembershipsResponse, error)
+	// Returns the operator notice in force for the caller: its latest version,
+	// with {pengelola} filled from the server's operator name, and whether the
+	// caller acknowledged it (FR-FAM-019; SEC-34). The first read of a version
+	// issues it to the account and writes one line in its security trail
+	// (09.3 §1 "Mekanisme"). Never held by NOTICE_UNREAD.
+	GetOperatorNotice(context.Context, *v1.GetOperatorNoticeRequest) (*v1.GetOperatorNoticeResponse, error)
+	// Acknowledges the version the client showed, by variant, number and
+	// text_sha256. Only the latest version releases the NOTICE_UNREAD hold;
+	// any other is refused with STATE_CHANGED and nothing is written (SEC-34;
+	// 10.1 §11 note of 14 November 2026 (b)). An online command outside the
+	// queue, exempt from NOTICE_UNREAD (09.3 §1).
+	AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error)
 }
 
 // RegisterHouseholdServiceHandler registers svc as the casa.v1.HouseholdService implementation on
@@ -92,6 +136,8 @@ func RegisterHouseholdServiceHandler(server *connect.Server, svc HouseholdServic
 	server.Register(
 		connect.Method{Spec: householdServiceCreateHouseholdSpec(), Handler: adapter.createHousehold},
 		connect.Method{Spec: householdServiceListMembershipsSpec(), Handler: adapter.listMemberships},
+		connect.Method{Spec: householdServiceGetOperatorNoticeSpec(), Handler: adapter.getOperatorNotice},
+		connect.Method{Spec: householdServiceAcknowledgeOperatorNoticeSpec(), Handler: adapter.acknowledgeOperatorNotice},
 	)
 }
 
@@ -104,6 +150,14 @@ func (UnimplementedHouseholdServiceHandler) CreateHousehold(context.Context, *v1
 
 func (UnimplementedHouseholdServiceHandler) ListMemberships(context.Context, *v1.ListMembershipsRequest) (*v1.ListMembershipsResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.ListMemberships is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) GetOperatorNotice(context.Context, *v1.GetOperatorNoticeRequest) (*v1.GetOperatorNoticeResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.GetOperatorNotice is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.AcknowledgeOperatorNotice is not implemented")
 }
 
 type householdServiceClient struct {
@@ -121,6 +175,22 @@ func (c *householdServiceClient) CreateHousehold(ctx context.Context, req *v1.Cr
 func (c *householdServiceClient) ListMemberships(ctx context.Context, req *v1.ListMembershipsRequest) (*v1.ListMembershipsResponse, error) {
 	var res v1.ListMembershipsResponse
 	if err := c.client.CallUnary(ctx, householdServiceListMembershipsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) GetOperatorNotice(ctx context.Context, req *v1.GetOperatorNoticeRequest) (*v1.GetOperatorNoticeResponse, error) {
+	var res v1.GetOperatorNoticeResponse
+	if err := c.client.CallUnary(ctx, householdServiceGetOperatorNoticeSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) AcknowledgeOperatorNotice(ctx context.Context, req *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error) {
+	var res v1.AcknowledgeOperatorNoticeResponse
+	if err := c.client.CallUnary(ctx, householdServiceAcknowledgeOperatorNoticeSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -146,6 +216,30 @@ func (h householdServiceHandler) listMemberships(ctx context.Context, _ connect.
 		return err
 	}
 	res, err := h.svc.ListMemberships(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) getOperatorNotice(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetOperatorNoticeRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetOperatorNotice(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) acknowledgeOperatorNotice(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.AcknowledgeOperatorNoticeRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.AcknowledgeOperatorNotice(ctx, &req)
 	if err != nil {
 		return err
 	}

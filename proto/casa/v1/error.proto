@@ -49,6 +49,11 @@ enum ErrorCode {
   // invitation, or it is already a member of a household (SEC-158 (a);
   // FAM.md FR-FAM-001 AC-5, AC-10; ADR-013 note 1.6).
   ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED = 13;
+  // The object the command acts on is no longer in the state the client
+  // saw, such as an acknowledgement of a notice version that is not the
+  // latest; nothing was written, and no state is disclosed (10.1 §11 note
+  // of 14 November 2026 (b); ADR-013 note 1.6).
+  ERROR_CODE_STATE_CHANGED = 14;
   // The account is already a member of a household, or a concurrent
   // command made it one (pilot server rule; 09.2 §5.1 note on decision 20;
   // ADR-013 note 1.6).

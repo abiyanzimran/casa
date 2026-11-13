@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/household.proto.
  */
 export const file_casa_v1_household: GenFile = /*@__PURE__*/
-  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwMsYBChBIb3VzZWhvbGRTZXJ2aWNlElwKD0NyZWF0ZUhvdXNlaG9sZBIfLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBogLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2UiBoK1GAIIABJUCg9MaXN0TWVtYmVyc2hpcHMSHy5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1JlcXVlc3QaIC5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlQpsBCgtjb20uY2FzYS52MUIOSG91c2Vob2xkUHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request]);
+  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwIlQKGEdldE9wZXJhdG9yTm90aWNlUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiMAoPTm90aWNlUGFyYWdyYXBoEgwKBHRleHQYASABKAkSDwoHZmVhdHVyZRgCIAEoCSKlAQoZR2V0T3BlcmF0b3JOb3RpY2VSZXNwb25zZRIPCgd2YXJpYW50GAEgASgJEg8KB3ZlcnNpb24YAiABKA0SDQoFdGl0bGUYAyABKAkSLAoKcGFyYWdyYXBocxgEIAMoCzIYLmNhc2EudjEuTm90aWNlUGFyYWdyYXBoEhQKDGFja25vd2xlZGdlZBgFIAEoCBITCgt0ZXh0X3NoYTI1NhgGIAEoDCLLAQogQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEi8KB3ZhcmlhbnQYAiABKAlCHrpIG3IZUgZjb3VwbGVSBmZhbWlseVIHZ2VuZXJhbBIeCgd2ZXJzaW9uGAMgASgNQg26SAoqCBj/////ByAAEhwKC3RleHRfc2hhMjU2GAQgASgMQge6SAR6AmggIiMKIUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZTKgAwoQSG91c2Vob2xkU2VydmljZRJcCg9DcmVhdGVIb3VzZWhvbGQSHy5jYXNhLnYxLkNyZWF0ZUhvdXNlaG9sZFJlcXVlc3QaIC5jYXNhLnYxLkNyZWF0ZUhvdXNlaG9sZFJlc3BvbnNlIgaCtRgCCAASVAoPTGlzdE1lbWJlcnNoaXBzEh8uY2FzYS52MS5MaXN0TWVtYmVyc2hpcHNSZXF1ZXN0GiAuY2FzYS52MS5MaXN0TWVtYmVyc2hpcHNSZXNwb25zZRJaChFHZXRPcGVyYXRvck5vdGljZRIhLmNhc2EudjEuR2V0T3BlcmF0b3JOb3RpY2VSZXF1ZXN0GiIuY2FzYS52MS5HZXRPcGVyYXRvck5vdGljZVJlc3BvbnNlEnwKGUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2USKS5jYXNhLnYxLkFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXF1ZXN0GiouY2FzYS52MS5BY2tub3dsZWRnZU9wZXJhdG9yTm90aWNlUmVzcG9uc2UiCIK1GAQIABgBQpsBCgtjb20uY2FzYS52MUIOSG91c2Vob2xkUHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request]);
 
 /**
  * @generated from message casa.v1.CreateHouseholdRequest
@@ -183,6 +183,149 @@ export const ListMembershipsResponseSchema: GenMessage<ListMembershipsResponse> 
   messageDesc(file_casa_v1_household, 5);
 
 /**
+ * @generated from message casa.v1.GetOperatorNoticeRequest
+ */
+export type GetOperatorNoticeRequest = Message<"casa.v1.GetOperatorNoticeRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+};
+
+/**
+ * Describes the message casa.v1.GetOperatorNoticeRequest.
+ * Use `create(GetOperatorNoticeRequestSchema)` to create a new message.
+ */
+export const GetOperatorNoticeRequestSchema: GenMessage<GetOperatorNoticeRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 6);
+
+/**
+ * NoticeParagraph is one paragraph of a notice version, as plain text.
+ *
+ * @generated from message casa.v1.NoticeParagraph
+ */
+export type NoticeParagraph = Message<"casa.v1.NoticeParagraph"> & {
+  /**
+   * @generated from field: string text = 1;
+   */
+  text: string;
+
+  /**
+   * "" for a paragraph that always applies; else the feature it describes,
+   * and the client shows "Berlaku saat fitur ini tersedia" above it when its
+   * build lacks that feature (SEC-34 (5); 08 §7.5).
+   *
+   * @generated from field: string feature = 2;
+   */
+  feature: string;
+};
+
+/**
+ * Describes the message casa.v1.NoticeParagraph.
+ * Use `create(NoticeParagraphSchema)` to create a new message.
+ */
+export const NoticeParagraphSchema: GenMessage<NoticeParagraph> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 7);
+
+/**
+ * @generated from message casa.v1.GetOperatorNoticeResponse
+ */
+export type GetOperatorNoticeResponse = Message<"casa.v1.GetOperatorNoticeResponse"> & {
+  /**
+   * couple, family or general (SEC-34; 10.1 §11.3, §11.3.1).
+   *
+   * @generated from field: string variant = 1;
+   */
+  variant: string;
+
+  /**
+   * @generated from field: uint32 version = 2;
+   */
+  version: number;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * @generated from field: repeated casa.v1.NoticeParagraph paragraphs = 4;
+   */
+  paragraphs: NoticeParagraph[];
+
+  /**
+   * True when the caller acknowledged this version (FR-FAM-019/AC-2).
+   *
+   * @generated from field: bool acknowledged = 5;
+   */
+  acknowledged: boolean;
+
+  /**
+   * The version's identity for the account: SHA-256 of the filled text
+   * (10.1 §11 note of 14 November 2026 (a)); the acknowledgement sends it
+   * back.
+   *
+   * @generated from field: bytes text_sha256 = 6;
+   */
+  textSha256: Uint8Array;
+};
+
+/**
+ * Describes the message casa.v1.GetOperatorNoticeResponse.
+ * Use `create(GetOperatorNoticeResponseSchema)` to create a new message.
+ */
+export const GetOperatorNoticeResponseSchema: GenMessage<GetOperatorNoticeResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 8);
+
+/**
+ * @generated from message casa.v1.AcknowledgeOperatorNoticeRequest
+ */
+export type AcknowledgeOperatorNoticeRequest = Message<"casa.v1.AcknowledgeOperatorNoticeRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: string variant = 2;
+   */
+  variant: string;
+
+  /**
+   * At most the largest int32, so the server's int32 never overflows (plan
+   * 1.6 decision 6).
+   *
+   * @generated from field: uint32 version = 3;
+   */
+  version: number;
+
+  /**
+   * @generated from field: bytes text_sha256 = 4;
+   */
+  textSha256: Uint8Array;
+};
+
+/**
+ * Describes the message casa.v1.AcknowledgeOperatorNoticeRequest.
+ * Use `create(AcknowledgeOperatorNoticeRequestSchema)` to create a new message.
+ */
+export const AcknowledgeOperatorNoticeRequestSchema: GenMessage<AcknowledgeOperatorNoticeRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 9);
+
+/**
+ * @generated from message casa.v1.AcknowledgeOperatorNoticeResponse
+ */
+export type AcknowledgeOperatorNoticeResponse = Message<"casa.v1.AcknowledgeOperatorNoticeResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.AcknowledgeOperatorNoticeResponse.
+ * Use `create(AcknowledgeOperatorNoticeResponseSchema)` to create a new message.
+ */
+export const AcknowledgeOperatorNoticeResponseSchema: GenMessage<AcknowledgeOperatorNoticeResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 10);
+
+/**
  * HouseholdService is the household module's API: households, memberships
  * and invitations (09.2 §1; 06 §3.1, §3.6). Its errors are mapped by one
  * function in the API layer (ADR-013 note 1.6).
@@ -216,6 +359,34 @@ export const HouseholdService: GenService<{
     methodKind: "unary";
     input: typeof ListMembershipsRequestSchema;
     output: typeof ListMembershipsResponseSchema;
+  },
+  /**
+   * Returns the operator notice in force for the caller: its latest version,
+   * with {pengelola} filled from the server's operator name, and whether the
+   * caller acknowledged it (FR-FAM-019; SEC-34). The first read of a version
+   * issues it to the account and writes one line in its security trail
+   * (09.3 §1 "Mekanisme"). Never held by NOTICE_UNREAD.
+   *
+   * @generated from rpc casa.v1.HouseholdService.GetOperatorNotice
+   */
+  getOperatorNotice: {
+    methodKind: "unary";
+    input: typeof GetOperatorNoticeRequestSchema;
+    output: typeof GetOperatorNoticeResponseSchema;
+  },
+  /**
+   * Acknowledges the version the client showed, by variant, number and
+   * text_sha256. Only the latest version releases the NOTICE_UNREAD hold;
+   * any other is refused with STATE_CHANGED and nothing is written (SEC-34;
+   * 10.1 §11 note of 14 November 2026 (b)). An online command outside the
+   * queue, exempt from NOTICE_UNREAD (09.3 §1).
+   *
+   * @generated from rpc casa.v1.HouseholdService.AcknowledgeOperatorNotice
+   */
+  acknowledgeOperatorNotice: {
+    methodKind: "unary";
+    input: typeof AcknowledgeOperatorNoticeRequestSchema;
+    output: typeof AcknowledgeOperatorNoticeResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_household, 0);

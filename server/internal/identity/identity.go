@@ -237,3 +237,15 @@ func (s *Service) SignupVia(ctx context.Context, account pgtype.UUID) (string, e
 	})
 	return via, err
 }
+
+// RecordSecurityEvent writes one line of account's security trail, without
+// a session, in tx whose scope is the account (SEC-16, SEC-39 (b)): the
+// entry point for a line another module's command causes, such as an
+// operator notice version or its acknowledgement (SEC-34; 09.2 §1 item 9:
+// the API layer composes it), through the same query identity uses. detail
+// never holds a token, a password, an email or other content.
+func RecordSecurityEvent(ctx context.Context, tx pgx.Tx, account pgtype.UUID, kind, detail string, at time.Time) error {
+	return identitydb.New(tx).InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
+		AccountID: account, Kind: kind, Detail: pgtype.Text{String: detail, Valid: detail != ""}, OccurredAt: at,
+	})
+}

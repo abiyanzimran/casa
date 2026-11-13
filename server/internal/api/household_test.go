@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 	"sync"
@@ -30,15 +31,27 @@ type householdHarness struct {
 	service    *household.Service
 }
 
+// testOperatorName is the operator name of the test server, the
+// credential operator-name of casa serve (09.3 §1 "Mekanisme").
+const testOperatorName = "Pengelola Uji"
+
 func startHousehold(t *testing.T) *householdHarness {
 	t.Helper()
 	h := &householdHarness{}
 	h.identityHarness = startIdentity(t, func(server *connect.Server, id *identityHarness) {
-		h.service = household.New(id.pool, id.clock.Now)
+		h.service = household.New(id.pool, id.clock.Now, testOperatorName, household.PublishedNotices)
 		api.RegisterHouseholdService(server, id.pool, h.service, id.service)
+		id.noticeHeld = api.NoticeHeld(id.pool, h.service)
 	})
 	h.households = casav1connect.NewHouseholdServiceClient(h.probe)
 	return h
+}
+
+// reopen replaces the running household service with one of operatorName
+// and notices, as a new build or a changed credential would: the handlers
+// and the hold check use it from the next request on.
+func (h *householdHarness) reopen(operatorName string, notices fs.FS) {
+	*h.service = *household.New(h.pool, h.clock.Now, operatorName, notices)
 }
 
 // member is a signed-up account: its access token, and its id as text.
@@ -46,7 +59,17 @@ type member struct {
 	token, account string
 }
 
+// signUpMember signs up email and acknowledges the operator notice, as the
+// client does before anything else (FR-FAM-019/AC-1; SEC-34).
 func (h *householdHarness) signUpMember(t *testing.T, email string) member {
+	t.Helper()
+	m := h.signUpUnread(t, email)
+	h.ack(t, m)
+	return m
+}
+
+// signUpUnread signs up email without acknowledging the operator notice.
+func (h *householdHarness) signUpUnread(t *testing.T, email string) member {
 	t.Helper()
 	tokens := h.signUp(t, email, "a long enough passphrase")
 	var account string
@@ -54,6 +77,31 @@ func (h *householdHarness) signUpMember(t *testing.T, email string) member {
 		t.Fatal(err)
 	}
 	return member{token: tokens.GetAccessToken(), account: account}
+}
+
+func (h *householdHarness) notice(t *testing.T, m member) *casav1.GetOperatorNoticeResponse {
+	t.Helper()
+	res, err := h.households.GetOperatorNotice(bearer(m.token), &casav1.GetOperatorNoticeRequest{RequestContext: identityRC(ios)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return res
+}
+
+// acknowledge acknowledges the version n identifies.
+func (h *householdHarness) acknowledge(m member, n *casav1.GetOperatorNoticeResponse) error {
+	_, err := h.households.AcknowledgeOperatorNotice(bearer(m.token), &casav1.AcknowledgeOperatorNoticeRequest{
+		RequestContext: commandRC(), Variant: n.GetVariant(), Version: n.GetVersion(), TextSha256: n.GetTextSha256(),
+	})
+	return err
+}
+
+// ack reads the current notice and acknowledges it.
+func (h *householdHarness) ack(t *testing.T, m member) {
+	t.Helper()
+	if err := h.acknowledge(m, h.notice(t, m)); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // newHousehold is a valid request: name, time zone, display name and the
@@ -88,13 +136,18 @@ func (h *householdHarness) memberships(t *testing.T, m member) []*casav1.Members
 }
 
 // wantNothingWritten checks that no household row, consent record or
-// idempotency record exists.
+// idempotency record exists, apart from the records of the operator notice
+// acknowledgements signUpMember sends.
 func (h *householdHarness) wantNothingWritten(t *testing.T) {
 	t.Helper()
-	for _, table := range []string{"household", "membership", "object_event", "consent_record", "idempotency_record"} {
+	for _, table := range []string{"household", "membership", "object_event", "consent_record"} {
 		if n := h.count(t, "SELECT count(*) FROM "+table); n != 0 {
 			t.Fatalf("%d rows in %s, want 0", n, table)
 		}
+	}
+	if n := h.count(t, "SELECT count(*) FROM idempotency_record WHERE command <> $1",
+		casav1connect.HouseholdServiceAcknowledgeOperatorNoticeProcedure); n != 0 {
+		t.Fatalf("%d idempotency records of other commands, want 0", n)
 	}
 }
 

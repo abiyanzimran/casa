@@ -84,9 +84,17 @@ func TestMigrate(t *testing.T) {
 // withCredential writes the credential name as systemd LoadCredential= would.
 func withCredential(t *testing.T, name, credential string) {
 	t.Helper()
+	withCredentials(t, map[string]string{name: credential})
+}
+
+// withCredentials gives casa the credentials, by name, in a new directory.
+func withCredentials(t *testing.T, credentials map[string]string) {
+	t.Helper()
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, name), []byte(credential+"\n"), 0o400); err != nil {
-		t.Fatal(err)
+	for name, credential := range credentials {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(credential+"\n"), 0o400); err != nil {
+			t.Fatal(err)
+		}
 	}
 	t.Setenv("CREDENTIALS_DIRECTORY", dir)
 }

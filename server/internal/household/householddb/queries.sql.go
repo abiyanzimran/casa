@@ -12,6 +12,32 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const acknowledgeNotice = `-- name: AcknowledgeNotice :exec
+UPDATE operator_notice_ack SET acknowledged_at = $1::timestamptz
+ WHERE account_id = $2 AND variant = $3 AND version = $4 AND text_sha256 = $5
+   AND acknowledged_at IS NULL
+`
+
+type AcknowledgeNoticeParams struct {
+	AcknowledgedAt time.Time
+	AccountID      pgtype.UUID
+	Variant        string
+	Version        int32
+	TextSha256     []byte
+}
+
+// FR-FAM-019/AC-2: the first acknowledgement's time stays.
+func (q *Queries) AcknowledgeNotice(ctx context.Context, arg AcknowledgeNoticeParams) error {
+	_, err := q.db.Exec(ctx, acknowledgeNotice,
+		arg.AcknowledgedAt,
+		arg.AccountID,
+		arg.Variant,
+		arg.Version,
+		arg.TextSha256,
+	)
+	return err
+}
+
 const fullAdultMembers = `-- name: FullAdultMembers :many
 SELECT member_id FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND role = 'household_owner'
@@ -245,6 +271,37 @@ func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventPa
 	return err
 }
 
+const issueNotice = `-- name: IssueNotice :execrows
+INSERT INTO operator_notice_ack (account_id, variant, version, text_sha256, issued_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (account_id, variant, version, text_sha256) DO NOTHING
+`
+
+type IssueNoticeParams struct {
+	AccountID  pgtype.UUID
+	Variant    string
+	Version    int32
+	TextSha256 []byte
+	IssuedAt   time.Time
+}
+
+// 09.3 §1 "Mekanisme": the first sight of a version identity writes its row;
+// a second, concurrent or later, writes nothing (1 row, then 0), so the
+// caller writes the security trail line once.
+func (q *Queries) IssueNotice(ctx context.Context, arg IssueNoticeParams) (int64, error) {
+	result, err := q.db.Exec(ctx, issueNotice,
+		arg.AccountID,
+		arg.Variant,
+		arg.Version,
+		arg.TextSha256,
+		arg.IssuedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const membershipsOfAccount = `-- name: MembershipsOfAccount :many
 SELECT household_id, member_id FROM membership
  WHERE account_id = $1
@@ -291,4 +348,29 @@ func (q *Queries) NewID(ctx context.Context) (pgtype.UUID, error) {
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const noticeAcknowledged = `-- name: NoticeAcknowledged :one
+SELECT (acknowledged_at IS NOT NULL)::boolean AS acknowledged FROM operator_notice_ack
+ WHERE account_id = $1 AND variant = $2 AND version = $3 AND text_sha256 = $4
+`
+
+type NoticeAcknowledgedParams struct {
+	AccountID  pgtype.UUID
+	Variant    string
+	Version    int32
+	TextSha256 []byte
+}
+
+// One row by its primary key.
+func (q *Queries) NoticeAcknowledged(ctx context.Context, arg NoticeAcknowledgedParams) (bool, error) {
+	row := q.db.QueryRow(ctx, noticeAcknowledged,
+		arg.AccountID,
+		arg.Variant,
+		arg.Version,
+		arg.TextSha256,
+	)
+	var acknowledged bool
+	err := row.Scan(&acknowledged)
+	return acknowledged, err
 }

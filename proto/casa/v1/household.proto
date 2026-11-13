@@ -23,6 +23,23 @@ service HouseholdService {
   // most 20 households of 20 members each [Usulan]. An online read, also
   // after sync exists (plan 1.6 decision 16).
   rpc ListMemberships(ListMembershipsRequest) returns (ListMembershipsResponse);
+  // Returns the operator notice in force for the caller: its latest version,
+  // with {pengelola} filled from the server's operator name, and whether the
+  // caller acknowledged it (FR-FAM-019; SEC-34). The first read of a version
+  // issues it to the account and writes one line in its security trail
+  // (09.3 §1 "Mekanisme"). Never held by NOTICE_UNREAD.
+  rpc GetOperatorNotice(GetOperatorNoticeRequest) returns (GetOperatorNoticeResponse);
+  // Acknowledges the version the client showed, by variant, number and
+  // text_sha256. Only the latest version releases the NOTICE_UNREAD hold;
+  // any other is refused with STATE_CHANGED and nothing is written (SEC-34;
+  // 10.1 §11 note of 14 November 2026 (b)). An online command outside the
+  // queue, exempt from NOTICE_UNREAD (09.3 §1).
+  rpc AcknowledgeOperatorNotice(AcknowledgeOperatorNoticeRequest) returns (AcknowledgeOperatorNoticeResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      notice_exempt: true
+    };
+  }
 }
 
 message CreateHouseholdRequest {
@@ -79,3 +96,50 @@ message Member {
 message ListMembershipsResponse {
   repeated Membership memberships = 1;
 }
+
+message GetOperatorNoticeRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+// NoticeParagraph is one paragraph of a notice version, as plain text.
+message NoticeParagraph {
+  string text = 1;
+  // "" for a paragraph that always applies; else the feature it describes,
+  // and the client shows "Berlaku saat fitur ini tersedia" above it when its
+  // build lacks that feature (SEC-34 (5); 08 §7.5).
+  string feature = 2;
+}
+
+message GetOperatorNoticeResponse {
+  // couple, family or general (SEC-34; 10.1 §11.3, §11.3.1).
+  string variant = 1;
+  uint32 version = 2;
+  string title = 3;
+  repeated NoticeParagraph paragraphs = 4;
+  // True when the caller acknowledged this version (FR-FAM-019/AC-2).
+  bool acknowledged = 5;
+  // The version's identity for the account: SHA-256 of the filled text
+  // (10.1 §11 note of 14 November 2026 (a)); the acknowledgement sends it
+  // back.
+  bytes text_sha256 = 6;
+}
+
+message AcknowledgeOperatorNoticeRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string variant = 2 [(buf.validate.field).string = {
+    in: [
+      "couple",
+      "family",
+      "general"
+    ]
+  }];
+  // At most the largest int32, so the server's int32 never overflows (plan
+  // 1.6 decision 6).
+  uint32 version = 3 [(buf.validate.field).uint32 = {
+    gt: 0
+    lte: 2147483647
+  }];
+  bytes text_sha256 = 4 [(buf.validate.field).bytes.len = 32];
+}
+
+message AcknowledgeOperatorNoticeResponse {}

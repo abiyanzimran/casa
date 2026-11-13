@@ -78,6 +78,12 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
 		return 1
 	}
+	operatorName, err := readOperatorName()
+	if err != nil {
+		pool.Close()
+		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
+		return 1
+	}
 	identityService := identity.New(pool, identity.Config{
 		Origin: *origin, SendMail: writeMail(*mailDir), Now: time.Now, Password: identity.DefaultPasswordParams,
 		Logger: slog.New(slog.NewJSONHandler(stderr, nil)), // JSON to journald (09.4 §3)
@@ -90,12 +96,13 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		identityService.Close()
 		pool.Close()
 	}
+	householdService := household.New(pool, time.Now, operatorName, household.PublishedNotices)
 	apiServer := api.NewServer(minimumWebVersion, *origin, api.Sessions{
 		Bearer: identityService.Authenticate, Cookie: identityService.AuthenticateCookie,
 		UserAction: identityService.TouchUserAction,
-	})
+	}, api.NoticeHeld(pool, householdService))
 	api.RegisterIdentityService(apiServer, pool, identityService)
-	api.RegisterHouseholdService(apiServer, pool, household.New(pool, time.Now), identityService)
+	api.RegisterHouseholdService(apiServer, pool, householdService, identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
 		closeAll()
@@ -129,6 +136,21 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	return 0
+}
+
+// operatorNameCredential holds the name that fills {pengelola} in the
+// operator notice: configuration, so no person's name enters the repository
+// (09.3 §1 "Mekanisme"; SEC-34).
+const operatorNameCredential = "operator-name"
+
+// readOperatorName reads operatorNameCredential; an empty name is refused,
+// and the name itself is never printed (ES §4).
+func readOperatorName() (string, error) {
+	name, err := readCredential(operatorNameCredential)
+	if err == nil && strings.TrimSpace(name) == "" {
+		err = fmt.Errorf("credential %s is empty", operatorNameCredential)
+	}
+	return name, err
 }
 
 // openBundle reads the embedded web bundle (ADR-030 item 3). A binary built

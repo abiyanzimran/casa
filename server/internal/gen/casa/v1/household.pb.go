@@ -371,6 +371,301 @@ func (x *ListMembershipsResponse) GetMemberships() []*Membership {
 	return nil
 }
 
+type GetOperatorNoticeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetOperatorNoticeRequest) Reset() {
+	*x = GetOperatorNoticeRequest{}
+	mi := &file_casa_v1_household_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOperatorNoticeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOperatorNoticeRequest) ProtoMessage() {}
+
+func (x *GetOperatorNoticeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOperatorNoticeRequest.ProtoReflect.Descriptor instead.
+func (*GetOperatorNoticeRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetOperatorNoticeRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+// NoticeParagraph is one paragraph of a notice version, as plain text.
+type NoticeParagraph struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Text  string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	// "" for a paragraph that always applies; else the feature it describes,
+	// and the client shows "Berlaku saat fitur ini tersedia" above it when its
+	// build lacks that feature (SEC-34 (5); 08 §7.5).
+	Feature       string `protobuf:"bytes,2,opt,name=feature,proto3" json:"feature,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NoticeParagraph) Reset() {
+	*x = NoticeParagraph{}
+	mi := &file_casa_v1_household_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NoticeParagraph) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NoticeParagraph) ProtoMessage() {}
+
+func (x *NoticeParagraph) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NoticeParagraph.ProtoReflect.Descriptor instead.
+func (*NoticeParagraph) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *NoticeParagraph) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *NoticeParagraph) GetFeature() string {
+	if x != nil {
+		return x.Feature
+	}
+	return ""
+}
+
+type GetOperatorNoticeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// couple, family or general (SEC-34; 10.1 §11.3, §11.3.1).
+	Variant    string             `protobuf:"bytes,1,opt,name=variant,proto3" json:"variant,omitempty"`
+	Version    uint32             `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Title      string             `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Paragraphs []*NoticeParagraph `protobuf:"bytes,4,rep,name=paragraphs,proto3" json:"paragraphs,omitempty"`
+	// True when the caller acknowledged this version (FR-FAM-019/AC-2).
+	Acknowledged bool `protobuf:"varint,5,opt,name=acknowledged,proto3" json:"acknowledged,omitempty"`
+	// The version's identity for the account: SHA-256 of the filled text
+	// (10.1 §11 note of 14 November 2026 (a)); the acknowledgement sends it
+	// back.
+	TextSha256    []byte `protobuf:"bytes,6,opt,name=text_sha256,json=textSha256,proto3" json:"text_sha256,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOperatorNoticeResponse) Reset() {
+	*x = GetOperatorNoticeResponse{}
+	mi := &file_casa_v1_household_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOperatorNoticeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOperatorNoticeResponse) ProtoMessage() {}
+
+func (x *GetOperatorNoticeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOperatorNoticeResponse.ProtoReflect.Descriptor instead.
+func (*GetOperatorNoticeResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetOperatorNoticeResponse) GetVariant() string {
+	if x != nil {
+		return x.Variant
+	}
+	return ""
+}
+
+func (x *GetOperatorNoticeResponse) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *GetOperatorNoticeResponse) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *GetOperatorNoticeResponse) GetParagraphs() []*NoticeParagraph {
+	if x != nil {
+		return x.Paragraphs
+	}
+	return nil
+}
+
+func (x *GetOperatorNoticeResponse) GetAcknowledged() bool {
+	if x != nil {
+		return x.Acknowledged
+	}
+	return false
+}
+
+func (x *GetOperatorNoticeResponse) GetTextSha256() []byte {
+	if x != nil {
+		return x.TextSha256
+	}
+	return nil
+}
+
+type AcknowledgeOperatorNoticeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	Variant        string                 `protobuf:"bytes,2,opt,name=variant,proto3" json:"variant,omitempty"`
+	// At most the largest int32, so the server's int32 never overflows (plan
+	// 1.6 decision 6).
+	Version       uint32 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	TextSha256    []byte `protobuf:"bytes,4,opt,name=text_sha256,json=textSha256,proto3" json:"text_sha256,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) Reset() {
+	*x = AcknowledgeOperatorNoticeRequest{}
+	mi := &file_casa_v1_household_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcknowledgeOperatorNoticeRequest) ProtoMessage() {}
+
+func (x *AcknowledgeOperatorNoticeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcknowledgeOperatorNoticeRequest.ProtoReflect.Descriptor instead.
+func (*AcknowledgeOperatorNoticeRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) GetVariant() string {
+	if x != nil {
+		return x.Variant
+	}
+	return ""
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *AcknowledgeOperatorNoticeRequest) GetTextSha256() []byte {
+	if x != nil {
+		return x.TextSha256
+	}
+	return nil
+}
+
+type AcknowledgeOperatorNoticeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcknowledgeOperatorNoticeResponse) Reset() {
+	*x = AcknowledgeOperatorNoticeResponse{}
+	mi := &file_casa_v1_household_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcknowledgeOperatorNoticeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcknowledgeOperatorNoticeResponse) ProtoMessage() {}
+
+func (x *AcknowledgeOperatorNoticeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcknowledgeOperatorNoticeResponse.ProtoReflect.Descriptor instead.
+func (*AcknowledgeOperatorNoticeResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{10}
+}
+
 var File_casa_v1_household_proto protoreflect.FileDescriptor
 
 const file_casa_v1_household_proto_rawDesc = "" +
@@ -399,10 +694,35 @@ const file_casa_v1_household_proto_rawDesc = "" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"P\n" +
 	"\x17ListMembershipsResponse\x125\n" +
-	"\vmemberships\x18\x01 \x03(\v2\x13.casa.v1.MembershipR\vmemberships2\xc6\x01\n" +
+	"\vmemberships\x18\x01 \x03(\v2\x13.casa.v1.MembershipR\vmemberships\"d\n" +
+	"\x18GetOperatorNoticeRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\"?\n" +
+	"\x0fNoticeParagraph\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12\x18\n" +
+	"\afeature\x18\x02 \x01(\tR\afeature\"\xe4\x01\n" +
+	"\x19GetOperatorNoticeResponse\x12\x18\n" +
+	"\avariant\x18\x01 \x01(\tR\avariant\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\rR\aversion\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x128\n" +
+	"\n" +
+	"paragraphs\x18\x04 \x03(\v2\x18.casa.v1.NoticeParagraphR\n" +
+	"paragraphs\x12\"\n" +
+	"\facknowledged\x18\x05 \x01(\bR\facknowledged\x12\x1f\n" +
+	"\vtext_sha256\x18\x06 \x01(\fR\n" +
+	"textSha256\"\xf9\x01\n" +
+	" AcknowledgeOperatorNoticeRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x128\n" +
+	"\avariant\x18\x02 \x01(\tB\x1e\xbaH\x1br\x19R\x06coupleR\x06familyR\ageneralR\avariant\x12'\n" +
+	"\aversion\x18\x03 \x01(\rB\r\xbaH\n" +
+	"*\b\x18\xff\xff\xff\xff\a \x00R\aversion\x12(\n" +
+	"\vtext_sha256\x18\x04 \x01(\fB\a\xbaH\x04z\x02h R\n" +
+	"textSha256\"#\n" +
+	"!AcknowledgeOperatorNoticeResponse2\xa0\x03\n" +
 	"\x10HouseholdService\x12\\\n" +
 	"\x0fCreateHousehold\x12\x1f.casa.v1.CreateHouseholdRequest\x1a .casa.v1.CreateHouseholdResponse\"\x06\x82\xb5\x18\x02\b\x00\x12T\n" +
-	"\x0fListMemberships\x12\x1f.casa.v1.ListMembershipsRequest\x1a .casa.v1.ListMembershipsResponseB\x9b\x01\n" +
+	"\x0fListMemberships\x12\x1f.casa.v1.ListMembershipsRequest\x1a .casa.v1.ListMembershipsResponse\x12Z\n" +
+	"\x11GetOperatorNotice\x12!.casa.v1.GetOperatorNoticeRequest\x1a\".casa.v1.GetOperatorNoticeResponse\x12|\n" +
+	"\x19AcknowledgeOperatorNotice\x12).casa.v1.AcknowledgeOperatorNoticeRequest\x1a*.casa.v1.AcknowledgeOperatorNoticeResponse\"\b\x82\xb5\x18\x04\b\x00\x18\x01B\x9b\x01\n" +
 	"\vcom.casa.v1B\x0eHouseholdProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
 var (
@@ -417,30 +737,42 @@ func file_casa_v1_household_proto_rawDescGZIP() []byte {
 	return file_casa_v1_household_proto_rawDescData
 }
 
-var file_casa_v1_household_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_casa_v1_household_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_casa_v1_household_proto_goTypes = []any{
-	(*CreateHouseholdRequest)(nil),  // 0: casa.v1.CreateHouseholdRequest
-	(*CreateHouseholdResponse)(nil), // 1: casa.v1.CreateHouseholdResponse
-	(*ListMembershipsRequest)(nil),  // 2: casa.v1.ListMembershipsRequest
-	(*Membership)(nil),              // 3: casa.v1.Membership
-	(*Member)(nil),                  // 4: casa.v1.Member
-	(*ListMembershipsResponse)(nil), // 5: casa.v1.ListMembershipsResponse
-	(*RequestContext)(nil),          // 6: casa.v1.RequestContext
+	(*CreateHouseholdRequest)(nil),            // 0: casa.v1.CreateHouseholdRequest
+	(*CreateHouseholdResponse)(nil),           // 1: casa.v1.CreateHouseholdResponse
+	(*ListMembershipsRequest)(nil),            // 2: casa.v1.ListMembershipsRequest
+	(*Membership)(nil),                        // 3: casa.v1.Membership
+	(*Member)(nil),                            // 4: casa.v1.Member
+	(*ListMembershipsResponse)(nil),           // 5: casa.v1.ListMembershipsResponse
+	(*GetOperatorNoticeRequest)(nil),          // 6: casa.v1.GetOperatorNoticeRequest
+	(*NoticeParagraph)(nil),                   // 7: casa.v1.NoticeParagraph
+	(*GetOperatorNoticeResponse)(nil),         // 8: casa.v1.GetOperatorNoticeResponse
+	(*AcknowledgeOperatorNoticeRequest)(nil),  // 9: casa.v1.AcknowledgeOperatorNoticeRequest
+	(*AcknowledgeOperatorNoticeResponse)(nil), // 10: casa.v1.AcknowledgeOperatorNoticeResponse
+	(*RequestContext)(nil),                    // 11: casa.v1.RequestContext
 }
 var file_casa_v1_household_proto_depIdxs = []int32{
-	6, // 0: casa.v1.CreateHouseholdRequest.request_context:type_name -> casa.v1.RequestContext
-	6, // 1: casa.v1.ListMembershipsRequest.request_context:type_name -> casa.v1.RequestContext
-	4, // 2: casa.v1.Membership.members:type_name -> casa.v1.Member
-	3, // 3: casa.v1.ListMembershipsResponse.memberships:type_name -> casa.v1.Membership
-	0, // 4: casa.v1.HouseholdService.CreateHousehold:input_type -> casa.v1.CreateHouseholdRequest
-	2, // 5: casa.v1.HouseholdService.ListMemberships:input_type -> casa.v1.ListMembershipsRequest
-	1, // 6: casa.v1.HouseholdService.CreateHousehold:output_type -> casa.v1.CreateHouseholdResponse
-	5, // 7: casa.v1.HouseholdService.ListMemberships:output_type -> casa.v1.ListMembershipsResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	11, // 0: casa.v1.CreateHouseholdRequest.request_context:type_name -> casa.v1.RequestContext
+	11, // 1: casa.v1.ListMembershipsRequest.request_context:type_name -> casa.v1.RequestContext
+	4,  // 2: casa.v1.Membership.members:type_name -> casa.v1.Member
+	3,  // 3: casa.v1.ListMembershipsResponse.memberships:type_name -> casa.v1.Membership
+	11, // 4: casa.v1.GetOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
+	7,  // 5: casa.v1.GetOperatorNoticeResponse.paragraphs:type_name -> casa.v1.NoticeParagraph
+	11, // 6: casa.v1.AcknowledgeOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 7: casa.v1.HouseholdService.CreateHousehold:input_type -> casa.v1.CreateHouseholdRequest
+	2,  // 8: casa.v1.HouseholdService.ListMemberships:input_type -> casa.v1.ListMembershipsRequest
+	6,  // 9: casa.v1.HouseholdService.GetOperatorNotice:input_type -> casa.v1.GetOperatorNoticeRequest
+	9,  // 10: casa.v1.HouseholdService.AcknowledgeOperatorNotice:input_type -> casa.v1.AcknowledgeOperatorNoticeRequest
+	1,  // 11: casa.v1.HouseholdService.CreateHousehold:output_type -> casa.v1.CreateHouseholdResponse
+	5,  // 12: casa.v1.HouseholdService.ListMemberships:output_type -> casa.v1.ListMembershipsResponse
+	8,  // 13: casa.v1.HouseholdService.GetOperatorNotice:output_type -> casa.v1.GetOperatorNoticeResponse
+	10, // 14: casa.v1.HouseholdService.AcknowledgeOperatorNotice:output_type -> casa.v1.AcknowledgeOperatorNoticeResponse
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_household_proto_init() }
@@ -456,7 +788,7 @@ func file_casa_v1_household_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_household_proto_rawDesc), len(file_casa_v1_household_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
