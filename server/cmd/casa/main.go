@@ -1,29 +1,38 @@
 // Command casa is the Casa server binary (09.4 §6.2; owner decision 71,
-// docs/17). Subcommands are added by later
-// FS-1 tasks: migrate (1.2) and serve (1.3).
+// docs/17). Subcommands: migrate (1.2); serve comes with 1.3.
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const usage = "usage: casa <command>\n"
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stderr))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	code := run(ctx, os.Args[1:], os.Stdout, os.Stderr)
+	stop()
+	os.Exit(code)
 }
 
 // run executes the subcommand named by args[0] and returns the process exit
-// code: 2 for a usage error, as is conventional for command-line tools.
+// code: 0 on success, 1 on failure, 2 for a usage error, as is conventional
+// for command-line tools.
 //
-// Write errors on stderr are discarded on purpose: stderr is the last place
-// to report a problem, and the exit code still carries the failure.
-func run(args []string, stderr io.Writer) int {
+// Write errors on stdout and stderr are discarded on purpose: they are the
+// last place to report a problem, and the exit code still carries the result.
+func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		_, _ = fmt.Fprint(stderr, usage)
 		return 2
+	}
+	if args[0] == "migrate" {
+		return migrate(ctx, args[1:], stdout, stderr)
 	}
 	_, _ = fmt.Fprintf(stderr, "casa: unknown command %q\n%s", args[0], usage)
 	return 2
