@@ -41,11 +41,12 @@
 
 {#if unsupported}
 	<main class="unsupported">
-		<h1>Casa</h1>
+		<h1 class="judul-layar">Casa</h1>
 		<!-- 08 §25.6 LY-97 -->
 		<p>
 			Browser ini belum bisa menjalankan Casa dengan aman. Perbarui browser ini, atau buka Casa di
-			browser lain yang lebih baru.
+			browser lain yang lebih baru. Bila Casa terbuka di dalam aplikasi lain atau di jendela
+			pribadi, buka di browser biasa.
 		</p>
 	</main>
 {:else if !wiping}
@@ -65,8 +66,6 @@
 	}
 	h1 {
 		margin: 0 0 var(--jarak-4);
-		font-size: var(--ukuran-judul-layar);
-		font-weight: 700;
 	}
 	p {
 		margin: 0;
