@@ -18,8 +18,9 @@ import { APP_SHELL_CACHE_PREFIX } from '../lib/app-shell';
 const cacheName = `${APP_SHELL_CACHE_PREFIX}-${version}`;
 const indexPage = '/';
 
-// Licence and readme texts in static/ are not part of the shell.
-const isShellAsset = (path: string) => !/(^|\/)(README\.md|LICENSE)$|\.txt$/.test(path);
+// Licence and readme texts in static/ (all .txt, so the server's fixed MIME map serves
+// them; plan 1.5 decision 3) are not part of the shell.
+const isShellAsset = (path: string) => !path.endsWith('.txt');
 
 const shell = new Set([
 	indexPage,

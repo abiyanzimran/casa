@@ -119,7 +119,7 @@ func startIdentity(t *testing.T) *identityHarness {
 			return stream.Send(&emptypb.Empty{})
 		},
 	})
-	srv := httptest.NewServer(api.NewMux(server))
+	srv := httptest.NewServer(api.NewMux(server, nil))
 	t.Cleanup(srv.Close)
 	client := connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL))
 	h.client = casav1connect.NewIdentityServiceClient(client)

@@ -85,15 +85,22 @@ func SessionFrom(ctx context.Context) (identity.Session, bool) {
 	return session, ok
 }
 
-// NewMux serves the procedures of server and GET /healthz.
-func NewMux(server *connect.Server) http.Handler {
+// NewMux serves the procedures of server, GET /healthz and, when bundle is
+// not nil, the web client on every other path (ADR-030 item 3); without a
+// bundle the static routes answer 404 (plan decision 2). Every answer carries
+// the security headers (WithSecurityHeaders; SEC-166).
+func NewMux(server *connect.Server, bundle *Bundle) http.Handler {
 	mux := http.NewServeMux()
 	// The uptime monitor's check: no data and no database (09.4 §3; 14 §6.4).
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = io.WriteString(w, "ok\n") // a failed write leaves the monitor to report the outage
 	})
 	connecthttp.Mount(mux, server, connecthttp.WithReadMaxBytes(maxRequestBytes))
-	return mux
+	if bundle != nil {
+		// Every method, so Bundle answers other than GET and HEAD with 405.
+		mux.Handle("/", bundle)
+	}
+	return WithSecurityHeaders(mux, bundle)
 }
 
 type boundary struct {

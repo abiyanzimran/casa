@@ -16,3 +16,7 @@ node_modules/
 
 # Superpowers SDD scratch workspace
 .superpowers/
+
+# The embedded web bundle, filled by make bundle-copy (ADR-030 item 3)
+server/internal/webbundle/dist/*
+!server/internal/webbundle/dist/.gitkeep

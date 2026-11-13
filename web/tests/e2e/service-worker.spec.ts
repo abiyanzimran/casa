@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { collectViolations, serviceWorkerReady, violations } from './support';
 
 /** Every pathname in every Cache Storage cache of the page's origin. */
 function cachedUrls(page: Page): Promise<string[]> {
@@ -29,16 +30,9 @@ function expectedShell(): string[] {
 				path !== '/service-worker.js' &&
 				path !== '/_app/version.json' &&
 				!path.endsWith('.map') &&
-				!path.endsWith('.txt') &&
-				!/\/(README\.md|LICENSE)$/.test(path)
+				!path.endsWith('.txt')
 		)
 		.map((path) => (path === '/index.html' ? '/' : path));
-}
-
-async function serviceWorkerReady(page: Page): Promise<void> {
-	await page.evaluate(async () => {
-		await navigator.serviceWorker.ready;
-	});
 }
 
 test('SEC-169 (b): the service worker caches exactly the app shell, in one cache named with the version', async ({
@@ -99,11 +93,25 @@ async function installSecondCopy(page: Page): Promise<boolean> {
 	return page.evaluate(async () => {
 		const original = navigator.serviceWorker.controller;
 		if (!original) throw new Error('page not controlled');
-		// eslint-disable-next-line no-restricted-syntax -- the test installs a second copy of the worker (SEC-167 (c) allows this only in tests)
-		const probe = await navigator.serviceWorker.register('/service-worker.js?probe=1', {
-			type: 'module',
-			scope: '/'
-		});
+		// The cached answer carries the production CSP, so register() needs a TrustedScriptURL
+		// here too. No app code runs in this document, so the casa-sw name is still free.
+		const trustedTypes = (
+			window as unknown as {
+				trustedTypes: {
+					createPolicy(
+						name: string,
+						rules: { createScriptURL(input: string): string }
+					): { createScriptURL(input: string): string };
+				};
+			}
+		).trustedTypes;
+		// eslint-disable-next-line no-restricted-syntax -- test-only casa-sw policy that accepts any URL; the probe document runs no app code
+		const policy = trustedTypes.createPolicy('casa-sw', { createScriptURL: (input) => input });
+		// eslint-disable-next-line no-restricted-syntax -- installs a second copy of the worker through that test-only policy to test the update flow
+		const probe = await navigator.serviceWorker.register(
+			policy.createScriptURL('/service-worker.js?probe=1'),
+			{ type: 'module', scope: '/' }
+		);
 		const worker = probe.installing ?? probe.waiting;
 		if (!worker) throw new Error('no new worker');
 		await new Promise<void>((resolve) => {
@@ -161,31 +169,13 @@ test('SEC-169 (c): a new service worker waits until it is told to take over', as
 test('SEC-167 (c): with Trusted Types enforced the service worker registers without a violation', async ({
 	page
 }) => {
-	// The production directive (10.5 SEC-167 (c)); the server sets it from 1.5.
+	// The production directive (10.5 SEC-167 (c)), as the server sends it.
 	const directive = "require-trusted-types-for 'script'; trusted-types svelte-trusted-html casa-sw";
-	await page.route('**/*', async (route) => {
-		if (route.request().resourceType() !== 'document') {
-			await route.continue();
-			return;
-		}
-		const response = await route.fetch();
-		await route.fulfill({
-			response,
-			headers: { ...response.headers(), 'content-security-policy': directive }
-		});
-	});
-	await page.addInitScript(() => {
-		const seen: string[] = [];
-		Object.assign(window, { violations: seen });
-		document.addEventListener('securitypolicyviolation', (event) => {
-			seen.push(event.violatedDirective);
-		});
-	});
-	await page.goto('/');
+	await collectViolations(page);
+	const response = await page.goto('/');
+	expect(response?.headers()['content-security-policy']).toContain(directive);
 	await serviceWorkerReady(page);
-	expect(
-		await page.evaluate(() => (window as unknown as { violations: string[] }).violations)
-	).toEqual([]);
+	expect(await violations(page)).toEqual([]);
 	expect(await page.evaluate(() => 'trustedTypes' in window)).toBe(true);
 });
 
