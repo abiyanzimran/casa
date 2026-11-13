@@ -43,8 +43,25 @@ func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 	procedure, idempotencyKey string, request proto.Message,
 	apply func(context.Context, pgx.Tx) (Response, error),
 ) (Response, error) {
+	return run(ctx, pool, scope, scopeID(scope), procedure, idempotencyKey, request, apply)
+}
+
+// RunForAccount is Run with the account as the idempotency scope while the
+// transaction may also carry a household: an account-level command such as
+// creating a household or accepting an invitation (09.2 §8).
+func RunForAccount[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope,
+	procedure, idempotencyKey string, request proto.Message,
+	apply func(context.Context, pgx.Tx) (Response, error),
+) (Response, error) {
+	return run(ctx, pool, scope, scope.AccountID, procedure, idempotencyKey, request, apply)
+}
+
+func run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope, scopeOf pgtype.UUID,
+	procedure, idempotencyKey string, request proto.Message,
+	apply func(context.Context, pgx.Tx) (Response, error),
+) (Response, error) {
 	var response Response
-	r, err := newRecord(scope, procedure, idempotencyKey, request)
+	r, err := newRecord(scopeOf, procedure, idempotencyKey, request)
 	if err != nil {
 		return response, err
 	}
@@ -83,7 +100,7 @@ func Run[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope 
 func Stored[Response proto.Message](ctx context.Context, pool *pgxpool.Pool, scope database.Scope,
 	procedure, idempotencyKey string, request proto.Message,
 ) (response Response, found bool, err error) {
-	r, err := newRecord(scope, procedure, idempotencyKey, request)
+	r, err := newRecord(scopeID(scope), procedure, idempotencyKey, request)
 	if err != nil {
 		return response, false, err
 	}
@@ -101,13 +118,17 @@ type record struct {
 	hash         []byte
 }
 
-// newRecord: the scope id is the household, or the account for an
-// account-level command (09.2 §8).
-func newRecord(scope database.Scope, procedure, idempotencyKey string, request proto.Message) (record, error) {
-	r := record{scopeID: scope.HouseholdID, procedure: procedure}
-	if !r.scopeID.Valid {
-		r.scopeID = scope.AccountID
+// scopeID is the household, or the account when the scope has no household
+// (09.2 §8).
+func scopeID(scope database.Scope) pgtype.UUID {
+	if scope.HouseholdID.Valid {
+		return scope.HouseholdID
 	}
+	return scope.AccountID
+}
+
+func newRecord(scopeOf pgtype.UUID, procedure, idempotencyKey string, request proto.Message) (record, error) {
+	r := record{scopeID: scopeOf, procedure: procedure}
 	if err := r.key.Scan(idempotencyKey); err != nil {
 		return r, fmt.Errorf("idempotency key: %w", err)
 	}
