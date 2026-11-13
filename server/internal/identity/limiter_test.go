@@ -289,6 +289,25 @@ func TestLimiter(t *testing.T) {
 			t.Fatalf("%d scans, want a second one once the room is used", l.scans)
 		}
 	})
+	t.Run("a table that refuses when full frees room for one key at a time", func(t *testing.T) {
+		// 10.1 §8.1 item 2 (b): a table guarding a password drops only what
+		// one new key needs; the 1% batch is for evicting tables only.
+		l, clock := newTestLimiter(20, true)
+		l.refusesWhenFull = true
+		l.maxKeys = 1000
+		for i := range l.maxKeys {
+			fail(t, l, fmt.Sprint(i), 1)
+			clock.advance(time.Millisecond)
+		}
+		fail(t, l, "new0", 1)
+		if _, kept := l.keys["0"]; kept || len(l.keys) != l.maxKeys || l.scans != 1 {
+			t.Fatalf("%d keys after %d scans, key 0 kept %t; want the oldest key alone dropped and the table full", len(l.keys), l.scans, kept)
+		}
+		fail(t, l, "new1", 1)
+		if _, kept := l.keys["1"]; kept || l.scans != 2 {
+			t.Fatalf("%d scans, key 1 kept %t; want a second scan dropping key 1", l.scans, kept)
+		}
+	})
 	t.Run("a full table of penalised keys refuses new keys without a scan until one can be forgotten", func(t *testing.T) {
 		l, clock := newTestLimiter(20, true)
 		l.refusesWhenFull = true
