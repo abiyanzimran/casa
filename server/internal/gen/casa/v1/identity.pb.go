@@ -23,6 +23,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// DeviceMode is how a web session lives on its device (SEC-161 (d),
+// SEC-165 (a); ADR-030 item 5; glossary: personal and shared mode). A native
+// session is always personal.
+type DeviceMode int32
+
+const (
+	DeviceMode_DEVICE_MODE_UNSPECIFIED DeviceMode = 0
+	DeviceMode_DEVICE_MODE_PERSONAL    DeviceMode = 1
+	DeviceMode_DEVICE_MODE_SHARED      DeviceMode = 2
+)
+
+// Enum value maps for DeviceMode.
+var (
+	DeviceMode_name = map[int32]string{
+		0: "DEVICE_MODE_UNSPECIFIED",
+		1: "DEVICE_MODE_PERSONAL",
+		2: "DEVICE_MODE_SHARED",
+	}
+	DeviceMode_value = map[string]int32{
+		"DEVICE_MODE_UNSPECIFIED": 0,
+		"DEVICE_MODE_PERSONAL":    1,
+		"DEVICE_MODE_SHARED":      2,
+	}
+)
+
+func (x DeviceMode) Enum() *DeviceMode {
+	p := new(DeviceMode)
+	*p = x
+	return p
+}
+
+func (x DeviceMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DeviceMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_casa_v1_identity_proto_enumTypes[0].Descriptor()
+}
+
+func (DeviceMode) Type() protoreflect.EnumType {
+	return &file_casa_v1_identity_proto_enumTypes[0]
+}
+
+func (x DeviceMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DeviceMode.Descriptor instead.
+func (DeviceMode) EnumDescriptor() ([]byte, []int) {
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{0}
+}
+
 // ReauthPurpose is the one action a re-authentication grants (SEC-13).
 type ReauthPurpose int32
 
@@ -54,11 +106,11 @@ func (x ReauthPurpose) String() string {
 }
 
 func (ReauthPurpose) Descriptor() protoreflect.EnumDescriptor {
-	return file_casa_v1_identity_proto_enumTypes[0].Descriptor()
+	return file_casa_v1_identity_proto_enumTypes[1].Descriptor()
 }
 
 func (ReauthPurpose) Type() protoreflect.EnumType {
-	return &file_casa_v1_identity_proto_enumTypes[0]
+	return &file_casa_v1_identity_proto_enumTypes[1]
 }
 
 func (x ReauthPurpose) Number() protoreflect.EnumNumber {
@@ -67,7 +119,7 @@ func (x ReauthPurpose) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ReauthPurpose.Descriptor instead.
 func (ReauthPurpose) EnumDescriptor() ([]byte, []int) {
-	return file_casa_v1_identity_proto_rawDescGZIP(), []int{0}
+	return file_casa_v1_identity_proto_rawDescGZIP(), []int{1}
 }
 
 type StartSignUpRequest struct {
@@ -175,7 +227,9 @@ type CompleteSignUpRequest struct {
 	VerificationToken string `protobuf:"bytes,2,opt,name=verification_token,json=verificationToken,proto3" json:"verification_token,omitempty"`
 	// At least 12 characters (SEC-11); the upper bound keeps a huge password
 	// from tying up the hash [Usulan].
-	Password      string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	// The web session's mode (SEC-165 (a); ADR-030 item 5).
+	DeviceMode    DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -231,6 +285,13 @@ func (x *CompleteSignUpRequest) GetPassword() string {
 	return ""
 }
 
+func (x *CompleteSignUpRequest) GetDeviceMode() DeviceMode {
+	if x != nil {
+		return x.DeviceMode
+	}
+	return DeviceMode_DEVICE_MODE_UNSPECIFIED
+}
+
 type CompleteSignUpResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Tokens        *SessionTokens         `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
@@ -280,8 +341,10 @@ type SignInRequest struct {
 	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
 	// No email rule: a malformed email is rejected like an unknown one
 	// (SEC-12).
-	Email         string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Email    string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	// The web session's mode (SEC-165 (a); ADR-030 item 5).
+	DeviceMode    DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -335,6 +398,13 @@ func (x *SignInRequest) GetPassword() string {
 		return x.Password
 	}
 	return ""
+}
+
+func (x *SignInRequest) GetDeviceMode() DeviceMode {
+	if x != nil {
+		return x.DeviceMode
+	}
+	return DeviceMode_DEVICE_MODE_UNSPECIFIED
 }
 
 type SignInResponse struct {
@@ -479,7 +549,8 @@ func (x *RefreshSessionResponse) GetTokens() *SessionTokens {
 }
 
 // SessionTokens are a native session's tokens (SEC-15; 09.4 §2). A web
-// session gets a cookie instead (1.5; SEC-161 (b)).
+// session gets only the __Host-casa_session cookie, and its response leaves
+// tokens unset (SEC-161 (b)).
 type SessionTokens struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken          string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -910,7 +981,9 @@ type CompleteRecoveryRequest struct {
 	// rejection as any other invalid token (SEC-30).
 	RecoveryToken string `protobuf:"bytes,2,opt,name=recovery_token,json=recoveryToken,proto3" json:"recovery_token,omitempty"`
 	// At least 12 characters and not on the common password list (SEC-11).
-	NewPassword   string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	NewPassword string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	// The web session's mode (SEC-165 (a); ADR-030 item 5).
+	DeviceMode    DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -964,6 +1037,13 @@ func (x *CompleteRecoveryRequest) GetNewPassword() string {
 		return x.NewPassword
 	}
 	return ""
+}
+
+func (x *CompleteRecoveryRequest) GetDeviceMode() DeviceMode {
+	if x != nil {
+		return x.DeviceMode
+	}
+	return DeviceMode_DEVICE_MODE_UNSPECIFIED
 }
 
 type CompleteRecoveryResponse struct {
@@ -1021,17 +1101,23 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"setupToken\x12 \n" +
 	"\x05email\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\"\x15\n" +
-	"\x13StartSignUpResponse\"\xc0\x01\n" +
+	"\x13StartSignUpResponse\"\xae\x03\n" +
 	"\x15CompleteSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x122\n" +
 	"\x12verification_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\x11verificationToken\x12)\n" +
-	"\bpassword\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\bpassword\"H\n" +
+	"\bpassword\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\bpassword\x12>\n" +
+	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
+	"deviceMode:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
+	"\x0fdevice_mode.web\x12:web clients choose a device mode; native clients send none\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"H\n" +
 	"\x16CompleteSignUpResponse\x12.\n" +
-	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\xa2\x01\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x90\x03\n" +
 	"\rSignInRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12\x1e\n" +
 	"\x05email\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xfe\x01R\x05email\x12'\n" +
-	"\bpassword\x18\x03 \x01(\tB\v\xbaH\x05r\x03\x18\x80\b\x80\x01\x01R\bpassword\"@\n" +
+	"\bpassword\x18\x03 \x01(\tB\v\xbaH\x05r\x03\x18\x80\b\x80\x01\x01R\bpassword\x12>\n" +
+	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
+	"deviceMode:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
+	"\x0fdevice_mode.web\x12:web clients choose a device mode; native clients send none\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"@\n" +
 	"\x0eSignInResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x8b\x01\n" +
 	"\x15RefreshSessionRequest\x12H\n" +
@@ -1062,13 +1148,21 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12 \n" +
 	"\x05email\x18\x02 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\"\x17\n" +
-	"\x15StartRecoveryResponse\"\xc1\x01\n" +
+	"\x15StartRecoveryResponse\"\xaf\x03\n" +
 	"\x17CompleteRecoveryRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12*\n" +
 	"\x0erecovery_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\rrecoveryToken\x120\n" +
-	"\fnew_password\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\vnewPassword\"J\n" +
+	"\fnew_password\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\vnewPassword\x12>\n" +
+	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
+	"deviceMode:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
+	"\x0fdevice_mode.web\x12:web clients choose a device mode; native clients send none\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"J\n" +
 	"\x18CompleteRecoveryResponse\x12.\n" +
-	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens*S\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens*[\n" +
+	"\n" +
+	"DeviceMode\x12\x1b\n" +
+	"\x17DEVICE_MODE_UNSPECIFIED\x10\x00\x12\x18\n" +
+	"\x14DEVICE_MODE_PERSONAL\x10\x01\x12\x16\n" +
+	"\x12DEVICE_MODE_SHARED\x10\x02*S\n" +
 	"\rReauthPurpose\x12\x1e\n" +
 	"\x1aREAUTH_PURPOSE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eREAUTH_PURPOSE_CHANGE_PASSWORD\x10\x012\xdf\x05\n" +
@@ -1097,72 +1191,76 @@ func file_casa_v1_identity_proto_rawDescGZIP() []byte {
 	return file_casa_v1_identity_proto_rawDescData
 }
 
-var file_casa_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_casa_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_casa_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_casa_v1_identity_proto_goTypes = []any{
-	(ReauthPurpose)(0),               // 0: casa.v1.ReauthPurpose
-	(*StartSignUpRequest)(nil),       // 1: casa.v1.StartSignUpRequest
-	(*StartSignUpResponse)(nil),      // 2: casa.v1.StartSignUpResponse
-	(*CompleteSignUpRequest)(nil),    // 3: casa.v1.CompleteSignUpRequest
-	(*CompleteSignUpResponse)(nil),   // 4: casa.v1.CompleteSignUpResponse
-	(*SignInRequest)(nil),            // 5: casa.v1.SignInRequest
-	(*SignInResponse)(nil),           // 6: casa.v1.SignInResponse
-	(*RefreshSessionRequest)(nil),    // 7: casa.v1.RefreshSessionRequest
-	(*RefreshSessionResponse)(nil),   // 8: casa.v1.RefreshSessionResponse
-	(*SessionTokens)(nil),            // 9: casa.v1.SessionTokens
-	(*SignOutRequest)(nil),           // 10: casa.v1.SignOutRequest
-	(*SignOutResponse)(nil),          // 11: casa.v1.SignOutResponse
-	(*ReauthenticateRequest)(nil),    // 12: casa.v1.ReauthenticateRequest
-	(*ReauthenticateResponse)(nil),   // 13: casa.v1.ReauthenticateResponse
-	(*ChangePasswordRequest)(nil),    // 14: casa.v1.ChangePasswordRequest
-	(*ChangePasswordResponse)(nil),   // 15: casa.v1.ChangePasswordResponse
-	(*StartRecoveryRequest)(nil),     // 16: casa.v1.StartRecoveryRequest
-	(*StartRecoveryResponse)(nil),    // 17: casa.v1.StartRecoveryResponse
-	(*CompleteRecoveryRequest)(nil),  // 18: casa.v1.CompleteRecoveryRequest
-	(*CompleteRecoveryResponse)(nil), // 19: casa.v1.CompleteRecoveryResponse
-	(*RequestContext)(nil),           // 20: casa.v1.RequestContext
-	(*timestamppb.Timestamp)(nil),    // 21: google.protobuf.Timestamp
+	(DeviceMode)(0),                  // 0: casa.v1.DeviceMode
+	(ReauthPurpose)(0),               // 1: casa.v1.ReauthPurpose
+	(*StartSignUpRequest)(nil),       // 2: casa.v1.StartSignUpRequest
+	(*StartSignUpResponse)(nil),      // 3: casa.v1.StartSignUpResponse
+	(*CompleteSignUpRequest)(nil),    // 4: casa.v1.CompleteSignUpRequest
+	(*CompleteSignUpResponse)(nil),   // 5: casa.v1.CompleteSignUpResponse
+	(*SignInRequest)(nil),            // 6: casa.v1.SignInRequest
+	(*SignInResponse)(nil),           // 7: casa.v1.SignInResponse
+	(*RefreshSessionRequest)(nil),    // 8: casa.v1.RefreshSessionRequest
+	(*RefreshSessionResponse)(nil),   // 9: casa.v1.RefreshSessionResponse
+	(*SessionTokens)(nil),            // 10: casa.v1.SessionTokens
+	(*SignOutRequest)(nil),           // 11: casa.v1.SignOutRequest
+	(*SignOutResponse)(nil),          // 12: casa.v1.SignOutResponse
+	(*ReauthenticateRequest)(nil),    // 13: casa.v1.ReauthenticateRequest
+	(*ReauthenticateResponse)(nil),   // 14: casa.v1.ReauthenticateResponse
+	(*ChangePasswordRequest)(nil),    // 15: casa.v1.ChangePasswordRequest
+	(*ChangePasswordResponse)(nil),   // 16: casa.v1.ChangePasswordResponse
+	(*StartRecoveryRequest)(nil),     // 17: casa.v1.StartRecoveryRequest
+	(*StartRecoveryResponse)(nil),    // 18: casa.v1.StartRecoveryResponse
+	(*CompleteRecoveryRequest)(nil),  // 19: casa.v1.CompleteRecoveryRequest
+	(*CompleteRecoveryResponse)(nil), // 20: casa.v1.CompleteRecoveryResponse
+	(*RequestContext)(nil),           // 21: casa.v1.RequestContext
+	(*timestamppb.Timestamp)(nil),    // 22: google.protobuf.Timestamp
 }
 var file_casa_v1_identity_proto_depIdxs = []int32{
-	20, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	20, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
-	9,  // 2: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
-	20, // 3: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
-	9,  // 4: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
-	20, // 5: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
-	9,  // 6: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
-	21, // 7: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
-	20, // 8: casa.v1.SignOutRequest.request_context:type_name -> casa.v1.RequestContext
-	20, // 9: casa.v1.ReauthenticateRequest.request_context:type_name -> casa.v1.RequestContext
-	0,  // 10: casa.v1.ReauthenticateRequest.purpose:type_name -> casa.v1.ReauthPurpose
-	21, // 11: casa.v1.ReauthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
-	20, // 12: casa.v1.ChangePasswordRequest.request_context:type_name -> casa.v1.RequestContext
-	20, // 13: casa.v1.StartRecoveryRequest.request_context:type_name -> casa.v1.RequestContext
-	20, // 14: casa.v1.CompleteRecoveryRequest.request_context:type_name -> casa.v1.RequestContext
-	9,  // 15: casa.v1.CompleteRecoveryResponse.tokens:type_name -> casa.v1.SessionTokens
-	1,  // 16: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
-	3,  // 17: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
-	5,  // 18: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
-	7,  // 19: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
-	16, // 20: casa.v1.IdentityService.StartRecovery:input_type -> casa.v1.StartRecoveryRequest
-	18, // 21: casa.v1.IdentityService.CompleteRecovery:input_type -> casa.v1.CompleteRecoveryRequest
-	10, // 22: casa.v1.IdentityService.SignOut:input_type -> casa.v1.SignOutRequest
-	12, // 23: casa.v1.IdentityService.Reauthenticate:input_type -> casa.v1.ReauthenticateRequest
-	14, // 24: casa.v1.IdentityService.ChangePassword:input_type -> casa.v1.ChangePasswordRequest
-	2,  // 25: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
-	4,  // 26: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
-	6,  // 27: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
-	8,  // 28: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
-	17, // 29: casa.v1.IdentityService.StartRecovery:output_type -> casa.v1.StartRecoveryResponse
-	19, // 30: casa.v1.IdentityService.CompleteRecovery:output_type -> casa.v1.CompleteRecoveryResponse
-	11, // 31: casa.v1.IdentityService.SignOut:output_type -> casa.v1.SignOutResponse
-	13, // 32: casa.v1.IdentityService.Reauthenticate:output_type -> casa.v1.ReauthenticateResponse
-	15, // 33: casa.v1.IdentityService.ChangePassword:output_type -> casa.v1.ChangePasswordResponse
-	25, // [25:34] is the sub-list for method output_type
-	16, // [16:25] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	21, // 0: casa.v1.StartSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	21, // 1: casa.v1.CompleteSignUpRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 2: casa.v1.CompleteSignUpRequest.device_mode:type_name -> casa.v1.DeviceMode
+	10, // 3: casa.v1.CompleteSignUpResponse.tokens:type_name -> casa.v1.SessionTokens
+	21, // 4: casa.v1.SignInRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 5: casa.v1.SignInRequest.device_mode:type_name -> casa.v1.DeviceMode
+	10, // 6: casa.v1.SignInResponse.tokens:type_name -> casa.v1.SessionTokens
+	21, // 7: casa.v1.RefreshSessionRequest.request_context:type_name -> casa.v1.RequestContext
+	10, // 8: casa.v1.RefreshSessionResponse.tokens:type_name -> casa.v1.SessionTokens
+	22, // 9: casa.v1.SessionTokens.access_token_expires_at:type_name -> google.protobuf.Timestamp
+	21, // 10: casa.v1.SignOutRequest.request_context:type_name -> casa.v1.RequestContext
+	21, // 11: casa.v1.ReauthenticateRequest.request_context:type_name -> casa.v1.RequestContext
+	1,  // 12: casa.v1.ReauthenticateRequest.purpose:type_name -> casa.v1.ReauthPurpose
+	22, // 13: casa.v1.ReauthenticateResponse.expires_at:type_name -> google.protobuf.Timestamp
+	21, // 14: casa.v1.ChangePasswordRequest.request_context:type_name -> casa.v1.RequestContext
+	21, // 15: casa.v1.StartRecoveryRequest.request_context:type_name -> casa.v1.RequestContext
+	21, // 16: casa.v1.CompleteRecoveryRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 17: casa.v1.CompleteRecoveryRequest.device_mode:type_name -> casa.v1.DeviceMode
+	10, // 18: casa.v1.CompleteRecoveryResponse.tokens:type_name -> casa.v1.SessionTokens
+	2,  // 19: casa.v1.IdentityService.StartSignUp:input_type -> casa.v1.StartSignUpRequest
+	4,  // 20: casa.v1.IdentityService.CompleteSignUp:input_type -> casa.v1.CompleteSignUpRequest
+	6,  // 21: casa.v1.IdentityService.SignIn:input_type -> casa.v1.SignInRequest
+	8,  // 22: casa.v1.IdentityService.RefreshSession:input_type -> casa.v1.RefreshSessionRequest
+	17, // 23: casa.v1.IdentityService.StartRecovery:input_type -> casa.v1.StartRecoveryRequest
+	19, // 24: casa.v1.IdentityService.CompleteRecovery:input_type -> casa.v1.CompleteRecoveryRequest
+	11, // 25: casa.v1.IdentityService.SignOut:input_type -> casa.v1.SignOutRequest
+	13, // 26: casa.v1.IdentityService.Reauthenticate:input_type -> casa.v1.ReauthenticateRequest
+	15, // 27: casa.v1.IdentityService.ChangePassword:input_type -> casa.v1.ChangePasswordRequest
+	3,  // 28: casa.v1.IdentityService.StartSignUp:output_type -> casa.v1.StartSignUpResponse
+	5,  // 29: casa.v1.IdentityService.CompleteSignUp:output_type -> casa.v1.CompleteSignUpResponse
+	7,  // 30: casa.v1.IdentityService.SignIn:output_type -> casa.v1.SignInResponse
+	9,  // 31: casa.v1.IdentityService.RefreshSession:output_type -> casa.v1.RefreshSessionResponse
+	18, // 32: casa.v1.IdentityService.StartRecovery:output_type -> casa.v1.StartRecoveryResponse
+	20, // 33: casa.v1.IdentityService.CompleteRecovery:output_type -> casa.v1.CompleteRecoveryResponse
+	12, // 34: casa.v1.IdentityService.SignOut:output_type -> casa.v1.SignOutResponse
+	14, // 35: casa.v1.IdentityService.Reauthenticate:output_type -> casa.v1.ReauthenticateResponse
+	16, // 36: casa.v1.IdentityService.ChangePassword:output_type -> casa.v1.ChangePasswordResponse
+	28, // [28:37] is the sub-list for method output_type
+	19, // [19:28] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_identity_proto_init() }
@@ -1177,7 +1275,7 @@ func file_casa_v1_identity_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_identity_proto_rawDesc), len(file_casa_v1_identity_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,

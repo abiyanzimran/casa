@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -21,32 +22,50 @@ const ReauthChangePassword = "change_password"
 // one action of purpose in that session until the returned time (SEC-13). A
 // wrong password is ErrCredentialsRejected. Attempts are limited per account
 // and per address and count only when the hash ran (SEC-12; 10.1 §8.1).
-func (s *Service) Reauthenticate(ctx context.Context, client Client, session Session, password, purpose string) (time.Time, error) {
+//
+// A web session also gets a new cookie value, returned for the response,
+// in the same transaction as the grant, which serves only that value
+// (SEC-161 (c): "selalu saat … autentikasi ulang", closing session
+// fixation; note 1.5 rules (6), (7)). A native session gets no cookie and
+// its grant is unchanged.
+func (s *Service) Reauthenticate(ctx context.Context, client Client, session Session, password, purpose string) (time.Time, *Cookie, error) {
 	allowed, done := s.reauth.attempt(string(session.AccountID.Bytes[:]), client.Address)
 	if !allowed {
-		return time.Time{}, ErrRateLimited
+		return time.Time{}, nil, ErrRateLimited
 	}
 	stored, found, err := s.credentialOf(ctx, session.AccountID)
 	if err != nil {
 		done(NotTried)
-		return time.Time{}, err
+		return time.Time{}, nil, err
 	}
 	match, err := s.hasher.verify(ctx, stored, password)
 	if err != nil {
 		done(NotTried)
-		return time.Time{}, err
+		return time.Time{}, nil, err
 	}
 	if !found || !match {
 		done(Failed)
-		return time.Time{}, ErrCredentialsRejected
+		return time.Time{}, nil, ErrCredentialsRejected
 	}
 	done(Succeeded)
 	now := s.config.Now()
 	expiresAt := now.Add(reauthLifetime)
+	var cookie *Cookie
 	err = database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
+		cookie = nil // fn may run again: only the committed attempt's value
 		q := identitydb.New(tx)
+		var cookieHash []byte // NULL for native
+		if session.ClientKind == "web" {
+			rotated, hash, err := rotateCookie(ctx, q, session, now)
+			if err != nil {
+				return err
+			}
+			cookie = &rotated
+			cookieHash = hash
+		}
 		err := q.InsertReauthGrant(ctx, identitydb.InsertReauthGrantParams{
 			SessionID: session.ID, AccountID: session.AccountID, Purpose: purpose, CreatedAt: now, ExpiresAt: expiresAt,
+			CookieHash: cookieHash,
 		})
 		if err != nil {
 			return err
@@ -56,10 +75,13 @@ func (s *Service) Reauthenticate(ctx context.Context, client Client, session Ses
 			Detail: pgtype.Text{String: purpose, Valid: true}, OccurredAt: now,
 		})
 	})
-	if err != nil {
-		return time.Time{}, fmt.Errorf("grant the re-authentication: %w", err)
+	switch {
+	case errors.Is(err, ErrSessionExpired):
+		return time.Time{}, nil, err
+	case err != nil:
+		return time.Time{}, nil, fmt.Errorf("grant the re-authentication: %w", err)
 	}
-	return expiresAt, nil
+	return expiresAt, cookie, nil
 }
 
 // hashPassword refuses a password on the common list, then hashes it with
@@ -80,7 +102,9 @@ func (s *Service) hashPassword(ctx context.Context, password string) (PasswordHa
 func (s *Service) ChangePassword(ctx context.Context, tx pgx.Tx, session Session, hash PasswordHash) error {
 	now := s.config.Now()
 	q := identitydb.New(tx)
-	used, err := q.UseReauthGrant(ctx, identitydb.UseReauthGrantParams{Now: now, SessionID: session.ID, Purpose: ReauthChangePassword})
+	used, err := q.UseReauthGrant(ctx, identitydb.UseReauthGrantParams{
+		Now: now, SessionID: session.ID, Purpose: ReauthChangePassword, CookieHash: session.CookieHash,
+	})
 	switch {
 	case err != nil:
 		return err
@@ -127,7 +151,7 @@ func (s *Service) HashNewPassword(ctx context.Context, session Session, password
 	err := database.Read(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
 		var err error
 		open, err = identitydb.New(tx).HasOpenReauthGrant(ctx, identitydb.HasOpenReauthGrantParams{
-			SessionID: session.ID, Purpose: ReauthChangePassword, Now: s.config.Now(),
+			SessionID: session.ID, Purpose: ReauthChangePassword, Now: s.config.Now(), CookieHash: session.CookieHash,
 		})
 		return err
 	})

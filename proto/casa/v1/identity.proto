@@ -59,6 +59,15 @@ service IdentityService {
   }
 }
 
+// DeviceMode is how a web session lives on its device (SEC-161 (d),
+// SEC-165 (a); ADR-030 item 5; glossary: personal and shared mode). A native
+// session is always personal.
+enum DeviceMode {
+  DEVICE_MODE_UNSPECIFIED = 0;
+  DEVICE_MODE_PERSONAL = 1;
+  DEVICE_MODE_SHARED = 2;
+}
+
 message StartSignUpRequest {
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No validation rule on purpose: an empty or malformed token gets the same
@@ -73,6 +82,13 @@ message StartSignUpRequest {
 message StartSignUpResponse {}
 
 message CompleteSignUpRequest {
+  // Plan 1.5 decision 9; SEC-165: a web client chooses a mode, with none
+  // preselected; a native client sends none, and its session is personal.
+  option (buf.validate.message).cel = {
+    id: "device_mode.web"
+    message: "web clients choose a device mode; native clients send none"
+    expression: "this.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0"
+  };
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No validation rule, as setup_token above.
   string verification_token = 2 [debug_redact = true];
@@ -85,6 +101,8 @@ message CompleteSignUpRequest {
       max_len: 1024
     }
   ];
+  // The web session's mode (SEC-165 (a); ADR-030 item 5).
+  DeviceMode device_mode = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 message CompleteSignUpResponse {
@@ -92,6 +110,13 @@ message CompleteSignUpResponse {
 }
 
 message SignInRequest {
+  // Plan 1.5 decision 9; SEC-165: a web client chooses a mode, with none
+  // preselected; a native client sends none, and its session is personal.
+  option (buf.validate.message).cel = {
+    id: "device_mode.web"
+    message: "web clients choose a device mode; native clients send none"
+    expression: "this.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0"
+  };
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No email rule: a malformed email is rejected like an unknown one
   // (SEC-12).
@@ -100,6 +125,8 @@ message SignInRequest {
     debug_redact = true,
     (buf.validate.field).string.max_len = 1024
   ];
+  // The web session's mode (SEC-165 (a); ADR-030 item 5).
+  DeviceMode device_mode = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 message SignInResponse {
@@ -117,7 +144,8 @@ message RefreshSessionResponse {
 }
 
 // SessionTokens are a native session's tokens (SEC-15; 09.4 §2). A web
-// session gets a cookie instead (1.5; SEC-161 (b)).
+// session gets only the __Host-casa_session cookie, and its response leaves
+// tokens unset (SEC-161 (b)).
 message SessionTokens {
   string access_token = 1 [debug_redact = true];
   string refresh_token = 2 [debug_redact = true];
@@ -179,6 +207,13 @@ message StartRecoveryRequest {
 message StartRecoveryResponse {}
 
 message CompleteRecoveryRequest {
+  // Plan 1.5 decision 9; SEC-165: a web client chooses a mode, with none
+  // preselected; a native client sends none, and its session is personal.
+  option (buf.validate.message).cel = {
+    id: "device_mode.web"
+    message: "web clients choose a device mode; native clients send none"
+    expression: "this.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0"
+  };
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No validation rule on purpose: an empty or malformed token gets the same
   // rejection as any other invalid token (SEC-30).
@@ -191,6 +226,8 @@ message CompleteRecoveryRequest {
       max_len: 1024
     }
   ];
+  // The web session's mode (SEC-165 (a); ADR-030 item 5).
+  DeviceMode device_mode = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
 message CompleteRecoveryResponse {

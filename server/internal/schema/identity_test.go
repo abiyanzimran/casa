@@ -22,6 +22,8 @@ type identityFixture struct {
 	email                             string
 	sessionHash, refreshHash          []byte
 	recoveryHash, setupHash, linkHash []byte
+	// The web cookie's previous and discarded values (00004_web_session).
+	prevHash, discardedHash []byte
 }
 
 // accountTables are the identity tables an account owns, each with the
@@ -39,7 +41,7 @@ var accountTables = map[string]string{
 // tokenTables are the tables found by app.token_hash, each with its hash
 // columns.
 var tokenTables = map[string][]string{
-	"session":             {"token_hash"},
+	"session":             {"token_hash", "prev_token_hash", "discarded_token_hash"},
 	"refresh_token":       {"token_hash"},
 	"recovery_token":      {"token_hash"},
 	"setup_token":         {"token_hash"},
@@ -66,7 +68,7 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 	f := identityFixture{
 		account: randomUUID(), session: randomUUID(), email: email,
 		sessionHash: randomBytes(), refreshHash: randomBytes(), recoveryHash: randomBytes(),
-		setupHash: randomBytes(), linkHash: randomBytes(),
+		setupHash: randomBytes(), linkHash: randomBytes(), prevHash: randomBytes(), discardedHash: randomBytes(),
 	}
 	now := time.Now()
 	err := database.Write(ctx, app, database.Scope{AccountID: f.account}, func(tx pgx.Tx) error {
@@ -79,9 +81,10 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 			{`INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, parallelism, updated_at)
 			  VALUES ($1, '\x00', '\x00', 1, 64, 1, $2)`, []any{f.account, now}},
 			{`INSERT INTO session (id, account_id, client_kind, ua_summary, token_hash, client_version,
-			                       created_at, last_used_at, idle_timeout, absolute_expiry, token_issued_at)
-			  VALUES ($1, $2, 'ios', '', $3, '1.0.0', $4, $4, '30 days', $4, $4)`,
-				[]any{f.session, f.account, f.sessionHash, now}},
+			                       created_at, last_used_at, idle_timeout, absolute_expiry, token_issued_at,
+			                       prev_token_hash, prev_valid_until, discarded_token_hash)
+			  VALUES ($1, $2, 'web', '', $3, '1.0.0', $4, $4, '30 days', $4, $4, $5, $4, $6)`,
+				[]any{f.session, f.account, f.sessionHash, now, f.prevHash, f.discardedHash}},
 			{"INSERT INTO refresh_token (token_hash, session_id, account_id, created_at) VALUES ($1, $2, $3, $4)",
 				[]any{f.refreshHash, f.session, f.account, now}},
 			{`INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
@@ -204,12 +207,14 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 	})
 
 	t.Run("a lookup finds a row but never writes it", func(t *testing.T) {
-		// 10.1 §5.1 rule 1.
+		// 10.1 §5.1 rules 1 and 7: the cookie lookups too (00004_web_session).
 		for _, c := range []struct {
 			hash      []byte
 			statement string
 		}{
 			{a.sessionHash, "UPDATE session SET last_used_at = now() WHERE token_hash = $1"},
+			{a.prevHash, "UPDATE session SET token_confirmed_at = now() WHERE prev_token_hash = $1"},
+			{a.discardedHash, "UPDATE session SET revoked_at = now() WHERE discarded_token_hash = $1"},
 			{a.refreshHash, "UPDATE refresh_token SET used_at = now() WHERE token_hash = $1"},
 			{a.recoveryHash, "UPDATE recovery_token SET used_at = now() WHERE token_hash = $1"},
 			{a.linkHash, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1"},
@@ -248,17 +253,21 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 	})
 
 	t.Run("an account scope cannot write a row it found by another account's token hash", func(t *testing.T) {
-		// 10.1 §5.1 rules 1 and 2.
-		for _, statement := range []string{
-			"UPDATE session SET revoked_at = now() WHERE token_hash = $1 AND $2::uuid IS NOT NULL",
-			"UPDATE session SET account_id = $2 WHERE token_hash = $1",
+		// 10.1 §5.1 rules 1, 2 and 7 (the cookie lookups of 00004_web_session).
+		for column, hash := range map[string][]byte{
+			"token_hash": b.sessionHash, "prev_token_hash": b.prevHash, "discarded_token_hash": b.discardedHash,
 		} {
-			err := database.Write(ctx, app, database.Scope{AccountID: a.account, TokenHash: b.sessionHash}, func(tx pgx.Tx) error {
-				_, err := tx.Exec(ctx, statement, b.sessionHash, a.account)
-				return err
-			})
-			if code := databasetest.PgErrorCode(err); code != "42501" {
-				t.Errorf("%s: err = %v, want 42501", statement, err)
+			for _, statement := range []string{
+				"UPDATE session SET revoked_at = now() WHERE " + column + " = $1 AND $2::uuid IS NOT NULL",
+				"UPDATE session SET account_id = $2 WHERE " + column + " = $1",
+			} {
+				err := database.Write(ctx, app, database.Scope{AccountID: a.account, TokenHash: hash}, func(tx pgx.Tx) error {
+					_, err := tx.Exec(ctx, statement, hash, a.account)
+					return err
+				})
+				if code := databasetest.PgErrorCode(err); code != "42501" {
+					t.Errorf("%s: err = %v, want 42501", statement, err)
+				}
 			}
 		}
 		var revoked bool
@@ -288,6 +297,8 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 	t.Run("a token hash finds only its own row", func(t *testing.T) {
 		hashes := map[string][]byte{
 			"session.token_hash":                   a.sessionHash,
+			"session.prev_token_hash":              a.prevHash,
+			"session.discarded_token_hash":         a.discardedHash,
 			"refresh_token.token_hash":             a.refreshHash,
 			"recovery_token.token_hash":            a.recoveryHash,
 			"setup_token.token_hash":               a.setupHash,

@@ -19,17 +19,24 @@ import (
 type Session struct {
 	ID, AccountID pgtype.UUID
 	ClientKind    string
+	// DeviceMode is "personal" or "shared"; native sessions are personal
+	// (plan 1.5 decision 9).
+	DeviceMode string
+	// LastUsedAt is the base of the idle limit when the session was read;
+	// TouchUserAction reads it (SEC-165 (g)).
+	LastUsedAt time.Time
+	// CookieHash is the hash of the cookie value this request presented,
+	// nil for a native session; a web re-authentication grant serves only
+	// that value (SEC-161 (c) note 1.5 rule (7)). Never the value itself.
+	CookieHash []byte
 }
 
-// SignIn opens a native session (SEC-12, SEC-15). An unknown email and a
-// wrong password both get ErrCredentialsRejected after the same work: two
-// read transactions and one password verification (10.1 §5.1 rule 5). The
-// email is trimmed and lower-cased once, for both the lookup and the rate
-// limit key.
+// SignIn opens a native or web session (SEC-12, SEC-15, SEC-161). An unknown
+// email and a wrong password both get ErrCredentialsRejected after the same
+// work: two read transactions and one password verification (10.1 §5.1 rule
+// 5). The email is trimmed and lower-cased once, for both the lookup and the
+// rate limit key.
 func (s *Service) SignIn(ctx context.Context, client Client, email, password string) (Tokens, error) {
-	if client.Kind == "web" {
-		return Tokens{}, ErrWebSessionNotYet
-	}
 	email = strings.ToLower(strings.TrimSpace(email))
 	// The key is a hash so the table in memory holds no email (10.1 §8.1).
 	emailKey := sha256.Sum256([]byte(email))
@@ -143,22 +150,46 @@ func (s *Service) Authenticate(ctx context.Context, accessToken string) (Session
 	if !now.Before(row.TokenIssuedAt.Add(accessTokenLifetime)) {
 		return Session{}, ErrUnauthenticated
 	}
-	if now.Sub(row.LastUsedAt) > touchAfter {
-		err := database.Write(ctx, s.pool, database.Scope{AccountID: row.AccountID}, func(tx pgx.Tx) error {
-			touched, err := identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: row.ID})
-			if err == nil && touched == 0 {
-				err = ErrSessionExpired // it ended since the read: fail closed
-			}
-			return err
-		})
-		if errors.Is(err, ErrSessionExpired) {
-			return Session{}, err
-		}
-		if err != nil {
-			return Session{}, fmt.Errorf("touch the session: %w", err)
-		}
+	session := Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind, DeviceMode: "personal", LastUsedAt: row.LastUsedAt}
+	return s.touch(ctx, session, now, touchAfter)
+}
+
+// touch moves session's idle limit to now when last_used_at is more than
+// after old; touchAfter spares a burst of requests a write on each one. A
+// session that ended since it was read is ErrSessionExpired (fail closed).
+func (s *Service) touch(ctx context.Context, session Session, now time.Time, after time.Duration) (Session, error) {
+	if now.Sub(session.LastUsedAt) <= after {
+		return session, nil // no transaction
 	}
-	return Session{ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind}, nil
+	var touched Session
+	err := database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
+		var err error
+		touched, err = touchSession(ctx, identitydb.New(tx), session, now, after)
+		return err
+	})
+	if errors.Is(err, ErrSessionExpired) {
+		return Session{}, err
+	}
+	if err != nil {
+		return Session{}, fmt.Errorf("touch the session: %w", err)
+	}
+	return touched, nil
+}
+
+// touchSession is touch inside the caller's transaction.
+func touchSession(ctx context.Context, q *identitydb.Queries, session Session, now time.Time, after time.Duration) (Session, error) {
+	if now.Sub(session.LastUsedAt) <= after {
+		return session, nil
+	}
+	touched, err := q.TouchSession(ctx, identitydb.TouchSessionParams{Now: now, ID: session.ID})
+	switch {
+	case err != nil:
+		return Session{}, err
+	case touched == 0:
+		return Session{}, ErrSessionExpired // it ended since the read: fail closed
+	}
+	session.LastUsedAt = now
+	return session, nil
 }
 
 // sessionEnded reports why a session no longer serves, or nil.

@@ -81,9 +81,6 @@ func (s *Service) checkSetupToken(ctx context.Context, setupToken, email string)
 // token (SEC-158; FR-FAM-001 AC-10). The person sets their own password here
 // (SEC-26). A missing, unknown, expired or used link gets ErrTokenRejected.
 func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificationToken, password string) (Tokens, error) {
-	if client.Kind == "web" {
-		return Tokens{}, ErrWebSessionNotYet
-	}
 	if err := checkPasswordNotCommon(password); err != nil {
 		return Tokens{}, err
 	}

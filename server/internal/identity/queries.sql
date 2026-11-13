@@ -44,9 +44,10 @@ INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, paralleli
 VALUES (@account_id, @salt, @hash, @time_cost, @memory_kib, @parallelism, @updated_at);
 
 -- name: InsertSession :one
-INSERT INTO session (account_id, client_kind, ua_summary, token_hash, client_version, created_at,
+-- device_mode and ua_summary are set once, here (SEC-165; SEC-161 (e)).
+INSERT INTO session (account_id, client_kind, device_mode, ua_summary, token_hash, client_version, created_at,
                      last_used_at, idle_timeout, absolute_expiry, token_issued_at)
-VALUES (@account_id, @client_kind, '', @token_hash, @client_version, @now,
+VALUES (@account_id, @client_kind, @device_mode, @ua_summary, @token_hash, @client_version, @now,
         @now, @idle_timeout, @absolute_expiry, @now)
 RETURNING id;
 
@@ -69,6 +70,68 @@ SELECT salt, hash, time_cost, memory_kib, parallelism FROM credential
 SELECT id, account_id, client_kind, token_issued_at, last_used_at, idle_timeout, absolute_expiry, revoked_at
   FROM session
  WHERE token_hash = @token_hash;
+
+-- name: GetSessionByCookieHash :one
+-- SEC-161 (a), (c); 10.1 §5.1: a web request's cookie value is the current,
+-- the previous, or the discarded value of at most one session. This lookup,
+-- before the account is known and without a lock, finds only the account;
+-- GetSessionByCookieHashForUpdate decides. Served by the unique index on
+-- token_hash and the partial indexes session_prev_token and
+-- session_discarded_token (09.2 §3, §5.1).
+SELECT account_id
+  FROM session
+ WHERE token_hash = @token_hash OR prev_token_hash = @token_hash OR discarded_token_hash = @token_hash;
+
+-- name: GetSessionByCookieHashForUpdate :one
+-- SEC-161 (c) note 1.5 rule (4): one decision per row. The row is locked for
+-- the transaction that classifies the value and writes the outcome (plan 1.5
+-- decision 12); served by the same indexes as GetSessionByCookieHash.
+SELECT id, account_id, client_kind, device_mode,
+       token_hash = @token_hash AS current,
+       coalesce(prev_token_hash = @token_hash, false)::boolean AS previous,
+       coalesce(discarded_token_hash = @token_hash, false)::boolean AS discarded,
+       token_issued_at, token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = @token_hash OR prev_token_hash = @token_hash OR discarded_token_hash = @token_hash
+   FOR UPDATE;
+
+-- name: ConfirmCookie :exec
+-- SEC-161 (c) note 1.5 rule (1): the browser brought the current value back,
+-- so it holds it.
+UPDATE session SET token_confirmed_at = @now::timestamptz
+ WHERE id = @id AND token_confirmed_at IS NULL;
+
+-- name: RotateCookie :one
+-- SEC-161 (c): a new current value, not confirmed yet; the value the browser
+-- holds serves as the previous one until prev_valid_until. That is the
+-- current value, unless the current value is unconfirmed while the previous
+-- one is still in its window: then the browser may hold only the previous
+-- one (a forced rotation right after the boundary rotated or reissued, or
+-- carried by the previous value), and it stays, with a new window (lead
+-- ruling on the Task 5 review). A rotation by age never meets that case: the
+-- window ends long before the current value is 15 minutes old. Fail closed
+-- like TouchSession.
+UPDATE session
+   SET prev_token_hash = CASE WHEN token_confirmed_at IS NULL AND prev_valid_until > @now
+                              THEN prev_token_hash ELSE token_hash END,
+       prev_valid_until = @prev_valid_until::timestamptz,
+       token_hash = @token_hash, token_issued_at = @now, token_confirmed_at = NULL
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now
+RETURNING absolute_expiry;
+
+-- name: ReissueCookie :one
+-- SEC-161 (c) note 1.5 rules (2), (3): the current value never reached the
+-- browser; it is discarded (and remembered), a new one is issued, and the
+-- presented value is the previous one with a new window. Fail closed like
+-- TouchSession.
+UPDATE session
+   SET discarded_token_hash = token_hash, token_hash = @token_hash,
+       prev_token_hash = @presented, prev_valid_until = @prev_valid_until::timestamptz,
+       token_issued_at = @now, token_confirmed_at = NULL
+ WHERE id = @id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now AND absolute_expiry > @now
+RETURNING absolute_expiry;
 
 -- name: TouchSession :execrows
 -- The base of the idle limit. Fail closed: an ended session is never moved,
@@ -99,23 +162,30 @@ UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_a
    AND last_used_at + idle_timeout > @now AND absolute_expiry > @now;
 
 -- name: InsertReauthGrant :exec
-INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
-VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at);
+-- cookie_hash: the hash of the cookie value issued with a web grant, NULL
+-- for native (SEC-161 (c) note 1.5 rule (7)).
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at, cookie_hash)
+VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at, sqlc.narg(cookie_hash)::bytea);
 
 -- name: HasOpenReauthGrant :one
 -- The read-only check before hashing a new password; served by
--- reauth_grant_open.
+-- reauth_grant_open. A web grant serves only the request that presents the
+-- cookie value issued with it; a native grant (NULL) only a native request
+-- (SEC-161 (c) note 1.5 rule (7)).
 SELECT EXISTS (
 	SELECT 1 FROM reauth_grant
-	 WHERE session_id = @session_id AND purpose = @purpose AND used_at IS NULL AND expires_at > @now::timestamptz);
+	 WHERE session_id = @session_id AND purpose = @purpose AND used_at IS NULL AND expires_at > @now::timestamptz
+	   AND cookie_hash IS NOT DISTINCT FROM sqlc.narg(cookie_hash)::bytea);
 
 -- name: UseReauthGrant :execrows
--- Uses one open grant of the session for purpose (SEC-13); served by
--- reauth_grant_open.
+-- Uses one open grant of the session for purpose (SEC-13), bound to the
+-- presented cookie value as HasOpenReauthGrant is (SEC-161 (c) note 1.5 rule
+-- (7)); served by reauth_grant_open.
 UPDATE reauth_grant g SET used_at = @now::timestamptz
  WHERE g.used_at IS NULL AND g.id = (
 	SELECT o.id FROM reauth_grant o
 	 WHERE o.session_id = @session_id AND o.purpose = @purpose AND o.used_at IS NULL AND o.expires_at > @now
+	   AND o.cookie_hash IS NOT DISTINCT FROM sqlc.narg(cookie_hash)::bytea
 	 LIMIT 1);
 
 -- name: UpdateCredential :execrows

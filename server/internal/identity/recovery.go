@@ -88,9 +88,6 @@ func (s *Service) mailNotSent(ctx context.Context, reason string) {
 // token-use address key (10.1 §8.1). Without a hash slot the token is kept
 // (item 3).
 func (s *Service) CompleteRecovery(ctx context.Context, client Client, recoveryToken, newPassword string) (Tokens, error) {
-	if client.Kind == "web" {
-		return Tokens{}, ErrWebSessionNotYet
-	}
 	if err := checkPasswordNotCommon(newPassword); err != nil {
 		return Tokens{}, err
 	}

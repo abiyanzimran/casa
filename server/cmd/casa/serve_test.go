@@ -142,6 +142,51 @@ func TestServe(t *testing.T) {
 			t.Fatalf("exit %d, stderr %q; want 2 and %q", code, stderr, want)
 		}
 	})
+	t.Run("rejects an -origin that is not a bare origin", func(t *testing.T) {
+		// Plan 1.5 Task 4: the origin check compares Origin with this value
+		// as a string (SEC-162 (a)), so it must be scheme://host[:port] as a
+		// browser sends it; plain http only on the loopback host.
+		t.Setenv("CREDENTIALS_DIRECTORY", t.TempDir()) // an accepted -origin fails next, on the credential
+		for _, c := range []struct {
+			origin   string
+			accepted bool
+		}{
+			{"https://a.example/x", false},
+			{"https://a.example/", false},
+			{"https://a.example?q", false},
+			{"https://a.example#f", false},
+			{"ftp://a", false},
+			{"http://a.example", false},
+			{"https://u@a.example", false},
+			{"https://A.example", false},
+			{"https://", false},
+			{"a.example", false},
+			{"https://a.example:", false},
+			{"https://a.example:443", false},
+			{"http://localhost:80", false},
+			{"https://a.example:0", false},
+			{"https://a.example:65536", false},
+			{"http://localhost:08080", false},
+			{"https://a.example.", false},
+			{"https://café.example", false},
+			{"https://xn--caf-dma.example", true},
+			{"http://localhost", true},
+			{"https://a.example:65535", true},
+			{"http://localhost:8080", true},
+			{"http://127.0.0.1:8080", true},
+			{"http://[::1]:8080", true},
+			{"https://a.example", true},
+			{"https://a.example:8443", true},
+		} {
+			code, _, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0", "-origin", c.origin)
+			switch {
+			case c.accepted && (code != 1 || !strings.HasPrefix(stderr, "casa serve: read credential")):
+				t.Errorf("-origin %q: exit %d, stderr %q; want it accepted", c.origin, code, stderr)
+			case !c.accepted && (code != 2 || !strings.HasPrefix(stderr, "casa serve: -origin: ") || !strings.HasSuffix(stderr, serveUsage)):
+				t.Errorf("-origin %q: exit %d, stderr %q; want 2 and \"casa serve: -origin: …\"", c.origin, code, stderr)
+			}
+		}
+	})
 	t.Run("requires -mail-dir, an existing directory", func(t *testing.T) {
 		code, _, stderr := runCasa(t, "serve", "-listen", "127.0.0.1:0")
 		if code != 2 || stderr != serveUsage {

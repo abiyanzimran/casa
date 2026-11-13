@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -26,8 +28,27 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/identity"
 )
 
-// probeSession is the session the probe's authenticate accepts.
-var probeSession = identity.Session{ClientKind: "ios"}
+// probeSessions are the sessions the probe's authentication accepts, by
+// credential: a native one per bearer token and a web one for the cookie, so
+// each client kind calls with a session of its own kind (plan 1.5 decision
+// 11 step 5).
+var probeSessions = map[string]identity.Session{
+	"probe-token":   {ClientKind: "ios", DeviceMode: "personal"},
+	"probe-android": {ClientKind: "android", DeviceMode: "personal"},
+	"probe-cookie":  {ClientKind: "web", DeviceMode: "personal"},
+}
+
+// probeAuthenticate accepts the probe's credentials of kind ("web" for the
+// cookie, else a bearer token).
+func probeAuthenticate(web bool) func(context.Context, string) (identity.Session, error) {
+	return func(_ context.Context, credential string) (identity.Session, error) {
+		session, ok := probeSessions[credential]
+		if !ok || (session.ClientKind == "web") != web {
+			return identity.Session{}, identity.ErrUnauthenticated
+		}
+		return session, nil
+	}
+}
 
 const uuidV4 = "0f8b2a6e-3c1d-4e5f-9a7b-1c2d3e4f5a6b" // a UUIDv4
 
@@ -49,11 +70,12 @@ func startProbe(t *testing.T) *probe {
 		file:  probeFile(t, probeMethod{name: "Read"}, probeMethod{name: "Write", command: &casav1.CommandOptions{HoldSeconds: proto.Uint32(5)}}),
 		calls: map[string]*atomic.Int32{},
 	}
-	server := api.NewServer(api.Version{Major: 1, Minor: 9}, func(_ context.Context, token string) (identity.Session, error) {
-		if token != "probe-token" {
-			return identity.Session{}, identity.ErrUnauthenticated
-		}
-		return probeSession, nil
+	server := api.NewServer(api.Version{Major: 1, Minor: 9}, testOrigin, api.Sessions{
+		Bearer: probeAuthenticate(false),
+		Cookie: func(ctx context.Context, cookie string) (identity.CookieSession, error) {
+			session, err := probeAuthenticate(true)(ctx, cookie)
+			return identity.CookieSession{Session: session}, err
+		},
 	})
 	methods := p.file.Services().Get(0).Methods()
 	read := methods.ByName("Read")
@@ -82,7 +104,7 @@ func (p *probe) method(name string, schema protoreflect.MethodDescriptor, input 
 		if err := stream.Receive(dynamicpb.NewMessage(input)); err != nil {
 			return err
 		}
-		if session, ok := api.SessionFrom(ctx); !ok || session != probeSession {
+		if session, ok := api.SessionFrom(ctx); !ok || !slices.ContainsFunc(slices.Collect(maps.Values(probeSessions)), func(s identity.Session) bool { return reflect.DeepEqual(s, session) }) {
 			return connect.NewError(connect.CodeInternal, "the handler did not get the session")
 		}
 		calls.Add(1)
@@ -91,13 +113,29 @@ func (p *probe) method(name string, schema protoreflect.MethodDescriptor, input 
 }
 
 // call sends a ProbeRequest with rc (nil: no request_context) and note, in a
-// valid session.
+// valid session of rc's client kind: a web one in the cookie from the app's
+// origin, as a browser sends it, or a native one as a bearer token.
 func (p *probe) call(client *connect.Client, method string, rc *casav1.RequestContext, note string) error {
+	switch rc.GetClientKind() {
+	case casav1.ClientKind_CLIENT_KIND_WEB:
+		return p.send(client, map[string]string{"Cookie": "__Host-casa_session=probe-cookie", "Origin": testOrigin}, method, rc, note)
+	case casav1.ClientKind_CLIENT_KIND_ANDROID:
+		return p.callWith(client, "Bearer probe-android", method, rc, note)
+	}
 	return p.callWith(client, "Bearer probe-token", method, rc, note)
 }
 
 // callWith is call with the Authorization header authorization ("": none).
 func (p *probe) callWith(client *connect.Client, authorization, method string, rc *casav1.RequestContext, note string) error {
+	header := map[string]string{}
+	if authorization != "" {
+		header["Authorization"] = authorization
+	}
+	return p.send(client, header, method, rc, note)
+}
+
+// send is call with the request headers header.
+func (p *probe) send(client *connect.Client, header map[string]string, method string, rc *casav1.RequestContext, note string) error {
 	input := p.file.Services().Get(0).Methods().ByName("Read").Input()
 	req := dynamicpb.NewMessage(input)
 	if rc != nil {
@@ -106,8 +144,8 @@ func (p *probe) callWith(client *connect.Client, authorization, method string, r
 	req.Set(input.Fields().ByName("note"), protoreflect.ValueOfString(note))
 	spec := connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/" + method}
 	ctx, info := connect.NewClientContext(context.Background())
-	if authorization != "" {
-		info.RequestHeader().Set("Authorization", authorization)
+	for name, value := range header {
+		info.RequestHeader().Set(name, value)
 	}
 	return client.CallUnary(ctx, spec, req, &emptypb.Empty{})
 }

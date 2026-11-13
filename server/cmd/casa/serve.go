@@ -10,8 +10,12 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	"github.com/abiyanzimran/casa/server/internal/identity"
@@ -31,7 +35,8 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("serve", flag.ContinueOnError)
 	flags.SetOutput(io.Discard) // serveUsage is printed instead
 	listen := flags.String("listen", "127.0.0.1:8080", "")
-	// The base of emailed links (09.4 §2).
+	// The app's origin: the base of emailed links (09.4 §2) and the only
+	// Origin a browser's request may carry (SEC-162 (a)).
 	origin := flags.String("origin", "http://127.0.0.1:8080", "")
 	mailDir := flags.String("mail-dir", "", "")
 	// ADR-030 item 9; lead ruling Q2: the minimum web version is server
@@ -43,6 +48,10 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	}
 	if info, err := os.Stat(*mailDir); err != nil || !info.IsDir() {
 		_, _ = fmt.Fprintf(stderr, "casa serve: -mail-dir: %s is not a directory\n%s", *mailDir, serveUsage)
+		return 2
+	}
+	if err := checkOriginFlag(*origin); err != nil {
+		_, _ = fmt.Fprintf(stderr, "casa serve: -origin: %v\n%s", err, serveUsage)
 		return 2
 	}
 	minimumWebVersion, err := api.ParseVersion(*minimum)
@@ -80,7 +89,10 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		identityService.Close()
 		pool.Close()
 	}
-	apiServer := api.NewServer(minimumWebVersion, identityService.Authenticate)
+	apiServer := api.NewServer(minimumWebVersion, *origin, api.Sessions{
+		Bearer: identityService.Authenticate, Cookie: identityService.AuthenticateCookie,
+		UserAction: identityService.TouchUserAction,
+	})
 	api.RegisterIdentityService(apiServer, pool, identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
@@ -131,4 +143,36 @@ func openBundle(stderr io.Writer) (*api.Bundle, error) {
 		return nil, nil
 	}
 	return bundle, err
+}
+
+// checkOriginFlag accepts only an origin as a browser serializes it in the
+// Origin header, since the origin check compares the two as strings
+// (SEC-162 (a)): scheme://host[:port] in lower-case ASCII, without path,
+// query, fragment, user info, a trailing dot, an empty or default port, or a
+// port outside 1 to 65535 or with a leading zero; https, or http on a loopback host for
+// development. Anything else would fail every web request closed without
+// saying why. The error never repeats the value, which might hold user info.
+func checkOriginFlag(origin string) error {
+	u, err := url.Parse(origin)
+	if err != nil || u.Host == "" || u.Scheme+"://"+u.Host != origin || strings.ToLower(origin) != origin ||
+		strings.HasSuffix(u.Host, ":") || strings.HasSuffix(u.Hostname(), ".") ||
+		strings.ContainsFunc(u.Host, func(r rune) bool { return r > unicode.MaxASCII }) {
+		return errors.New("want scheme://host[:port] in lower-case ASCII, without path, query, fragment, user info or trailing dot")
+	}
+	if port := u.Port(); port != "" {
+		n, err := strconv.Atoi(port)
+		if err != nil || strconv.Itoa(n) != port || n < 1 || n > 65535 || u.Scheme == "https" && n == 443 || u.Scheme == "http" && n == 80 {
+			return errors.New("want a port from 1 to 65535 other than the scheme's default, which browsers leave out")
+		}
+	}
+	switch u.Hostname() {
+	case "localhost", "127.0.0.1", "::1":
+		if u.Scheme == "http" {
+			return nil
+		}
+	}
+	if u.Scheme != "https" {
+		return errors.New("want https, or http on localhost, 127.0.0.1 or ::1")
+	}
+	return nil
 }

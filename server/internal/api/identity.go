@@ -32,26 +32,36 @@ type identityHandler struct {
 }
 
 func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignUpRequest) (*casav1.StartSignUpResponse, error) {
-	if err := h.s.StartSignUp(ctx, clientOf(ctx, req.GetRequestContext()), req.GetSetupToken(), req.GetEmail()); err != nil {
+	if err := h.s.StartSignUp(ctx, clientOf(ctx, req), req.GetSetupToken(), req.GetEmail()); err != nil {
 		return nil, identityError(err)
 	}
 	return &casav1.StartSignUpResponse{}, nil
 }
 
 func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.CompleteSignUpRequest) (*casav1.CompleteSignUpResponse, error) {
-	tokens, err := h.s.CompleteSignUp(ctx, clientOf(ctx, req.GetRequestContext()), req.GetVerificationToken(), req.GetPassword())
+	client := clientOf(ctx, req)
+	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetPassword())
 	if err != nil {
 		return nil, identityError(err)
 	}
-	return &casav1.CompleteSignUpResponse{Tokens: sessionTokens(tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.CompleteSignUpResponse{Tokens: opened}, nil
 }
 
 func (h identityHandler) SignIn(ctx context.Context, req *casav1.SignInRequest) (*casav1.SignInResponse, error) {
-	tokens, err := h.s.SignIn(ctx, clientOf(ctx, req.GetRequestContext()), req.GetEmail(), req.GetPassword())
+	client := clientOf(ctx, req)
+	tokens, err := h.s.SignIn(ctx, client, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		return nil, identityError(err)
 	}
-	return &casav1.SignInResponse{Tokens: sessionTokens(tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.SignInResponse{Tokens: opened}, nil
 }
 
 func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.RefreshSessionRequest) (*casav1.RefreshSessionResponse, error) {
@@ -72,6 +82,11 @@ func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest
 	if err != nil {
 		return nil, identityError(err)
 	}
+	if session.ClientKind == "web" { // SEC-164 (b): only after the revocation committed
+		if err := clearSessionCookie(ctx); err != nil {
+			return nil, identityError(err)
+		}
+	}
 	return res, nil
 }
 
@@ -86,9 +101,17 @@ func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.Reauthe
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
-	expiresAt, err := h.s.Reauthenticate(ctx, clientOf(ctx, req.GetRequestContext()), session, req.GetPassword(), purpose)
+	expiresAt, cookie, err := h.s.Reauthenticate(ctx, clientOf(ctx, req), session, req.GetPassword(), purpose)
 	if err != nil {
 		return nil, identityError(err)
+	}
+	if cookie != nil {
+		// SEC-161 (c): a web re-authentication always rotates the cookie
+		// (session fixation), and its grant serves only this value (note
+		// 1.5 rule (7)).
+		if err := setSessionCookie(ctx, *cookie); err != nil {
+			return nil, identityError(err)
+		}
 	}
 	return &casav1.ReauthenticateResponse{ExpiresAt: timestamppb.New(expiresAt)}, nil
 }
@@ -137,18 +160,33 @@ func newPasswordError(err error, request proto.Message) error {
 }
 
 func (h identityHandler) StartRecovery(ctx context.Context, req *casav1.StartRecoveryRequest) (*casav1.StartRecoveryResponse, error) {
-	if err := h.s.StartRecovery(ctx, clientOf(ctx, req.GetRequestContext()), req.GetEmail()); err != nil {
+	if err := h.s.StartRecovery(ctx, clientOf(ctx, req), req.GetEmail()); err != nil {
 		return nil, identityError(err)
 	}
 	return &casav1.StartRecoveryResponse{}, nil
 }
 
 func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.CompleteRecoveryRequest) (*casav1.CompleteRecoveryResponse, error) {
-	tokens, err := h.s.CompleteRecovery(ctx, clientOf(ctx, req.GetRequestContext()), req.GetRecoveryToken(), req.GetNewPassword())
+	client := clientOf(ctx, req)
+	tokens, err := h.s.CompleteRecovery(ctx, client, req.GetRecoveryToken(), req.GetNewPassword())
 	if err != nil {
 		return nil, newPasswordError(err, req)
 	}
-	return &casav1.CompleteRecoveryResponse{Tokens: sessionTokens(tokens)}, nil
+	opened, err := openedSession(ctx, client, tokens)
+	if err != nil {
+		return nil, identityError(err)
+	}
+	return &casav1.CompleteRecoveryResponse{Tokens: opened}, nil
+}
+
+// openedSession hands a new session to its client: a web session only as the
+// cookie, with tokens left unset in the response (SEC-161 (b)); a native one
+// as tokens. A cookie that cannot be set is an internal error.
+func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) (*casav1.SessionTokens, error) {
+	if client.Kind == "web" {
+		return nil, setSessionCookie(ctx, tokens.Cookie)
+	}
+	return sessionTokens(tokens), nil
 }
 
 func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
@@ -158,18 +196,37 @@ func sessionTokens(t identity.Tokens) *casav1.SessionTokens {
 	}
 }
 
-// clientOf builds the caller from request_context, already checked at the
-// boundary, and the connection's peer address (10.1 §8.1: TLS ends in the
-// binary, so the peer is the client).
-func clientOf(ctx context.Context, rc *casav1.RequestContext) identity.Client {
-	client := identity.Client{
-		Kind:    strings.ToLower(strings.TrimPrefix(rc.GetClientKind().String(), "CLIENT_KIND_")),
-		Version: rc.GetClientVersion(),
+// deviceModes maps the contract's device modes to session.device_mode; the
+// unspecified mode, which only native clients send, maps to "".
+var deviceModes = map[casav1.DeviceMode]string{
+	casav1.DeviceMode_DEVICE_MODE_PERSONAL: "personal",
+	casav1.DeviceMode_DEVICE_MODE_SHARED:   "shared",
+}
+
+// clientOf builds the caller from request_context and, when the request has
+// one, device_mode, both already checked at the boundary (plan 1.5 decision
+// 9), the connection's peer address (10.1 §8.1: TLS ends in the binary, so
+// the peer is the client), and the User-Agent, which identity only
+// summarizes (SEC-161 (e)).
+func clientOf(ctx context.Context, req interface {
+	GetRequestContext() *casav1.RequestContext
+}) identity.Client {
+	rc := req.GetRequestContext()
+	client := identity.Client{Kind: clientKindOf(rc), Version: rc.GetClientVersion()}
+	if withMode, ok := req.(interface{ GetDeviceMode() casav1.DeviceMode }); ok {
+		client.DeviceMode = deviceModes[withMode.GetDeviceMode()]
 	}
 	if info, ok := connect.CallInfoForServerContext(ctx); ok {
 		client.Address = info.PeerAddr
+		client.UserAgent = info.RequestHeader().Get("User-Agent")
 	}
 	return client
+}
+
+// clientKindOf is request_context.client_kind as session.client_kind
+// writes it: "ios", "android" or "web".
+func clientKindOf(rc *casav1.RequestContext) string {
+	return strings.ToLower(strings.TrimPrefix(rc.GetClientKind().String(), "CLIENT_KIND_"))
 }
 
 // identityError maps an identity error to the contract (lead ruling Q6 on
@@ -184,8 +241,6 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrRateLimited):
 		return errorWithDetail(connect.CodeResourceExhausted, "rate limited",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RATE_LIMITED})
-	case errors.Is(err, identity.ErrWebSessionNotYet):
-		return connect.NewError(connect.CodeUnimplemented, "web sessions come with the cookie transport")
 	case errors.Is(err, identity.ErrPasswordTooCommon):
 		return passwordTooCommon((&casav1.CompleteSignUpRequest{}).ProtoReflect().Descriptor().Fields().ByName("password"))
 	case errors.Is(err, identity.ErrCredentialsRejected):

@@ -12,6 +12,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const confirmCookie = `-- name: ConfirmCookie :exec
+UPDATE session SET token_confirmed_at = $1::timestamptz
+ WHERE id = $2 AND token_confirmed_at IS NULL
+`
+
+type ConfirmCookieParams struct {
+	Now time.Time
+	ID  pgtype.UUID
+}
+
+// SEC-161 (c) note 1.5 rule (1): the browser brought the current value back,
+// so it holds it.
+func (q *Queries) ConfirmCookie(ctx context.Context, arg ConfirmCookieParams) error {
+	_, err := q.db.Exec(ctx, confirmCookie, arg.Now, arg.ID)
+	return err
+}
+
 const getAccountIDByEmail = `-- name: GetAccountIDByEmail :one
 SELECT id FROM account WHERE email = $1
 `
@@ -98,6 +115,78 @@ func (q *Queries) GetSession(ctx context.Context, id pgtype.UUID) (GetSessionRow
 	row := q.db.QueryRow(ctx, getSession, id)
 	var i GetSessionRow
 	err := row.Scan(
+		&i.LastUsedAt,
+		&i.IdleTimeout,
+		&i.AbsoluteExpiry,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const getSessionByCookieHash = `-- name: GetSessionByCookieHash :one
+SELECT account_id
+  FROM session
+ WHERE token_hash = $1 OR prev_token_hash = $1 OR discarded_token_hash = $1
+`
+
+// SEC-161 (a), (c); 10.1 §5.1: a web request's cookie value is the current,
+// the previous, or the discarded value of at most one session. This lookup,
+// before the account is known and without a lock, finds only the account;
+// GetSessionByCookieHashForUpdate decides. Served by the unique index on
+// token_hash and the partial indexes session_prev_token and
+// session_discarded_token (09.2 §3, §5.1).
+func (q *Queries) GetSessionByCookieHash(ctx context.Context, tokenHash []byte) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getSessionByCookieHash, tokenHash)
+	var account_id pgtype.UUID
+	err := row.Scan(&account_id)
+	return account_id, err
+}
+
+const getSessionByCookieHashForUpdate = `-- name: GetSessionByCookieHashForUpdate :one
+SELECT id, account_id, client_kind, device_mode,
+       token_hash = $1 AS current,
+       coalesce(prev_token_hash = $1, false)::boolean AS previous,
+       coalesce(discarded_token_hash = $1, false)::boolean AS discarded,
+       token_issued_at, token_confirmed_at, prev_valid_until, last_used_at, idle_timeout, absolute_expiry, revoked_at
+  FROM session
+ WHERE token_hash = $1 OR prev_token_hash = $1 OR discarded_token_hash = $1
+   FOR UPDATE
+`
+
+type GetSessionByCookieHashForUpdateRow struct {
+	ID               pgtype.UUID
+	AccountID        pgtype.UUID
+	ClientKind       string
+	DeviceMode       string
+	Current          bool
+	Previous         bool
+	Discarded        bool
+	TokenIssuedAt    time.Time
+	TokenConfirmedAt pgtype.Timestamptz
+	PrevValidUntil   pgtype.Timestamptz
+	LastUsedAt       time.Time
+	IdleTimeout      time.Duration
+	AbsoluteExpiry   time.Time
+	RevokedAt        pgtype.Timestamptz
+}
+
+// SEC-161 (c) note 1.5 rule (4): one decision per row. The row is locked for
+// the transaction that classifies the value and writes the outcome (plan 1.5
+// decision 12); served by the same indexes as GetSessionByCookieHash.
+func (q *Queries) GetSessionByCookieHashForUpdate(ctx context.Context, tokenHash []byte) (GetSessionByCookieHashForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, getSessionByCookieHashForUpdate, tokenHash)
+	var i GetSessionByCookieHashForUpdateRow
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.ClientKind,
+		&i.DeviceMode,
+		&i.Current,
+		&i.Previous,
+		&i.Discarded,
+		&i.TokenIssuedAt,
+		&i.TokenConfirmedAt,
+		&i.PrevValidUntil,
 		&i.LastUsedAt,
 		&i.IdleTimeout,
 		&i.AbsoluteExpiry,
@@ -196,19 +285,28 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 const hasOpenReauthGrant = `-- name: HasOpenReauthGrant :one
 SELECT EXISTS (
 	SELECT 1 FROM reauth_grant
-	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz)
+	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz
+	   AND cookie_hash IS NOT DISTINCT FROM $4::bytea)
 `
 
 type HasOpenReauthGrantParams struct {
-	SessionID pgtype.UUID
-	Purpose   string
-	Now       time.Time
+	SessionID  pgtype.UUID
+	Purpose    string
+	Now        time.Time
+	CookieHash []byte
 }
 
 // The read-only check before hashing a new password; served by
-// reauth_grant_open.
+// reauth_grant_open. A web grant serves only the request that presents the
+// cookie value issued with it; a native grant (NULL) only a native request
+// (SEC-161 (c) note 1.5 rule (7)).
 func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrantParams) (bool, error) {
-	row := q.db.QueryRow(ctx, hasOpenReauthGrant, arg.SessionID, arg.Purpose, arg.Now)
+	row := q.db.QueryRow(ctx, hasOpenReauthGrant,
+		arg.SessionID,
+		arg.Purpose,
+		arg.Now,
+		arg.CookieHash,
+	)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -259,18 +357,21 @@ func (q *Queries) InsertCredential(ctx context.Context, arg InsertCredentialPara
 }
 
 const insertReauthGrant = `-- name: InsertReauthGrant :exec
-INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at, cookie_hash)
+VALUES ($1, $2, $3, $4, $5, $6::bytea)
 `
 
 type InsertReauthGrantParams struct {
-	SessionID pgtype.UUID
-	AccountID pgtype.UUID
-	Purpose   string
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	SessionID  pgtype.UUID
+	AccountID  pgtype.UUID
+	Purpose    string
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+	CookieHash []byte
 }
 
+// cookie_hash: the hash of the cookie value issued with a web grant, NULL
+// for native (SEC-161 (c) note 1.5 rule (7)).
 func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantParams) error {
 	_, err := q.db.Exec(ctx, insertReauthGrant,
 		arg.SessionID,
@@ -278,6 +379,7 @@ func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantPa
 		arg.Purpose,
 		arg.CreatedAt,
 		arg.ExpiresAt,
+		arg.CookieHash,
 	)
 	return err
 }
@@ -353,16 +455,18 @@ func (q *Queries) InsertSecurityEvent(ctx context.Context, arg InsertSecurityEve
 }
 
 const insertSession = `-- name: InsertSession :one
-INSERT INTO session (account_id, client_kind, ua_summary, token_hash, client_version, created_at,
+INSERT INTO session (account_id, client_kind, device_mode, ua_summary, token_hash, client_version, created_at,
                      last_used_at, idle_timeout, absolute_expiry, token_issued_at)
-VALUES ($1, $2, '', $3, $4, $5,
-        $5, $6, $7, $5)
+VALUES ($1, $2, $3, $4, $5, $6, $7,
+        $7, $8, $9, $7)
 RETURNING id
 `
 
 type InsertSessionParams struct {
 	AccountID      pgtype.UUID
 	ClientKind     string
+	DeviceMode     string
+	UaSummary      string
 	TokenHash      []byte
 	ClientVersion  string
 	Now            time.Time
@@ -370,10 +474,13 @@ type InsertSessionParams struct {
 	AbsoluteExpiry time.Time
 }
 
+// device_mode and ua_summary are set once, here (SEC-165; SEC-161 (e)).
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, insertSession,
 		arg.AccountID,
 		arg.ClientKind,
+		arg.DeviceMode,
+		arg.UaSummary,
 		arg.TokenHash,
 		arg.ClientVersion,
 		arg.Now,
@@ -406,6 +513,41 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const reissueCookie = `-- name: ReissueCookie :one
+UPDATE session
+   SET discarded_token_hash = token_hash, token_hash = $1,
+       prev_token_hash = $2, prev_valid_until = $3::timestamptz,
+       token_issued_at = $4, token_confirmed_at = NULL
+ WHERE id = $5 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $4 AND absolute_expiry > $4
+RETURNING absolute_expiry
+`
+
+type ReissueCookieParams struct {
+	TokenHash      []byte
+	Presented      []byte
+	PrevValidUntil time.Time
+	Now            time.Time
+	ID             pgtype.UUID
+}
+
+// SEC-161 (c) note 1.5 rules (2), (3): the current value never reached the
+// browser; it is discarded (and remembered), a new one is issued, and the
+// presented value is the previous one with a new window. Fail closed like
+// TouchSession.
+func (q *Queries) ReissueCookie(ctx context.Context, arg ReissueCookieParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, reissueCookie,
+		arg.TokenHash,
+		arg.Presented,
+		arg.PrevValidUntil,
+		arg.Now,
+		arg.ID,
+	)
+	var absolute_expiry time.Time
+	err := row.Scan(&absolute_expiry)
+	return absolute_expiry, err
 }
 
 const revokeSession = `-- name: RevokeSession :execrows
@@ -494,6 +636,45 @@ func (q *Queries) RotateAccessToken(ctx context.Context, arg RotateAccessTokenPa
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const rotateCookie = `-- name: RotateCookie :one
+UPDATE session
+   SET prev_token_hash = CASE WHEN token_confirmed_at IS NULL AND prev_valid_until > $1
+                              THEN prev_token_hash ELSE token_hash END,
+       prev_valid_until = $2::timestamptz,
+       token_hash = $3, token_issued_at = $1, token_confirmed_at = NULL
+ WHERE id = $4 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $1 AND absolute_expiry > $1
+RETURNING absolute_expiry
+`
+
+type RotateCookieParams struct {
+	Now            time.Time
+	PrevValidUntil time.Time
+	TokenHash      []byte
+	ID             pgtype.UUID
+}
+
+// SEC-161 (c): a new current value, not confirmed yet; the value the browser
+// holds serves as the previous one until prev_valid_until. That is the
+// current value, unless the current value is unconfirmed while the previous
+// one is still in its window: then the browser may hold only the previous
+// one (a forced rotation right after the boundary rotated or reissued, or
+// carried by the previous value), and it stays, with a new window (lead
+// ruling on the Task 5 review). A rotation by age never meets that case: the
+// window ends long before the current value is 15 minutes old. Fail closed
+// like TouchSession.
+func (q *Queries) RotateCookie(ctx context.Context, arg RotateCookieParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, rotateCookie,
+		arg.Now,
+		arg.PrevValidUntil,
+		arg.TokenHash,
+		arg.ID,
+	)
+	var absolute_expiry time.Time
+	err := row.Scan(&absolute_expiry)
+	return absolute_expiry, err
 }
 
 const touchSession = `-- name: TouchSession :execrows
@@ -598,19 +779,27 @@ UPDATE reauth_grant g SET used_at = $1::timestamptz
  WHERE g.used_at IS NULL AND g.id = (
 	SELECT o.id FROM reauth_grant o
 	 WHERE o.session_id = $2 AND o.purpose = $3 AND o.used_at IS NULL AND o.expires_at > $1
+	   AND o.cookie_hash IS NOT DISTINCT FROM $4::bytea
 	 LIMIT 1)
 `
 
 type UseReauthGrantParams struct {
-	Now       time.Time
-	SessionID pgtype.UUID
-	Purpose   string
+	Now        time.Time
+	SessionID  pgtype.UUID
+	Purpose    string
+	CookieHash []byte
 }
 
-// Uses one open grant of the session for purpose (SEC-13); served by
-// reauth_grant_open.
+// Uses one open grant of the session for purpose (SEC-13), bound to the
+// presented cookie value as HasOpenReauthGrant is (SEC-161 (c) note 1.5 rule
+// (7)); served by reauth_grant_open.
 func (q *Queries) UseReauthGrant(ctx context.Context, arg UseReauthGrantParams) (int64, error) {
-	result, err := q.db.Exec(ctx, useReauthGrant, arg.Now, arg.SessionID, arg.Purpose)
+	result, err := q.db.Exec(ctx, useReauthGrant,
+		arg.Now,
+		arg.SessionID,
+		arg.Purpose,
+		arg.CookieHash,
+	)
 	if err != nil {
 		return 0, err
 	}

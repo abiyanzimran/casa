@@ -66,6 +66,8 @@ type identityHarness struct {
 	admin  *pgxpool.Pool
 	clock  *testClock
 	client casav1connect.IdentityServiceClient
+	// url is the server's base URL, for requests that are not Connect calls.
+	url string
 	// probe calls an authenticated procedure, ProbeService.Read.
 	probe     *connect.Client
 	probeRead protoreflect.MethodDescriptor
@@ -107,7 +109,9 @@ func startIdentity(t *testing.T) *identityHarness {
 		},
 	})
 	h.service = service
-	server := api.NewServer(api.Version{}, service.Authenticate)
+	server := api.NewServer(api.Version{}, testOrigin, api.Sessions{
+		Bearer: service.Authenticate, Cookie: service.AuthenticateCookie, UserAction: service.TouchUserAction,
+	})
 	api.RegisterIdentityService(server, h.pool, service)
 	h.probeRead = probeFile(t, probeMethod{name: "Read"}).Services().Get(0).Methods().ByName("Read")
 	server.Register(connect.Method{
@@ -121,6 +125,7 @@ func startIdentity(t *testing.T) *identityHarness {
 	})
 	srv := httptest.NewServer(api.NewMux(server, nil))
 	t.Cleanup(srv.Close)
+	h.url = srv.URL
 	client := connect.NewClient(connecthttp.NewTransport(srv.Client(), srv.URL))
 	h.client = casav1connect.NewIdentityServiceClient(client)
 	h.probe = client
@@ -513,16 +518,6 @@ func TestSignUp(t *testing.T) {
 		wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
 	})
 
-	t.Run("a web client cannot open a session before the cookie transport exists (1.5)", func(t *testing.T) {
-		// SEC-161 (b): a web session token travels only in a cookie.
-		h := startIdentity(t)
-		wantOK(t, h.startSignUp(h.issue(t, "owner@example.test"), "owner@example.test"))
-		_, err := h.completeSignUp(casav1.ClientKind_CLIENT_KIND_WEB, h.lastLink(t), password)
-		wantCode(t, err, connect.CodeUnimplemented)
-		_, err = h.completeSignUp(ios, h.lastLink(t), password)
-		wantOK(t, err)
-	})
-
 	t.Run("SEC-12 failed token uses are limited per address", func(t *testing.T) {
 		// 10.1 §8.1: CompleteSignUp shares the token-use limit.
 		h := startIdentity(t)
@@ -681,13 +676,11 @@ func TestSessions(t *testing.T) {
 	})
 
 	t.Run("a web session is never accepted from the Authorization header", func(t *testing.T) {
-		// SEC-161 (b): a web session token travels only in a cookie (1.5).
+		// SEC-161 (b): a web session token travels only in a cookie.
 		h := startIdentity(t)
-		tokens := h.signUp(t, "owner@example.test", password)
-		if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web'"); err != nil {
-			t.Fatal(err)
-		}
-		wantUnauthenticated(t, h.authenticated(tokens.GetAccessToken()))
+		h.signUp(t, "owner@example.test", password)
+		cookie := h.webSignIn(t, "owner@example.test", password, personal)
+		wantUnauthenticated(t, h.authenticated(cookie))
 	})
 
 	t.Run("a sign-in writes the account's security trail", func(t *testing.T) {
@@ -699,15 +692,6 @@ func TestSessions(t *testing.T) {
 		if n := h.count(t, "SELECT count(DISTINCT session_id) FROM security_event WHERE kind = 'sign_in'"); n != 2 {
 			t.Fatalf("%d sign_in events with distinct sessions, want 2 (sign-up and sign-in)", n)
 		}
-	})
-
-	t.Run("a web client cannot sign in before the cookie transport exists (1.5)", func(t *testing.T) {
-		h := startIdentity(t)
-		h.signUp(t, "owner@example.test", password)
-		_, err := h.client.SignIn(context.Background(), &casav1.SignInRequest{
-			RequestContext: identityRC(casav1.ClientKind_CLIENT_KIND_WEB), Email: "owner@example.test", Password: password,
-		})
-		wantCode(t, err, connect.CodeUnimplemented)
 	})
 }
 
@@ -1005,8 +989,6 @@ func TestRecovery(t *testing.T) {
 			t.Fatalf("mails %d, last to %q kind %d link of %d characters; want a recovery link to %s", len(mails), last.To, last.Kind, len(last.Link), email)
 		}
 		link := h.lastLink(t)
-		_, err = h.completeRecovery(casav1.ClientKind_CLIENT_KIND_WEB, link, next)
-		wantCode(t, err, connect.CodeUnimplemented) // web sessions come with 1.5; the link stays usable
 		tokens, err := h.completeRecovery(ios, link, next)
 		wantOK(t, err)
 		wantOK(t, h.authenticated(tokens.GetAccessToken()))
@@ -1228,16 +1210,9 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
 	h := startIdentity(t)
 	x := h.signUp(t, email, password)
-	y, err := h.signIn(email, password)
-	wantOK(t, err)
+	y := h.webSignIn(t, email, password, personal) // a web session in its cookie
 	z, err := h.signIn(email, password)
 	wantOK(t, err)
-	// Y stands for a web session: web sign-in comes with 1.5, so the row
-	// is relabelled; its refresh token still reaches the server.
-	yHash := sha256.Sum256(decodeToken(t, y.GetAccessToken()))
-	if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web' WHERE token_hash = $1", yHash[:]); err != nil {
-		t.Fatal(err)
-	}
 	_, err = h.reauthenticate(x.GetAccessToken(), password)
 	wantOK(t, err)
 	wantOK(t, h.changePassword(x.GetAccessToken(), next))
@@ -1245,10 +1220,9 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	_, err = h.refresh(x.GetRefreshToken())
 	wantOK(t, err)
 	wantErrorCode(t, h.authenticated(z.GetAccessToken()), connect.CodeUnauthenticated, revoked)
-	for _, other := range []*casav1.SessionTokens{y, z} {
-		_, err := h.refresh(other.GetRefreshToken())
-		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
-	}
+	_, err = h.refresh(z.GetRefreshToken())
+	wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+	wantErrorCode(t, h.read(sameOrigin(y), web, true), connect.CodeUnauthenticated, revoked)
 	if n := h.count(t, `SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'password_changed'`); n != 2 {
 		t.Fatalf("%d session_revoked rows, want 2", n)
 	}
