@@ -24,10 +24,16 @@ type Scope struct {
 	AccountID   pgtype.UUID
 	// Email and TokenHash let identity find one row before the account is
 	// known (sign-in, token use); each is a lookup key, never a grant
-	// (09.2 §3 global tables; lead ruling Q2 on the 1.4 plan).
+	// (09.2 §3 global tables; 10.1 §5.1). An email is allowed only alone in
+	// a Read (ErrEmailLookupNotAlone).
 	Email     string
 	TokenHash []byte
 }
+
+// ErrEmailLookupNotAlone refuses a scope that carries an email anywhere but
+// in a read with no account and no household: an email only finds an
+// account's id before sign-in (10.1 §5.1 rule 3; 09.2 §3).
+var ErrEmailLookupNotAlone = errors.New("an email lookup runs alone in a read transaction")
 
 // ErrRetryExhausted wraps the last 40001 or 40P01 after maxRetries retries
 // (09.2 §6, §9).
@@ -59,6 +65,9 @@ const setScope = `SELECT set_config('app.household_id', coalesce($1::uuid::text,
 // outside its transaction: mail, password hashing and rate-limit updates
 // happen before or after Write, never inside fn.
 func Write(ctx context.Context, pool *pgxpool.Pool, s Scope, fn func(pgx.Tx) error) error {
+	if s.Email != "" {
+		return ErrEmailLookupNotAlone
+	}
 	options := pgx.TxOptions{IsoLevel: pgx.Serializable}
 	for retry := 0; ; retry++ {
 		err := inTransaction(ctx, pool, options, s, fn)
@@ -87,6 +96,9 @@ func retryable(err error) bool {
 // Read runs fn in one REPEATABLE READ READ ONLY transaction (09.2 §6) with s set
 // the same way. It is never retried.
 func Read(ctx context.Context, pool *pgxpool.Pool, s Scope, fn func(pgx.Tx) error) error {
+	if s.Email != "" && (s.AccountID.Valid || s.HouseholdID.Valid) {
+		return ErrEmailLookupNotAlone
+	}
 	return inTransaction(ctx, pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, s, fn)
 }
 

@@ -156,7 +156,7 @@ func TestScope(t *testing.T) {
 		// both settings and would hide a leak, so the checks are plain pool
 		// queries outside them.
 		one := oneConnection(t, d)
-		scope := database.Scope{HouseholdID: h1, AccountID: account, Email: "a@example.test", TokenHash: []byte{1}}
+		scope := database.Scope{HouseholdID: h1, AccountID: account, TokenHash: []byte{1}}
 
 		requireNoScope := func(after string) {
 			t.Helper()
@@ -184,6 +184,10 @@ func TestScope(t *testing.T) {
 			t.Fatalf("err = %v, want it to wrap the error of fn", err)
 		}
 		requireNoScope("a failed write")
+		if err := database.Read(ctx, one, database.Scope{Email: "a@example.test", TokenHash: []byte{1}}, func(pgx.Tx) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+		requireNoScope("a lookup")
 	})
 
 	t.Run("SEC-08 the nullif policies of 09.2 §3 hold on a reused connection", func(t *testing.T) {
@@ -295,6 +299,37 @@ func TestScope(t *testing.T) {
 			if err != nil || email != c.email || tokenHash != c.tokenHash {
 				t.Errorf("scope %+v: app.email = %q, app.token_hash = %q, err %v; want %q, %q", c.scope, email, tokenHash, err, c.email, c.tokenHash)
 			}
+		}
+	})
+
+	t.Run("an email lookup stands alone", func(t *testing.T) {
+		// 10.1 §5.1 rule 3: an authenticated handler cannot read another
+		// account through its email, even by a bug.
+		email := "a@example.test"
+		for _, c := range []struct {
+			name string
+			run  func(fn func(pgx.Tx) error) error
+		}{
+			{"write with an email", func(fn func(pgx.Tx) error) error {
+				return database.Write(ctx, app, database.Scope{Email: email}, fn)
+			}},
+			{"read with an email and an account", func(fn func(pgx.Tx) error) error {
+				return database.Read(ctx, app, database.Scope{Email: email, AccountID: account}, fn)
+			}},
+			{"read with an email and a household", func(fn func(pgx.Tx) error) error {
+				return database.Read(ctx, app, database.Scope{Email: email, HouseholdID: h1}, fn)
+			}},
+		} {
+			calls := 0
+			err := c.run(func(pgx.Tx) error { calls++; return nil })
+			if !errors.Is(err, database.ErrEmailLookupNotAlone) || calls != 0 {
+				t.Errorf("%s: err %v after %d calls, want ErrEmailLookupNotAlone after 0", c.name, err, calls)
+			}
+		}
+		calls := 0
+		err := database.Read(ctx, app, database.Scope{Email: email}, func(pgx.Tx) error { calls++; return nil })
+		if err != nil || calls != 1 {
+			t.Errorf("read with an email alone: err %v after %d calls, want nil after 1", err, calls)
 		}
 	})
 
