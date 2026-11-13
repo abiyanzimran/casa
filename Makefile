@@ -95,9 +95,9 @@ sqlc-generate: $(SQLC)
 # The committed query code must be exactly what sqlc generates (ES §2): no
 # hand edit, no missed regeneration, no uncommitted new file.
 sqlc-generated: sqlc-generate
-	if ! git diff --exit-code -- 'server/internal/*/*db' \
-		|| [ -n "$$(git status --porcelain -- 'server/internal/*/*db')" ]; then \
-		git status --short -- 'server/internal/*/*db'; \
+	if ! git diff --exit-code -- ':(glob)server/internal/*/*db/**' \
+		|| [ -n "$$(git status --porcelain -- ':(glob)server/internal/*/*db/**')" ]; then \
+		git status --short -- ':(glob)server/internal/*/*db/**'; \
 		echo "sqlc-generated: generated code differs from the queries; run make sqlc-generate and commit"; \
 		exit 1; \
 	fi
