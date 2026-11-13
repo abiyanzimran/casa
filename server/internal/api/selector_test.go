@@ -21,8 +21,7 @@ type selectorCase struct {
 	call         func(h *householdHarness, m member, household, invitation string) error
 }
 
-// selectorCases has one row per session RPC that uses the selector; Task 7
-// adds ConfirmInvitee, RejectInvitee and GetOpenInvitation.
+// selectorCases has one row per session RPC that uses the selector.
 var selectorCases = []selectorCase{
 	{"CreateInvitation", false, func(h *householdHarness, m member, household, _ string) error {
 		_, err := h.invite(m, household)
@@ -34,6 +33,17 @@ var selectorCases = []selectorCase{
 	}},
 	{"CancelInvitation", true, func(h *householdHarness, m member, household, invitation string) error {
 		return h.cancelInvitation(m, household, invitation)
+	}},
+	{"ConfirmInvitee", true, func(h *householdHarness, m member, household, invitation string) error {
+		_, err := h.confirm(m, confirmRequest(household, invitation))
+		return err
+	}},
+	{"RejectInvitee", true, func(h *householdHarness, m member, household, invitation string) error {
+		return h.reject(m, rejectRequest(household, invitation))
+	}},
+	{"GetOpenInvitation", false, func(h *householdHarness, m member, household, _ string) error {
+		_, err := h.openInvitation(m, household)
+		return err
 	}},
 }
 

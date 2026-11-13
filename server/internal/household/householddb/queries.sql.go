@@ -78,6 +78,34 @@ func (q *Queries) AcknowledgeNotice(ctx context.Context, arg AcknowledgeNoticePa
 	return result.RowsAffected(), nil
 }
 
+const copyApprovalAuthority = `-- name: CopyApprovalAuthority :exec
+INSERT INTO approval_authority (household_id, member_id, request_type, limit_amount, currency, valid_from)
+SELECT x.household_id, $1, x.request_type, x.limit_amount, x.currency, $2::timestamptz
+  FROM approval_authority x
+ WHERE x.household_id = $3 AND x.member_id = $4
+   AND x.valid_from <= $2::timestamptz AND (x.valid_until IS NULL OR x.valid_until > $2::timestamptz)
+`
+
+type CopyApprovalAuthorityParams struct {
+	MemberID    pgtype.UUID
+	ValidFrom   time.Time
+	HouseholdID pgtype.UUID
+	Inviter     pgtype.UUID
+}
+
+// F04: the new member's approval authority is the inviter's in force now,
+// from now (06 §3.1; FR-FAM-004/AC-4). By the approval_authority primary
+// key prefix (household_id, member_id).
+func (q *Queries) CopyApprovalAuthority(ctx context.Context, arg CopyApprovalAuthorityParams) error {
+	_, err := q.db.Exec(ctx, copyApprovalAuthority,
+		arg.MemberID,
+		arg.ValidFrom,
+		arg.HouseholdID,
+		arg.Inviter,
+	)
+	return err
+}
+
 const fullAdultMembers = `-- name: FullAdultMembers :many
 SELECT member_id FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND role = 'household_owner'
@@ -341,18 +369,20 @@ func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventPa
 }
 
 const invitation = `-- name: Invitation :one
-SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id FROM invitation
+SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id, invitee_display_name
+  FROM invitation
  WHERE household_id = current_setting('app.household_id')::uuid AND id = $1
 `
 
 type InvitationRow struct {
-	HouseholdID      pgtype.UUID
-	Inviter          pgtype.UUID
-	State            string
-	ExpiresAt        time.Time
-	Version          int64
-	TokenHash        []byte
-	InviteeAccountID pgtype.UUID
+	HouseholdID        pgtype.UUID
+	Inviter            pgtype.UUID
+	State              string
+	ExpiresAt          time.Time
+	Version            int64
+	TokenHash          []byte
+	InviteeAccountID   pgtype.UUID
+	InviteeDisplayName pgtype.Text
 }
 
 // One invitation of the transaction's household, for a command's guard and
@@ -370,6 +400,7 @@ func (q *Queries) Invitation(ctx context.Context, id pgtype.UUID) (InvitationRow
 		&i.Version,
 		&i.TokenHash,
 		&i.InviteeAccountID,
+		&i.InviteeDisplayName,
 	)
 	return i, err
 }
@@ -437,6 +468,42 @@ func (q *Queries) IssueNotice(ctx context.Context, arg IssueNoticeParams) (int64
 	return result.RowsAffected(), nil
 }
 
+const joinMembership = `-- name: JoinMembership :one
+INSERT INTO membership (household_id, account_id, display_name, role, permission_set, joined_at)
+SELECT m.household_id, $1, $2, m.role, m.permission_set, $3
+  FROM membership m
+ WHERE m.household_id = $4 AND m.member_id = $5
+ON CONFLICT (account_id) WHERE account_id IS NOT NULL DO NOTHING
+RETURNING member_id
+`
+
+type JoinMembershipParams struct {
+	AccountID   pgtype.UUID
+	DisplayName pgtype.Text
+	JoinedAt    time.Time
+	HouseholdID pgtype.UUID
+	Inviter     pgtype.UUID
+}
+
+// F04 (06 §3.6): the invitee's membership, with the inviter's role and
+// permission set (06 §3.1; FR-FAM-004/AC-4). An account that is already a
+// member anywhere inserts nothing and returns no row (09.2 §5.1, note on
+// decision 20): membership_one_household is the arbiter, so the conflict
+// is found across households without reading them. The inviter's row is
+// read by an index led by household_id (at most two members, F01).
+func (q *Queries) JoinMembership(ctx context.Context, arg JoinMembershipParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, joinMembership,
+		arg.AccountID,
+		arg.DisplayName,
+		arg.JoinedAt,
+		arg.HouseholdID,
+		arg.Inviter,
+	)
+	var member_id pgtype.UUID
+	err := row.Scan(&member_id)
+	return member_id, err
+}
+
 const lastNoticeIssue = `-- name: LastNoticeIssue :one
 SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::boolean AS acknowledged
   FROM operator_notice_ack
@@ -484,6 +551,37 @@ func (q *Queries) LiveInvitation(ctx context.Context, householdID pgtype.UUID) (
 	row := q.db.QueryRow(ctx, liveInvitation, householdID)
 	var i LiveInvitationRow
 	err := row.Scan(&i.HouseholdID, &i.ID)
+	return i, err
+}
+
+const liveInvitationView = `-- name: LiveInvitationView :one
+SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name FROM invitation
+ WHERE household_id = current_setting('app.household_id')::uuid AND state IN ('open', 'accepted')
+`
+
+type LiveInvitationViewRow struct {
+	ID                 pgtype.UUID
+	Inviter            pgtype.UUID
+	State              string
+	ExpiresAt          time.Time
+	InviteeAccountID   pgtype.UUID
+	InviteeDisplayName pgtype.Text
+}
+
+// The household's open or accepted invitation as its members read it (plan
+// 1.6 decision 16), in the household's own transaction; the caller decides
+// what of the invitee it shows. Served by invitation_live.
+func (q *Queries) LiveInvitationView(ctx context.Context) (LiveInvitationViewRow, error) {
+	row := q.db.QueryRow(ctx, liveInvitationView)
+	var i LiveInvitationViewRow
+	err := row.Scan(
+		&i.ID,
+		&i.Inviter,
+		&i.State,
+		&i.ExpiresAt,
+		&i.InviteeAccountID,
+		&i.InviteeDisplayName,
+	)
 	return i, err
 }
 
@@ -579,6 +677,19 @@ func (q *Queries) NewID(ctx context.Context) (pgtype.UUID, error) {
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const nextHouseholdVersion = `-- name: NextHouseholdVersion :one
+UPDATE household SET version = version + 1 WHERE id = $1 RETURNING version
+`
+
+// A transition of the household itself moves its version, which is the seq
+// of its event (09.2 §5.1). By the household primary key.
+func (q *Queries) NextHouseholdVersion(ctx context.Context, id pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, nextHouseholdVersion, id)
+	var version int64
+	err := row.Scan(&version)
+	return version, err
 }
 
 const openInvitationByToken = `-- name: OpenInvitationByToken :one
@@ -680,7 +791,7 @@ type TransitionInvitationParams struct {
 // so a guard on expires_at checked against the row read still holds here.
 // clear_invitee removes the invitee's account and display name: a withdrawal
 // leaves no trace in the household but the invitation's events
-// (FR-FAM-004/AC-5; lead ruling on the Task 6 review of the 1.6 plan).
+// (FR-FAM-004/AC-5).
 func (q *Queries) TransitionInvitation(ctx context.Context, arg TransitionInvitationParams) (int64, error) {
 	result, err := q.db.Exec(ctx, transitionInvitation,
 		arg.ToState,

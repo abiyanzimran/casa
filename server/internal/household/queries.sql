@@ -138,7 +138,8 @@ SELECT household_id, id FROM invitation
 -- its compare-and-set (plan 1.6 decision 11): the household is the one the
 -- selector check or the lookup found, never the request's (decision 3). By
 -- the primary key.
-SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id FROM invitation
+SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id, invitee_display_name
+  FROM invitation
  WHERE household_id = current_setting('app.household_id')::uuid AND id = @id;
 
 -- name: TransitionInvitation :execrows
@@ -148,7 +149,7 @@ SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_ac
 -- so a guard on expires_at checked against the row read still holds here.
 -- clear_invitee removes the invitee's account and display name: a withdrawal
 -- leaves no trace in the household but the invitation's events
--- (FR-FAM-004/AC-5; lead ruling on the Task 6 review of the 1.6 plan).
+-- (FR-FAM-004/AC-5).
 UPDATE invitation
    SET state = @to_state, closed_at = @closed_at::timestamptz, version = version + 1,
        invitee_account_id = CASE WHEN @clear_invitee::boolean THEN NULL ELSE invitee_account_id END,
@@ -199,3 +200,39 @@ UPDATE invitation
        token_hash = NULL, version = version + 1
  WHERE household_id = current_setting('app.household_id')::uuid AND id = @id AND version = @version
    AND state = 'open' AND token_hash = @token_hash;
+
+-- name: JoinMembership :one
+-- F04 (06 §3.6): the invitee's membership, with the inviter's role and
+-- permission set (06 §3.1; FR-FAM-004/AC-4). An account that is already a
+-- member anywhere inserts nothing and returns no row (09.2 §5.1, note on
+-- decision 20): membership_one_household is the arbiter, so the conflict
+-- is found across households without reading them. The inviter's row is
+-- read by an index led by household_id (at most two members, F01).
+INSERT INTO membership (household_id, account_id, display_name, role, permission_set, joined_at)
+SELECT m.household_id, @account_id, @display_name, m.role, m.permission_set, @joined_at
+  FROM membership m
+ WHERE m.household_id = @household_id AND m.member_id = @inviter
+ON CONFLICT (account_id) WHERE account_id IS NOT NULL DO NOTHING
+RETURNING member_id;
+
+-- name: CopyApprovalAuthority :exec
+-- F04: the new member's approval authority is the inviter's in force now,
+-- from now (06 §3.1; FR-FAM-004/AC-4). By the approval_authority primary
+-- key prefix (household_id, member_id).
+INSERT INTO approval_authority (household_id, member_id, request_type, limit_amount, currency, valid_from)
+SELECT x.household_id, @member_id, x.request_type, x.limit_amount, x.currency, @valid_from::timestamptz
+  FROM approval_authority x
+ WHERE x.household_id = @household_id AND x.member_id = @inviter
+   AND x.valid_from <= @valid_from::timestamptz AND (x.valid_until IS NULL OR x.valid_until > @valid_from::timestamptz);
+
+-- name: NextHouseholdVersion :one
+-- A transition of the household itself moves its version, which is the seq
+-- of its event (09.2 §5.1). By the household primary key.
+UPDATE household SET version = version + 1 WHERE id = @id RETURNING version;
+
+-- name: LiveInvitationView :one
+-- The household's open or accepted invitation as its members read it (plan
+-- 1.6 decision 16), in the household's own transaction; the caller decides
+-- what of the invitee it shows. Served by invitation_live.
+SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name FROM invitation
+ WHERE household_id = current_setting('app.household_id')::uuid AND state IN ('open', 'accepted');

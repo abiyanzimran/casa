@@ -563,3 +563,106 @@ func householdError(err error) error {
 	}
 	return commandError(err)
 }
+
+// ConfirmInvitee is F04 by the inviter (06 §3.6; FR-FAM-004/AC-4): the
+// selector check, the expiry of a due invitation, then the command in the
+// household's scope, with the membership checked again inside it
+// (SEC-151). When the invitee became a member elsewhere after accepting,
+// the command is rolled back and a second write closes the invitation
+// exactly as the invitee's withdrawal would; F04 answers STATE_CHANGED as
+// after a real withdrawal, and nothing is recorded under its key (09.2 §5.1,
+// note on decision 20; 10.1 §10, security-privacy's amendment; SEC-38 (c)).
+func (s householdHandler) ConfirmInvitee(ctx context.Context, req *casav1.ConfirmInviteeRequest) (*casav1.ConfirmInviteeResponse, error) {
+	m, err := s.member(ctx, req.GetHouseholdId())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	key, invitation := req.GetRequestContext().GetIdempotencyKey(), checkedUUID(req.GetInvitationId())
+	scope := database.Scope{HouseholdID: m.HouseholdID, AccountID: m.AccountID}
+	res, err := command.Run(ctx, s.pool, scope, casav1connect.HouseholdServiceConfirmInviteeProcedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.ConfirmInviteeResponse, error) {
+			inviter, err := s.h.MemberIn(ctx, tx, m.AccountID)
+			if err != nil {
+				return nil, err
+			}
+			joined, err := s.h.Confirm(ctx, tx, inviter, invitation, checkedUUID(key))
+			if err != nil {
+				return nil, err
+			}
+			return &casav1.ConfirmInviteeResponse{MemberId: uuidString(joined.MemberID)}, nil
+		})
+	if errors.Is(err, household.ErrInviteeUnavailable) {
+		err = database.Write(ctx, s.pool, scope, func(tx pgx.Tx) error {
+			return s.h.CloseAsWithdrawn(ctx, tx, invitation)
+		})
+		if err == nil || errors.Is(err, household.ErrStateChanged) {
+			err = household.ErrStateChanged
+		}
+	}
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
+// RejectInvitee is F05 reject_invitee by the inviter (06 §3.6;
+// FR-FAM-004/AC-3): the selector check, the expiry of a due invitation,
+// then the command.
+func (s householdHandler) RejectInvitee(ctx context.Context, req *casav1.RejectInviteeRequest) (*casav1.RejectInviteeResponse, error) {
+	m, err := s.member(ctx, req.GetHouseholdId())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	key := req.GetRequestContext().GetIdempotencyKey()
+	res, err := command.Run(ctx, s.pool, database.Scope{HouseholdID: m.HouseholdID, AccountID: m.AccountID},
+		casav1connect.HouseholdServiceRejectInviteeProcedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.RejectInviteeResponse, error) {
+			inviter, err := s.h.MemberIn(ctx, tx, m.AccountID)
+			if err != nil {
+				return nil, err
+			}
+			return &casav1.RejectInviteeResponse{}, s.h.Reject(ctx, tx, inviter, checkedUUID(req.GetInvitationId()), checkedUUID(key))
+		})
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
+// invitationStates are the contract's names of the live states (06 §3.6).
+var invitationStates = map[string]casav1.InvitationState{
+	"open":     casav1.InvitationState_INVITATION_STATE_OPEN,
+	"accepted": casav1.InvitationState_INVITATION_STATE_ACCEPTED,
+}
+
+// GetOpenInvitation is an online read (plan 1.6 decision 16): the selector
+// check, then the household's live invitation. It never writes, so it does
+// not use member, which writes a due invitation's expiry; one past its
+// expiry reads as none (decision 12). The invitee's verified email is read
+// only here, only for the inviter of an accepted invitation, with the
+// account from that invitation's row (10.1 §5.1 note 1.6 item 3; SEC-31).
+func (s householdHandler) GetOpenInvitation(ctx context.Context, req *casav1.GetOpenInvitationRequest) (*casav1.GetOpenInvitationResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	m, err := s.h.Member(ctx, session.AccountID, checkedUUID(req.GetHouseholdId()))
+	if err != nil {
+		return nil, householdError(err)
+	}
+	inv, found, err := s.h.OpenInvitation(ctx, m)
+	if err != nil {
+		return nil, householdError(err)
+	}
+	if !found {
+		return &casav1.GetOpenInvitationResponse{}, nil
+	}
+	res := &casav1.GetOpenInvitationResponse{
+		InvitationId: uuidString(inv.ID), State: invitationStates[inv.State], ExpiresAt: timestamppb.New(inv.ExpiresAt),
+	}
+	if inv.InviteeAccount.Valid {
+		email, err := s.id.AccountEmail(ctx, inv.InviteeAccount)
+		if err != nil {
+			return nil, householdError(err)
+		}
+		res.InviteeDisplayName, res.InviteeEmail = inv.InviteeDisplayName, email
+	}
+	return res, nil
+}

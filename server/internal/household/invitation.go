@@ -26,8 +26,14 @@ const (
 	acceptCommand   = "accept_invitation"
 	cancelCommand   = "cancel_invitation"
 	withdrawCommand = "withdraw_acceptance"
+	confirmCommand  = "confirm_invitee"
+	rejectCommand   = "reject_invitee"
 	expireCommand   = "expire_invitation"
 	expireRule      = "invitation.expired"
+	// joinedState is the to_state of the household's own event when F04
+	// adds a member [Usulan]: the household has no state machine, so its
+	// event names what happened, as 'created' does.
+	joinedState = "member_joined"
 )
 
 var (
@@ -161,19 +167,19 @@ func (s *Service) CreateInvitation(ctx context.Context, tx pgx.Tx, inviter Membe
 	})
 }
 
-// openInvitation reads invitation for a command of inviter that expects it
-// open and not past its expiry (06 S-4; plan 1.6 decision 11): another
-// household's invitation, or one inviter did not make, is ErrNotFound
-// (10.1 SEC-28 note Q7 (a); FR-FAM-003 note of 14 November 2026); any other
-// state, or a due one, ErrStateChanged.
-func (s *Service) openInvitation(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID) (householddb.InvitationRow, error) {
+// inviterInvitation reads invitation for a command of inviter that expects
+// it in state and not past its expiry (06 S-4; plan 1.6 decision 11):
+// another household's invitation, or one inviter did not make, is
+// ErrNotFound (10.1 SEC-28 note Q7 (a); FR-FAM-003 note of 14 November
+// 2026; decision 14); any other state, or a due one, ErrStateChanged.
+func (s *Service) inviterInvitation(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID, state string) (householddb.InvitationRow, error) {
 	row, err := householddb.New(tx).Invitation(ctx, invitation)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows) || err == nil && row.Inviter != inviter.MemberID:
 		return row, ErrNotFound
 	case err != nil:
 		return row, err
-	case row.State != "open" || !s.now().Before(row.ExpiresAt):
+	case row.State != state || !s.now().Before(row.ExpiresAt):
 		return row, ErrStateChanged
 	}
 	return row, nil
@@ -190,7 +196,7 @@ func (s *Service) IssueInvitationLink(ctx context.Context, inviter Member, invit
 		if err != nil {
 			return err
 		}
-		row, err := s.openInvitation(ctx, tx, member, invitation)
+		row, err := s.inviterInvitation(ctx, tx, member, invitation, "open")
 		if err != nil {
 			return err
 		}
@@ -210,11 +216,127 @@ func (s *Service) IssueInvitationLink(ctx context.Context, inviter Member, invit
 // an open invitation (FR-FAM-003 note of 14 November 2026); cancelled,
 // closed now, with its event.
 func (s *Service) CancelInvitation(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID, key pgtype.UUID) error {
-	row, err := s.openInvitation(ctx, tx, inviter, invitation)
+	row, err := s.inviterInvitation(ctx, tx, inviter, invitation, "open")
 	if err != nil {
 		return err
 	}
 	return s.transition(ctx, tx, inviter.HouseholdID, invitation, row, "cancelled", s.now(), Event{
 		ActorKind: "member", Actor: inviter.MemberID, Command: cancelCommand, IdempotencyKey: key,
 	})
+}
+
+// ErrInviteeUnavailable: the invitee became a member of another household
+// after accepting, so F04 cannot add it (09.2 §5.1, note on decision 20).
+// Only the API layer's F04 handler sees it, and closes the invitation with
+// CloseAsWithdrawn; it is never mapped to a contract code (plan 1.6
+// decision 14).
+var ErrInviteeUnavailable = errors.New("invitee is a member elsewhere")
+
+// Confirm is F04 confirm_invitee by inviter (06 §3.6) in tx, whose scope is
+// inviter's household: only the inviter, only an accepted invitation before
+// its expiry (inviterInvitation). F04 never makes a third full adult (06
+// §3.6 F01 keeps a household at two), so a household that already has two
+// is ErrStateChanged [Usulan]. The invitation becomes confirmed with the
+// inviter's event; the invitee becomes a member with the inviter's role,
+// permission set and approval authority (06 §3.1; FR-FAM-004/AC-4); the
+// household records member_joined with the new member as its actor, so the
+// joining has both its actors. Confirm and Create are the only writers of
+// membership (INV-A48 (a), (b)). An invitee who is a member anywhere
+// inserts nothing: ErrInviteeUnavailable, and the caller rolls tx back.
+func (s *Service) Confirm(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID, key pgtype.UUID) (Member, error) {
+	row, err := s.inviterInvitation(ctx, tx, inviter, invitation, "accepted")
+	if err != nil {
+		return Member{}, err
+	}
+	adults, err := s.FullAdultMembers(ctx, tx)
+	if err != nil {
+		return Member{}, err
+	}
+	if len(adults) >= maxFullAdults {
+		return Member{}, ErrStateChanged
+	}
+	now := s.now()
+	if err := s.transition(ctx, tx, inviter.HouseholdID, invitation, row, "confirmed", now, Event{
+		ActorKind: "member", Actor: inviter.MemberID, Command: confirmCommand, IdempotencyKey: key,
+	}); err != nil {
+		return Member{}, err
+	}
+	q := householddb.New(tx)
+	memberID, err := q.JoinMembership(ctx, householddb.JoinMembershipParams{
+		AccountID: row.InviteeAccountID, DisplayName: row.InviteeDisplayName, JoinedAt: now,
+		HouseholdID: inviter.HouseholdID, Inviter: inviter.MemberID,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Member{}, ErrInviteeUnavailable
+	}
+	if err != nil {
+		return Member{}, err
+	}
+	if err := q.CopyApprovalAuthority(ctx, householddb.CopyApprovalAuthorityParams{
+		MemberID: memberID, ValidFrom: now, HouseholdID: inviter.HouseholdID, Inviter: inviter.MemberID,
+	}); err != nil {
+		return Member{}, err
+	}
+	version, err := q.NextHouseholdVersion(ctx, inviter.HouseholdID)
+	if err != nil {
+		return Member{}, err
+	}
+	return Member{HouseholdID: inviter.HouseholdID, MemberID: memberID, AccountID: row.InviteeAccountID}, RecordEvent(ctx, tx, Event{
+		HouseholdID: inviter.HouseholdID, ObjectKind: "household", ObjectID: inviter.HouseholdID, Seq: version,
+		ActorKind: "member", Actor: memberID, Command: confirmCommand, ToState: joinedState,
+		IdempotencyKey: key, At: now,
+	})
+}
+
+// Reject is F05 reject_invitee by inviter (06 §3.6; FR-FAM-004/AC-3) in tx:
+// only the inviter, only an accepted invitation before its expiry; rejected,
+// closed now, with its event. The invitee's account and display name stay:
+// only a withdrawal clears them (FR-FAM-004/AC-5).
+func (s *Service) Reject(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID, key pgtype.UUID) error {
+	row, err := s.inviterInvitation(ctx, tx, inviter, invitation, "accepted")
+	if err != nil {
+		return err
+	}
+	return s.transition(ctx, tx, inviter.HouseholdID, invitation, row, "rejected", s.now(), Event{
+		ActorKind: "member", Actor: inviter.MemberID, Command: rejectCommand, IdempotencyKey: key,
+	})
+}
+
+// OpenInvitation is the household's live invitation as a member reads it
+// (plan 1.6 decision 16).
+type OpenInvitation struct {
+	ID        pgtype.UUID
+	State     string
+	ExpiresAt time.Time
+	// InviteeDisplayName and InviteeAccount are set only for the inviter of
+	// an accepted invitation (decision 16; 10.1 §5.1 note 1.6 item 3 (a),
+	// (b)).
+	InviteeDisplayName string
+	InviteeAccount     pgtype.UUID
+}
+
+// OpenInvitation reads viewer's household's live invitation in the
+// household's own read transaction, with the membership checked again
+// (SEC-151). One past its expiry is lapsed: found is false and nothing is
+// written (decision 12).
+func (s *Service) OpenInvitation(ctx context.Context, viewer Member) (inv OpenInvitation, found bool, err error) {
+	err = database.Read(ctx, s.pool, database.Scope{HouseholdID: viewer.HouseholdID, AccountID: viewer.AccountID}, func(tx pgx.Tx) error {
+		member, err := s.MemberIn(ctx, tx, viewer.AccountID)
+		if err != nil {
+			return err
+		}
+		row, err := householddb.New(tx).LiveInvitationView(ctx)
+		if errors.Is(err, pgx.ErrNoRows) || err == nil && !s.now().Before(row.ExpiresAt) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		inv, found = OpenInvitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt}, true
+		if row.State == "accepted" && row.Inviter == member.MemberID {
+			inv.InviteeDisplayName, inv.InviteeAccount = row.InviteeDisplayName.String, row.InviteeAccountID
+		}
+		return nil
+	})
+	return inv, found, err
 }

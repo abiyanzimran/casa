@@ -29,6 +29,19 @@ func (q *Queries) ConfirmCookie(ctx context.Context, arg ConfirmCookieParams) er
 	return err
 }
 
+const getAccountEmail = `-- name: GetAccountEmail :one
+SELECT email FROM account WHERE id = $1
+`
+
+// 10.1 §5.1 note 1.6 item 3: only the email, by the primary key, for the
+// inviter's F04 screen (SEC-31).
+func (q *Queries) GetAccountEmail(ctx context.Context, id pgtype.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getAccountEmail, id)
+	var email string
+	err := row.Scan(&email)
+	return email, err
+}
+
 const getAccountIDByEmail = `-- name: GetAccountIDByEmail :one
 SELECT id FROM account WHERE email = $1
 `

@@ -93,6 +93,30 @@ service HouseholdService {
       notice_exempt: true
     };
   }
+  // Confirms that the person who accepted the caller's own invitation is the
+  // one invited (06 §3.6 F04; FR-FAM-004/AC-4): the invitee becomes a
+  // household owner with the role, permission set and approval authority of
+  // the inviter. Only the inviter, only an accepted invitation before its
+  // expiry: any other caller gets NotFound; another state, an expired
+  // acceptance (recorded as expired first) or an invitee who is no longer
+  // available gets STATE_CHANGED (09.2 §5.1, note on decision 20).
+  rpc ConfirmInvitee(ConfirmInviteeRequest) returns (ConfirmInviteeResponse) {
+    option (casa.v1.command) = {hold_seconds: 0};
+  }
+  // Says the person who accepted the caller's own invitation is not the one
+  // invited (06 §3.6 F05 reject_invitee; FR-FAM-004/AC-3): the invitation
+  // lapses and the inviter can invite again. Callers and answers as
+  // ConfirmInvitee.
+  rpc RejectInvitee(RejectInviteeRequest) returns (RejectInviteeResponse) {
+    option (casa.v1.command) = {hold_seconds: 0};
+  }
+  // Returns the household's live invitation, if any: its id, state and
+  // expiry. The invitee's display name and verified email are filled only
+  // for the inviter of an accepted invitation, so the inviter can tell the
+  // person apart before F04 (FR-FAM-004/AC-2; SEC-31). Empty when there is
+  // none or it is past its expiry. Never writes; an online read, never held
+  // by NOTICE_UNREAD (plan 1.6 decision 16).
+  rpc GetOpenInvitation(GetOpenInvitationRequest) returns (GetOpenInvitationResponse);
 }
 
 message CreateHouseholdRequest {
@@ -283,3 +307,48 @@ message WithdrawAcceptanceRequest {
 }
 
 message WithdrawAcceptanceResponse {}
+
+message ConfirmInviteeRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+  string invitation_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+message ConfirmInviteeResponse {
+  // The new member's id in the household.
+  string member_id = 1;
+}
+
+message RejectInviteeRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+  string invitation_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+message RejectInviteeResponse {}
+
+message GetOpenInvitationRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+}
+
+// InvitationState is a live invitation's state (06 §3.6): open is
+// undangan_terbuka, accepted is menunggu_konfirmasi_pengundang.
+enum InvitationState {
+  INVITATION_STATE_UNSPECIFIED = 0;
+  INVITATION_STATE_OPEN = 1;
+  INVITATION_STATE_ACCEPTED = 2;
+}
+
+// Empty when the household has no live invitation.
+message GetOpenInvitationResponse {
+  string invitation_id = 1;
+  InvitationState state = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  // Only for the inviter of an accepted invitation (FR-FAM-004/AC-2).
+  string invitee_display_name = 4;
+  // The invitee's verified email, whole, only for the inviter of an
+  // accepted invitation (SEC-31); read online only, never stored as
+  // household data.
+  string invitee_email = 5 [debug_redact = true];
+}

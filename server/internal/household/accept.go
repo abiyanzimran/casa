@@ -161,6 +161,26 @@ func (s *Service) Withdraw(ctx context.Context, tx pgx.Tx, account, invitation p
 	return s.withdraw(ctx, tx, invitation, row, key)
 }
 
+// CloseAsWithdrawn closes invitation in tx, whose scope is its household,
+// exactly as the invitee's own withdrawal would (09.2 §5.1, note on
+// decision 20; 10.1 §10, security-privacy's amendment): through withdraw,
+// with the invitee from the row and a fresh random idempotency key, since a
+// real withdrawal always carries one. The F04 handler calls it after
+// Confirm found the invitee a member elsewhere, so the answer and the
+// stored event do not tell that cause from a withdrawal (SEC-38 (c)).
+func (s *Service) CloseAsWithdrawn(ctx context.Context, tx pgx.Tx, invitation pgtype.UUID) error {
+	q := householddb.New(tx)
+	row, err := q.Invitation(ctx, invitation)
+	if err != nil {
+		return err
+	}
+	key, err := q.NewID(ctx) // gen_random_uuid: a version 4 UUID (ADR-017)
+	if err != nil {
+		return err
+	}
+	return s.withdraw(ctx, tx, invitation, row, key)
+}
+
 // withdraw is the one writer of a withdrawal (plan 1.6 decision 14; 10.1
 // §10 note): the invitation read in row, accepted and before its expiry,
 // else ErrStateChanged, becomes withdrawn by compare-and-set on its version

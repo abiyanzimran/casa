@@ -23,6 +23,57 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// InvitationState is a live invitation's state (06 §3.6): open is
+// undangan_terbuka, accepted is menunggu_konfirmasi_pengundang.
+type InvitationState int32
+
+const (
+	InvitationState_INVITATION_STATE_UNSPECIFIED InvitationState = 0
+	InvitationState_INVITATION_STATE_OPEN        InvitationState = 1
+	InvitationState_INVITATION_STATE_ACCEPTED    InvitationState = 2
+)
+
+// Enum value maps for InvitationState.
+var (
+	InvitationState_name = map[int32]string{
+		0: "INVITATION_STATE_UNSPECIFIED",
+		1: "INVITATION_STATE_OPEN",
+		2: "INVITATION_STATE_ACCEPTED",
+	}
+	InvitationState_value = map[string]int32{
+		"INVITATION_STATE_UNSPECIFIED": 0,
+		"INVITATION_STATE_OPEN":        1,
+		"INVITATION_STATE_ACCEPTED":    2,
+	}
+)
+
+func (x InvitationState) Enum() *InvitationState {
+	p := new(InvitationState)
+	*p = x
+	return p
+}
+
+func (x InvitationState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (InvitationState) Descriptor() protoreflect.EnumDescriptor {
+	return file_casa_v1_household_proto_enumTypes[0].Descriptor()
+}
+
+func (InvitationState) Type() protoreflect.EnumType {
+	return &file_casa_v1_household_proto_enumTypes[0]
+}
+
+func (x InvitationState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InvitationState.Descriptor instead.
+func (InvitationState) EnumDescriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{0}
+}
+
 type CreateHouseholdRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
@@ -1392,6 +1443,340 @@ func (*WithdrawAcceptanceResponse) Descriptor() ([]byte, []int) {
 	return file_casa_v1_household_proto_rawDescGZIP(), []int{23}
 }
 
+type ConfirmInviteeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	HouseholdId    string                 `protobuf:"bytes,2,opt,name=household_id,json=householdId,proto3" json:"household_id,omitempty"`
+	InvitationId   string                 `protobuf:"bytes,3,opt,name=invitation_id,json=invitationId,proto3" json:"invitation_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ConfirmInviteeRequest) Reset() {
+	*x = ConfirmInviteeRequest{}
+	mi := &file_casa_v1_household_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmInviteeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmInviteeRequest) ProtoMessage() {}
+
+func (x *ConfirmInviteeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmInviteeRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmInviteeRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ConfirmInviteeRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *ConfirmInviteeRequest) GetHouseholdId() string {
+	if x != nil {
+		return x.HouseholdId
+	}
+	return ""
+}
+
+func (x *ConfirmInviteeRequest) GetInvitationId() string {
+	if x != nil {
+		return x.InvitationId
+	}
+	return ""
+}
+
+type ConfirmInviteeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The new member's id in the household.
+	MemberId      string `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmInviteeResponse) Reset() {
+	*x = ConfirmInviteeResponse{}
+	mi := &file_casa_v1_household_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmInviteeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmInviteeResponse) ProtoMessage() {}
+
+func (x *ConfirmInviteeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmInviteeResponse.ProtoReflect.Descriptor instead.
+func (*ConfirmInviteeResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ConfirmInviteeResponse) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+type RejectInviteeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	HouseholdId    string                 `protobuf:"bytes,2,opt,name=household_id,json=householdId,proto3" json:"household_id,omitempty"`
+	InvitationId   string                 `protobuf:"bytes,3,opt,name=invitation_id,json=invitationId,proto3" json:"invitation_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RejectInviteeRequest) Reset() {
+	*x = RejectInviteeRequest{}
+	mi := &file_casa_v1_household_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectInviteeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectInviteeRequest) ProtoMessage() {}
+
+func (x *RejectInviteeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectInviteeRequest.ProtoReflect.Descriptor instead.
+func (*RejectInviteeRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *RejectInviteeRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *RejectInviteeRequest) GetHouseholdId() string {
+	if x != nil {
+		return x.HouseholdId
+	}
+	return ""
+}
+
+func (x *RejectInviteeRequest) GetInvitationId() string {
+	if x != nil {
+		return x.InvitationId
+	}
+	return ""
+}
+
+type RejectInviteeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectInviteeResponse) Reset() {
+	*x = RejectInviteeResponse{}
+	mi := &file_casa_v1_household_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectInviteeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectInviteeResponse) ProtoMessage() {}
+
+func (x *RejectInviteeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectInviteeResponse.ProtoReflect.Descriptor instead.
+func (*RejectInviteeResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{27}
+}
+
+type GetOpenInvitationRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
+	HouseholdId    string                 `protobuf:"bytes,2,opt,name=household_id,json=householdId,proto3" json:"household_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetOpenInvitationRequest) Reset() {
+	*x = GetOpenInvitationRequest{}
+	mi := &file_casa_v1_household_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOpenInvitationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOpenInvitationRequest) ProtoMessage() {}
+
+func (x *GetOpenInvitationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOpenInvitationRequest.ProtoReflect.Descriptor instead.
+func (*GetOpenInvitationRequest) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetOpenInvitationRequest) GetRequestContext() *RequestContext {
+	if x != nil {
+		return x.RequestContext
+	}
+	return nil
+}
+
+func (x *GetOpenInvitationRequest) GetHouseholdId() string {
+	if x != nil {
+		return x.HouseholdId
+	}
+	return ""
+}
+
+// Empty when the household has no live invitation.
+type GetOpenInvitationResponse struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	InvitationId string                 `protobuf:"bytes,1,opt,name=invitation_id,json=invitationId,proto3" json:"invitation_id,omitempty"`
+	State        InvitationState        `protobuf:"varint,2,opt,name=state,proto3,enum=casa.v1.InvitationState" json:"state,omitempty"`
+	ExpiresAt    *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// Only for the inviter of an accepted invitation (FR-FAM-004/AC-2).
+	InviteeDisplayName string `protobuf:"bytes,4,opt,name=invitee_display_name,json=inviteeDisplayName,proto3" json:"invitee_display_name,omitempty"`
+	// The invitee's verified email, whole, only for the inviter of an
+	// accepted invitation (SEC-31); read online only, never stored as
+	// household data.
+	InviteeEmail  string `protobuf:"bytes,5,opt,name=invitee_email,json=inviteeEmail,proto3" json:"invitee_email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOpenInvitationResponse) Reset() {
+	*x = GetOpenInvitationResponse{}
+	mi := &file_casa_v1_household_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOpenInvitationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOpenInvitationResponse) ProtoMessage() {}
+
+func (x *GetOpenInvitationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_casa_v1_household_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOpenInvitationResponse.ProtoReflect.Descriptor instead.
+func (*GetOpenInvitationResponse) Descriptor() ([]byte, []int) {
+	return file_casa_v1_household_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetOpenInvitationResponse) GetInvitationId() string {
+	if x != nil {
+		return x.InvitationId
+	}
+	return ""
+}
+
+func (x *GetOpenInvitationResponse) GetState() InvitationState {
+	if x != nil {
+		return x.State
+	}
+	return InvitationState_INVITATION_STATE_UNSPECIFIED
+}
+
+func (x *GetOpenInvitationResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *GetOpenInvitationResponse) GetInviteeDisplayName() string {
+	if x != nil {
+		return x.InviteeDisplayName
+	}
+	return ""
+}
+
+func (x *GetOpenInvitationResponse) GetInviteeEmail() string {
+	if x != nil {
+		return x.InviteeEmail
+	}
+	return ""
+}
+
 var File_casa_v1_household_proto protoreflect.FileDescriptor
 
 const file_casa_v1_household_proto_rawDesc = "" +
@@ -1487,7 +1872,32 @@ const file_casa_v1_household_proto_rawDesc = "" +
 	"\rinvitation_id\x18\x02 \x01(\tR\finvitationId\"e\n" +
 	"\x19WithdrawAcceptanceRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\"\x1c\n" +
-	"\x1aWithdrawAcceptanceResponse2\xec\a\n" +
+	"\x1aWithdrawAcceptanceResponse\"\xbd\x01\n" +
+	"\x15ConfirmInviteeRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12+\n" +
+	"\fhousehold_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\vhouseholdId\x12-\n" +
+	"\rinvitation_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\finvitationId\"5\n" +
+	"\x16ConfirmInviteeResponse\x12\x1b\n" +
+	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"\xbc\x01\n" +
+	"\x14RejectInviteeRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12+\n" +
+	"\fhousehold_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\vhouseholdId\x12-\n" +
+	"\rinvitation_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\finvitationId\"\x17\n" +
+	"\x15RejectInviteeResponse\"\x91\x01\n" +
+	"\x18GetOpenInvitationRequest\x12H\n" +
+	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12+\n" +
+	"\fhousehold_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\vhouseholdId\"\x87\x02\n" +
+	"\x19GetOpenInvitationResponse\x12#\n" +
+	"\rinvitation_id\x18\x01 \x01(\tR\finvitationId\x12.\n" +
+	"\x05state\x18\x02 \x01(\x0e2\x18.casa.v1.InvitationStateR\x05state\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x120\n" +
+	"\x14invitee_display_name\x18\x04 \x01(\tR\x12inviteeDisplayName\x12(\n" +
+	"\rinvitee_email\x18\x05 \x01(\tB\x03\x80\x01\x01R\finviteeEmail*m\n" +
+	"\x0fInvitationState\x12 \n" +
+	"\x1cINVITATION_STATE_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15INVITATION_STATE_OPEN\x10\x01\x12\x1d\n" +
+	"\x19INVITATION_STATE_ACCEPTED\x10\x022\xfb\t\n" +
 	"\x10HouseholdService\x12\\\n" +
 	"\x0fCreateHousehold\x12\x1f.casa.v1.CreateHouseholdRequest\x1a .casa.v1.CreateHouseholdResponse\"\x06\x82\xb5\x18\x02\b\x00\x12T\n" +
 	"\x0fListMemberships\x12\x1f.casa.v1.ListMembershipsRequest\x1a .casa.v1.ListMembershipsResponse\x12Z\n" +
@@ -1499,7 +1909,10 @@ const file_casa_v1_household_proto_rawDesc = "" +
 	"\x11PreviewInvitation\x12!.casa.v1.PreviewInvitationRequest\x1a\".casa.v1.PreviewInvitationResponse\x12_\n" +
 	"\x10AcceptInvitation\x12 .casa.v1.AcceptInvitationRequest\x1a!.casa.v1.AcceptInvitationResponse\"\x06\x82\xb5\x18\x02\b\x00\x12i\n" +
 	"\x12WithdrawAcceptance\x12\".casa.v1.WithdrawAcceptanceRequest\x1a#.casa.v1.WithdrawAcceptanceResponse\"\n" +
-	"\x82\xb5\x18\x06\b\x00\x10\x01\x18\x01B\x9b\x01\n" +
+	"\x82\xb5\x18\x06\b\x00\x10\x01\x18\x01\x12Y\n" +
+	"\x0eConfirmInvitee\x12\x1e.casa.v1.ConfirmInviteeRequest\x1a\x1f.casa.v1.ConfirmInviteeResponse\"\x06\x82\xb5\x18\x02\b\x00\x12V\n" +
+	"\rRejectInvitee\x12\x1d.casa.v1.RejectInviteeRequest\x1a\x1e.casa.v1.RejectInviteeResponse\"\x06\x82\xb5\x18\x02\b\x00\x12Z\n" +
+	"\x11GetOpenInvitation\x12!.casa.v1.GetOpenInvitationRequest\x1a\".casa.v1.GetOpenInvitationResponseB\x9b\x01\n" +
 	"\vcom.casa.v1B\x0eHouseholdProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 
 var (
@@ -1514,78 +1927,97 @@ func file_casa_v1_household_proto_rawDescGZIP() []byte {
 	return file_casa_v1_household_proto_rawDescData
 }
 
-var file_casa_v1_household_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_casa_v1_household_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_casa_v1_household_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_casa_v1_household_proto_goTypes = []any{
-	(*CreateHouseholdRequest)(nil),            // 0: casa.v1.CreateHouseholdRequest
-	(*CreateHouseholdResponse)(nil),           // 1: casa.v1.CreateHouseholdResponse
-	(*ListMembershipsRequest)(nil),            // 2: casa.v1.ListMembershipsRequest
-	(*Membership)(nil),                        // 3: casa.v1.Membership
-	(*Member)(nil),                            // 4: casa.v1.Member
-	(*ListMembershipsResponse)(nil),           // 5: casa.v1.ListMembershipsResponse
-	(*GetOperatorNoticeRequest)(nil),          // 6: casa.v1.GetOperatorNoticeRequest
-	(*NoticeParagraph)(nil),                   // 7: casa.v1.NoticeParagraph
-	(*GetOperatorNoticeResponse)(nil),         // 8: casa.v1.GetOperatorNoticeResponse
-	(*AcknowledgeOperatorNoticeRequest)(nil),  // 9: casa.v1.AcknowledgeOperatorNoticeRequest
-	(*AcknowledgeOperatorNoticeResponse)(nil), // 10: casa.v1.AcknowledgeOperatorNoticeResponse
-	(*CreateInvitationRequest)(nil),           // 11: casa.v1.CreateInvitationRequest
-	(*CreateInvitationResponse)(nil),          // 12: casa.v1.CreateInvitationResponse
-	(*IssueInvitationLinkRequest)(nil),        // 13: casa.v1.IssueInvitationLinkRequest
-	(*IssueInvitationLinkResponse)(nil),       // 14: casa.v1.IssueInvitationLinkResponse
-	(*CancelInvitationRequest)(nil),           // 15: casa.v1.CancelInvitationRequest
-	(*CancelInvitationResponse)(nil),          // 16: casa.v1.CancelInvitationResponse
-	(*InvitationSource)(nil),                  // 17: casa.v1.InvitationSource
-	(*PreviewInvitationRequest)(nil),          // 18: casa.v1.PreviewInvitationRequest
-	(*PreviewInvitationResponse)(nil),         // 19: casa.v1.PreviewInvitationResponse
-	(*AcceptInvitationRequest)(nil),           // 20: casa.v1.AcceptInvitationRequest
-	(*AcceptInvitationResponse)(nil),          // 21: casa.v1.AcceptInvitationResponse
-	(*WithdrawAcceptanceRequest)(nil),         // 22: casa.v1.WithdrawAcceptanceRequest
-	(*WithdrawAcceptanceResponse)(nil),        // 23: casa.v1.WithdrawAcceptanceResponse
-	(*RequestContext)(nil),                    // 24: casa.v1.RequestContext
-	(*timestamppb.Timestamp)(nil),             // 25: google.protobuf.Timestamp
+	(InvitationState)(0),                      // 0: casa.v1.InvitationState
+	(*CreateHouseholdRequest)(nil),            // 1: casa.v1.CreateHouseholdRequest
+	(*CreateHouseholdResponse)(nil),           // 2: casa.v1.CreateHouseholdResponse
+	(*ListMembershipsRequest)(nil),            // 3: casa.v1.ListMembershipsRequest
+	(*Membership)(nil),                        // 4: casa.v1.Membership
+	(*Member)(nil),                            // 5: casa.v1.Member
+	(*ListMembershipsResponse)(nil),           // 6: casa.v1.ListMembershipsResponse
+	(*GetOperatorNoticeRequest)(nil),          // 7: casa.v1.GetOperatorNoticeRequest
+	(*NoticeParagraph)(nil),                   // 8: casa.v1.NoticeParagraph
+	(*GetOperatorNoticeResponse)(nil),         // 9: casa.v1.GetOperatorNoticeResponse
+	(*AcknowledgeOperatorNoticeRequest)(nil),  // 10: casa.v1.AcknowledgeOperatorNoticeRequest
+	(*AcknowledgeOperatorNoticeResponse)(nil), // 11: casa.v1.AcknowledgeOperatorNoticeResponse
+	(*CreateInvitationRequest)(nil),           // 12: casa.v1.CreateInvitationRequest
+	(*CreateInvitationResponse)(nil),          // 13: casa.v1.CreateInvitationResponse
+	(*IssueInvitationLinkRequest)(nil),        // 14: casa.v1.IssueInvitationLinkRequest
+	(*IssueInvitationLinkResponse)(nil),       // 15: casa.v1.IssueInvitationLinkResponse
+	(*CancelInvitationRequest)(nil),           // 16: casa.v1.CancelInvitationRequest
+	(*CancelInvitationResponse)(nil),          // 17: casa.v1.CancelInvitationResponse
+	(*InvitationSource)(nil),                  // 18: casa.v1.InvitationSource
+	(*PreviewInvitationRequest)(nil),          // 19: casa.v1.PreviewInvitationRequest
+	(*PreviewInvitationResponse)(nil),         // 20: casa.v1.PreviewInvitationResponse
+	(*AcceptInvitationRequest)(nil),           // 21: casa.v1.AcceptInvitationRequest
+	(*AcceptInvitationResponse)(nil),          // 22: casa.v1.AcceptInvitationResponse
+	(*WithdrawAcceptanceRequest)(nil),         // 23: casa.v1.WithdrawAcceptanceRequest
+	(*WithdrawAcceptanceResponse)(nil),        // 24: casa.v1.WithdrawAcceptanceResponse
+	(*ConfirmInviteeRequest)(nil),             // 25: casa.v1.ConfirmInviteeRequest
+	(*ConfirmInviteeResponse)(nil),            // 26: casa.v1.ConfirmInviteeResponse
+	(*RejectInviteeRequest)(nil),              // 27: casa.v1.RejectInviteeRequest
+	(*RejectInviteeResponse)(nil),             // 28: casa.v1.RejectInviteeResponse
+	(*GetOpenInvitationRequest)(nil),          // 29: casa.v1.GetOpenInvitationRequest
+	(*GetOpenInvitationResponse)(nil),         // 30: casa.v1.GetOpenInvitationResponse
+	(*RequestContext)(nil),                    // 31: casa.v1.RequestContext
+	(*timestamppb.Timestamp)(nil),             // 32: google.protobuf.Timestamp
 }
 var file_casa_v1_household_proto_depIdxs = []int32{
-	24, // 0: casa.v1.CreateHouseholdRequest.request_context:type_name -> casa.v1.RequestContext
-	24, // 1: casa.v1.ListMembershipsRequest.request_context:type_name -> casa.v1.RequestContext
-	4,  // 2: casa.v1.Membership.members:type_name -> casa.v1.Member
-	3,  // 3: casa.v1.ListMembershipsResponse.memberships:type_name -> casa.v1.Membership
-	24, // 4: casa.v1.GetOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
-	7,  // 5: casa.v1.GetOperatorNoticeResponse.paragraphs:type_name -> casa.v1.NoticeParagraph
-	24, // 6: casa.v1.AcknowledgeOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
-	24, // 7: casa.v1.CreateInvitationRequest.request_context:type_name -> casa.v1.RequestContext
-	25, // 8: casa.v1.CreateInvitationResponse.expires_at:type_name -> google.protobuf.Timestamp
-	24, // 9: casa.v1.IssueInvitationLinkRequest.request_context:type_name -> casa.v1.RequestContext
-	25, // 10: casa.v1.IssueInvitationLinkResponse.expires_at:type_name -> google.protobuf.Timestamp
-	24, // 11: casa.v1.CancelInvitationRequest.request_context:type_name -> casa.v1.RequestContext
-	24, // 12: casa.v1.PreviewInvitationRequest.request_context:type_name -> casa.v1.RequestContext
-	17, // 13: casa.v1.PreviewInvitationRequest.source:type_name -> casa.v1.InvitationSource
-	24, // 14: casa.v1.AcceptInvitationRequest.request_context:type_name -> casa.v1.RequestContext
-	17, // 15: casa.v1.AcceptInvitationRequest.source:type_name -> casa.v1.InvitationSource
-	24, // 16: casa.v1.WithdrawAcceptanceRequest.request_context:type_name -> casa.v1.RequestContext
-	0,  // 17: casa.v1.HouseholdService.CreateHousehold:input_type -> casa.v1.CreateHouseholdRequest
-	2,  // 18: casa.v1.HouseholdService.ListMemberships:input_type -> casa.v1.ListMembershipsRequest
-	6,  // 19: casa.v1.HouseholdService.GetOperatorNotice:input_type -> casa.v1.GetOperatorNoticeRequest
-	9,  // 20: casa.v1.HouseholdService.AcknowledgeOperatorNotice:input_type -> casa.v1.AcknowledgeOperatorNoticeRequest
-	11, // 21: casa.v1.HouseholdService.CreateInvitation:input_type -> casa.v1.CreateInvitationRequest
-	13, // 22: casa.v1.HouseholdService.IssueInvitationLink:input_type -> casa.v1.IssueInvitationLinkRequest
-	15, // 23: casa.v1.HouseholdService.CancelInvitation:input_type -> casa.v1.CancelInvitationRequest
-	18, // 24: casa.v1.HouseholdService.PreviewInvitation:input_type -> casa.v1.PreviewInvitationRequest
-	20, // 25: casa.v1.HouseholdService.AcceptInvitation:input_type -> casa.v1.AcceptInvitationRequest
-	22, // 26: casa.v1.HouseholdService.WithdrawAcceptance:input_type -> casa.v1.WithdrawAcceptanceRequest
-	1,  // 27: casa.v1.HouseholdService.CreateHousehold:output_type -> casa.v1.CreateHouseholdResponse
-	5,  // 28: casa.v1.HouseholdService.ListMemberships:output_type -> casa.v1.ListMembershipsResponse
-	8,  // 29: casa.v1.HouseholdService.GetOperatorNotice:output_type -> casa.v1.GetOperatorNoticeResponse
-	10, // 30: casa.v1.HouseholdService.AcknowledgeOperatorNotice:output_type -> casa.v1.AcknowledgeOperatorNoticeResponse
-	12, // 31: casa.v1.HouseholdService.CreateInvitation:output_type -> casa.v1.CreateInvitationResponse
-	14, // 32: casa.v1.HouseholdService.IssueInvitationLink:output_type -> casa.v1.IssueInvitationLinkResponse
-	16, // 33: casa.v1.HouseholdService.CancelInvitation:output_type -> casa.v1.CancelInvitationResponse
-	19, // 34: casa.v1.HouseholdService.PreviewInvitation:output_type -> casa.v1.PreviewInvitationResponse
-	21, // 35: casa.v1.HouseholdService.AcceptInvitation:output_type -> casa.v1.AcceptInvitationResponse
-	23, // 36: casa.v1.HouseholdService.WithdrawAcceptance:output_type -> casa.v1.WithdrawAcceptanceResponse
-	27, // [27:37] is the sub-list for method output_type
-	17, // [17:27] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	31, // 0: casa.v1.CreateHouseholdRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 1: casa.v1.ListMembershipsRequest.request_context:type_name -> casa.v1.RequestContext
+	5,  // 2: casa.v1.Membership.members:type_name -> casa.v1.Member
+	4,  // 3: casa.v1.ListMembershipsResponse.memberships:type_name -> casa.v1.Membership
+	31, // 4: casa.v1.GetOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
+	8,  // 5: casa.v1.GetOperatorNoticeResponse.paragraphs:type_name -> casa.v1.NoticeParagraph
+	31, // 6: casa.v1.AcknowledgeOperatorNoticeRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 7: casa.v1.CreateInvitationRequest.request_context:type_name -> casa.v1.RequestContext
+	32, // 8: casa.v1.CreateInvitationResponse.expires_at:type_name -> google.protobuf.Timestamp
+	31, // 9: casa.v1.IssueInvitationLinkRequest.request_context:type_name -> casa.v1.RequestContext
+	32, // 10: casa.v1.IssueInvitationLinkResponse.expires_at:type_name -> google.protobuf.Timestamp
+	31, // 11: casa.v1.CancelInvitationRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 12: casa.v1.PreviewInvitationRequest.request_context:type_name -> casa.v1.RequestContext
+	18, // 13: casa.v1.PreviewInvitationRequest.source:type_name -> casa.v1.InvitationSource
+	31, // 14: casa.v1.AcceptInvitationRequest.request_context:type_name -> casa.v1.RequestContext
+	18, // 15: casa.v1.AcceptInvitationRequest.source:type_name -> casa.v1.InvitationSource
+	31, // 16: casa.v1.WithdrawAcceptanceRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 17: casa.v1.ConfirmInviteeRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 18: casa.v1.RejectInviteeRequest.request_context:type_name -> casa.v1.RequestContext
+	31, // 19: casa.v1.GetOpenInvitationRequest.request_context:type_name -> casa.v1.RequestContext
+	0,  // 20: casa.v1.GetOpenInvitationResponse.state:type_name -> casa.v1.InvitationState
+	32, // 21: casa.v1.GetOpenInvitationResponse.expires_at:type_name -> google.protobuf.Timestamp
+	1,  // 22: casa.v1.HouseholdService.CreateHousehold:input_type -> casa.v1.CreateHouseholdRequest
+	3,  // 23: casa.v1.HouseholdService.ListMemberships:input_type -> casa.v1.ListMembershipsRequest
+	7,  // 24: casa.v1.HouseholdService.GetOperatorNotice:input_type -> casa.v1.GetOperatorNoticeRequest
+	10, // 25: casa.v1.HouseholdService.AcknowledgeOperatorNotice:input_type -> casa.v1.AcknowledgeOperatorNoticeRequest
+	12, // 26: casa.v1.HouseholdService.CreateInvitation:input_type -> casa.v1.CreateInvitationRequest
+	14, // 27: casa.v1.HouseholdService.IssueInvitationLink:input_type -> casa.v1.IssueInvitationLinkRequest
+	16, // 28: casa.v1.HouseholdService.CancelInvitation:input_type -> casa.v1.CancelInvitationRequest
+	19, // 29: casa.v1.HouseholdService.PreviewInvitation:input_type -> casa.v1.PreviewInvitationRequest
+	21, // 30: casa.v1.HouseholdService.AcceptInvitation:input_type -> casa.v1.AcceptInvitationRequest
+	23, // 31: casa.v1.HouseholdService.WithdrawAcceptance:input_type -> casa.v1.WithdrawAcceptanceRequest
+	25, // 32: casa.v1.HouseholdService.ConfirmInvitee:input_type -> casa.v1.ConfirmInviteeRequest
+	27, // 33: casa.v1.HouseholdService.RejectInvitee:input_type -> casa.v1.RejectInviteeRequest
+	29, // 34: casa.v1.HouseholdService.GetOpenInvitation:input_type -> casa.v1.GetOpenInvitationRequest
+	2,  // 35: casa.v1.HouseholdService.CreateHousehold:output_type -> casa.v1.CreateHouseholdResponse
+	6,  // 36: casa.v1.HouseholdService.ListMemberships:output_type -> casa.v1.ListMembershipsResponse
+	9,  // 37: casa.v1.HouseholdService.GetOperatorNotice:output_type -> casa.v1.GetOperatorNoticeResponse
+	11, // 38: casa.v1.HouseholdService.AcknowledgeOperatorNotice:output_type -> casa.v1.AcknowledgeOperatorNoticeResponse
+	13, // 39: casa.v1.HouseholdService.CreateInvitation:output_type -> casa.v1.CreateInvitationResponse
+	15, // 40: casa.v1.HouseholdService.IssueInvitationLink:output_type -> casa.v1.IssueInvitationLinkResponse
+	17, // 41: casa.v1.HouseholdService.CancelInvitation:output_type -> casa.v1.CancelInvitationResponse
+	20, // 42: casa.v1.HouseholdService.PreviewInvitation:output_type -> casa.v1.PreviewInvitationResponse
+	22, // 43: casa.v1.HouseholdService.AcceptInvitation:output_type -> casa.v1.AcceptInvitationResponse
+	24, // 44: casa.v1.HouseholdService.WithdrawAcceptance:output_type -> casa.v1.WithdrawAcceptanceResponse
+	26, // 45: casa.v1.HouseholdService.ConfirmInvitee:output_type -> casa.v1.ConfirmInviteeResponse
+	28, // 46: casa.v1.HouseholdService.RejectInvitee:output_type -> casa.v1.RejectInviteeResponse
+	30, // 47: casa.v1.HouseholdService.GetOpenInvitation:output_type -> casa.v1.GetOpenInvitationResponse
+	35, // [35:48] is the sub-list for method output_type
+	22, // [22:35] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_casa_v1_household_proto_init() }
@@ -1604,13 +2036,14 @@ func file_casa_v1_household_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_casa_v1_household_proto_rawDesc), len(file_casa_v1_household_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   24,
+			NumEnums:      1,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_casa_v1_household_proto_goTypes,
 		DependencyIndexes: file_casa_v1_household_proto_depIdxs,
+		EnumInfos:         file_casa_v1_household_proto_enumTypes,
 		MessageInfos:      file_casa_v1_household_proto_msgTypes,
 	}.Build()
 	File_casa_v1_household_proto = out.File
