@@ -539,6 +539,11 @@ object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR
   actor        uuid NULL,                 -- member_id
   rule         text NULL,                 -- system: pengenal aturan pemicu, mis. 'invitation.expired'
   command      text NOT NULL, from_state text NULL, to_state text NOT NULL,
+                                          -- catatan 14 November 2026 (putusan lead, tinjauan PR A 1.6): command =
+                                          -- kata kerja snake_case 06 §3.6 (pembuatan rumah tangga
+                                          -- 'create_household' dengan to_state 'created'; undangan 'invite',
+                                          -- 'accept_invitation', 'cancel_invitation', …); state = nama state
+                                          -- bahasa Inggris ('open', 'accepted', …)
   idempotency_key uuid NULL, server_time timestamptz NOT NULL,
   CHECK ((actor_kind = 'member') = (actor IS NOT NULL)),
   CHECK ((actor_kind = 'system') = (rule IS NOT NULL)),
@@ -552,7 +557,14 @@ operator_notice_ack (                     -- tabel global (§3); SEC-34; FR-FAM-
   version int NOT NULL,
   text_sha256 bytea NOT NULL,             -- SHA-256 teks yang sudah diisi nama pengelola: identitas versi bagi akun
   issued_at timestamptz NOT NULL, acknowledged_at timestamptz NULL,
-  PRIMARY KEY (account_id, variant, version, text_sha256)
+  issue_seq int NOT NULL,                 -- catatan 14 November 2026 (putusan security-privacy, 10.1 sebelum
+                                          -- §11.3): satu baris per terbitan, bukan per identitas. Terbit bila
+                                          -- identitas sekarang ≠ identitas baris issue_seq terbesar akun itu
+                                          -- (A → B → A menerbitkan A lagi); INSERT dengan issue_seq = terbesar + 1
+                                          -- ON CONFLICT DO NOTHING, jadi dua pertama-terlihat serentak menulis satu
+                                          -- baris dan satu jejak. Ditahan selama baris terbesar belum diakui;
+                                          -- pengakuan hanya atas baris terbesar dengan hash yang sama
+  PRIMARY KEY (account_id, issue_seq)
 )  -- hash atas penyandian berawalan panjang dari varian, nomor, judul, dan setiap paragraf beserta tanda
    -- fiturnya; pengakuan membawa hash yang ditampilkan (10.1 catatan 14 November 2026 sesudah SEC-159, Q3 (a), (b))
 consent_record (                          -- tabel global (§3); SEC-80, SEC-109 (a); tanpa tanggal lahir
