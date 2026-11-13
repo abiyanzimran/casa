@@ -135,7 +135,11 @@ func TestOperatorNotice(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-019/AC-2 an acknowledgement stores its date and version as the account's own record", func(t *testing.T) {
+	// FR-FAM-019/AC-2, the server part: the date and version are stored as
+	// the account's own record. The member reading them ("terbaca olehnya")
+	// lands in step 6 (the security trail reader, FR-FAM-022) and the 1.10
+	// screen (lead ruling, 1.6 Task 4 review); the contract carries no date.
+	t.Run("an acknowledgement stores its date and version as the account's own record", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpUnread(t, "a@example.test")
 		n := h.notice(t, a)
@@ -171,7 +175,10 @@ func TestOperatorNotice(t *testing.T) {
 		}
 	})
 
-	t.Run("FR-FAM-019/AC-3 a new version holds until it is read, and the old acknowledgement stays", func(t *testing.T) {
+	// FR-FAM-019/AC-3, the server part: a new version holds until it is
+	// acknowledged and the old record stays. The device learning it on the
+	// next sync is proved in 1.7 (sync), the reading in 1.10 (screen).
+	t.Run("a new version holds until it is read, and the old acknowledgement stays", func(t *testing.T) {
 		h := startHousehold(t)
 		v1 := &fstest.MapFile{Data: publishedV1(t)}
 		h.reopen(testOperatorName, fstest.MapFS{"couple-1.json": v1})
