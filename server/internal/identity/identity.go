@@ -65,6 +65,10 @@ type Config struct {
 	Now      func() time.Time
 	// Password is DefaultPasswordParams in production.
 	Password PasswordParams
+	// HashSlotWait is how long a password hash waits for one of the two
+	// slots before the request is refused as rate limited; zero means the
+	// 2 s of 10.1 §8.1 item 3. Tests shorten it.
+	HashSlotWait time.Duration
 }
 
 // MessageKind is the kind of an emailed message.
@@ -110,14 +114,25 @@ type Service struct {
 	decoy passwordHash
 }
 
+// HoldHashSlots takes both password hash slots until release is called, so a
+// test can see what a request does when it gets none (10.1 §8.1 item 3). A
+// test hook: production code never calls it.
+func (s *Service) HoldHashSlots() (release func()) {
+	return s.hasher.hold()
+}
+
 // New returns the identity service over pool.
 func New(pool *pgxpool.Pool, config Config) *Service {
+	h := newHasher(config.Password)
+	if config.HashSlotWait > 0 {
+		h.slotWait = config.HashSlotWait
+	}
 	return &Service{
 		pool:     pool,
 		config:   config,
-		hasher:   newHasher(config.Password),
-		tokenUse: newRateLimit(0, tokenUseThreshold, config.Now),
-		signIn:   newRateLimit(signInThreshold, signInThreshold, config.Now),
+		hasher:   h,
+		tokenUse: newRateLimit(0, tokenUseThreshold, false, config.Now),
+		signIn:   newRateLimit(signInThreshold, signInThreshold, true, config.Now),
 		decoy: passwordHash{
 			params: config.Password,
 			salt:   randomBytes(int(config.Password.SaltBytes)),

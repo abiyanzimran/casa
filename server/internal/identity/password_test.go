@@ -6,6 +6,8 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 	"unicode/utf8"
@@ -98,4 +100,67 @@ func TestPassword(t *testing.T) {
 			t.Fatal("the list is not sorted and unique")
 		}
 	})
+}
+
+func TestHashSlotWait(t *testing.T) {
+	t.Run("a hash that gets no slot in time is refused as rate limited", func(t *testing.T) {
+		// 10.1 §8.1 item 3: wait at most the slot wait, then RATE_LIMITED.
+		h := newHasher(cheapParams)
+		h.slotWait = 20 * time.Millisecond
+		release := h.hold()
+		start := time.Now()
+		_, err := h.hash(t.Context(), "a long enough passphrase")
+		if !errors.Is(err, ErrRateLimited) || time.Since(start) < h.slotWait {
+			t.Fatalf("err = %v after %v, want ErrRateLimited after the %v wait", err, time.Since(start), h.slotWait)
+		}
+		release()
+		if _, err := h.hash(t.Context(), "a long enough passphrase"); err != nil {
+			t.Fatalf("after release: %v", err)
+		}
+		if n := h.count.Load(); n != 1 {
+			t.Fatalf("%d hashes ran, want 1", n)
+		}
+	})
+	t.Run("a request that leaves before its slot is refused as rate limited", func(t *testing.T) {
+		h := newHasher(cheapParams)
+		release := h.hold()
+		defer release()
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+		if _, err := h.hash(ctx, "a long enough passphrase"); !errors.Is(err, ErrRateLimited) {
+			t.Fatalf("err = %v, want ErrRateLimited", err)
+		}
+	})
+	t.Run("the production slot wait is 2 seconds", func(t *testing.T) {
+		if got := newHasher(cheapParams).slotWait; got != 2*time.Second {
+			t.Fatalf("slot wait %v, want 2 s (10.1 §8.1 item 3)", got)
+		}
+	})
+}
+
+// BenchmarkPasswordHashTwoSlots measures H, the hashes per hour the server
+// runs with both slots busy, for the condition H <= 0.8 x maxLimiterKeys of
+// 10.1 §8.1 item 4. A measurement, not a pass or fail: run the compiled
+// test binary on the VPS, go test -c, then
+// ./identity.test -test.run '^$' -test.bench TwoSlots -test.benchtime 20x.
+func BenchmarkPasswordHashTwoSlots(b *testing.B) {
+	h := newHasher(DefaultPasswordParams)
+	h.slotWait = time.Hour // measure the hash, never the refusal
+	var next atomic.Int64
+	var wg sync.WaitGroup
+	b.ResetTimer()
+	for range maxConcurrentHashes {
+		wg.Go(func() {
+			for next.Add(1) <= int64(b.N) {
+				if _, err := h.hash(context.Background(), "a long enough passphrase"); err != nil {
+					b.Error(err)
+					return
+				}
+			}
+		})
+	}
+	wg.Wait()
+	perSecond := float64(b.N) / b.Elapsed().Seconds()
+	b.ReportMetric(perSecond, "hashes/s")
+	b.ReportMetric(perSecond*3600/(0.8*maxLimiterKeys), "H/(0.8*maxLimiterKeys)")
 }

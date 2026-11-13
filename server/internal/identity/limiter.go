@@ -30,6 +30,10 @@ type Limiter struct {
 	// clearsOnSuccess: a success clears an account key, never an address
 	// key (10.1 §8.1).
 	clearsOnSuccess bool
+	// refusesWhenFull: a table full of keys past their threshold refuses a
+	// new key instead of evicting the penalised key with the oldest last
+	// failure; only the tables guarding a password (10.1 §8.1 item 2).
+	refusesWhenFull bool
 	maxKeys         int
 	now             func() time.Time
 	mu              sync.Mutex
@@ -61,8 +65,11 @@ const (
 
 // NewLimiter returns an empty Limiter with its failure threshold
 // (10.1 §8.1), reading the time from now.
-func NewLimiter(threshold int, clearsOnSuccess bool, now func() time.Time) *Limiter {
-	return &Limiter{threshold: threshold, clearsOnSuccess: clearsOnSuccess, maxKeys: maxLimiterKeys, now: now, keys: map[string]limiterKey{}}
+func NewLimiter(threshold int, clearsOnSuccess, refusesWhenFull bool, now func() time.Time) *Limiter {
+	return &Limiter{
+		threshold: threshold, clearsOnSuccess: clearsOnSuccess, refusesWhenFull: refusesWhenFull,
+		maxKeys: maxLimiterKeys, now: now, keys: map[string]limiterKey{},
+	}
 }
 
 // Attempt reports whether key may try now and, if so, counts the attempt as
@@ -121,17 +128,19 @@ func (l *Limiter) live(key string, now time.Time) (limiterKey, bool) {
 	return k, ok
 }
 
-// evict makes room for one key: it drops keys idle for forgetAfter, or else
-// the key below the threshold whose last failure is oldest. A key that
-// reached the threshold stays until it is forgotten, even when its current
-// wait is over, so a flood of invented keys cannot reset a real account's
-// count (10.1 §8.1). It reports false when nothing could go, and then sets
-// fullUntil to the earliest time a key can be forgotten.
+// evict makes room for one key (10.1 §8.1 item 2): it drops keys idle for
+// forgetAfter, or else the key below the threshold whose last failure is
+// oldest. If every key reached its threshold, a table guarding a password
+// (refusesWhenFull) keeps them all until they are forgotten, even when their
+// current wait is over, so a flood of invented keys cannot reset a real
+// account's count: it reports false and sets fullUntil to the earliest time
+// a key can be forgotten. Every other table drops the penalised key with the
+// oldest last failure, so a flood cannot close sign-up or recovery.
 //
 // ponytail: an O(n) scan of at most maxLimiterKeys, only when the table is
 // full; a heap by last failure if a full table becomes common.
 func (l *Limiter) evict(now time.Time) bool {
-	var oldest string
+	var oldest, penalisedOldest string
 	var forgettable time.Time
 	for key, k := range l.keys {
 		switch {
@@ -139,7 +148,7 @@ func (l *Limiter) evict(now time.Time) bool {
 			delete(l.keys, key)
 		case k.failures >= l.threshold:
 			if at := k.lastFailure.Add(forgetAfter); forgettable.IsZero() || at.Before(forgettable) {
-				forgettable = at
+				forgettable, penalisedOldest = at, key
 			}
 		case oldest == "" || k.lastFailure.Before(l.keys[oldest].lastFailure):
 			oldest = key
@@ -148,9 +157,12 @@ func (l *Limiter) evict(now time.Time) bool {
 	if len(l.keys) < l.maxKeys {
 		return true
 	}
-	if oldest == "" {
+	if oldest == "" && l.refusesWhenFull {
 		l.fullUntil = forgettable
 		return false
+	}
+	if oldest == "" {
+		oldest = penalisedOldest
 	}
 	delete(l.keys, oldest)
 	return true
@@ -165,11 +177,13 @@ type rateLimit struct {
 }
 
 // newRateLimit returns a rateLimit with the given thresholds; an account
-// threshold of 0 means no account key.
-func newRateLimit(accountThreshold, addressThreshold int, now func() time.Time) rateLimit {
-	r := rateLimit{address: NewLimiter(addressThreshold, false, now)}
+// threshold of 0 means no account key. accountGuardsPassword: the account
+// table refuses new keys when full of penalised keys (SignIn,
+// Reauthenticate); every address table evicts (10.1 §8.1 item 2).
+func newRateLimit(accountThreshold, addressThreshold int, accountGuardsPassword bool, now func() time.Time) rateLimit {
+	r := rateLimit{address: NewLimiter(addressThreshold, false, false, now)}
 	if accountThreshold > 0 {
-		r.account = NewLimiter(accountThreshold, true, now)
+		r.account = NewLimiter(accountThreshold, true, accountGuardsPassword, now)
 	}
 	return r
 }

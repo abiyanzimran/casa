@@ -12,9 +12,11 @@ type testClock struct{ now time.Time }
 func (c *testClock) Now() time.Time          { return c.now }
 func (c *testClock) advance(d time.Duration) { c.now = c.now.Add(d) }
 
+// newTestLimiter returns a limiter whose full table evicts penalised keys;
+// a test of the refusing policy sets refusesWhenFull.
 func newTestLimiter(threshold int, clearsOnSuccess bool) (*Limiter, *testClock) {
 	clock := &testClock{now: time.Date(2026, 11, 13, 9, 0, 0, 0, time.UTC)}
-	return NewLimiter(threshold, clearsOnSuccess, clock.Now), clock
+	return NewLimiter(threshold, clearsOnSuccess, false, clock.Now), clock
 }
 
 // fail makes n attempts of key that each fail.
@@ -190,8 +192,9 @@ func TestLimiter(t *testing.T) {
 	})
 	t.Run("a full table never drops a key that reached the threshold", func(t *testing.T) {
 		// Invented emails cost nothing; they must not reset a real account's
-		// count, even after its current wait is over (10.1 §8.1).
+		// count, even after its current wait is over (10.1 §8.1 item 2).
 		l, clock := newTestLimiter(20, true)
+		l.refusesWhenFull = true
 		l.maxKeys = 10
 		fail(t, l, "attacked", 20)
 		clock.advance(time.Second) // its wait is over; it is still kept
@@ -213,6 +216,7 @@ func TestLimiter(t *testing.T) {
 	})
 	t.Run("a full table of penalised keys refuses a new key", func(t *testing.T) {
 		l, clock := newTestLimiter(20, true)
+		l.refusesWhenFull = true
 		l.maxKeys = 10
 		for i := range l.maxKeys {
 			fail(t, l, fmt.Sprint(i), 20)
@@ -226,8 +230,30 @@ func TestLimiter(t *testing.T) {
 			t.Fatal("a new key refused although every key is forgotten")
 		}
 	})
+	t.Run("a full table of penalised keys evicts the oldest when its limiter allows it", func(t *testing.T) {
+		// 10.1 §8.1 item 2: every table but the two guarding a password.
+		l, clock := newTestLimiter(20, false)
+		l.maxKeys = 10
+		for i := range l.maxKeys {
+			fail(t, l, fmt.Sprint(i), 20)
+			clock.advance(time.Minute)
+		}
+		if !allowed(l, "new") {
+			t.Fatal("a new key was refused by an evicting table")
+		}
+		fail(t, l, "new", 1)
+		if _, kept := l.keys["0"]; kept || len(l.keys) != l.maxKeys {
+			t.Fatalf("keys %v; want key 0 (oldest last failure) evicted and the table full", l.keys)
+		}
+		for i := 1; i < l.maxKeys; i++ {
+			if k := l.keys[fmt.Sprint(i)]; k.failures != 20 {
+				t.Fatalf("penalised key %d: %+v, want kept with 20 failures", i, k)
+			}
+		}
+	})
 	t.Run("a full table of penalised keys refuses new keys without a scan until one can be forgotten", func(t *testing.T) {
 		l, clock := newTestLimiter(20, true)
+		l.refusesWhenFull = true
 		l.maxKeys = 10
 		start := clock.now
 		for i := range l.maxKeys {
@@ -280,9 +306,31 @@ func TestLimiter(t *testing.T) {
 			}
 		}
 	})
+	t.Run("each limiter has the table policy of 10.1 §8.1", func(t *testing.T) {
+		// Item 2, last column: only the tables guarding a password refuse
+		// new keys when full of penalised keys. Reauthenticate (refuse) and
+		// StartRecovery (evict) come with PR B.
+		s := New(nil, Config{Now: time.Now, Password: cheapParams})
+		for _, c := range []struct {
+			name   string
+			l      *Limiter
+			refuse bool
+		}{
+			{"SignIn email", s.signIn.account, true},
+			{"SignIn address", s.signIn.address, false},
+			{"token use address", s.tokenUse.address, false},
+		} {
+			if c.l.refusesWhenFull != c.refuse {
+				t.Errorf("%s: refusesWhenFull %t, want %t", c.name, c.l.refusesWhenFull, c.refuse)
+			}
+		}
+		if s.tokenUse.account != nil {
+			t.Error("token use has an account table; a token names no account yet")
+		}
+	})
 	t.Run("email and address keys live in separate tables", func(t *testing.T) {
 		clock := &testClock{now: time.Date(2026, 11, 13, 9, 0, 0, 0, time.UTC)}
-		r := newRateLimit(20, 20, clock.Now)
+		r := newRateLimit(20, 20, true, clock.Now)
 		for i := range 50 { // 25 per address: the last 5 of each are refused
 			ok, done := r.attempt(fmt.Sprintf("u%d@example.test", i), fmt.Sprintf("192.0.2.%d:443", i%2))
 			if ok {
@@ -296,7 +344,7 @@ func TestLimiter(t *testing.T) {
 	})
 	t.Run("an attempt refused by the address key is not counted for the email", func(t *testing.T) {
 		clock := &testClock{now: time.Date(2026, 11, 13, 9, 0, 0, 0, time.UTC)}
-		r := newRateLimit(20, 20, clock.Now)
+		r := newRateLimit(20, 20, true, clock.Now)
 		for i := range 20 {
 			ok, done := r.attempt(fmt.Sprintf("u%d@example.test", i), "192.0.2.1:443")
 			if !ok {
