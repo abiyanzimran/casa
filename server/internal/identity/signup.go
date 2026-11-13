@@ -120,7 +120,7 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	// Hashed outside the transaction, which may run more than once.
 	credential, err := s.hasher.hash(ctx, password)
 	if err != nil {
-		return Tokens{}, err
+		return Tokens{}, fmt.Errorf("hash the password: %w", err)
 	}
 	account := link.NewAccountID
 	var tokens Tokens

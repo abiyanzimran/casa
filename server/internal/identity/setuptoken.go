@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -27,7 +28,7 @@ func IssueSetupToken(ctx context.Context, pool *pgxpool.Pool, email string, now 
 		})
 	})
 	if err != nil {
-		return "", time.Time{}, err
+		return "", time.Time{}, fmt.Errorf("store the setup token: %w", err)
 	}
 	return token, expiresAt, nil
 }

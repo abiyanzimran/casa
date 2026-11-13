@@ -59,7 +59,10 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 		tokens, err = openSession(ctx, tx, account, client, s.config.Now())
 		return err
 	})
-	return tokens, err
+	if err != nil {
+		return Tokens{}, fmt.Errorf("open the session: %w", err)
+	}
+	return tokens, nil
 }
 
 // readCredential finds the account of email and its credential. For an
