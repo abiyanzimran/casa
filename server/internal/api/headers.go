@@ -28,7 +28,7 @@ func WithSecurityHeaders(next http.Handler, bundle *Bundle) http.Handler {
 	csp := "default-src 'none'; script-src " + strings.Join(scriptSources, " ") +
 		"; style-src 'self'; style-src-attr 'unsafe-hashes' " + announcerStyleHash +
 		"; img-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'" +
-		"; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'" +
+		"; manifest-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'" +
 		"; require-trusted-types-for 'script'; trusted-types svelte-trusted-html casa-sw"
 	headers := [][2]string{
 		{"Content-Security-Policy", csp},
