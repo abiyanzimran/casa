@@ -50,8 +50,8 @@ export type RequestContext = Message<"casa.v1.RequestContext"> & {
    * One key per user intent, made when the intent is born and kept across
    * retries (ADR-005; 09.2 §8). A UUIDv4; upper case is accepted because
    * Swift's UUID().uuidString writes it. The server requires it on every
-   * write command (a method with the casa.v1.command option) and ignores it
-   * elsewhere.
+   * write command (a method with the casa.v1.command option) and checks its
+   * form whenever it is sent.
    *
    * @generated from field: string idempotency_key = 4;
    */

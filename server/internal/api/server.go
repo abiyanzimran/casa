@@ -30,22 +30,26 @@ const maxRequestBytes = 1 << 20
 // test in this package enforces it).
 const requestContextField = "request_context"
 
+var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().FullName()
+
 // NewServer returns the Connect server every service registers on. Before a
 // handler sees a request, it checks, in this order:
 //
 //  1. the method has its descriptor, else CodeInternal (fail closed: without
 //     it a write command cannot be told from a read);
-//  2. request_context is present and valid (protovalidate), else
-//     CodeInvalidArgument;
+//  2. request_context is present and its client_kind and client_version are
+//     valid (protovalidate), else CodeInvalidArgument;
 //  3. a write command from a web client is at least minimumWebVersion, else
 //     CodeFailedPrecondition with CLIENT_UPGRADE_REQUIRED (ADR-030 item 9;
 //     SEC-169 (d));
 //  4. a write command carries an idempotency key, else CodeInvalidArgument
 //     (ADR-005; 09.2 §8);
-//  5. the whole request is valid (protovalidate), else CodeInvalidArgument.
+//  5. the whole request, idempotency key form included, is valid
+//     (protovalidate), else CodeInvalidArgument.
 //
-// The version is checked before the body, so an old client whose request no
-// longer passes the current rules still gets the retryable
+// The version is checked before the body and before the key's form, so an old
+// client whose request no longer passes the current rules still gets the
+// retryable
 // CLIENT_UPGRADE_REQUIRED and keeps the command in its queue, rather than a
 // rejection that drops it (SEC-169 (d); ADR-030 item 9). A write command is a
 // method with the casa.v1.command option (09.3 §1; lead ruling Q4).
@@ -126,18 +130,24 @@ func (b boundary) check(request proto.Message, command bool) error {
 	return nil
 }
 
-// requestContextOnly limits validation to request_context and what it
-// contains: the request's own other fields, oneofs, and message rules wait for
-// step 5.
+// requestContextOnly limits validation to what the version check needs: the
+// presence of request_context and the rules of its client_kind and
+// client_version. Everything else, the idempotency key's form included, waits
+// for step 5, so a later tightening of those rules never turns an old
+// client's queued command into invalid_argument instead of
+// CLIENT_UPGRADE_REQUIRED (SEC-169 (d); lead ruling M2 on PR #20).
 func requestContextOnly(request protoreflect.MessageDescriptor) protovalidate.Filter {
 	return protovalidate.FilterFunc(func(_ protoreflect.Message, d protoreflect.Descriptor) bool {
-		if d.FullName() == request.FullName() {
+		switch parent := d.Parent(); {
+		case parent != nil && parent.FullName() == request.FullName():
+			return d.Name() == requestContextField
+		case parent != nil && parent.FullName() == requestContextName:
+			return d.Name() == "client_kind" || d.Name() == "client_version"
+		default:
+			// The request and request_context themselves: their message
+			// rules wait for step 5.
 			return false
 		}
-		if parent := d.Parent(); parent != nil && parent.FullName() == request.FullName() {
-			return d.Name() == requestContextField
-		}
-		return true
 	})
 }
 
@@ -146,9 +156,8 @@ func requestContextOnly(request protoreflect.MessageDescriptor) protovalidate.Fi
 func readRequestContext(request proto.Message) (*casav1.RequestContext, error) {
 	message := request.ProtoReflect()
 	field := message.Descriptor().Fields().ByName(requestContextField)
-	want := (&casav1.RequestContext{}).ProtoReflect().Descriptor().FullName()
-	if field == nil || field.Message() == nil || field.Message().FullName() != want {
-		return nil, fmt.Errorf("%s has no %s field of type %s", message.Descriptor().FullName(), requestContextField, want)
+	if field == nil || field.Message() == nil || field.Message().FullName() != requestContextName {
+		return nil, fmt.Errorf("%s has no %s field of type %s", message.Descriptor().FullName(), requestContextField, requestContextName)
 	}
 	wire, err := proto.Marshal(message.Get(field).Message().Interface())
 	if err != nil {

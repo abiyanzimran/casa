@@ -33,8 +33,8 @@ message RequestContext {
   // One key per user intent, made when the intent is born and kept across
   // retries (ADR-005; 09.2 §8). A UUIDv4; upper case is accepted because
   // Swift's UUID().uuidString writes it. The server requires it on every
-  // write command (a method with the casa.v1.command option) and ignores it
-  // elsewhere.
+  // write command (a method with the casa.v1.command option) and checks its
+  // form whenever it is sent.
   string idempotency_key = 4 [(buf.validate.field) = {
     ignore: IGNORE_IF_ZERO_VALUE
     string: {pattern: "^(?i)[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"}

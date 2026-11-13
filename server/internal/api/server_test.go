@@ -202,6 +202,17 @@ func TestBoundaryChecks(t *testing.T) {
 		}
 		p.wantCalls(t, "Write", 0)
 	})
+	t.Run("SEC-169 (d) a below-minimum command with a malformed idempotency key still gets CLIENT_UPGRADE_REQUIRED", func(t *testing.T) {
+		// A later tightening of the key rules must not turn an old client's
+		// queued command into invalid_argument (lead ruling M2 on PR #20).
+		p := startProbe(t)
+		err := p.call(p.client, "Write", rc(web, "1.0.0", "not-a-uuid"), "")
+		wantCode(t, err, connect.CodeFailedPrecondition)
+		if got := errorCodes(t, err); !slices.Equal(got, upgradeRequired) {
+			t.Fatalf("error codes = %v, want %v", got, upgradeRequired)
+		}
+		p.wantCalls(t, "Write", 0)
+	})
 	t.Run("a request without request_context never reaches the handler", func(t *testing.T) {
 		p := startProbe(t)
 		err := p.call(p.client, "Read", nil, "")

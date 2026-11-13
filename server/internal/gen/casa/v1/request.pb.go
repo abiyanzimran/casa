@@ -94,8 +94,8 @@ type RequestContext struct {
 	// One key per user intent, made when the intent is born and kept across
 	// retries (ADR-005; 09.2 §8). A UUIDv4; upper case is accepted because
 	// Swift's UUID().uuidString writes it. The server requires it on every
-	// write command (a method with the casa.v1.command option) and ignores it
-	// elsewhere.
+	// write command (a method with the casa.v1.command option) and checks its
+	// form whenever it is sent.
 	IdempotencyKey string `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
