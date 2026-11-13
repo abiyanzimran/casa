@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi C** dengan kalimat ES §8 di butir 3 (pertanyaan S4-1 (iii), huruf A). Kata-katanya: "yang penting kan versi stable, versi stable ga musti dari 1 kan? apalagi yang baru? cek goolge aja" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat). Bacaan lead: rilis 0.x final, bukan pra-rilis, boleh dipakai, sama dengan bunyi butir 3; dikukuhkan dengan "lanjut". Kalimat itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §8 |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 (FS-1 1.2: butir 6, modul tidak langsung) |
 | Pengusul | `architect` |
 | Mengubah | `ENGINEERING-STANDARDS.md` §8 (satu kalimat, butir 3; disetujui pemilik produk) |
 | Rincian | [09.1 §2, §5, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-012](ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 5 |
@@ -51,7 +51,7 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    | axum, sqlx | 0.8.x, 0.9.x | **Tidak dipakai**: Rust tidak dipilih (ADR-015) | actix-web v4 (stabil); Diesel 2.x (stabil) |
    | River | 0.51.x | **Tidak dipakai**; alternatif antrean | Tabel `job` sendiri (rekomendasi) |
 
-   Pustaka 0.x lain memerlukan baris baru di tabel ini lewat revisi ADR ini.
+   Pustaka 0.x lain memerlukan baris baru di tabel ini lewat revisi ADR ini, kecuali modul tidak langsung menurut butir 6.
 3. **Kalimat ES §8** (disetujui pemilik produk, S4-1 (iii) A; dipasang lead): *"A 0.x release that is not a pre-release, or an API marked experimental inside a stable release, counts as stable only if it is listed in ADR-023 with its fallback; anything else needs its own ADR."*
 4. **Pra-rilis tetap dilarang** tanpa ADR pengecualian yang menyebut versi, alasan, dan jalan keluarnya, misalnya Compose Material 3 1.5.0-rc01 dengan komponen Expressive (ADR-012 butir 5, yang memilih tidak memakainya).
 5. **API eksperimental di dalam artefak stabil** diperlakukan sama dengan pustaka 0.x: kelima syarat butir 1 berlaku (syarat 4 berarti satu composable pembungkus milik kita), dan setiap API tercatat di sini.
@@ -60,6 +60,15 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    |---|---|---|---|
    | `ModalBottomSheet`, `rememberModalBottomSheetState` (`@ExperimentalMaterial3Api`) | Compose Material 3 1.4.0 | Lembar Catat di Android pilot (dokumen 08; ADR-012 butir 5 (b)) | Dialog layar penuh dengan `Dialog` dan `Scaffold` stabil, hanya bila API itu rusak atau berubah saat naik versi. Catatan naik ke 1.5: `rememberModalBottomSheetState` sudah `@Deprecated` di kode pengembangan (18 §5.1.1) |
    | `ListDetailPaneScaffold` (`@ExperimentalMaterial3AdaptiveApi`) | Material 3 Adaptive 1.3.0 | **Tidak dipakai di pilot** (tidak ada tablet Android) | Tata letak dua panel dengan kelas ukuran jendela stabil |
+6. **Modul tidak langsung** (catatan 13 November 2026, FS-1 1.2, keputusan lead atas temuan `code-reviewer` I3). Butir 1 dan 2 berlaku bagi dependensi yang diimpor kode kita. Modul yang hanya ditarik oleh dependensi langsung yang sudah disetujui **diterima tanpa baris sendiri**, dengan ketentuan:
+   1. versinya adalah versi yang dipilih resolusi modul dependensi langsung itu (versi terbaru yang diizinkan), dipatok di `go.mod` dan `go.sum` (ES §8 "Pinned");
+   2. ia tercakup govulncheck dan OSV-Scanner di CI, sama dengan dependensi langsung;
+   3. PR yang pertama kali membawanya mencantumkan nama, versi, tanggal dicek, tautan sumber, dan dependensi langsung yang menariknya (ES §8 "Recorded");
+   4. modul tidak langsung baru yang sendiri bernomor 0.x atau berupa pseudo-version **disebut namanya di PR** untuk diperiksa `code-reviewer`. Syarat "aktif" butir 1.2 dinilai pada dependensi langsungnya, bukan pada modul tidak langsung, karena modul kecil yang sudah selesai dapat lama tanpa rilis. Modul yang bertanda deprecated di `go.mod`-nya atau repositorinya diarsipkan tidak diterima lewat butir ini (ES §8 "Maintained");
+   5. jalan mundurnya ikut jalan mundur dependensi langsung yang menariknya;
+   6. bila kode kita mengimpor modul itu secara langsung, ia menjadi dependensi langsung dan butir 1 dan 2 berlaku penuh (baris sendiri bila 0.x).
+
+   Yang pertama diterima lewat butir ini (PR #13, ditarik pgx v5 dan goose v3): `github.com/jackc/pgservicefile` (pseudo-version `v0.0.0-20240606120523-5a60cdf6a761`, satu-satunya versi di [pkg.go.dev/github.com/jackc/pgservicefile?tab=versions](https://pkg.go.dev/github.com/jackc/pgservicefile?tab=versions), tanpa tanda deprecated, diakses 13 November 2026) **[Terverifikasi]**, `github.com/mfridman/interpolate` v0.2.0, `github.com/sethvargo/go-retry` v0.5.0, `golang.org/x/sync` v0.25.0, dan `golang.org/x/text` v0.44.0 (versi menurut PR #13).
 
 ## Konsekuensi
 

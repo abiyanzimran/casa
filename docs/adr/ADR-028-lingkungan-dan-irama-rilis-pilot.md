@@ -24,7 +24,7 @@
 |---|---|---|---|
 | Data nyata tersentuh uji | Ya: perintah uji, migrasi, dan pemeriksaan invarian berjalan di basis data yang sama | Tidak | Tidak |
 | Biaya uang | 0 | 0 (RAM dan disk VPS yang sama) | Satu VPS lagi per bulan |
-| Komponen tambahan | Tidak ada | Satu unit systemd, satu basis data di klaster yang sama, satu subdomain, rahasia sendiri | Satu server penuh |
+| Komponen tambahan | Tidak ada | Satu unit systemd, satu klaster PostgreSQL kedua (semula "satu basis data di klaster yang sama"; catatan 13 November 2026 di butir 1), satu subdomain, rahasia sendiri | Satu server penuh |
 | Uji migrasi sebelum produksi | Tidak ada tempatnya | Ya, di atas data uji | Ya |
 | Gangguan ke produksi saat staging sibuk | — | Mungkin (CPU, RAM bersama) **[Asumsi]** kecil pada skala pilot | Tidak |
 
@@ -40,10 +40,19 @@
 
 1. **Lingkungan: opsi B.**
    - **Sebelum GR-2**, instans utama berisi data uji saja dan berfungsi sebagai staging. Menurut keputusan 45 (14 §7.8), FS-1 langkah 1 sampai 6 memakai **server uji sementara** berisi data uji saja, yang dimatikan dan dihapus sesudah instans di VPS pilihan S4-2 hidup; sejak langkah 7 instans utama berjalan di VPS pilihan S4-2, masih dengan data uji saja. Pada GR-2 basis datanya dikosongkan dan dibuat ulang lewat migrasi dari nol, lalu data nyata pertama dicatat.
-   - **Sejak GR-2**, VPS yang sama menjalankan dua instans: `casa` (produksi) dan `casa-staging` (data uji saja). Masing-masing punya basis data sendiri di klaster PostgreSQL yang sama, peran basis data sendiri, rahasia `LoadCredential` sendiri, dan subdomain sendiri. Staging tidak pernah menerima salinan data produksi, dalam bentuk apa pun.
+   - **Sejak GR-2**, VPS yang sama menjalankan dua instans: `casa` (produksi) dan `casa-staging` (data uji saja). Masing-masing punya **klaster PostgreSQL sendiri** (catatan 13 November 2026 di bawah butir ini; semula "basis data sendiri di klaster PostgreSQL yang sama"), peran basis data sendiri, rahasia `LoadCredential` sendiri, dan subdomain sendiri. Staging tidak pernah menerima salinan data produksi, dalam bentuk apa pun.
    - Aplikasi staging punya identitas terpisah agar dapat terpasang berdampingan dengan aplikasi pilot: Android lewat `applicationIdSuffix`, iOS lewat bundle ID dan catatan aplikasi App Store Connect kedua yang dipasang dari TestFlight internal. Alamat server ditetapkan saat build per identitas, tidak dapat diganti di aplikasi.
    - Staging tidak masuk cadangan pgBackRest (tidak ada data yang perlu dipulihkan).
    - **Syarat pemisahan** (10 indeks §7.4; diuji sebelum GR-2 di 14 QG-30 butir 9, dan lagi oleh SEC-157 sebelum GR-5, bila jalur publik diambil): staging tidak pernah menerima data produksi dalam bentuk apa pun, termasuk ekspor dan cadangan yang dipulihkan (uji pulih berjalan di VPS cadangan, 09.4 §6); akun uji memakai alamat email domain uji, bukan alamat orang nyata; berjalan sebagai pengguna sistem sendiri; peran basis data staging tidak punya `CONNECT` ke basis data produksi, dan sebaliknya; rahasianya terpisah (SEC-42); konfigurasi keamanannya sama dengan produksi (TLS, batas laju, log dengan daftar izin) dan tanpa titik akhir debug; aplikasi staging hanya dapat menjangkau server staging.
+   - **Catatan 13 November 2026 (FS-1 1.2, temuan `code-reviewer` I4): satu klaster per lingkungan.** Peran PostgreSQL berlaku untuk seluruh klaster, dan nama peran (`migrator`, `app_rw`, `job_runner`, `lifecycle_rw`) tetap (09.2 §3 lapis 5). Bila staging dan produksi berbagi klaster, `app_rw` staging adalah `app_rw` produksi, dan syarat "tanpa `CONNECT` ke basis data produksi" tidak dapat dipenuhi. Opsi yang ditimbang:
+
+     | Opsi | Perubahan kode | Pemisahan peran | Cadangan |
+     |---|---|---|---|
+     | **Klaster kedua di VPS yang sama** (`pg_createcluster 18 staging`, port berikutnya) | Tidak ada | Penuh: peran staging tidak ada di klaster produksi | pgBackRest hanya untuk klaster produksi; staging benar-benar tidak masuk cadangan |
+     | Awalan nama peran per lingkungan | `roles.sql` dan setiap `GRANT`/kebijakan RLS di migrasi diparameterkan | Penuh bila tidak ada yang lupa | Staging tetap ikut cadangan fisik produksi |
+     | `CONNECT` per basis data plus set peran berbeda | Sama dengan awalan | Sama | Sama |
+
+     **Diputuskan: klaster kedua.** Alasan: tanpa perubahan kode, dan pgBackRest selalu menyalin isi seluruh klaster ("pgBackRest copies the entire contents of the database cluster to the backup", [pgbackrest.org/user-guide.html](https://pgbackrest.org/user-guide.html), diakses 13 November 2026) **[Terverifikasi]**, sehingga di klaster bersama data uji staging ikut cadangan produksi. `pg_createcluster` dari postgresql-common membuat klaster baru per versi dan nama, dan memberinya port bebas berikutnya mulai 5432 ([manpages.debian.org pg_createcluster(1)](https://manpages.debian.org/trixie/postgresql-common/pg_createcluster.1.en.html), diakses 13 November 2026) **[Terverifikasi]**. `roles.sql` dijalankan superuser masing-masing klaster. Biaya: satu proses `postgres` lagi; `shared_buffers` staging disetel kecil **[Asumsi]** ukurannya diukur di langkah 7. Uji QG-30 butir 9 tetap: kredensial staging ditolak oleh klaster produksi, dan sebaliknya. Disiapkan di FS-1 langkah 7; kode tugas 1.2 tidak berubah.
 2. **Tanpa sistem feature flag di pilot.** Fitur Tier 2 dibangun sebagai potongan vertikal: server lebih dulu (API hidup, teruji), lalu layar beserta titik masuk navigasinya dalam satu perubahan. Titik masuk sebuah modul Tier 2 digabung hanya sesudah semua kebutuhan Must bersyarat yang menjaganya lulus (05 §6.7; 13 §3.4, misalnya F-AI-005 sebelum `AI` mana pun). **Saklar yang sudah dirancang tetap ada** karena alasan keamanan, bukan pelepasan fitur: saklar mati `AI` (SEC-128) dan kunci konfigurasi R2 (SEC-122).
 3. **Saklar operasi "tahan tulis".** Satu subperintah `casa ops write-freeze on|off` (lewat SSH, tercatat di `security_event`, SEC-33).
    - **Yang ditolak:** setiap perintah tulis yang **bukan** perintah pelindung, dengan kode galat sendiri `WRITE_FROZEN` yang dapat dicoba ulang dan dapat dibedakan aplikasi dari "tidak ada jaringan", agar 08 §13.2 dapat memilih teks status yang benar. Perintah itu tetap di antrean perangkat (LM-02) dan dinilai server saat tiba sesudah saklar dimatikan (06 S-7). **Tahan per akun `NOTICE_UNREAD`** (SEC-34; 09 berkas 03 §1) adalah mekanisme terpisah yang tidak mengubah butir ini. Server memeriksa `WRITE_FROZEN` lebih dulu, lalu `NOTICE_UNREAD`. Keduanya tidak pernah menahan jenis `protective`.
@@ -60,7 +69,7 @@
 
 ## Konsekuensi
 
-- Tidak ada biaya uang tambahan. Biaya waktu: satu unit systemd, satu basis data, satu subdomain, dan satu catatan aplikasi iOS kedua disiapkan sekali di FS-1 langkah 7 (14 §3.3).
+- Tidak ada biaya uang tambahan. Biaya waktu: satu unit systemd, satu klaster PostgreSQL kedua (catatan 13 November 2026 di butir 1), satu subdomain, dan satu catatan aplikasi iOS kedua disiapkan sekali di FS-1 langkah 7 (14 §3.3).
 - Xcode Cloud membangun dua identitas. Jatah 25 jam per bulan dibagi di antara keduanya (14 §6.3); bila hampir habis, build staging iOS hanya untuk perubahan yang menyentuh `ios/` atau `proto/`.
 - Staging dan produksi berbagi CPU dan RAM. Uji beban dan uji kinerja ES §3 dijalankan saat staging diam.
 - Saklar "tahan tulis" menambah satu jalur kode yang harus diuji (14 §4.7): perintah yang ditolak saat tahan tulis tidak hilang, dan diterima sesudah saklar dimatikan dengan hasil yang sama dengan tanpa saklar; **setiap jenis perintah pelindung diterima selama saklar menyala** tanpa mengubah hash inti moneter.
