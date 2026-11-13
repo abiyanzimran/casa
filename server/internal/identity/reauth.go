@@ -72,10 +72,11 @@ func (s *Service) hashPassword(ctx context.Context, password string) (PasswordHa
 	return s.hasher.hash(ctx, password)
 }
 
-// ChangePassword uses one open change_password grant of session and
-// replaces the account's credential with hash, inside the command
-// transaction of tx (SEC-13; SEC-151 (7)). Without a grant it is
-// ErrReauthRequired.
+// ChangePassword uses one open change_password grant of session, replaces
+// the account's credential with hash, and revokes every other live session
+// of the account, inside the command transaction of tx (SEC-13; SEC-151 (7);
+// SEC-24 per the security-privacy decision on PR #32: session stays, no
+// household event, no opt-out). Without a grant it is ErrReauthRequired.
 func (s *Service) ChangePassword(ctx context.Context, tx pgx.Tx, session Session, hash PasswordHash) error {
 	now := s.config.Now()
 	q := identitydb.New(tx)
@@ -87,6 +88,9 @@ func (s *Service) ChangePassword(ctx context.Context, tx pgx.Tx, session Session
 		return ErrReauthRequired
 	}
 	if err := replaceCredential(ctx, q, session.AccountID, hash, now); err != nil {
+		return err
+	}
+	if err := revokeLiveSessions(ctx, q, session.AccountID, session.ID, "password_changed", now); err != nil {
 		return err
 	}
 	return q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{

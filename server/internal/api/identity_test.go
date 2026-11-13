@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -1041,6 +1042,25 @@ func TestRecovery(t *testing.T) {
 			t.Fatalf("%d recovery events naming the new session, want 1", n)
 		}
 	})
+	t.Run("SEC-24 recovery revokes only sessions still live", func(t *testing.T) {
+		// An idle-expired session is already over: it is not revoked again
+		// and gets no security-trail row (code-reviewer M1 on #32).
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		h.clock.advance(30 * 24 * time.Hour) // the first session ends idle
+		_, err := h.signIn(email, password)
+		wantOK(t, err)
+		_, err = h.startRecovery(email)
+		wantOK(t, err)
+		_, err = h.completeRecovery(ios, h.lastLink(t), next)
+		wantOK(t, err)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'recovery'"); n != 1 {
+			t.Fatalf("%d sessions revoked by recovery, want 1 (the live one)", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked'"); n != 1 {
+			t.Fatalf("%d session_revoked events, want 1", n)
+		}
+	})
 	t.Run("SEC-24 a recovery link expires after 30 minutes", func(t *testing.T) {
 		h := startIdentity(t)
 		h.signUp(t, email, password)
@@ -1191,4 +1211,52 @@ func marshal(t *testing.T, m proto.Message) []byte {
 		t.Fatal(err)
 	}
 	return b
+}
+
+func TestChangePasswordRevokesOtherSessions(t *testing.T) {
+	// SEC-24 (security-privacy decision on #32): a password change revokes
+	// every other live session of the account in its transaction and keeps
+	// the one it came from.
+	const email = "owner@example.test"
+	password, next := strings.Repeat("reauth ", 3), strings.Repeat("changed ", 3)
+	revoked := casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED
+	h := startIdentity(t)
+	x := h.signUp(t, email, password)
+	y, err := h.signIn(email, password)
+	wantOK(t, err)
+	z, err := h.signIn(email, password)
+	wantOK(t, err)
+	// Y stands for a web session: web sign-in comes with 1.5, so the row
+	// is relabelled; its refresh token still reaches the server.
+	yHash := sha256.Sum256(decodeToken(t, y.GetAccessToken()))
+	if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web' WHERE token_hash = $1", yHash[:]); err != nil {
+		t.Fatal(err)
+	}
+	_, err = h.reauthenticate(x.GetAccessToken(), password)
+	wantOK(t, err)
+	wantOK(t, h.changePassword(x.GetAccessToken(), next))
+	wantOK(t, h.authenticated(x.GetAccessToken()))
+	_, err = h.refresh(x.GetRefreshToken())
+	wantOK(t, err)
+	wantErrorCode(t, h.authenticated(z.GetAccessToken()), connect.CodeUnauthenticated, revoked)
+	for _, other := range []*casav1.SessionTokens{y, z} {
+		_, err := h.refresh(other.GetRefreshToken())
+		wantErrorCode(t, err, connect.CodeUnauthenticated, revoked)
+	}
+	if n := h.count(t, `SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'password_changed'`); n != 2 {
+		t.Fatalf("%d session_revoked rows, want 2", n)
+	}
+	if n := h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'password_changed'"); n != 2 {
+		t.Fatalf("%d sessions revoked by the change, want 2", n)
+	}
+}
+
+// decodeToken returns the 32 random bytes of a token (base64url, no padding).
+func decodeToken(t *testing.T, token string) []byte {
+	t.Helper()
+	raw, err := base64.RawURLEncoding.DecodeString(token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
 }

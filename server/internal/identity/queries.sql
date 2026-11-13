@@ -132,10 +132,13 @@ UPDATE recovery_token SET used_at = @now::timestamptz
  WHERE token_hash = @token_hash AND used_at IS NULL AND expires_at > @now::timestamptz;
 
 -- name: RevokeLiveSessions :many
--- Every live session of the account (SEC-24); served by
+-- Every session of the account still live at now, except keep (none when
+-- NULL), so an ended session gets no second end (SEC-24); served by
 -- session_account_live.
 UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
  WHERE account_id = @account_id AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > @now::timestamptz AND absolute_expiry > @now::timestamptz
+   AND id IS DISTINCT FROM sqlc.narg(keep)::uuid
 RETURNING id;
 
 -- name: UseAccountRecoveryTokens :exec

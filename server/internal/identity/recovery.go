@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -133,18 +134,8 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 		if err := replaceCredential(ctx, q, account, hash, now); err != nil {
 			return err
 		}
-		revoked, err := q.RevokeLiveSessions(ctx, identitydb.RevokeLiveSessionsParams{Now: now, Reason: "recovery", AccountID: account})
-		if err != nil {
+		if err := revokeLiveSessions(ctx, q, account, pgtype.UUID{}, "recovery", now); err != nil {
 			return err
-		}
-		for _, session := range revoked {
-			err := q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
-				AccountID: account, SessionID: session, Kind: "session_revoked",
-				Detail: pgtype.Text{String: "recovery", Valid: true}, OccurredAt: now,
-			})
-			if err != nil {
-				return err
-			}
 		}
 		var session pgtype.UUID
 		if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
@@ -157,4 +148,24 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 		})
 	})
 	return tokens, err
+}
+
+// revokeLiveSessions revokes every session of account still live at now,
+// except keep, with reason, and writes one session_revoked row per session
+// (SEC-24, SEC-16).
+func revokeLiveSessions(ctx context.Context, q *identitydb.Queries, account, keep pgtype.UUID, reason string, now time.Time) error {
+	revoked, err := q.RevokeLiveSessions(ctx, identitydb.RevokeLiveSessionsParams{Now: now, Reason: reason, AccountID: account, Keep: keep})
+	if err != nil {
+		return err
+	}
+	for _, session := range revoked {
+		err := q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
+			AccountID: account, SessionID: session, Kind: "session_revoked",
+			Detail: pgtype.Text{String: reason, Valid: true}, OccurredAt: now,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

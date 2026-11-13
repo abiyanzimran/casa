@@ -411,6 +411,8 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 const revokeLiveSessions = `-- name: RevokeLiveSessions :many
 UPDATE session SET revoked_at = $1::timestamptz, revoke_reason = $2::text
  WHERE account_id = $3 AND revoked_at IS NULL
+   AND last_used_at + idle_timeout > $1::timestamptz AND absolute_expiry > $1::timestamptz
+   AND id IS DISTINCT FROM $4::uuid
 RETURNING id
 `
 
@@ -418,12 +420,19 @@ type RevokeLiveSessionsParams struct {
 	Now       time.Time
 	Reason    string
 	AccountID pgtype.UUID
+	Keep      pgtype.UUID
 }
 
-// Every live session of the account (SEC-24); served by
+// Every session of the account still live at now, except keep (none when
+// NULL), so an ended session gets no second end (SEC-24); served by
 // session_account_live.
 func (q *Queries) RevokeLiveSessions(ctx context.Context, arg RevokeLiveSessionsParams) ([]pgtype.UUID, error) {
-	rows, err := q.db.Query(ctx, revokeLiveSessions, arg.Now, arg.Reason, arg.AccountID)
+	rows, err := q.db.Query(ctx, revokeLiveSessions,
+		arg.Now,
+		arg.Reason,
+		arg.AccountID,
+		arg.Keep,
+	)
 	if err != nil {
 		return nil, err
 	}
