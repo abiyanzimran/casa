@@ -67,19 +67,13 @@ func validEmail(email string) bool {
 // openAppPool connects as app_rw with the connection string from its
 // credential (09.4 §1; SEC-42).
 func openAppPool(ctx context.Context) (*pgxpool.Pool, error) {
-	connString, err := readCredential(appDatabaseURL)
+	s, err := connString(appDatabaseURL)
 	if err != nil {
 		return nil, err
 	}
-	if connString == "" {
-		// pgx would fall back to the PG* environment variables.
-		return nil, fmt.Errorf("credential %s is empty", appDatabaseURL)
-	}
-	config, err := pgxpool.ParseConfig(connString)
+	pool, err := pgxpool.New(ctx, s)
 	if err != nil {
-		// The parse error can quote the connection string, password
-		// included (ES §4), so it is replaced, not wrapped.
-		return nil, fmt.Errorf("cannot parse the connection string in credential %s", appDatabaseURL)
+		return nil, fmt.Errorf("open the database: %w", err)
 	}
-	return pgxpool.NewWithConfig(ctx, config)
+	return pool, nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -9,8 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib" // the database/sql driver "pgx"
 
 	"github.com/abiyanzimran/casa/server/internal/schema"
 )
@@ -38,23 +39,36 @@ func migrate(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 }
 
 func migrateUp(ctx context.Context) (int64, error) {
-	connString, err := readCredential(migratorDatabaseURL)
+	s, err := connString(migratorDatabaseURL)
 	if err != nil {
 		return 0, err
 	}
-	if connString == "" {
-		// pgx would fall back to the PG* environment variables.
-		return 0, fmt.Errorf("credential %s is empty", migratorDatabaseURL)
-	}
-	config, err := pgx.ParseConfig(connString)
+	db, err := sql.Open("pgx", s)
 	if err != nil {
-		// The parse error can quote the connection string, password
-		// included (ES §4), so it is replaced, not wrapped.
-		return 0, fmt.Errorf("cannot parse the connection string in credential %s", migratorDatabaseURL)
+		return 0, fmt.Errorf("open the database: %w", err)
 	}
-	db := stdlib.OpenDB(*config)
 	defer func() { _ = db.Close() }()
 	return schema.Up(ctx, db)
+}
+
+// connString reads the connection string in credential name and checks it
+// parses, so no later parse error can quote it, password included (ES §4).
+// An empty one is refused: pgx would fall back to the PG* environment
+// variables.
+func connString(name string) (string, error) {
+	s, err := readCredential(name)
+	if err != nil {
+		return "", err
+	}
+	if s == "" {
+		return "", fmt.Errorf("credential %s is empty", name)
+	}
+	// pgxpool's parse also checks the pool_ parameters, then pgx's.
+	if _, err := pgxpool.ParseConfig(s); err != nil {
+		// Replaced, not wrapped: the error can quote the string.
+		return "", fmt.Errorf("cannot parse the connection string in credential %s", name)
+	}
+	return s, nil
 }
 
 // readCredential reads the secret systemd passes with LoadCredential=, which
