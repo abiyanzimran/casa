@@ -463,7 +463,13 @@ invitation (                              -- 06 §3.6 F01 sampai F05; aturan tok
                                           -- 06: open = undangan_terbuka, accepted = menunggu_konfirmasi_pengundang,
                                           -- confirmed = F04 selesai; empat sisanya = gugur dengan sebabnya
   invitee_account_id uuid NULL,           -- pemetaan identitas penerima, seperti membership.account_id
-  invitee_display_name text NULL,
+  invitee_display_name text NULL,         -- catatan 14 November 2026 (FS-1 tugas 1.6, PR B, putusan lead):
+                                          -- penarikan (F05 withdraw_acceptance, juga CloseAsWithdrawn saat
+                                          -- penerima sudah bergabung di tempat lain) mengosongkan keduanya di
+                                          -- compare-and-set yang sama, karena FR-FAM-004/AC-5 ("tanpa jejak data
+                                          -- di rumah tangga itu selain Peristiwa undangan"); Peristiwanya tetap
+                                          -- berpelaku invitee. Penolakan, pembatalan, dan gugur karena waktu
+                                          -- mempertahankannya sampai penghapusan akun (langkah 6)
   created_at timestamptz NOT NULL, expires_at timestamptz NOT NULL,
   closed_at timestamptz NULL,             -- gugur karena waktu: = expires_at, bukan saat ditulis
   version bigint NOT NULL DEFAULT 0,
@@ -514,7 +520,9 @@ CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE 
 --     'expired', actor_kind 'system', rule 'invitation.expired', closed_at = expires_at, dan server_time
 --     Peristiwanya = expires_at (saat gugur berlaku; waktu penulisan tidak disimpan, supaya tidak membuka kapan
 --     penerima atau pengundang memakai aplikasi). Kalah compare-and-set → tidak ada tulisan. Sesudahnya
---     perintah berjalan di transaksinya sendiri.
+--     perintah berjalan di transaksinya sendiri. Catatan 14 November 2026 (FS-1 tugas 1.6, PR B, putusan
+--     lead): command Peristiwa ini 'expire_invitation' (kata kerja snake_case seperti 'create_household',
+--     'accept_invitation'), dengan rule 'invitation.expired' dan actor_kind 'system'.
 --   * CreateHousehold dan F02 (sebelum token dibaca, sesudah tahan pemberitahuan): pencarian
 --     invitee_account_id = A menemukan penerimaan akun sendiri; yang lewat ditulis gugur lalu tidak
 --     menghalangi; yang belum lewat → 17. Urutan F02: tahan, keanggotaan dan penerimaan sendiri (termasuk
@@ -544,6 +552,14 @@ object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR
                                           -- 'create_household' dengan to_state 'created'; undangan 'invite',
                                           -- 'accept_invitation', 'cancel_invitation', …); state = nama state
                                           -- bahasa Inggris ('open', 'accepted', …)
+                                          -- catatan 14 November 2026 (FS-1 tugas 1.6, PR B, putusan lead): F04
+                                          -- menulis, selain Peristiwa 'confirmed' undangan, Peristiwa rumah tangga
+                                          -- 'member_joined' (command 'confirm_invitee', from_state NULL, seq =
+                                          -- version rumah tangga yang dinaikkan, idempotency_key sama dengan
+                                          -- Peristiwa undangan). Pelakunya anggota yang bergabung; pengundang yang
+                                          -- menjalankan F04 adalah pelaku Peristiwa 'confirmed' undangan di
+                                          -- transaksi yang sama dengan kunci yang sama, jadi pasangan Peristiwa itu
+                                          -- lengkap tanpa kolom tambahan
   idempotency_key uuid NULL, server_time timestamptz NOT NULL,
   CHECK ((actor_kind = 'member') = (actor IS NOT NULL)),
   CHECK ((actor_kind = 'system') = (rule IS NOT NULL)),
