@@ -50,6 +50,11 @@ export function localDb(): LocalDb {
 	return (instance ??= new LocalDb());
 }
 
+/** Whether the local database exists, without creating it (SEC-171 (e)). */
+export function localDbExists(): Promise<boolean> {
+	return Dexie.exists(name);
+}
+
 /**
  * Deletes the local database (SEC-164 (c), SEC-172 (a)). The old instance is closed without
  * auto-reopen, so a late write from a send still in flight fails instead of creating the
