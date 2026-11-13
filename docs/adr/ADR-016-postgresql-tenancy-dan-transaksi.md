@@ -57,6 +57,7 @@ Riset 18 §5.5 mencatat PostgreSQL 18.6 (didukung sampai 14 November 2030). Ia j
 5. **Append-only lewat hak akses.** `entry`, `line`, `entry_link`, `object_event`, dan `security_event` hanya mendapat `INSERT` dan `SELECT` untuk semua peran aplikasi (INV-09); penghapusan karena jangka simpan lewat `lifecycle_rw`. `migrator` sebagai pemilik secara teknis dapat menulis ulang; pagarnya adalah aturan migrasi (butir 11), uji hash inti sebelum dan sesudah setiap migrasi (SEC-108), dan tinjauan dua pass.
 6. **Isolasi:**
    - Setiap perintah tulis berjalan `SERIALIZABLE` dan dicoba ulang pada `40001` dan `40P01` sampai 5 kali.
+     - Catatan 13 November 2026 (FS-1 1.4, putusan lead Q1): 5 coba ulang sesudah percobaan pertama (paling banyak 6 percobaan), jeda acak yang berlipat dari 10 ms **[Usulan]**; sesudahnya `RETRY_EXHAUSTED`. Rinciannya di 09.2 §6.
    - Bacaan berjalan `REPEATABLE READ READ ONLY`.
    - Penilaian jatah dan ambang mengambil kunci baris `assessment_lane(household_id, member_id, period_start)`, sehingga urutannya tetap (S-8).
 7. **Konkurensi:**

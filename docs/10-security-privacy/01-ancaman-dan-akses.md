@@ -130,10 +130,72 @@ Aturan siapa melihat apa kanonis di 06 §9 dan 07 §5.3. Bagian ini menetapkan c
 | SEC-05 | Tanggapan "tidak ada" dan "tidak boleh" identik (kode, isi, dan waktu tanggapan dalam batas wajar) untuk objek rumah tangga lain dan objek pribadi anggota lain | 09 | Pilot | `ENGINEERING-STANDARDS.md` §4; FR-FAM-020/AC-1 | Akses entri pribadi anggota dewasa lain dan pengenal acak: tanggapan sama |
 | SEC-06 | Hitungan, ringkasan, laporan, ekspor, notifikasi, dan fitur `AI` membaca data lewat fungsi otorisasi yang sama dengan layar; tidak ada jalur baca kedua yang melewati visibilitas | 09 | Pilot | **[Usulan]** | Pemeriksaan statis atas setiap kueri baca; uji: data pribadi anggota dewasa lain tidak muncul di ringkasan, ekspor, atau muatan `AI` |
 | SEC-07 | Tidak ada medan tanggapan, Peristiwa, atau notifikasi yang memuat hitungan per orang yang dilarang 06 AT-4, juga sebagai angka tersirat (misalnya "3 entri bertanda" di ringkasan) | 09, 08 | Pilot | 06 AT-4, SP-43 (b) | Uji AT-4 (06 §9.4) |
-| SEC-08 | **Row-level security PostgreSQL sebagai lapis kedua**: peran basis data aplikasi bukan pemilik tabel, bukan superuser, tanpa `BYPASSRLS`; tabel ber-`FORCE ROW LEVEL SECURITY`; policy per `household_id` (18 §5.5 butir 4). Tidak menggantikan SEC-01 | 09 | **Pilot** (ADR-016 butir 3, diterima lewat D-99; 09 berkas 02 §3 butir 4) | **[Usulan]**; ADR-016 | Di lingkungan uji, matikan pemeriksaan otorisasi di kode: uji isolasi tetap tidak membaca baris rumah tangga lain |
+| SEC-08 | **Row-level security PostgreSQL sebagai lapis kedua**: peran basis data aplikasi bukan pemilik tabel, bukan superuser, tanpa `BYPASSRLS`; tabel ber-`FORCE ROW LEVEL SECURITY`; policy per `household_id` (18 §5.5 butir 4). Tidak menggantikan SEC-01. Tabel global `identity` dan pencarian sebelum autentikasi: §5.1 | 09 | **Pilot** (ADR-016 butir 3, diterima lewat D-99; 09 berkas 02 §3 butir 4) | **[Usulan]**; ADR-016 | Di lingkungan uji, matikan pemeriksaan otorisasi di kode: uji isolasi tetap tidak membaca baris rumah tangga lain |
 | SEC-09 | Peran basis data aplikasi tidak pernah superuser, juga di pilot; migrasi memakai peran terpisah | 09 | Pilot | **[Usulan]** | Pemeriksaan konfigurasi |
 | SEC-38 | **Satu orang di beberapa rumah tangga** (brief §8 "multi-household access control"; berpindah rumah tangga dirancang sekarang, dibangun Tier 3, 08 §4.4). (a) Setiap perintah dan bacaan berlaku dalam satu rumah tangga; `household_id` dalam permintaan hanya pemilih yang diperiksa terhadap keanggotaan aktif akun sesi itu, tidak pernah sumber wewenang. (b) Tidak ada jalur baca, hitungan, ringkasan, notifikasi, ekspor, kumpulan atau pilihan `AI`, atau pencarian yang menggabungkan data dua rumah tangga, termasuk data milik orang yang sama; buku pribadi, tempat uang pribadi, `CARE`, berbagi, dan izin `AI` berlaku per (akun, rumah tangga). (c) Anggota rumah tangga X tidak dapat mengetahui bahwa seseorang juga anggota rumah tangga Y: tidak ada tampilan, galat, waktu tanggapan, atau tanggapan undangan yang membedakannya (SEC-05, SEC-30). (d) Setelan akun yang berlaku lintas rumah tangga (jam tenang, zona waktu pribadi, kunci aplikasi) tetap hanya terbaca pemiliknya. (e) F06 di X hanya mengakhiri keanggotaan di X; sesi dan keanggotaan di Y tidak berubah (SEC-23). (f) Basis data perangkat dipisah per rumah tangga, dan berpindah rumah tangga di layar tidak menampilkan data rumah tangga sebelumnya. (g) Teks layar kunci tidak menyebut rumah tangga (SEC-51) | 09, 08 | Pilot: (a), (b), (e), (g); Tier 3 untuk sisanya bila keanggotaan ganda dibangun, dirancang sekarang | **[Usulan]** | Akun A anggota X dan Y: untuk setiap API, kirim pengenal objek X dengan pemilih Y: tanggapan identik dengan "tidak ada"; muatan `AI`, ringkasan, dan ekspor untuk X tidak memuat satu baris pun dari Y; anggota X mengundang A: tanggapan sama dengan mengundang akun tanpa rumah tangga |
 | SEC-39 | **Jejak audit sebagai kontrol keamanan** (brief §8 "audit trails"). Dua jejak, keduanya hanya-menambah bagi peran basis data aplikasi (tanpa `UPDATE` atau `DELETE`; penghapusan hanya lewat pekerjaan retensi dan jalur ADR-007): (a) **Peristiwa alur dan uang** (06 §2.5; 07): siapa mencatat, menyetujui, menolak, berkeberatan, mengoreksi, kapan menurut waktu server; terbaca menurut visibilitas objeknya; tidak pernah dipakai untuk hitungan atau tren per orang (06 AT-3, AT-4). (b) **Jejak keamanan per akun**: masuk, perangkat baru, pemulihan, ganti kata sandi atau email, autentikasi ulang dan untuk tindakan apa, sesi dicabut, ekspor dibuat dan diunduh, hapus akun dimulai, perubahan kunci aplikasi; **hanya terbaca pemilik akun** (SEC-16), tidak pernah anggota lain; tanpa isi peka (SEC-44); disimpan 90 hari **[Asumsi]**. Persetujuan berbagi dan pencabutannya dicatat sebagai catatan persetujuan milik pemiliknya (SEC-109), tidak sebagai Peristiwa yang terbaca penerima (06 V-7). (c) **Tindakan operator**: pilot, catatan operasi (SEC-37); publik, log akses darurat yang tidak dapat diubah operator yang sama (SEC-36). (d) **Akses oleh Kementerian, Lembaga, atau aparat** atas data: dicatat dengan dasar permintaan, data yang diberikan, dan tanggal (Permenkominfo 5/2020 Pasal 43, 44; 10.4 §3.4) | 09, Ops | Pilot: (a), (b), (c) pilot; sebelum GR-4: (c) publik (indeks §4.2); Publik: (d) | **[Usulan]**; brief §8 | Sebagai peran aplikasi, `UPDATE` dan `DELETE` atas tabel Peristiwa dan jejak keamanan ditolak; B memanggil setiap API jejak keamanan dengan pengenal A: ditolak seperti SEC-05; masuk dari perangkat baru menulis satu baris di jejak A dan tidak ada apa pun yang terbaca B |
+
+### 5.1 Tabel global `identity`: RLS dan pencarian sebelum autentikasi (SEC-08; FS-1 1.4, Q2)
+
+**Keputusan 13 November 2026**, atas permintaan lead (rencana FS-1 1.4, putusan Q2): **diterima dengan penyesuaian** **[Usulan]** `security-privacy`. Masuk, pemakaian token, penyegaran, pemulihan, dan pendaftaran terjadi sebelum akun diketahui, sedangkan kebijakan tabel global memakai `app.account_id` (09.2 §3). Rencana menambah dua setelan per transaksi, `app.email` dan `app.token_hash`, masing-masing satu klausa `OR` di kebijakan tabel yang perlu dicari. Bentuk itu diterima, dengan syarat klausa pencarian **hanya menemukan baris, tidak pernah menulisnya**.
+
+**Penilaian.**
+
+| Risiko | Penilaian |
+|---|---|
+| Enumerasi akun lewat RLS | Klausa hanya kesamaan (`=`) atas nilai yang sudah dipegang server; RLS tidak menambah jalan tanya di luar logika `identity`. Enumerasi dijaga di lapisan API: verifikasi Argon2 tiruan, tanggapan dan batas laju identik untuk email terdaftar dan tidak (SEC-12, SEC-30) |
+| Bug memasang `app.email` dengan email orang lain | Bentuk rencana (`USING = WITH CHECK`): baris `account` orang itu terbaca, termasuk `time_zone` (§6 syarat 5), dan dapat ditulis. Sesudah penyesuaian: hanya terbaca, dan hanya di transaksi baca yang tidak membawa cakupan lain (aturan 3) |
+| Bug memasang `app.token_hash` | Nilainya SHA-256 dari rahasia 256 bit; memasang hash milik orang lain memerlukan hash itu, yang hanya ada di basis data. Sisa: transaksi yang membawa akun A dan hash milik B dapat menulis baris B. Ditutup aturan 1 dan 2 |
+| Waktu tanggap | Pencarian lewat indeks unik untuk kedua kasus; selisih yang terukur berasal dari alur Go, bukan RLS (aturan 5, 6) |
+| Pemeriksaan unique di luar RLS (09.2 §3) | Satu-satunya keunikan lintas akun yang dapat ditebak adalah `account.email` (`citext`). `23505` di `CompleteSignUp` dipetakan ke `TOKEN_REJECTED` dan hanya terjangkau pemegang tautan verifikasi yang dikirim ke kotak surat itu. `token_hash` setiap tabel token acak 256 bit, termasuk `signup_verification.token_hash`. Dikukuhkan tanpa perubahan |
+
+**Alternatif yang ditolak.**
+
+| Alternatif | Alasan |
+|---|---|
+| Fungsi pencarian `SECURITY DEFINER` milik peran khusus | Tabel ber-`FORCE ROW LEVEL SECURITY`, jadi pemilik fungsi perlu melewati RLS: lahir prinsipal yang lebih kuat daripada setelan bercakupan transaksi, ditambah risiko `search_path` dan objek baru yang harus dipatok gerbang katalog. Keuntungannya (hanya kolom tertentu yang keluar) dicapai aturan 4 |
+| Peran basis data `identity_lookup` terpisah | Kredensial dan pool kedua, `roles.sql` per cluster berubah, tanpa mengurangi apa yang terbaca dibanding klausa setelan |
+
+**Aturan** (pilot; dipenuhi sebelum Tugas 2, yaitu PR A FS-1 1.4, di-merge):
+
+1. **Pencarian di `USING`, tulisan di `WITH CHECK` akun.** Pada tabel yang punya akun, klausa pencarian hanya ada di `USING`; `WITH CHECK` hanya klausa akun. Setiap `INSERT` dan `UPDATE` karena itu terikat pada `app.account_id` baris itu. Tabel tanpa akun (`setup_token`, `signup_verification`) menulis hanya lewat hash token pemasangan: tautan verifikasi saja dapat menemukan barisnya, tetapi tulisan memerlukan `T` = `setup_token_hash` yang dibaca dari baris itu.
+2. **Hak `UPDATE` per kolom.** `app_rw` tidak pernah mendapat `UPDATE` atas `id` atau `account_id` tabel `identity` mana pun, kecuali `setup_token.account_id` (diisi sekali saat dikonsumsi). Hak tingkat tabel diganti daftar kolom yang diubah kode.
+3. **Email hanya untuk pencarian murni.** `database.Write` menolak `Scope` yang membawa `Email`; `database.Read` menolak `Email` bersama `AccountID` atau `HouseholdID`. Penolakan terjadi sebelum `BEGIN`, dan `fn` tidak dipanggil. Dengan begitu handler yang sudah terautentikasi tidak dapat membaca akun lain lewat email, juga karena bug.
+4. **Kueri pencarian lewat email hanya memilih `id`.** Medan akun lain dibaca sesudahnya dengan cakupan akun.
+5. **`SignIn`**: email tak dikenal menjalankan jumlah transaksi dan verifikasi hash yang sama dengan kata sandi salah (baca kredensial kedua tetap dijalankan, dengan `id` acak). Batas laju dan kunci email memakai string yang sama dengan pencarian (dipangkas, huruf kecil).
+6. **`StartRecovery`**: sebelum pengirim email sungguhan (FS-1 langkah 7) dan GR-2, pengiriman lewat job (Q9 (c)), tidak di jalur permintaan. Selisih satu transaksi tulis untuk email terdaftar diterima sebagai sisa; jumlah sampel dibatasi SEC-12 per email (§8.1).
+7. **Klausa pencarian baru** (misalnya `prev_token_hash = T` untuk rotasi cookie di 1.5, SEC-161) mengikuti aturan 1 dan 2 dan masuk uji yang sama.
+
+**Bentuk kebijakan** (satu kebijakan `FOR ALL` per tabel; `A` = `nullif(current_setting('app.account_id', true), '')::uuid`, `E` = `nullif(current_setting('app.email', true), '')::citext`, `T` = `decode(nullif(current_setting('app.token_hash', true), ''), 'hex')`):
+
+| Tabel | `USING` | `WITH CHECK` | Hak `app_rw` |
+|---|---|---|---|
+| `account` | `id = A OR email = E` | `id = A` | `SELECT, INSERT` |
+| `credential` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (salt, hash, time_cost, memory_kib, parallelism, updated_at)` |
+| `session` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (token_hash, token_issued_at, last_used_at, revoked_at, revoke_reason)`; 1.5 menambah kolom cookie |
+| `refresh_token` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `reauth_grant` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `recovery_token` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `setup_token` | `token_hash = T` | `token_hash = T` | `SELECT, INSERT, UPDATE (used_at, account_id)` |
+| `signup_verification` | `token_hash = T OR setup_token_hash = T` | `setup_token_hash = T` | `SELECT, INSERT, UPDATE (token_hash, expires_at, used_at)`; `setup_token_hash` tidak pernah dapat diubah |
+| `security_event` | `account_id = A` | `account_id = A` | `SELECT, INSERT` |
+| `idempotency_record` | teks 09.2 §3 | sama | `SELECT, INSERT` |
+
+Akibatnya, transaksi `Refresh` dan `CompleteRecovery` cukup menulis dengan `Scope{AccountID}`; `TokenHash` di `Write` hanya diperlukan untuk `setup_token` dan `signup_verification`, dan nilainya selalu hash token pemasangan (`CompleteSignUp`: `Read` dengan hash tautan verifikasi, lalu `Write(Scope{AccountID, TokenHash: setup_token_hash})`). Saat 1.6 menambah sumber undangan (`setup_token_hash` NULL), `WITH CHECK` tabel ini diperluas dengan hash token sumber itu, menurut aturan 1.
+
+**Uji yang wajib ada** (selain uji rencana Tugas 1 dan 2):
+
+| Berkas, uji | Subuji | Membuktikan |
+|---|---|---|
+| `schema/identity_test.go`, `TestIdentityTablesAreAccountScoped` | `a lookup finds a row but never writes it` | Sebagai `app_rw`, hanya `app.token_hash` milik A: `UPDATE` `session`, `refresh_token`, `recovery_token` atas baris A → `42501`; hanya hash tautan verifikasi: `UPDATE signup_verification` → `42501`, dengan hash token pemasangannya → berhasil; hanya `app.email` milik A (dipasang langsung dengan `set_config`, karena `Write` menolaknya): `INSERT account` → `42501` (aturan 1) |
+| idem | `an account scope cannot write a row it found by another account's token hash` | `Scope{AccountID: A, TokenHash: hash sesi B}`: `UPDATE session SET revoked_at = … WHERE token_hash = …` → `42501`; `UPDATE session SET account_id = A …` → `42501`; baris B tidak berubah (aturan 1, 2) |
+| idem | `a lookup setting does not outlive its transaction` | Satu koneksi (`MaxConns 1`): `Read(Scope{Email: email A})` lalu `Read(Scope{AccountID: B})` → `account` hanya B; `Read(Scope{TokenHash: sesi A})` lalu `Read(Scope{})` → nol baris `session` |
+| `schema/catalog_test.go` | `app_rw never updates the owner of an identity row` | `information_schema.column_privileges` untuk `app_rw`: tidak ada `UPDATE` atas `id` atau `account_id` tabel `identity`, kecuali `setup_token.account_id`, dan tidak ada `UPDATE` atas `signup_verification.setup_token_hash` (aturan 2) |
+| idem | `every global table has exactly its declared policy` (rencana) | Teks deparse memuat `USING` dan `WITH CHECK` yang berbeda seperti tabel di atas |
+| `database/database_test.go`, `TestScope` | `an email lookup stands alone` | `Write(Scope{Email})`, `Read(Scope{Email, AccountID})`, `Read(Scope{Email, HouseholdID})` → galat, `fn` dipanggil 0 kali; `Read(Scope{Email})` berjalan (aturan 3) |
+| `identity/signin_test.go`, `TestSignInHashesAlike` (rencana, diperluas) | — | Email tak dikenal dan kata sandi salah: penghitung hash dan jumlah transaksi baca sama (aturan 5) |
+
+**Sisa yang diterima.** Kode `identity` sebelum autentikasi dapat membaca `id` akun untuk email yang diketik pengguna; itu fungsinya. Bug di jalur itu paling jauh membuka satu baris `account` untuk dibaca, tidak menulis apa pun, dan tidak membuka kredensial, sesi, atau jejak keamanan.
 
 ## 6. Siapa yang termasuk `adults` (P-38)
 
@@ -182,7 +244,7 @@ Anggota dalam `keluar_tenggang` tidak membaca apa pun (06 F06) tetapi masih terh
 | ID | Persyaratan | Untuk | Tahap | Label | Cara menguji |
 |---|---|---|---|---|---|
 | SEC-11 | Akun memakai email terverifikasi dan kata sandi minimal 12 karakter, tanpa aturan komposisi, ditolak bila ada di daftar kata sandi umum atau bocor yang disimpan di server. Disimpan dengan fungsi hash kata sandi yang lambat dan bergaram (Argon2id). Parameter 09 berkas 04 §2 diterima: t = 3, p = 4, m = 64 MiB, garam 128 bit, tag 256 bit (opsi kedua RFC 9106 §4), parameter disimpan bersama hash agar dapat dinaikkan, dan semafor hash serentak dilindungi batas laju SEC-12 agar tidak menjadi jalan penolakan layanan. Passkey sebagai pilihan: tahap publik | 09 | Pilot | **[Usulan]** | Kata sandi 11 karakter dan kata sandi di daftar ditolak; basis data tidak memuat kata sandi atau hash tak bergaram |
-| SEC-12 | Batas laju dan penundaan bertahap per akun dan per alamat jaringan pada masuk, pemulihan, autentikasi ulang, dan pemakaian token undangan. Tanggapan gagal tidak membedakan "email tidak terdaftar" dari "kata sandi salah" | 09 | Pilot | **[Usulan]** | 20 percobaan salah berturut-turut: berikutnya ditunda; tanggapan untuk email terdaftar dan tidak terdaftar identik |
+| SEC-12 | Batas laju dan penundaan bertahap per akun dan per alamat jaringan pada masuk, pemulihan, autentikasi ulang, dan pemakaian token undangan. Tanggapan gagal tidak membedakan "email tidak terdaftar" dari "kata sandi salah". Kedua kunci terpisah, bukan satu kunci gabungan (akun, alamat), karena kunci gabungan membiarkan satu alamat mencoba banyak akun. Angka, kunci per RPC, dan uji: §8.1 | 09 | Pilot | **[Usulan]** | 20 percobaan salah berturut-turut: berikutnya ditunda; tanggapan untuk email terdaftar dan tidak terdaftar identik; uji §8.1 |
 | SEC-13 | **Autentikasi ulang dengan kredensial akun** (bukan sesi terbuka, bukan biometrik saja) untuk: F06 keluar, F08 batal keluar, ekspor sesudah keluar, hapus akun, ganti kata sandi atau email, mencabut sesi lain, melihat atau membuat ulang kode pemulihan, mematikan kunci aplikasi. Berlaku untuk satu tindakan dalam 5 menit **[Asumsi]** | 09, 08 | Pilot | FR-FAM-012/AC-13 untuk F06; **[Usulan]** untuk sisanya | Tiap tindakan tanpa autentikasi ulang ditolak tanpa akibat (06 INV-A48 (a)); autentikasi ulang berumur 6 menit ditolak |
 | SEC-14 | Biometrik hanya membuka kunci aplikasi di perangkat; tidak pernah dikirim ke server dan tidak pernah menjadi kredensial akun. Saat menyalakan kunci biometrik, layar menyatakan bahwa sidik jari atau wajah siapa pun yang terdaftar di ponsel itu dapat membukanya | 09, 08 | Pilot | **[Usulan]** | Tidak ada data biometrik di jaringan atau basis data; kata layar ditinjau |
 | SEC-15 | Sesi per perangkat: token akses berumur pendek (15 menit **[Asumsi]**); token penyegar diputar setiap dipakai, dengan deteksi pemakaian ulang yang mencabut seluruh rantai sesi itu. Token disimpan di Keychain (iOS) atau Keystore (Android) dengan kelas "hanya perangkat ini", tidak ikut cadangan atau sinkron awan. Klien web: sesi dalam cookie `__Host-` `HttpOnly` dengan rotasi dan deteksi pemakaian ulang yang setara (10.5 SEC-161) | 09 | Pilot; bagian Keychain dan Keystore saat aplikasi native dibangun (indeks §4.3, §4.4) | **[Usulan]** | Pakai token penyegar lama sekali lagi: sesi dicabut; pulihkan cadangan perangkat ke perangkat lain: tidak ada sesi yang ikut |
@@ -194,6 +256,46 @@ Anggota dalam `keluar_tenggang` tidak membaca apa pun (06 F06) tetapi masih terh
 | SEC-21 | **Perangkat hilang**: pemilik mencabut sesi itu dari sesinya yang lain atau lewat pemulihan (SEC-24). Perangkat yang sesinya dicabut, saat menghubungi server lagi, menerima perintah menghapus basis data lokal, berkas, dan antrean yang belum terkirim, dan menghapusnya sebelum menampilkan apa pun. Catatan yang belum terkirim di perangkat itu hilang; layar cabut menyatakannya | 09, 08 | Pilot | FR-FAM-017/AC-3; **[Usulan]** | Cabut sesi perangkat X; sambungkan X: basis data lokal X kosong sebelum layar pertama; perintah lama dari X ditolak |
 | SEC-22 | Tidak ada anggota yang dapat mencabut sesi, mengeluarkan perangkat, atau mengunci akun anggota lain, juga atas permintaan orang itu | 09 | Pilot | 06 PG-13, INV-A48 (a) | Perintah sesi atas akun lain ditolak |
 | SEC-23 | F06 mencabut hak baca rumah tangga itu pada **semua** sesi orang yang keluar dalam transaksi yang sama; sinkron berikutnya dari tiap perangkatnya menghapus data rumah tangga itu dari perangkat. Yang tersisa hanya jalur ekspor (SEC-101) | 09 | Pilot | 06 F06, INV-A48 (c) | Keluar dari perangkat X; perangkat Y orang yang sama, saat tersambung, tidak lagi menyimpan data rumah tangga itu |
+
+### 8.1 Angka batas laju SEC-12 (FS-1 1.4, Q11)
+
+**Keputusan 13 November 2026**, atas permintaan lead (rencana FS-1 1.4, keputusan 12 dan putusan Q11) **[Usulan]** `security-privacy`. Angka rencana diterima dengan empat perubahan: ambang 5 untuk email pemulihan, kunci alamat tidak dikosongkan oleh keberhasilan, alamat IPv6 dikunci per `/64`, dan urutan pembuangan saat tabel penuh ditetapkan. Batas laju berada di memori proses pada pilot dan pindah ke PostgreSQL bila ada lebih dari satu proses (09.4 §2; ADR-014 butir 5).
+
+**Rumus bersama.** Sebuah kunci bebas sampai `n` = ambang kegagalan; sesudah kegagalan ke-`n` (`n` ≥ ambang) permintaan berikutnya ditolak sampai `kegagalan terakhir + min(2^(n − ambang) detik, 15 menit)`. Permintaan yang ditolak karena batas laju tidak dihitung sebagai kegagalan, tidak menjalankan Argon2, dan tidak menyentuh basis data, dengan tanggapan `RATE_LIMITED` yang sama untuk email terdaftar dan tidak. Kunci dilupakan 1 jam sesudah kegagalan terakhirnya. Paling banyak 100 000 kunci per pembatas; bila penuh, kunci dengan kegagalan terakhir paling lama dibuang lebih dulu.
+
+| Pembatas (satu per RPC) | Kunci akun | Ambang akun | Kunci alamat | Ambang alamat | Yang dihitung kegagalan | Yang mengosongkan kunci |
+|---|---|---|---|---|---|---|
+| `SignIn` | email dipangkas dan huruf kecil, string yang sama dengan pencarian (§5.1 aturan 5) | 20 | alamat jaringan | 20 | kredensial ditolak | keberhasilan mengosongkan **kunci email saja** |
+| `Reauthenticate` | `account.id` | 20 | alamat jaringan | 20 | kata sandi salah | keberhasilan mengosongkan kunci akun saja |
+| `StartRecovery` | email seperti `SignIn` | **5** | alamat jaringan | 20 | setiap permintaan | tidak ada; hanya lupa 1 jam |
+| Pemakaian token: `StartSignUp`, `CompleteSignUp`, `CompleteRecovery` (dan `AcceptInvitation` di 1.6, SEC-30) | — (token belum menunjuk akun) | — | alamat jaringan | 20 | token ditolak | tidak ada; hanya lupa 1 jam |
+
+**Alasan angka.**
+
+| Angka | Alasan |
+|---|---|
+| Ambang 20, tunda mulai 1 detik, batas 15 menit | Sesudah ambang, 10 tundaan pertama berjumlah 1 023 detik (sekitar 17 menit); sesudahnya paling banyak 4 tebakan per jam per akun dari seluruh internet, sekitar 35 000 per tahun. Terhadap kata sandi minimal 12 karakter di luar daftar umum (SEC-11) cukup. Batas 15 menit menjaga pemilik sah yang terkunci tidak menunggu lama |
+| `StartRecovery` per email 5 | Tidak ada rahasia yang ditebak; yang dijaga kotak surat korban dan reputasi pengirim email. 20 email berturut-turut ke satu kotak surat adalah alat pengganggu. Pemilik sah jarang meminta lebih dari 2 tautan per jam |
+| Kunci alamat tidak dikosongkan oleh keberhasilan | Bila dikosongkan, penyerang yang punya satu akun sah (termasuk anggota rumah tangga) mengosongkan kunci alamatnya setiap 19 percobaan atas akun lain |
+| IPv6 per `/64`, IPv4 per alamat, IPv4 dalam IPv6 (`::ffff:a.b.c.d`) sebagai IPv4 | Satu sambungan rumah atau seluler biasa memegang satu `/64`; kunci per alamat IPv6 penuh dapat diganti tanpa batas |
+| 100 000 kunci, buang yang paling lama | Membatasi memori proses. Batas yang dinyatakan: penyerang dengan banyak alamat yang membuat 100 000 kegagalan baru dalam satu jam dapat menyegarkan kunci lama; diterima untuk pilot, ditinjau saat batas laju pindah ke PostgreSQL |
+
+**Penguncian oleh orang lain** (PL-02; dekat TM-09). Siapa pun yang tahu email seseorang dapat membuat `SignIn` email itu tertunda terus. Akibatnya terbatas: sesi yang sudah ada tetap berjalan, dan **jalan pemulihan tidak ikut terkunci**: `CompleteRecovery` tidak memakai kunci email `SignIn`, dan setiap `StartRecovery` penyerang yang lolos justru mengirim tautan yang sah ke kotak surat pemilik. Dengan itu tidak ada jalan bagi anggota lain untuk menahan seseorang di luar akunnya (SEC-22, SEC-27).
+
+**Alamat jaringan** adalah bagian host `PeerAddr` karena TLS diakhiri di biner (09.4 §1). Bila kelak ada proksi atau CDN di depan, semua pengguna tampak satu alamat; perubahan itu memerlukan sumber alamat tepercaya lebih dulu, dicatat di ADR-nya. Pada tahap publik, CGNAT seluler membuat banyak orang berbagi satu alamat IPv4; ambang alamat ditinjau saat batas laju pindah ke PostgreSQL.
+
+**Uji yang wajib ada** (selain uji rencana Tugas 3, 6, 8, 9):
+
+| Berkas, uji | Subuji | Membuktikan |
+|---|---|---|
+| `identity/limiter_test.go`, `TestLimiter` | `the threshold is set per limiter` | Pembatas berambang 5: 5 × `Fail` → `Allow` false; +1 detik → true |
+| idem | `a full table drops the key whose last failure is oldest` | Tabel penuh; kunci terlama hilang, kunci yang sedang tertunda dan lebih baru tetap tertunda |
+| `identity`, `TestAddressKey` | `IPv6 addresses in one /64 share a key`; `IPv4 addresses do not share a key`; `an IPv4-mapped IPv6 address is keyed as IPv4` | Kunci alamat |
+| `api/identity_test.go`, `TestSessions` | `SEC-12 one address trying many accounts is limited` | 20 `SignIn` gagal dengan 20 email berbeda dari satu alamat → ke-21, email apa pun → `RATE_LIMITED` |
+| idem | `SEC-12 a successful sign-in does not reset the address key` | 19 gagal atas email X, 1 berhasil atas akun Y, 1 gagal lagi, semuanya dari satu alamat → berikutnya `RATE_LIMITED` |
+| `api/identity_test.go`, `TestRecovery` | `SEC-12 recovery mail for one email stops after 5 requests` (mengganti angka 20 di rencana Tugas 9) | 5 permintaan → 5 email; ke-6 → `RATE_LIMITED` tanpa email; email tak terdaftar: tanggapan ke-1 sampai ke-6 identik byte demi byte dengan email terdaftar |
+| idem | `SEC-12 a sign-in lockout does not block recovery` | 20 `SignIn` gagal atas email A → `StartRecovery` A mengirim email; `CompleteRecovery` → token sesi |
+| idem | `SEC-12 failed token uses are limited per address` | 20 `CompleteSignUp` atau `CompleteRecovery` dengan token tak dikenal dari satu alamat → ke-21 dengan token sah → `RATE_LIMITED` |
 
 ## 9. Pemulihan akun
 
