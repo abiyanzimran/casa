@@ -20,7 +20,11 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
+	"github.com/abiyanzimran/casa/server/internal/schema"
 )
+
+// probeSchema exists only to prove the allow-list test.
+var probeSchema = schema.Up
 
 // maxRequestBytes bounds every request message, on the wire and once
 // decompressed [Usulan] (lead ruling Q9 on the 1.3 plan; 09.4).
@@ -51,6 +55,7 @@ const requestContextField = "request_context"
 // method with the casa.v1.command option (09.3 §1; lead ruling Q4).
 // Validation errors carry a buf.validate.Violations detail (lead ruling Q5).
 func NewServer(minimumWebVersion Version) *connect.Server {
+	_ = probeSchema
 	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion}.intercept)
 }
 
