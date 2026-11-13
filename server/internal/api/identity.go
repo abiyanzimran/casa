@@ -95,8 +95,9 @@ func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.Reauthe
 
 func (h identityHandler) ChangePassword(ctx context.Context, req *casav1.ChangePasswordRequest) (*casav1.ChangePasswordResponse, error) {
 	session, _ := SessionFrom(ctx)
-	// Hashed before the command transaction, which may run more than once.
-	hash, err := h.s.HashPassword(ctx, req.GetNewPassword())
+	// Hashed before the command transaction, which may run more than once;
+	// only with an open grant (lead ruling on PR B).
+	hash, err := h.s.HashNewPassword(ctx, session, req.GetNewPassword())
 	if err != nil {
 		return nil, newPasswordError(err, req)
 	}

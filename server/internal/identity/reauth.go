@@ -62,10 +62,10 @@ func (s *Service) Reauthenticate(ctx context.Context, client Client, session Ses
 	return expiresAt, nil
 }
 
-// HashPassword refuses a password on the common list, then hashes it with
+// hashPassword refuses a password on the common list, then hashes it with
 // Argon2id (SEC-11). It runs outside any transaction, which may run more than
 // once; without a free hash slot it is ErrRateLimited.
-func (s *Service) HashPassword(ctx context.Context, password string) (PasswordHash, error) {
+func (s *Service) hashPassword(ctx context.Context, password string) (PasswordHash, error) {
 	if err := checkPasswordNotCommon(password); err != nil {
 		return PasswordHash{}, err
 	}
@@ -105,4 +105,28 @@ func replaceCredential(ctx context.Context, q *identitydb.Queries, account pgtyp
 		err = fmt.Errorf("%d credentials updated, want 1", updated)
 	}
 	return err
+}
+
+// HashNewPassword hashes the new password of ChangePassword, outside the
+// command transaction. It hashes only when session holds an open
+// change_password grant, so a session without one cannot spend the hash
+// slots SignIn needs (lead ruling on PR B; 10.1 §8.1 item 3); else it is
+// ErrReauthRequired. ChangePassword still uses the grant atomically: this
+// read is not the authority.
+func (s *Service) HashNewPassword(ctx context.Context, session Session, password string) (PasswordHash, error) {
+	var open bool
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
+		var err error
+		open, err = identitydb.New(tx).HasOpenReauthGrant(ctx, identitydb.HasOpenReauthGrantParams{
+			SessionID: session.ID, Purpose: ReauthChangePassword, Now: s.config.Now(),
+		})
+		return err
+	})
+	switch {
+	case err != nil:
+		return PasswordHash{}, fmt.Errorf("read the re-authentication: %w", err)
+	case !open:
+		return PasswordHash{}, ErrReauthRequired
+	}
+	return s.hashPassword(ctx, password)
 }

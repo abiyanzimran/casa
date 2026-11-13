@@ -97,6 +97,13 @@ UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_a
 INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
 VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at);
 
+-- name: HasOpenReauthGrant :one
+-- The read-only check before hashing a new password; served by
+-- reauth_grant_open.
+SELECT EXISTS (
+	SELECT 1 FROM reauth_grant
+	 WHERE session_id = @session_id AND purpose = @purpose AND used_at IS NULL AND expires_at > @now::timestamptz);
+
 -- name: UseReauthGrant :execrows
 -- Uses one open grant of the session for purpose (SEC-13); served by
 -- reauth_grant_open.

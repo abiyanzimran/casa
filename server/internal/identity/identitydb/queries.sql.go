@@ -176,6 +176,27 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 	return i, err
 }
 
+const hasOpenReauthGrant = `-- name: HasOpenReauthGrant :one
+SELECT EXISTS (
+	SELECT 1 FROM reauth_grant
+	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz)
+`
+
+type HasOpenReauthGrantParams struct {
+	SessionID pgtype.UUID
+	Purpose   string
+	Now       time.Time
+}
+
+// The read-only check before hashing a new password; served by
+// reauth_grant_open.
+func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrantParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasOpenReauthGrant, arg.SessionID, arg.Purpose, arg.Now)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO account (id, email, created_at, signup_via)
 VALUES ($1, $2, $3, 'setup_token')
