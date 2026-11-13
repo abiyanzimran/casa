@@ -36,6 +36,15 @@ const (
 	// HouseholdServiceAcknowledgeOperatorNoticeProcedure is the procedure name of the
 	// HouseholdService's AcknowledgeOperatorNotice RPC.
 	HouseholdServiceAcknowledgeOperatorNoticeProcedure = "/casa.v1.HouseholdService/AcknowledgeOperatorNotice"
+	// HouseholdServiceCreateInvitationProcedure is the procedure name of the HouseholdService's
+	// CreateInvitation RPC.
+	HouseholdServiceCreateInvitationProcedure = "/casa.v1.HouseholdService/CreateInvitation"
+	// HouseholdServiceIssueInvitationLinkProcedure is the procedure name of the HouseholdService's
+	// IssueInvitationLink RPC.
+	HouseholdServiceIssueInvitationLinkProcedure = "/casa.v1.HouseholdService/IssueInvitationLink"
+	// HouseholdServiceCancelInvitationProcedure is the procedure name of the HouseholdService's
+	// CancelInvitation RPC.
+	HouseholdServiceCancelInvitationProcedure = "/casa.v1.HouseholdService/CancelInvitation"
 )
 
 var (
@@ -67,6 +76,27 @@ var (
 			Procedure:  HouseholdServiceAcknowledgeOperatorNoticeProcedure,
 		}
 	})
+	householdServiceCreateInvitationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("CreateInvitation"),
+			Procedure:  HouseholdServiceCreateInvitationProcedure,
+		}
+	})
+	householdServiceIssueInvitationLinkSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("IssueInvitationLink"),
+			Procedure:  HouseholdServiceIssueInvitationLinkProcedure,
+		}
+	})
+	householdServiceCancelInvitationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("CancelInvitation"),
+			Procedure:  HouseholdServiceCancelInvitationProcedure,
+		}
+	})
 )
 
 // HouseholdServiceClient is a client for the casa.v1.HouseholdService service.
@@ -94,6 +124,23 @@ type HouseholdServiceClient interface {
 	// 10.1 §11 note of 14 November 2026 (b)). An online command outside the
 	// queue, exempt from NOTICE_UNREAD (09.3 §1).
 	AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error)
+	// Makes the household's one invitation, without a token, valid 7 days
+	// from now (06 §3.6 F01; SEC-28). Only while the household has fewer than
+	// two full adult members (HOUSEHOLD_FULL) and no live invitation
+	// (INVITATION_PENDING); an invitation past its expiry is first recorded
+	// as expired. household_id is a selector, checked against the caller's
+	// memberships: another household answers as one that does not exist
+	// (SEC-38 (a); FR-FAM-020).
+	CreateInvitation(context.Context, *v1.CreateInvitationRequest) (*v1.CreateInvitationResponse, error)
+	// Issues a new single-use link token for the caller's own open
+	// invitation; the previous token stops working. The expiry stays the one
+	// set at creation. Online only, outside the command kind table, and held
+	// by NOTICE_UNREAD (10.1 SEC-28 note Q7). Any other caller gets NotFound;
+	// an invitation that is no longer open gets STATE_CHANGED.
+	IssueInvitationLink(context.Context, *v1.IssueInvitationLinkRequest) (*v1.IssueInvitationLinkResponse, error)
+	// Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
+	// gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
+	CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error)
 }
 
 // NewHouseholdServiceClient constructs a client for the casa.v1.HouseholdService service. Multiple
@@ -127,6 +174,23 @@ type HouseholdServiceHandler interface {
 	// 10.1 §11 note of 14 November 2026 (b)). An online command outside the
 	// queue, exempt from NOTICE_UNREAD (09.3 §1).
 	AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error)
+	// Makes the household's one invitation, without a token, valid 7 days
+	// from now (06 §3.6 F01; SEC-28). Only while the household has fewer than
+	// two full adult members (HOUSEHOLD_FULL) and no live invitation
+	// (INVITATION_PENDING); an invitation past its expiry is first recorded
+	// as expired. household_id is a selector, checked against the caller's
+	// memberships: another household answers as one that does not exist
+	// (SEC-38 (a); FR-FAM-020).
+	CreateInvitation(context.Context, *v1.CreateInvitationRequest) (*v1.CreateInvitationResponse, error)
+	// Issues a new single-use link token for the caller's own open
+	// invitation; the previous token stops working. The expiry stays the one
+	// set at creation. Online only, outside the command kind table, and held
+	// by NOTICE_UNREAD (10.1 SEC-28 note Q7). Any other caller gets NotFound;
+	// an invitation that is no longer open gets STATE_CHANGED.
+	IssueInvitationLink(context.Context, *v1.IssueInvitationLinkRequest) (*v1.IssueInvitationLinkResponse, error)
+	// Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
+	// gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
+	CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error)
 }
 
 // RegisterHouseholdServiceHandler registers svc as the casa.v1.HouseholdService implementation on
@@ -138,6 +202,9 @@ func RegisterHouseholdServiceHandler(server *connect.Server, svc HouseholdServic
 		connect.Method{Spec: householdServiceListMembershipsSpec(), Handler: adapter.listMemberships},
 		connect.Method{Spec: householdServiceGetOperatorNoticeSpec(), Handler: adapter.getOperatorNotice},
 		connect.Method{Spec: householdServiceAcknowledgeOperatorNoticeSpec(), Handler: adapter.acknowledgeOperatorNotice},
+		connect.Method{Spec: householdServiceCreateInvitationSpec(), Handler: adapter.createInvitation},
+		connect.Method{Spec: householdServiceIssueInvitationLinkSpec(), Handler: adapter.issueInvitationLink},
+		connect.Method{Spec: householdServiceCancelInvitationSpec(), Handler: adapter.cancelInvitation},
 	)
 }
 
@@ -158,6 +225,18 @@ func (UnimplementedHouseholdServiceHandler) GetOperatorNotice(context.Context, *
 
 func (UnimplementedHouseholdServiceHandler) AcknowledgeOperatorNotice(context.Context, *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.AcknowledgeOperatorNotice is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) CreateInvitation(context.Context, *v1.CreateInvitationRequest) (*v1.CreateInvitationResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.CreateInvitation is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) IssueInvitationLink(context.Context, *v1.IssueInvitationLinkRequest) (*v1.IssueInvitationLinkResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.IssueInvitationLink is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.CancelInvitation is not implemented")
 }
 
 type householdServiceClient struct {
@@ -191,6 +270,30 @@ func (c *householdServiceClient) GetOperatorNotice(ctx context.Context, req *v1.
 func (c *householdServiceClient) AcknowledgeOperatorNotice(ctx context.Context, req *v1.AcknowledgeOperatorNoticeRequest) (*v1.AcknowledgeOperatorNoticeResponse, error) {
 	var res v1.AcknowledgeOperatorNoticeResponse
 	if err := c.client.CallUnary(ctx, householdServiceAcknowledgeOperatorNoticeSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) CreateInvitation(ctx context.Context, req *v1.CreateInvitationRequest) (*v1.CreateInvitationResponse, error) {
+	var res v1.CreateInvitationResponse
+	if err := c.client.CallUnary(ctx, householdServiceCreateInvitationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) IssueInvitationLink(ctx context.Context, req *v1.IssueInvitationLinkRequest) (*v1.IssueInvitationLinkResponse, error) {
+	var res v1.IssueInvitationLinkResponse
+	if err := c.client.CallUnary(ctx, householdServiceIssueInvitationLinkSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) CancelInvitation(ctx context.Context, req *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error) {
+	var res v1.CancelInvitationResponse
+	if err := c.client.CallUnary(ctx, householdServiceCancelInvitationSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -240,6 +343,42 @@ func (h householdServiceHandler) acknowledgeOperatorNotice(ctx context.Context, 
 		return err
 	}
 	res, err := h.svc.AcknowledgeOperatorNotice(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) createInvitation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateInvitationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateInvitation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) issueInvitationLink(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.IssueInvitationLinkRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.IssueInvitationLink(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) cancelInvitation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CancelInvitationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CancelInvitation(ctx, &req)
 	if err != nil {
 		return err
 	}

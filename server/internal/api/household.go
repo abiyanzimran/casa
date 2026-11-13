@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/abiyanzimran/casa/server/internal/command"
 	"github.com/abiyanzimran/casa/server/internal/database"
@@ -90,7 +91,7 @@ func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.Creat
 	}
 	res, err = command.RunForAccount(ctx, s.pool, database.Scope{HouseholdID: id, AccountID: account}, procedure, key, req,
 		func(ctx context.Context, tx pgx.Tx) (*casav1.CreateHouseholdResponse, error) {
-			m, err := s.h.Create(ctx, tx, account, id, h, recordAge, idempotencyKey(key))
+			m, err := s.h.Create(ctx, tx, account, id, h, recordAge, checkedUUID(key))
 			if err != nil {
 				return nil, err
 			}
@@ -253,6 +254,91 @@ func (s householdHandler) AcknowledgeOperatorNotice(ctx context.Context, req *ca
 	return res, nil
 }
 
+// member is the session account's membership of the household the request
+// selects, the selector check of SEC-38 (a) (09.2 §3 layer 1; plan 1.6
+// decision 4): household_id is only a selector, never a proof of permission;
+// another household answers as one that does not exist (FR-FAM-020/AC-1).
+// The due live invitation of that household is then written expired, so a
+// token-free command never acts on it (plan 1.6 decision 12).
+func (s householdHandler) member(ctx context.Context, selector string) (household.Member, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	m, err := s.h.Member(ctx, session.AccountID, checkedUUID(selector))
+	if err == nil {
+		err = s.h.ExpireDueInvitation(ctx, m)
+	}
+	return m, err
+}
+
+// CreateInvitation is F01 (06 §3.6; FR-FAM-003): the selector check, the
+// expiry of a due invitation, then the command in the household's scope,
+// with the membership checked again inside it (SEC-151).
+func (s householdHandler) CreateInvitation(ctx context.Context, req *casav1.CreateInvitationRequest) (*casav1.CreateInvitationResponse, error) {
+	m, err := s.member(ctx, req.GetHouseholdId())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	key := req.GetRequestContext().GetIdempotencyKey()
+	res, err := command.Run(ctx, s.pool, database.Scope{HouseholdID: m.HouseholdID, AccountID: m.AccountID},
+		casav1connect.HouseholdServiceCreateInvitationProcedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.CreateInvitationResponse, error) {
+			inviter, err := s.h.MemberIn(ctx, tx, m.AccountID)
+			if err != nil {
+				return nil, err
+			}
+			inv, err := s.h.CreateInvitation(ctx, tx, inviter, checkedUUID(key))
+			if err != nil {
+				return nil, err
+			}
+			return &casav1.CreateInvitationResponse{InvitationId: uuidString(inv.ID), ExpiresAt: timestamppb.New(inv.ExpiresAt)}, nil
+		})
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
+// IssueInvitationLink makes a new 256-bit link token with identity's token
+// maker and hands its hash to household, which replaces the old one (10.1
+// SEC-28 note Q7; 09.2 §1 item 9). It is not a command: no idempotency
+// record, so the token is never stored but as its hash; NOTICE_UNREAD holds
+// it (noticeHeldProcedures). The answer carries Cache-Control: no-store,
+// which WithSecurityHeaders sets on every API answer (SEC-28 note Q7 (d)).
+func (s householdHandler) IssueInvitationLink(ctx context.Context, req *casav1.IssueInvitationLinkRequest) (*casav1.IssueInvitationLinkResponse, error) {
+	m, err := s.member(ctx, req.GetHouseholdId())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	token, hash := identity.NewToken()
+	expiresAt, err := s.h.IssueInvitationLink(ctx, m, checkedUUID(req.GetInvitationId()), hash)
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return &casav1.IssueInvitationLinkResponse{InvitationToken: token, ExpiresAt: timestamppb.New(expiresAt)}, nil
+}
+
+// CancelInvitation is F03 by the inviter (06 §3.6; FR-FAM-003/AC-3): the
+// selector check, the expiry of a due invitation, then the command.
+func (s householdHandler) CancelInvitation(ctx context.Context, req *casav1.CancelInvitationRequest) (*casav1.CancelInvitationResponse, error) {
+	m, err := s.member(ctx, req.GetHouseholdId())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	key := req.GetRequestContext().GetIdempotencyKey()
+	res, err := command.Run(ctx, s.pool, database.Scope{HouseholdID: m.HouseholdID, AccountID: m.AccountID},
+		casav1connect.HouseholdServiceCancelInvitationProcedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.CancelInvitationResponse, error) {
+			inviter, err := s.h.MemberIn(ctx, tx, m.AccountID)
+			if err != nil {
+				return nil, err
+			}
+			return &casav1.CancelInvitationResponse{}, s.h.CancelInvitation(ctx, tx, inviter, checkedUUID(req.GetInvitationId()), checkedUUID(key))
+		})
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
 // uuidString is id in its text form.
 func uuidString(id pgtype.UUID) string {
 	value, _ := id.Value() // a valid uuid always has a text form
@@ -260,11 +346,12 @@ func uuidString(id pgtype.UUID) string {
 	return s
 }
 
-// idempotencyKey is the command's key, already checked by the boundary and
-// by command (09.2 §8), as the event's idempotency_key.
-func idempotencyKey(key string) pgtype.UUID {
+// checkedUUID is a uuid of the request already checked at the boundary
+// (protovalidate string.uuid, or the idempotency key's rule and command,
+// 09.2 §8).
+func checkedUUID(s string) pgtype.UUID {
 	var id pgtype.UUID
-	_ = id.Scan(key) // checked: an unreadable key fails command.Stored first
+	_ = id.Scan(s) // checked before the handler runs
 	return id
 }
 
@@ -273,6 +360,14 @@ func idempotencyKey(key string) pgtype.UUID {
 // internal and its text never reaches the client (09.2 §3 layer 3).
 func householdError(err error) error {
 	switch {
+	case errors.Is(err, household.ErrNotFound):
+		return connect.NewError(connect.CodeNotFound, "not found") // no detail (SEC-05)
+	case errors.Is(err, household.ErrInvitationPending):
+		return errorWithDetail(connect.CodeFailedPrecondition, "invitation pending",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_INVITATION_PENDING})
+	case errors.Is(err, household.ErrHouseholdFull):
+		return errorWithDetail(connect.CodeFailedPrecondition, "household full",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_HOUSEHOLD_FULL})
 	case errors.Is(err, household.ErrAgeDeclarationRequired):
 		return errorWithDetail(connect.CodeFailedPrecondition, "age declaration required",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_AGE_DECLARATION_REQUIRED})

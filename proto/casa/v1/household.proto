@@ -5,6 +5,7 @@ package casa.v1;
 import "buf/validate/validate.proto";
 import "casa/v1/command.proto";
 import "casa/v1/request.proto";
+import "google/protobuf/timestamp.proto";
 
 // HouseholdService is the household module's API: households, memberships
 // and invitations (09.2 §1; 06 §3.1, §3.6). Its errors are mapped by one
@@ -39,6 +40,27 @@ service HouseholdService {
       hold_seconds: 0
       notice_exempt: true
     };
+  }
+  // Makes the household's one invitation, without a token, valid 7 days
+  // from now (06 §3.6 F01; SEC-28). Only while the household has fewer than
+  // two full adult members (HOUSEHOLD_FULL) and no live invitation
+  // (INVITATION_PENDING); an invitation past its expiry is first recorded
+  // as expired. household_id is a selector, checked against the caller's
+  // memberships: another household answers as one that does not exist
+  // (SEC-38 (a); FR-FAM-020).
+  rpc CreateInvitation(CreateInvitationRequest) returns (CreateInvitationResponse) {
+    option (casa.v1.command) = {hold_seconds: 0};
+  }
+  // Issues a new single-use link token for the caller's own open
+  // invitation; the previous token stops working. The expiry stays the one
+  // set at creation. Online only, outside the command kind table, and held
+  // by NOTICE_UNREAD (10.1 SEC-28 note Q7). Any other caller gets NotFound;
+  // an invitation that is no longer open gets STATE_CHANGED.
+  rpc IssueInvitationLink(IssueInvitationLinkRequest) returns (IssueInvitationLinkResponse);
+  // Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
+  // gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
+  rpc CancelInvitation(CancelInvitationRequest) returns (CancelInvitationResponse) {
+    option (casa.v1.command) = {hold_seconds: 0};
   }
 }
 
@@ -143,3 +165,36 @@ message AcknowledgeOperatorNoticeRequest {
 }
 
 message AcknowledgeOperatorNoticeResponse {}
+
+message CreateInvitationRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+}
+
+message CreateInvitationResponse {
+  string invitation_id = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message IssueInvitationLinkRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+  string invitation_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+// The token and its expiry only: nothing about the household (FR-FAM-003/AC-6;
+// SEC-29). The answer carries Cache-Control: no-store and the client never
+// stores the token (SEC-28 note Q7 (d)).
+message IssueInvitationLinkResponse {
+  // 43 characters of unpadded base64url; the link is <origin>/invite#<token>.
+  string invitation_token = 1 [debug_redact = true];
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message CancelInvitationRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+  string invitation_id = 3 [(buf.validate.field).string.uuid = true];
+}
+
+message CancelInvitationResponse {}

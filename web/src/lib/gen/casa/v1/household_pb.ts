@@ -8,13 +8,15 @@ import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
 import { file_casa_v1_command } from "./command_pb";
 import type { RequestContext } from "./request_pb";
 import { file_casa_v1_request } from "./request_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file casa/v1/household.proto.
  */
 export const file_casa_v1_household: GenFile = /*@__PURE__*/
-  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwIlQKGEdldE9wZXJhdG9yTm90aWNlUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiMAoPTm90aWNlUGFyYWdyYXBoEgwKBHRleHQYASABKAkSDwoHZmVhdHVyZRgCIAEoCSKlAQoZR2V0T3BlcmF0b3JOb3RpY2VSZXNwb25zZRIPCgd2YXJpYW50GAEgASgJEg8KB3ZlcnNpb24YAiABKA0SDQoFdGl0bGUYAyABKAkSLAoKcGFyYWdyYXBocxgEIAMoCzIYLmNhc2EudjEuTm90aWNlUGFyYWdyYXBoEhQKDGFja25vd2xlZGdlZBgFIAEoCBITCgt0ZXh0X3NoYTI1NhgGIAEoDCLLAQogQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEi8KB3ZhcmlhbnQYAiABKAlCHrpIG3IZUgZjb3VwbGVSBmZhbWlseVIHZ2VuZXJhbBIeCgd2ZXJzaW9uGAMgASgNQg26SAoqCBj/////ByAAEhwKC3RleHRfc2hhMjU2GAQgASgMQge6SAR6AmggIiMKIUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZTKgAwoQSG91c2Vob2xkU2VydmljZRJcCg9DcmVhdGVIb3VzZWhvbGQSHy5jYXNhLnYxLkNyZWF0ZUhvdXNlaG9sZFJlcXVlc3QaIC5jYXNhLnYxLkNyZWF0ZUhvdXNlaG9sZFJlc3BvbnNlIgaCtRgCCAASVAoPTGlzdE1lbWJlcnNoaXBzEh8uY2FzYS52MS5MaXN0TWVtYmVyc2hpcHNSZXF1ZXN0GiAuY2FzYS52MS5MaXN0TWVtYmVyc2hpcHNSZXNwb25zZRJaChFHZXRPcGVyYXRvck5vdGljZRIhLmNhc2EudjEuR2V0T3BlcmF0b3JOb3RpY2VSZXF1ZXN0GiIuY2FzYS52MS5HZXRPcGVyYXRvck5vdGljZVJlc3BvbnNlEnwKGUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2USKS5jYXNhLnYxLkFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXF1ZXN0GiouY2FzYS52MS5BY2tub3dsZWRnZU9wZXJhdG9yTm90aWNlUmVzcG9uc2UiCIK1GAQIABgBQpsBCgtjb20uY2FzYS52MUIOSG91c2Vob2xkUHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request]);
+  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwIlQKGEdldE9wZXJhdG9yTm90aWNlUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiMAoPTm90aWNlUGFyYWdyYXBoEgwKBHRleHQYASABKAkSDwoHZmVhdHVyZRgCIAEoCSKlAQoZR2V0T3BlcmF0b3JOb3RpY2VSZXNwb25zZRIPCgd2YXJpYW50GAEgASgJEg8KB3ZlcnNpb24YAiABKA0SDQoFdGl0bGUYAyABKAkSLAoKcGFyYWdyYXBocxgEIAMoCzIYLmNhc2EudjEuTm90aWNlUGFyYWdyYXBoEhQKDGFja25vd2xlZGdlZBgFIAEoCBITCgt0ZXh0X3NoYTI1NhgGIAEoDCLLAQogQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEi8KB3ZhcmlhbnQYAiABKAlCHrpIG3IZUgZjb3VwbGVSBmZhbWlseVIHZ2VuZXJhbBIeCgd2ZXJzaW9uGAMgASgNQg26SAoqCBj/////ByAAEhwKC3RleHRfc2hhMjU2GAQgASgMQge6SAR6AmggIiMKIUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSJzChdDcmVhdGVJbnZpdGF0aW9uUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESHgoMaG91c2Vob2xkX2lkGAIgASgJQgi6SAVyA7ABASJhChhDcmVhdGVJbnZpdGF0aW9uUmVzcG9uc2USFQoNaW52aXRhdGlvbl9pZBgBIAEoCRIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKXAQoaSXNzdWVJbnZpdGF0aW9uTGlua1JlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEibAobSXNzdWVJbnZpdGF0aW9uTGlua1Jlc3BvbnNlEh0KEGludml0YXRpb25fdG9rZW4YASABKAlCA4ABARIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKUAQoXQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEiGgoYQ2FuY2VsSW52aXRhdGlvblJlc3BvbnNlMsQFChBIb3VzZWhvbGRTZXJ2aWNlElwKD0NyZWF0ZUhvdXNlaG9sZBIfLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBogLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2UiBoK1GAIIABJUCg9MaXN0TWVtYmVyc2hpcHMSHy5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1JlcXVlc3QaIC5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEloKEUdldE9wZXJhdG9yTm90aWNlEiEuY2FzYS52MS5HZXRPcGVyYXRvck5vdGljZVJlcXVlc3QaIi5jYXNhLnYxLkdldE9wZXJhdG9yTm90aWNlUmVzcG9uc2USfAoZQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZRIpLmNhc2EudjEuQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QaKi5jYXNhLnYxLkFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSIIgrUYBAgAGAESXwoQQ3JlYXRlSW52aXRhdGlvbhIgLmNhc2EudjEuQ3JlYXRlSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNyZWF0ZUludml0YXRpb25SZXNwb25zZSIGgrUYAggAEmAKE0lzc3VlSW52aXRhdGlvbkxpbmsSIy5jYXNhLnYxLklzc3VlSW52aXRhdGlvbkxpbmtSZXF1ZXN0GiQuY2FzYS52MS5Jc3N1ZUludml0YXRpb25MaW5rUmVzcG9uc2USXwoQQ2FuY2VsSW52aXRhdGlvbhIgLmNhc2EudjEuQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNhbmNlbEludml0YXRpb25SZXNwb25zZSIGgrUYAggAQpsBCgtjb20uY2FzYS52MUIOSG91c2Vob2xkUHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.CreateHouseholdRequest
@@ -326,6 +328,145 @@ export const AcknowledgeOperatorNoticeResponseSchema: GenMessage<AcknowledgeOper
   messageDesc(file_casa_v1_household, 10);
 
 /**
+ * @generated from message casa.v1.CreateInvitationRequest
+ */
+export type CreateInvitationRequest = Message<"casa.v1.CreateInvitationRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: string household_id = 2;
+   */
+  householdId: string;
+};
+
+/**
+ * Describes the message casa.v1.CreateInvitationRequest.
+ * Use `create(CreateInvitationRequestSchema)` to create a new message.
+ */
+export const CreateInvitationRequestSchema: GenMessage<CreateInvitationRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 11);
+
+/**
+ * @generated from message casa.v1.CreateInvitationResponse
+ */
+export type CreateInvitationResponse = Message<"casa.v1.CreateInvitationResponse"> & {
+  /**
+   * @generated from field: string invitation_id = 1;
+   */
+  invitationId: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message casa.v1.CreateInvitationResponse.
+ * Use `create(CreateInvitationResponseSchema)` to create a new message.
+ */
+export const CreateInvitationResponseSchema: GenMessage<CreateInvitationResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 12);
+
+/**
+ * @generated from message casa.v1.IssueInvitationLinkRequest
+ */
+export type IssueInvitationLinkRequest = Message<"casa.v1.IssueInvitationLinkRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: string household_id = 2;
+   */
+  householdId: string;
+
+  /**
+   * @generated from field: string invitation_id = 3;
+   */
+  invitationId: string;
+};
+
+/**
+ * Describes the message casa.v1.IssueInvitationLinkRequest.
+ * Use `create(IssueInvitationLinkRequestSchema)` to create a new message.
+ */
+export const IssueInvitationLinkRequestSchema: GenMessage<IssueInvitationLinkRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 13);
+
+/**
+ * The token and its expiry only: nothing about the household (FR-FAM-003/AC-6;
+ * SEC-29). The answer carries Cache-Control: no-store and the client never
+ * stores the token (SEC-28 note Q7 (d)).
+ *
+ * @generated from message casa.v1.IssueInvitationLinkResponse
+ */
+export type IssueInvitationLinkResponse = Message<"casa.v1.IssueInvitationLinkResponse"> & {
+  /**
+   * 43 characters of unpadded base64url; the link is <origin>/invite#<token>.
+   *
+   * @generated from field: string invitation_token = 1;
+   */
+  invitationToken: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message casa.v1.IssueInvitationLinkResponse.
+ * Use `create(IssueInvitationLinkResponseSchema)` to create a new message.
+ */
+export const IssueInvitationLinkResponseSchema: GenMessage<IssueInvitationLinkResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 14);
+
+/**
+ * @generated from message casa.v1.CancelInvitationRequest
+ */
+export type CancelInvitationRequest = Message<"casa.v1.CancelInvitationRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: string household_id = 2;
+   */
+  householdId: string;
+
+  /**
+   * @generated from field: string invitation_id = 3;
+   */
+  invitationId: string;
+};
+
+/**
+ * Describes the message casa.v1.CancelInvitationRequest.
+ * Use `create(CancelInvitationRequestSchema)` to create a new message.
+ */
+export const CancelInvitationRequestSchema: GenMessage<CancelInvitationRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 15);
+
+/**
+ * @generated from message casa.v1.CancelInvitationResponse
+ */
+export type CancelInvitationResponse = Message<"casa.v1.CancelInvitationResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.CancelInvitationResponse.
+ * Use `create(CancelInvitationResponseSchema)` to create a new message.
+ */
+export const CancelInvitationResponseSchema: GenMessage<CancelInvitationResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 16);
+
+/**
  * HouseholdService is the household module's API: households, memberships
  * and invitations (09.2 §1; 06 §3.1, §3.6). Its errors are mapped by one
  * function in the API layer (ADR-013 note 1.6).
@@ -387,6 +528,47 @@ export const HouseholdService: GenService<{
     methodKind: "unary";
     input: typeof AcknowledgeOperatorNoticeRequestSchema;
     output: typeof AcknowledgeOperatorNoticeResponseSchema;
+  },
+  /**
+   * Makes the household's one invitation, without a token, valid 7 days
+   * from now (06 §3.6 F01; SEC-28). Only while the household has fewer than
+   * two full adult members (HOUSEHOLD_FULL) and no live invitation
+   * (INVITATION_PENDING); an invitation past its expiry is first recorded
+   * as expired. household_id is a selector, checked against the caller's
+   * memberships: another household answers as one that does not exist
+   * (SEC-38 (a); FR-FAM-020).
+   *
+   * @generated from rpc casa.v1.HouseholdService.CreateInvitation
+   */
+  createInvitation: {
+    methodKind: "unary";
+    input: typeof CreateInvitationRequestSchema;
+    output: typeof CreateInvitationResponseSchema;
+  },
+  /**
+   * Issues a new single-use link token for the caller's own open
+   * invitation; the previous token stops working. The expiry stays the one
+   * set at creation. Online only, outside the command kind table, and held
+   * by NOTICE_UNREAD (10.1 SEC-28 note Q7). Any other caller gets NotFound;
+   * an invitation that is no longer open gets STATE_CHANGED.
+   *
+   * @generated from rpc casa.v1.HouseholdService.IssueInvitationLink
+   */
+  issueInvitationLink: {
+    methodKind: "unary";
+    input: typeof IssueInvitationLinkRequestSchema;
+    output: typeof IssueInvitationLinkResponseSchema;
+  },
+  /**
+   * Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
+   * gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
+   *
+   * @generated from rpc casa.v1.HouseholdService.CancelInvitation
+   */
+  cancelInvitation: {
+    methodKind: "unary";
+    input: typeof CancelInvitationRequestSchema;
+    output: typeof CancelInvitationResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_household, 0);

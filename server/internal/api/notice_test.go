@@ -16,10 +16,12 @@ import (
 	"connectrpc.com/connect/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
+	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/household"
 )
 
@@ -431,6 +433,25 @@ func heldMethods(t *testing.T) (held, exempt []protoreflect.MethodDescriptor) {
 	return held, exempt
 }
 
+// noticeFreeReads are the online reads outside IdentityService, which
+// NOTICE_UNREAD never holds (09.3 §1; plan 1.6 decision 16).
+var noticeFreeReads = []string{
+	casav1connect.HouseholdServiceListMembershipsProcedure,
+	casav1connect.HouseholdServiceGetOperatorNoticeProcedure,
+}
+
+// methodOf is the contract's method of procedure.
+func methodOf(t *testing.T, procedure string) protoreflect.MethodDescriptor {
+	t.Helper()
+	service, method, _ := strings.Cut(strings.TrimPrefix(procedure, "/"), "/")
+	d, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(service + "." + method))
+	m, ok := d.(protoreflect.MethodDescriptor)
+	if err != nil || !ok {
+		t.Fatalf("%s is not a method of the contract (%v)", procedure, err)
+	}
+	return m
+}
+
 func procedureOf(m protoreflect.MethodDescriptor) string {
 	return "/" + string(m.Parent().FullName()) + "/" + string(m.Name())
 }
@@ -533,6 +554,42 @@ func TestNoticeHold(t *testing.T) {
 		h.notice(t, a)
 		if got := h.memberships(t, a); len(got) != 0 {
 			t.Fatalf("memberships = %v, want none", got)
+		}
+		for _, procedure := range noticeFreeReads {
+			m := methodOf(t, procedure)
+			if err := h.callWithContext(m, a.token, identityRC(ios)); err != nil && slices.Contains(errorCodes(t, err), casav1.ErrorCode_ERROR_CODE_NOTICE_UNREAD) {
+				t.Errorf("%s: %v, want it past the hold", procedure, err)
+			}
+		}
+	})
+
+	// Carried from the Task 4 review (M2): a new read RPC cannot skip the
+	// hold decision; it is named here or in noticeHeldProcedures.
+	t.Run("every RPC that is not a command is a named read or held", func(t *testing.T) {
+		held := api.NoticeHeldProcedures()
+		for _, file := range casaFiles(t) {
+			for i := range file.Services().Len() {
+				service := file.Services().Get(i)
+				if service.FullName() == "casa.v1.IdentityService" { // never held (09.3 §1)
+					continue
+				}
+				for j := range service.Methods().Len() {
+					m := service.Methods().Get(j)
+					procedure := procedureOf(m)
+					if proto.HasExtension(m.Options(), casav1.E_Command) {
+						continue
+					}
+					if !slices.Contains(noticeFreeReads, procedure) && !held[procedure] {
+						t.Errorf("%s is neither a command, a named read, nor in noticeHeldProcedures", procedure)
+					}
+					if slices.Contains(noticeFreeReads, procedure) && held[procedure] {
+						t.Errorf("%s is both a named read and held", procedure)
+					}
+				}
+			}
+		}
+		for _, procedure := range noticeFreeReads {
+			methodOf(t, procedure)
 		}
 	})
 
