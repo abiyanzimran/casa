@@ -72,7 +72,14 @@ CASA_DB_PORT ?= 5432
 # tmpfs, test data only (14 §7.8); no password enters the repository.
 CASA_TEST_ADMIN_URL ?= postgres://postgres@127.0.0.1:$(CASA_DB_PORT)/postgres?sslmode=disable
 
+# The image is pulled first, up to 3 times 10 s apart: a registry error is
+# often transient (it once failed a CI run).
 db-up:
+	docker image inspect $(POSTGRES_IMAGE) >/dev/null 2>&1 || for i in 1 2 3; do \
+		if docker pull -q $(POSTGRES_IMAGE) >/dev/null; then break; fi; \
+		if [ $$i = 3 ]; then echo "docker pull failed 3 times"; exit 1; fi; \
+		echo "docker pull failed; retrying in 10 s"; sleep 10; \
+	done
 	docker run -d --rm --name casa-postgres -p 127.0.0.1:$(CASA_DB_PORT):5432 \
 		-e POSTGRES_HOST_AUTH_METHOD=trust --tmpfs /var/lib/postgresql $(POSTGRES_IMAGE) >/dev/null
 	for _ in $$(seq 60); do \
