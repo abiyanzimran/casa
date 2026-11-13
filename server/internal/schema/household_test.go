@@ -346,8 +346,9 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 	t.Run("no household table has a column meaning husband or wife", func(t *testing.T) {
 		// Part of FR-FAM-020/AC-3 (PRN-03; 06 §14): neither a name nor an
 		// allowed value. household_id on every object is proven by
-		// TestCatalog; the personal book on the member by the task that
-		// adds its table.
+		// TestCatalog; account and member as two entities by "an account
+		// and a member are two entities" below; the personal book on the
+		// member by the task that adds its table.
 		spouse := regexp.MustCompile(`(?i)husband|wife|suami|istri`)
 		names := queryStrings(t, admin, `
 			SELECT table_name || '.' || column_name FROM information_schema.columns
@@ -382,6 +383,27 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 		}
 	})
 
+	t.Run("an account and a member are two entities", func(t *testing.T) {
+		// Part of FR-FAM-020/AC-3: a member is keyed by member_id; its
+		// account is an identity mapping that can be cut (account_id NULL,
+		// 07 §8.2) and no household table has a foreign key to account.
+		got := queryStrings(t, admin, `
+			SELECT 'primary key ' || pg_get_constraintdef(oid) FROM pg_constraint
+			 WHERE conrelid = 'public.membership'::regclass AND contype = 'p'
+			UNION ALL
+			SELECT 'account_id nullable ' || is_nullable FROM information_schema.columns
+			 WHERE table_schema = 'public' AND table_name = 'membership' AND column_name = 'account_id'
+			UNION ALL
+			SELECT 'foreign key to account from ' || conrelid::regclass::text FROM pg_constraint
+			 WHERE contype = 'f' AND confrelid = 'public.account'::regclass
+			   AND conrelid::regclass::text = ANY ($1)
+			 ORDER BY 1`, householdTables)
+		want := []string{"account_id nullable YES", "primary key PRIMARY KEY (household_id, member_id)"}
+		if !slices.Equal(got, want) {
+			t.Errorf("membership: %v, want %v", got, want)
+		}
+	})
+
 	t.Run("a household rule belongs to an existing household", func(t *testing.T) {
 		// Without an amount the composite foreign key to household (id,
 		// currency) is not checked (MATCH SIMPLE), so household_id has its
@@ -391,6 +413,19 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 			"INSERT INTO household_rule (household_id, version, preset_id, created_at) VALUES ($1, 1, 'two_equal_adults', now())", missing)
 		if code := databasetest.PgErrorCode(err); code != "23503" {
 			t.Errorf("a rule without a threshold for a household that does not exist: err = %v, want foreign_key_violation (23503)", err)
+		}
+	})
+
+	t.Run("an object event belongs to an existing household", func(t *testing.T) {
+		// A system or invitee event has no actor, so the foreign key to
+		// membership is not checked (MATCH SIMPLE); household_id has its own
+		// (lead ruling on Task 1 review, finding 1).
+		missing := randomUUID()
+		err := tryWrite(t, app, database.Scope{HouseholdID: missing}, `
+			INSERT INTO object_event (household_id, object_kind, object_id, seq, actor_kind, rule, command, to_state, server_time)
+			VALUES ($1, 'invitation', gen_random_uuid(), 1, 'system', 'invitation.expired', 'x', 'expired', now())`, missing)
+		if code := databasetest.PgErrorCode(err); code != "23503" {
+			t.Errorf("a system event for a household that does not exist: err = %v, want foreign_key_violation (23503)", err)
 		}
 	})
 

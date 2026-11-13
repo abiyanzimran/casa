@@ -33,18 +33,19 @@ CREATE TABLE membership (
 	PRIMARY KEY (household_id, member_id),
 	UNIQUE (household_id, account_id)
 );
--- An account's own memberships across households (09.2 §3 layer 1).
-CREATE INDEX membership_account ON membership (account_id) WHERE account_id IS NOT NULL;
 -- The pilot's product rule "one household per account", held across
 -- households because a unique check ignores row-level security; a recorded
 -- exception to 09.2 §3 layer 2, dropped (contract) with F-FAM-009 (09.2
--- §5.1, note on decision 20).
+-- §5.1, note on decision 20). It also serves an account's own memberships
+-- (09.2 §3 layer 1); the F-FAM-009 migration adds a plain index on
+-- account_id when it drops this one.
 CREATE UNIQUE INDEX membership_one_household ON membership (account_id) WHERE account_id IS NOT NULL;
 
 -- 06 §3.1 approval authority. An amount always carries its currency; both
 -- NULL means no limit. A composite foreign key with a NULL column is not
 -- checked (MATCH SIMPLE), so a row without an amount never blocks a change
--- of the household's currency (09.2 §5.1, §7).
+-- of the household's currency (09.2 §5.1, §7). ON UPDATE RESTRICT: once an
+-- amount exists, household.currency cannot change (INV-35; 09.2 §5.2 item 4).
 CREATE TABLE approval_authority (
 	household_id uuid NOT NULL,
 	member_id    uuid NOT NULL,
@@ -56,7 +57,7 @@ CREATE TABLE approval_authority (
 	CHECK ((limit_amount IS NULL) = (currency IS NULL)),
 	PRIMARY KEY (household_id, member_id, request_type, valid_from),
 	FOREIGN KEY (household_id, member_id) REFERENCES membership,
-	FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+	FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT
 );
 
 -- 06 §3.1 household rule: never changed; a new version is a new row.
@@ -74,7 +75,7 @@ CREATE TABLE household_rule (
 	created_at        timestamptz NOT NULL,
 	CHECK ((request_threshold IS NULL) = (currency IS NULL)),
 	PRIMARY KEY (household_id, version),
-	FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+	FOREIGN KEY (household_id, currency) REFERENCES household (id, currency) ON UPDATE RESTRICT
 );
 
 -- 06 §3.1 relationship: the table exists, with no rows in the pilot
@@ -122,8 +123,11 @@ CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE 
 -- 06 §2.5 per-object events, INV-A01; append-only for app_rw (ADR-016 item
 -- 5; FR-FAM-020/AC-6). seq is the object's version after the transition,
 -- 0 for its creation event. terms_version (INV-A01) comes with request.
+-- household_id has its own foreign key: a system or invitee event has no
+-- actor, so the one to membership is not checked (MATCH SIMPLE) (lead ruling
+-- on the Task 1 review of the 1.6 plan; 09.2 §5.1 change requested).
 CREATE TABLE object_event (
-	household_id    uuid NOT NULL,
+	household_id    uuid NOT NULL REFERENCES household (id),
 	object_kind     text NOT NULL CHECK (object_kind IN ('household', 'invitation')), -- widened by each writing module
 	object_id       uuid NOT NULL,
 	seq             bigint NOT NULL,
