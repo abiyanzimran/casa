@@ -91,7 +91,7 @@ Alat formatter, linter, pemindai kerentanan, dan pemeriksa duplikasi **diputuska
 | Pelari uji | Vitest (unit, vektor emas); Playwright Chromium dan WebKit (alur, header, CSRF, XSS) |
 | Uji properti | Tidak diperlukan: aturan tidak ada di klien (ADR-013) |
 | Cakupan | Laporan Vitest, tanpa ambang |
-| Pustaka utama | SvelteKit 3, Svelte 5, `@vite-pwa/sveltekit`, Dexie 4, connect-web 2.x; daftar dependensi bundel tertutup (ADR-030 butir 8) |
+| Pustaka utama | SvelteKit 3 (dengan service worker bawaannya, tanpa plugin PWA; ADR-030 butir 2, catatan 13 November 2026), Svelte 5, Dexie 4, connect-web 2.x; daftar dependensi bundel tertutup (ADR-030 butir 8) |
 | Keterlacakan | Pemeriksa ID yang sama, membaca nama uji Vitest dan Playwright |
 
 **Satu repositori** untuk `proto/`, `server/`, `web/`, `ios/`, `android/`, dan vektor emas **[Usulan]**. Alasannya: kontrak, kode hasil generate, dan berkas vektor emas berubah bersama dalam satu perubahan, dan `buf breaking` membandingkan terhadap cabang utama yang sama. Dua repositori menambah sinkronisasi versi kontrak tanpa pemakai kedua.
