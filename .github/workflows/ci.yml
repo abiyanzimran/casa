@@ -116,6 +116,9 @@ jobs:
       - name: web-bundle
         if: ${{ !cancelled() }}
         run: make web-bundle
+      - name: web-unit (QG-05)
+        if: ${{ !cancelled() }}
+        run: make web-unit
       - name: web-e2e (QG-05)
         if: ${{ !cancelled() }}
         run: make web-e2e
