@@ -82,6 +82,11 @@ func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest
 	if err != nil {
 		return nil, identityError(err)
 	}
+	if session.ClientKind == "web" { // SEC-164 (b): only after the revocation committed
+		if err := clearSessionCookie(ctx); err != nil {
+			return nil, identityError(err)
+		}
+	}
 	return res, nil
 }
 

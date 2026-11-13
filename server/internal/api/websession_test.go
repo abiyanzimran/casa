@@ -479,6 +479,67 @@ func TestCookieSession(t *testing.T) {
 		}
 	})
 
+	// wantSiteCleared checks a web sign-out's answer (SEC-164 (b); plan 1.5
+	// decision 14): Clear-Site-Data exactly "cookies", "storage" (no
+	// "cache"), and one Set-Cookie that expires the session cookie with the
+	// attributes of decision 7, never a new value.
+	wantSiteCleared := func(t *testing.T, info *connect.CallInfo) {
+		t.Helper()
+		if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 1 || got[0] != `"cookies", "storage"` {
+			t.Fatalf("Clear-Site-Data %q, want exactly %q", got, `"cookies", "storage"`)
+		}
+		cookie, line := sessionCookie(t, info)
+		if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
+			!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
+			strings.Contains(strings.ToLower(line), "domain") {
+			t.Fatalf("Set-Cookie %q: want %s= expired (Max-Age=0), Secure, HttpOnly, SameSite=Strict, Path=/ and no Domain",
+				cookieShape(line), sessionCookieName)
+		}
+	}
+
+	t.Run("a web sign-out clears the cookie and the site data", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		for _, mode := range []casav1.DeviceMode{personal, shared} {
+			cookie := h.webSignIn(t, email, password, mode)
+			ctx := sameOrigin(cookie)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			wantOK(t, h.webSignOut(ctx))
+			wantSiteCleared(t, info)
+			wantErrorCode(t, h.read(sameOrigin(cookie), web, true), connect.CodeUnauthenticated, revoked)
+		}
+
+		// SignOut as the first request after the 15-minute mark: the
+		// boundary rotates the value, and the answer must expire the cookie
+		// instead of handing out a new value for a revoked session
+		// (SEC-161 (c); plan 1.5 decision 14).
+		cookie := h.webSignIn(t, email, password, personal)
+		h.clock.advance(15 * time.Minute)
+		ctx := sameOrigin(cookie)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantOK(t, h.webSignOut(ctx))
+		wantSiteCleared(t, info)
+		wantErrorCode(t, h.read(sameOrigin(cookie), web, true), connect.CodeUnauthenticated, revoked)
+		if n := h.count(t, "SELECT count(*) FROM session WHERE client_kind = 'web' AND revoked_at IS NULL"); n != 0 {
+			t.Fatalf("%d web sessions still live, want none", n)
+		}
+	})
+
+	t.Run("a native sign-out sends no Clear-Site-Data", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		ctx := bearer(tokens.GetAccessToken())
+		info, _ := connect.CallInfoForClientContext(ctx)
+		_, err := h.client.SignOut(ctx, &casav1.SignOutRequest{RequestContext: commandRC()})
+		wantOK(t, err)
+		if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 0 {
+			t.Fatalf("Clear-Site-Data %q on a native sign-out, want none", got)
+		}
+		if got := info.ResponseHeader().Values("Set-Cookie"); len(got) != 0 {
+			t.Fatalf("%d Set-Cookie headers on a native sign-out, want none", len(got))
+		}
+	})
+
 	t.Run("SEC-162 (a) a cookie request from another origin is rejected without effect", func(t *testing.T) {
 		// Focus 2 of plan 1.5: staging on a subdomain is same-site, so only
 		// the origin check holds it (SEC-41 (d)). This proves SEC-162 (a)

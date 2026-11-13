@@ -56,3 +56,20 @@ func setSessionCookie(ctx context.Context, c identity.Cookie) error {
 	info.ResponseHeader().Set("Set-Cookie", cookie.String())
 	return nil
 }
+
+// clearSessionCookie answers a web sign-out (SEC-164 (b); plan 1.5
+// decision 14): Clear-Site-Data "cookies", "storage" (no "cache") and the
+// session cookie expired, Max-Age=0 with the attributes of decision 7. Set,
+// not Add, replaces a value the boundary rotated on this request, so the
+// answer never hands out a new value for the session it revokes (SEC-161
+// (c)). Without the call's response headers it fails closed, as
+// setSessionCookie does.
+func clearSessionCookie(ctx context.Context) error {
+	// An empty value and a negative Max-Age: net/http writes Max-Age=0.
+	if err := setSessionCookie(ctx, identity.Cookie{MaxAge: -time.Second}); err != nil {
+		return err
+	}
+	info, _ := connect.CallInfoForServerContext(ctx)
+	info.ResponseHeader().Set("Clear-Site-Data", `"cookies", "storage"`)
+	return nil
+}
