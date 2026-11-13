@@ -62,6 +62,37 @@ service HouseholdService {
   rpc CancelInvitation(CancelInvitationRequest) returns (CancelInvitationResponse) {
     option (casa.v1.command) = {hold_seconds: 0};
   }
+  // Shows the invitee, before accepting, the household's name and the
+  // inviter's display name, and no other household data (FAM.md
+  // FR-FAM-004/AC-1). A token that is not valid, past its expiry, used,
+  // cancelled or replaced gets the one TOKEN_REJECTED answer of the
+  // identity service, under the same token-use rate limit (SEC-30; 10.1 §10
+  // note of 14 November 2026). Never writes; an online read, never held by
+  // NOTICE_UNREAD (plan 1.6 decisions 7, 16).
+  rpc PreviewInvitation(PreviewInvitationRequest) returns (PreviewInvitationResponse);
+  // Accepts an invitation (06 §3.6 F02): the invitation waits for the
+  // inviter to confirm the person (F04) and opens nothing of the household.
+  // An account-level command (09.2 §8). Checked in this order, all before
+  // the token is read: ALREADY_HOUSEHOLD_MEMBER for an account that is a
+  // member anywhere or has a live acceptance of its own, then
+  // AGE_DECLARATION_REQUIRED (SEC-32, SEC-38 (c), SEC-80); then every
+  // token or invitation failure, a full household included, is the one
+  // TOKEN_REJECTED (SEC-30).
+  rpc AcceptInvitation(AcceptInvitationRequest) returns (AcceptInvitationResponse) {
+    option (casa.v1.command) = {hold_seconds: 0};
+  }
+  // Withdraws the caller's own acceptance (06 §3.6 F05): the server finds it
+  // from the caller's account, never from the request (plan 1.6 decision
+  // 14). NotFound without one; STATE_CHANGED for one past its expiry, which
+  // is recorded as expired first. Protective, so never held (lead ruling;
+  // SEC-151 (1)).
+  rpc WithdrawAcceptance(WithdrawAcceptanceRequest) returns (WithdrawAcceptanceResponse) {
+    option (casa.v1.command) = {
+      hold_seconds: 0
+      protective: true
+      notice_exempt: true
+    };
+  }
 }
 
 message CreateHouseholdRequest {
@@ -198,3 +229,57 @@ message CancelInvitationRequest {
 }
 
 message CancelInvitationResponse {}
+
+// InvitationSource is where the invitation comes from: the token of a pasted
+// link, or the invitation the caller's account signed up through (FAM.md
+// FR-FAM-004/AC-14; built with sign-up through an invitation). No rule: an
+// invalid token gets the one TOKEN_REJECTED, never a validation error
+// (SEC-30).
+message InvitationSource {
+  oneof source {
+    string invitation_token = 1 [debug_redact = true];
+    bool from_signup = 2;
+  }
+}
+
+message PreviewInvitationRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  InvitationSource source = 2;
+}
+
+// Only the names the invitee reads before accepting: no money data, no
+// member list (FR-FAM-004/AC-1).
+message PreviewInvitationResponse {
+  string household_name = 1;
+  string inviter_display_name = 2;
+  // True when the caller is a former member of the household (FR-FAM-004
+  // AC-10, AC-11); always false until members can leave (step 6).
+  bool former_member_notice = 3;
+}
+
+message AcceptInvitationRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  InvitationSource source = 2;
+  // The invitee's display name (FR-FAM-006), 1 to 40 visible characters,
+  // checked as CreateHouseholdRequest.display_name.
+  string display_name = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 200
+  }];
+  // The version of the adult age statement shown (08 §7.1; SEC-80), as in
+  // CreateHouseholdRequest.
+  uint32 age_declaration_version = 4;
+}
+
+message AcceptInvitationResponse {
+  string household_id = 1;
+  string invitation_id = 2;
+}
+
+// No household_id: the server finds the caller's acceptance (plan 1.6
+// decision 14).
+message WithdrawAcceptanceRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+message WithdrawAcceptanceResponse {}

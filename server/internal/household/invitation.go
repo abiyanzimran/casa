@@ -22,10 +22,12 @@ const invitationLifetime = 7 * 24 * time.Hour
 // November 2026). The time transition of F03 and F05 has no command in 06;
 // expireCommand names it [Usulan], with the rule that fired.
 const (
-	inviteCommand = "invite"
-	cancelCommand = "cancel_invitation"
-	expireCommand = "expire_invitation"
-	expireRule    = "invitation.expired"
+	inviteCommand   = "invite"
+	acceptCommand   = "accept_invitation"
+	cancelCommand   = "cancel_invitation"
+	withdrawCommand = "withdraw_acceptance"
+	expireCommand   = "expire_invitation"
+	expireRule      = "invitation.expired"
 )
 
 var (
@@ -48,9 +50,9 @@ type Invitation struct {
 // token-free paths call it before their command, so the command finds the
 // invitation no longer open (06 §3.6 "Gugur karena waktu", change X3).
 func (s *Service) ExpireDueInvitation(ctx context.Context, inviter Member) error {
-	var live householddb.LiveInvitationRow
+	var found householddb.LiveInvitationRow
 	err := database.Read(ctx, s.pool, database.Scope{HouseholdID: inviter.HouseholdID, AccountID: inviter.AccountID}, func(tx pgx.Tx) (err error) {
-		live, err = householddb.New(tx).LiveInvitation(ctx, inviter.HouseholdID)
+		found, err = householddb.New(tx).LiveInvitation(ctx, inviter.HouseholdID)
 		return err
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -59,7 +61,7 @@ func (s *Service) ExpireDueInvitation(ctx context.Context, inviter Member) error
 	if err != nil {
 		return err
 	}
-	_, err = s.expire(ctx, live.HouseholdID, inviter.AccountID, live.ID)
+	_, err = s.expire(ctx, found.HouseholdID, inviter.AccountID, found.ID)
 	return err
 }
 
@@ -69,11 +71,13 @@ func (s *Service) ExpireDueInvitation(ctx context.Context, inviter Member) error
 // expired: actor system, rule invitation.expired, closed_at and the event's
 // time = expires_at, so the household never reads when it was written (10.1
 // §10 note X3 (1)(a)). expired is true when the row is (now) expired, false
-// when it is live; a lost compare-and-set writes nothing.
+// when it is live or closed otherwise; a lost compare-and-set writes
+// nothing and reports the row as read, not expired. Under SERIALIZABLE a
+// concurrent write is a serialization failure instead, and the retry reads
+// the row again.
 func (s *Service) expire(ctx context.Context, household, account, invitation pgtype.UUID) (expired bool, err error) {
 	err = database.Write(ctx, s.pool, database.Scope{HouseholdID: household, AccountID: account}, func(tx pgx.Tx) error {
-		q := householddb.New(tx)
-		row, err := q.Invitation(ctx, householddb.InvitationParams{HouseholdID: household, ID: invitation})
+		row, err := householddb.New(tx).Invitation(ctx, invitation)
 		if err != nil {
 			return err
 		}
@@ -81,10 +85,14 @@ func (s *Service) expire(ctx context.Context, household, account, invitation pgt
 			expired = row.State == "expired"
 			return nil
 		}
-		expired = true
-		return s.transition(ctx, tx, household, invitation, row, "expired", row.ExpiresAt, Event{
+		err = s.transition(ctx, tx, household, invitation, row, "expired", row.ExpiresAt, Event{
 			ActorKind: "system", Rule: expireRule, Command: expireCommand,
 		})
+		expired = err == nil
+		if errors.Is(err, ErrStateChanged) {
+			return nil
+		}
+		return err
 	})
 	return expired, err
 }
@@ -155,7 +163,7 @@ func (s *Service) CreateInvitation(ctx context.Context, tx pgx.Tx, inviter Membe
 // (10.1 SEC-28 note Q7 (a); FR-FAM-003 note of 14 November 2026); any other
 // state, or a due one, ErrStateChanged.
 func (s *Service) openInvitation(ctx context.Context, tx pgx.Tx, inviter Member, invitation pgtype.UUID) (householddb.InvitationRow, error) {
-	row, err := householddb.New(tx).Invitation(ctx, householddb.InvitationParams{HouseholdID: inviter.HouseholdID, ID: invitation})
+	row, err := householddb.New(tx).Invitation(ctx, invitation)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows) || err == nil && row.Inviter != inviter.MemberID:
 		return row, ErrNotFound

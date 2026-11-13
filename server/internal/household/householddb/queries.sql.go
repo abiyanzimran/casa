@@ -12,6 +12,40 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const acceptInvitation = `-- name: AcceptInvitation :execrows
+UPDATE invitation
+   SET state = 'accepted', invitee_account_id = $1, invitee_display_name = $2,
+       token_hash = NULL, version = version + 1
+ WHERE household_id = current_setting('app.household_id')::uuid AND id = $3 AND version = $4
+   AND state = 'open' AND token_hash = $5
+`
+
+type AcceptInvitationParams struct {
+	InviteeAccountID   pgtype.UUID
+	InviteeDisplayName pgtype.Text
+	ID                 pgtype.UUID
+	Version            int64
+	TokenHash          []byte
+}
+
+// F02 (06 §3.6) by compare-and-set on the version read, state open and the
+// token hash carried (plan 1.6 decisions 11, 13): the token is cleared, so
+// it cannot be used again (SEC-28). invitation_invitee refuses a second
+// open acceptance of the same account (09.2 §5.1, note on decision 20).
+func (q *Queries) AcceptInvitation(ctx context.Context, arg AcceptInvitationParams) (int64, error) {
+	result, err := q.db.Exec(ctx, acceptInvitation,
+		arg.InviteeAccountID,
+		arg.InviteeDisplayName,
+		arg.ID,
+		arg.Version,
+		arg.TokenHash,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const acknowledgeNotice = `-- name: AcknowledgeNotice :execrows
 UPDATE operator_notice_ack o SET acknowledged_at = $1::timestamptz
  WHERE o.account_id = $2
@@ -307,33 +341,66 @@ func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventPa
 }
 
 const invitation = `-- name: Invitation :one
-SELECT inviter, state, expires_at, version FROM invitation
- WHERE household_id = $1 AND id = $2
+SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id FROM invitation
+ WHERE household_id = current_setting('app.household_id')::uuid AND id = $1
 `
 
-type InvitationParams struct {
-	HouseholdID pgtype.UUID
-	ID          pgtype.UUID
-}
-
 type InvitationRow struct {
-	Inviter   pgtype.UUID
-	State     string
-	ExpiresAt time.Time
-	Version   int64
+	HouseholdID      pgtype.UUID
+	Inviter          pgtype.UUID
+	State            string
+	ExpiresAt        time.Time
+	Version          int64
+	TokenHash        []byte
+	InviteeAccountID pgtype.UUID
 }
 
-// One invitation of the household, for a command's guard and its
-// compare-and-set (plan 1.6 decision 11). By the primary key.
-func (q *Queries) Invitation(ctx context.Context, arg InvitationParams) (InvitationRow, error) {
-	row := q.db.QueryRow(ctx, invitation, arg.HouseholdID, arg.ID)
+// One invitation of the transaction's household, for a command's guard and
+// its compare-and-set (plan 1.6 decision 11): the household is the one the
+// selector check or the lookup found, never the request's (decision 3). By
+// the primary key.
+func (q *Queries) Invitation(ctx context.Context, id pgtype.UUID) (InvitationRow, error) {
+	row := q.db.QueryRow(ctx, invitation, id)
 	var i InvitationRow
 	err := row.Scan(
+		&i.HouseholdID,
 		&i.Inviter,
 		&i.State,
 		&i.ExpiresAt,
 		&i.Version,
+		&i.TokenHash,
+		&i.InviteeAccountID,
 	)
+	return i, err
+}
+
+const invitationPreview = `-- name: InvitationPreview :one
+SELECT h.name AS household_name, m.display_name AS inviter_display_name
+  FROM invitation i
+  JOIN household h ON h.id = i.household_id
+  JOIN membership m ON m.household_id = i.household_id AND m.member_id = i.inviter
+ WHERE i.household_id = $1 AND i.id = $2 AND i.state = 'open' AND i.expires_at > $3::timestamptz
+`
+
+type InvitationPreviewParams struct {
+	HouseholdID pgtype.UUID
+	ID          pgtype.UUID
+	Now         time.Time
+}
+
+type InvitationPreviewRow struct {
+	HouseholdName      string
+	InviterDisplayName pgtype.Text
+}
+
+// What the invitee reads before accepting (FAM.md FR-FAM-004/AC-1): the
+// household's name and the inviter's display name, of an invitation still
+// open and before its expiry, in the household's own transaction. By the
+// primary keys.
+func (q *Queries) InvitationPreview(ctx context.Context, arg InvitationPreviewParams) (InvitationPreviewRow, error) {
+	row := q.db.QueryRow(ctx, invitationPreview, arg.HouseholdID, arg.ID, arg.Now)
+	var i InvitationPreviewRow
+	err := row.Scan(&i.HouseholdName, &i.InviterDisplayName)
 	return i, err
 }
 
@@ -512,6 +579,53 @@ func (q *Queries) NewID(ctx context.Context) (pgtype.UUID, error) {
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const openInvitationByToken = `-- name: OpenInvitationByToken :one
+SELECT household_id, id FROM invitation
+ WHERE token_hash = $1 AND state = 'open' AND expires_at > $2::timestamptz
+`
+
+type OpenInvitationByTokenParams struct {
+	TokenHash []byte
+	Now       time.Time
+}
+
+type OpenInvitationByTokenRow struct {
+	HouseholdID pgtype.UUID
+	ID          pgtype.UUID
+}
+
+// F02 and PreviewInvitation find an invitation by its token, in a lookup
+// transaction (Scope{TokenHash}; 09.2 §3): only household_id and id (plan
+// 1.6 decision 3), and only while it is open and before its expiry; a token
+// path never writes the expiry (decision 12). Served by invitation_token.
+func (q *Queries) OpenInvitationByToken(ctx context.Context, arg OpenInvitationByTokenParams) (OpenInvitationByTokenRow, error) {
+	row := q.db.QueryRow(ctx, openInvitationByToken, arg.TokenHash, arg.Now)
+	var i OpenInvitationByTokenRow
+	err := row.Scan(&i.HouseholdID, &i.ID)
+	return i, err
+}
+
+const ownAcceptance = `-- name: OwnAcceptance :one
+SELECT household_id, id FROM invitation
+ WHERE invitee_account_id = $1 AND state = 'accepted'
+`
+
+type OwnAcceptanceRow struct {
+	HouseholdID pgtype.UUID
+	ID          pgtype.UUID
+}
+
+// The account's own open acceptance, in a lookup transaction
+// (Scope{AccountID}; the invitee clause of 09.2 §3; plan 1.6 decision 14):
+// only household_id and id. Served by invitation_invitee, which also makes
+// it one row at most.
+func (q *Queries) OwnAcceptance(ctx context.Context, accountID pgtype.UUID) (OwnAcceptanceRow, error) {
+	row := q.db.QueryRow(ctx, ownAcceptance, accountID)
+	var i OwnAcceptanceRow
+	err := row.Scan(&i.HouseholdID, &i.ID)
+	return i, err
 }
 
 const replaceInvitationToken = `-- name: ReplaceInvitationToken :execrows

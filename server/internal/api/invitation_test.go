@@ -272,9 +272,9 @@ func TestInvitations(t *testing.T) {
 	})
 
 	// FR-FAM-003/AC-3, the part of this task: the invitation is closed and
-	// the cancellation recorded. That it can no longer be used is proved in
-	// Task 6 (PreviewInvitation, AcceptInvitation); "no notification" in
-	// step 4.
+	// the cancellation recorded. That it can no longer be used is proved by
+	// TestAcceptInvitation's "SEC-30 every invalid invitation gets the one
+	// token rejection"; "no notification" in step 4.
 	t.Run("a cancelled invitation is recorded and closed", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")

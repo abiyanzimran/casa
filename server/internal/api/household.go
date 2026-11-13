@@ -47,9 +47,12 @@ type householdHandler struct {
 // 5, 8). Its checks, in order: the names and the time zone; a resend gets
 // the stored response, before the membership check that the first send
 // turned into a refusal (ADR-005); the account is no member of any
-// household (FR-FAM-001/AC-5) and was made with a setup token (AC-10;
-// SEC-158), both HOUSEHOLD_CREATION_NOT_ALLOWED; the adult age statement (SEC-80); then
-// the write, where a concurrent creation is caught as ALREADY_HOUSEHOLD_MEMBER.
+// household (FR-FAM-001/AC-5), HOUSEHOLD_CREATION_NOT_ALLOWED; it has no
+// live acceptance of its own, ALREADY_HOUSEHOLD_MEMBER, a due one being
+// written expired first (09.2 §5.1 note X3); it was made with a setup token
+// (AC-10; SEC-158), HOUSEHOLD_CREATION_NOT_ALLOWED; the adult age statement
+// (SEC-80); then the write, where a concurrent creation is caught as
+// ALREADY_HOUSEHOLD_MEMBER.
 func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.CreateHouseholdRequest) (*casav1.CreateHouseholdResponse, error) {
 	h, err := newHousehold(req)
 	if err != nil {
@@ -73,6 +76,9 @@ func (s householdHandler) CreateHousehold(ctx context.Context, req *casav1.Creat
 	}
 	if member {
 		return nil, householdError(household.ErrCreationNotAllowed)
+	}
+	if err := s.noLiveAcceptance(ctx, account); err != nil {
+		return nil, householdError(err)
 	}
 	via, err := s.id.SignupVia(ctx, account)
 	if err != nil {
@@ -339,6 +345,168 @@ func (s householdHandler) CancelInvitation(ctx context.Context, req *casav1.Canc
 	return res, nil
 }
 
+// noLiveAcceptance is the account's own acceptance check of CreateHousehold
+// and F02 (plan 1.6 decisions 8, 12, 13; 09.2 §5.1 note X3): one past its
+// expiry is written expired first and no longer blocks; a live one is
+// ErrAlreadyMember. It depends only on the account, never on a token.
+func (s householdHandler) noLiveAcceptance(ctx context.Context, account pgtype.UUID) error {
+	a, err := s.h.FindAcceptance(ctx, account)
+	switch {
+	case errors.Is(err, household.ErrNotFound):
+		return nil
+	case err != nil:
+		return err
+	case a.Live:
+		return household.ErrAlreadyMember
+	}
+	return nil
+}
+
+// invitationHash is the stored form of source's link token: nil, which finds
+// no invitation, for a malformed token or none. from_signup is answered the
+// same until sign-up through an invitation gives it its hash (plan 1.6
+// decision 15, Task 8).
+func invitationHash(source *casav1.InvitationSource) []byte {
+	hash, _ := identity.HashToken(source.GetInvitationToken())
+	return hash
+}
+
+// findInvitation is the one token path of PreviewInvitation and F02 (plan
+// 1.6 decision 13): the token-use rate limit of identity (10.1 §8.1 row
+// "Pemakaian token"), then household.FindInvitation. A failed lookup is
+// counted and ended here; on success the caller ends the attempt with done,
+// Failed for a token failure or a lost unique race, Succeeded otherwise
+// (tokenOutcome).
+func (s householdHandler) findInvitation(ctx context.Context, client identity.Client, hash []byte) (household, invitation pgtype.UUID, done func(identity.Outcome), err error) {
+	allowed, done := s.id.TokenUseAttempt(client.Address)
+	if !allowed {
+		return household, invitation, done, identity.ErrRateLimited
+	}
+	household, invitation, err = s.h.FindInvitation(ctx, hash)
+	if err != nil {
+		done(tokenOutcome(err))
+		return household, invitation, func(identity.Outcome) {}, err
+	}
+	return household, invitation, done, nil
+}
+
+// tokenOutcome is how a token use ended for the rate limit: a token or
+// invitation failure, and a lost unique race after the token was read,
+// count as failures (10.1 §10, security-privacy's amendment); an internal
+// error is not tried.
+func tokenOutcome(err error) identity.Outcome {
+	switch {
+	case err == nil:
+		return identity.Succeeded
+	case errors.Is(err, household.ErrInvitationRejected), errors.Is(err, household.ErrAlreadyMember):
+		return identity.Failed
+	}
+	return identity.NotTried
+}
+
+// PreviewInvitation is the invitee's read before accepting (FR-FAM-004
+// AC-1): the token path, then the names in the household's own read
+// transaction. It never writes, not even a due invitation's expiry (plan
+// 1.6 decision 12).
+func (s householdHandler) PreviewInvitation(ctx context.Context, req *casav1.PreviewInvitationRequest) (*casav1.PreviewInvitationResponse, error) {
+	householdID, invitation, done, err := s.findInvitation(ctx, clientOf(ctx, req), invitationHash(req.GetSource()))
+	if err != nil {
+		return nil, householdError(err)
+	}
+	p, err := s.h.Preview(ctx, householdID, invitation)
+	done(tokenOutcome(err))
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return &casav1.PreviewInvitationResponse{
+		HouseholdName: p.HouseholdName, InviterDisplayName: p.InviterDisplayName, FormerMemberNotice: p.FormerMemberNotice,
+	}, nil
+}
+
+// AcceptInvitation is F02 (06 §3.6), an account-level command (09.2 §8),
+// in the order of plan 1.6 decision 13 (security-privacy, 10.1 §10 note):
+// the display name; a resend gets the stored response (ADR-005); then,
+// before the token is read and the same for any token, the account is no
+// member anywhere and has no live acceptance of its own, both
+// ALREADY_HOUSEHOLD_MEMBER (SEC-38 (c); 06 §3.6 "Guard F02 di server
+// pilot"), and the adult age statement (SEC-32, SEC-80); then the token
+// path; then the write in the found household's scope, never the
+// request's.
+func (s householdHandler) AcceptInvitation(ctx context.Context, req *casav1.AcceptInvitationRequest) (*casav1.AcceptInvitationResponse, error) {
+	display, rule := household.CleanName(req.GetDisplayName(), maxDisplayName)
+	if rule != "" {
+		return nil, invalidFields(fieldViolation(req.ProtoReflect().Descriptor().Fields().ByName("display_name"), rule, "display name is not accepted"))
+	}
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	account, key := session.AccountID, req.GetRequestContext().GetIdempotencyKey()
+	procedure := casav1connect.HouseholdServiceAcceptInvitationProcedure
+	res, found, err := command.Stored[*casav1.AcceptInvitationResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req)
+	if err != nil || found {
+		return res, householdErrorOrNil(err)
+	}
+	member, err := s.h.MemberAnywhere(ctx, account)
+	if err == nil && member {
+		err = household.ErrAlreadyMember
+	}
+	if err == nil {
+		err = s.noLiveAcceptance(ctx, account)
+	}
+	if err != nil {
+		return nil, householdError(err)
+	}
+	recordAge, err := s.h.CheckAgeDeclaration(ctx, account, req.GetAgeDeclarationVersion())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	hash := invitationHash(req.GetSource())
+	householdID, invitation, done, err := s.findInvitation(ctx, clientOf(ctx, req), hash)
+	if err != nil {
+		return nil, householdError(err)
+	}
+	res, err = command.RunForAccount(ctx, s.pool, database.Scope{HouseholdID: householdID, AccountID: account}, procedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.AcceptInvitationResponse, error) {
+			if err := s.h.Accept(ctx, tx, account, invitation, hash, display, recordAge, checkedUUID(key)); err != nil {
+				return nil, err
+			}
+			return &casav1.AcceptInvitationResponse{HouseholdId: uuidString(householdID), InvitationId: uuidString(invitation)}, nil
+		})
+	done(tokenOutcome(err))
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
+// WithdrawAcceptance is F05 by the invitee (06 §3.6), an account-level
+// command, protective and never held (lead ruling; SEC-151 (1)). The
+// household comes from the account's own acceptance (plan 1.6 decision 14):
+// none is NotFound; one past its expiry is written expired, then
+// STATE_CHANGED (decision 12).
+func (s householdHandler) WithdrawAcceptance(ctx context.Context, req *casav1.WithdrawAcceptanceRequest) (*casav1.WithdrawAcceptanceResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	account, key := session.AccountID, req.GetRequestContext().GetIdempotencyKey()
+	procedure := casav1connect.HouseholdServiceWithdrawAcceptanceProcedure
+	res, found, err := command.Stored[*casav1.WithdrawAcceptanceResponse](ctx, s.pool, database.Scope{AccountID: account}, procedure, key, req)
+	if err != nil || found {
+		return res, householdErrorOrNil(err)
+	}
+	a, err := s.h.FindAcceptance(ctx, account)
+	if err == nil && !a.Live {
+		err = household.ErrStateChanged
+	}
+	if err != nil {
+		return nil, householdError(err)
+	}
+	res, err = command.RunForAccount(ctx, s.pool, database.Scope{HouseholdID: a.HouseholdID, AccountID: account}, procedure, key, req,
+		func(ctx context.Context, tx pgx.Tx) (*casav1.WithdrawAcceptanceResponse, error) {
+			return &casav1.WithdrawAcceptanceResponse{}, s.h.Withdraw(ctx, tx, account, a.InvitationID, checkedUUID(key))
+		})
+	if err != nil {
+		return nil, householdError(err)
+	}
+	return res, nil
+}
+
 // uuidString is id in its text form.
 func uuidString(id pgtype.UUID) string {
 	value, _ := id.Value() // a valid uuid always has a text form
@@ -353,6 +521,14 @@ func checkedUUID(s string) pgtype.UUID {
 	var id pgtype.UUID
 	_ = id.Scan(s) // checked before the handler runs
 	return id
+}
+
+// householdErrorOrNil is householdError, and nil for nil.
+func householdErrorOrNil(err error) error {
+	if err == nil {
+		return nil
+	}
+	return householdError(err)
 }
 
 // householdError maps a household error to the contract (ADR-013 note 1.6;
@@ -380,6 +556,10 @@ func householdError(err error) error {
 	case errors.Is(err, household.ErrAlreadyMember):
 		return errorWithDetail(connect.CodeFailedPrecondition, "already a household member",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER})
+	case errors.Is(err, household.ErrInvitationRejected):
+		return tokenRejected() // the identity service's own answer (SEC-30)
+	case errors.Is(err, identity.ErrRateLimited):
+		return identityError(err)
 	}
 	return commandError(err)
 }

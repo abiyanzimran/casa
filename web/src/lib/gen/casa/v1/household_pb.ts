@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/household.proto.
  */
 export const file_casa_v1_household: GenFile = /*@__PURE__*/
-  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwIlQKGEdldE9wZXJhdG9yTm90aWNlUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiMAoPTm90aWNlUGFyYWdyYXBoEgwKBHRleHQYASABKAkSDwoHZmVhdHVyZRgCIAEoCSKlAQoZR2V0T3BlcmF0b3JOb3RpY2VSZXNwb25zZRIPCgd2YXJpYW50GAEgASgJEg8KB3ZlcnNpb24YAiABKA0SDQoFdGl0bGUYAyABKAkSLAoKcGFyYWdyYXBocxgEIAMoCzIYLmNhc2EudjEuTm90aWNlUGFyYWdyYXBoEhQKDGFja25vd2xlZGdlZBgFIAEoCBITCgt0ZXh0X3NoYTI1NhgGIAEoDCLLAQogQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEi8KB3ZhcmlhbnQYAiABKAlCHrpIG3IZUgZjb3VwbGVSBmZhbWlseVIHZ2VuZXJhbBIeCgd2ZXJzaW9uGAMgASgNQg26SAoqCBj/////ByAAEhwKC3RleHRfc2hhMjU2GAQgASgMQge6SAR6AmggIiMKIUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSJzChdDcmVhdGVJbnZpdGF0aW9uUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESHgoMaG91c2Vob2xkX2lkGAIgASgJQgi6SAVyA7ABASJhChhDcmVhdGVJbnZpdGF0aW9uUmVzcG9uc2USFQoNaW52aXRhdGlvbl9pZBgBIAEoCRIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKXAQoaSXNzdWVJbnZpdGF0aW9uTGlua1JlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEibAobSXNzdWVJbnZpdGF0aW9uTGlua1Jlc3BvbnNlEh0KEGludml0YXRpb25fdG9rZW4YASABKAlCA4ABARIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKUAQoXQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEiGgoYQ2FuY2VsSW52aXRhdGlvblJlc3BvbnNlMsQFChBIb3VzZWhvbGRTZXJ2aWNlElwKD0NyZWF0ZUhvdXNlaG9sZBIfLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBogLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2UiBoK1GAIIABJUCg9MaXN0TWVtYmVyc2hpcHMSHy5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1JlcXVlc3QaIC5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEloKEUdldE9wZXJhdG9yTm90aWNlEiEuY2FzYS52MS5HZXRPcGVyYXRvck5vdGljZVJlcXVlc3QaIi5jYXNhLnYxLkdldE9wZXJhdG9yTm90aWNlUmVzcG9uc2USfAoZQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZRIpLmNhc2EudjEuQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QaKi5jYXNhLnYxLkFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSIIgrUYBAgAGAESXwoQQ3JlYXRlSW52aXRhdGlvbhIgLmNhc2EudjEuQ3JlYXRlSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNyZWF0ZUludml0YXRpb25SZXNwb25zZSIGgrUYAggAEmAKE0lzc3VlSW52aXRhdGlvbkxpbmsSIy5jYXNhLnYxLklzc3VlSW52aXRhdGlvbkxpbmtSZXF1ZXN0GiQuY2FzYS52MS5Jc3N1ZUludml0YXRpb25MaW5rUmVzcG9uc2USXwoQQ2FuY2VsSW52aXRhdGlvbhIgLmNhc2EudjEuQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNhbmNlbEludml0YXRpb25SZXNwb25zZSIGgrUYAggAQpsBCgtjb20uY2FzYS52MUIOSG91c2Vob2xkUHJvdG9QAVo/Z2l0aHViLmNvbS9hYml5YW56aW1yYW4vY2FzYS9zZXJ2ZXIvaW50ZXJuYWwvZ2VuL2Nhc2EvdjE7Y2FzYXYxogIDQ1hYqgIHQ2FzYS5WMcoCB0Nhc2FcVjHiAhNDYXNhXFYxXEdQQk1ldGFkYXRh6gIIQ2FzYTo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
+  fileDesc("ChdjYXNhL3YxL2hvdXNlaG9sZC5wcm90bxIHY2FzYS52MSLNAQoWQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESGAoEbmFtZRgCIAEoCUIKukgHcgUQARjIARIcCgl0aW1lX3pvbmUYAyABKAlCCbpIBnIEEAEYQBIgCgxkaXNwbGF5X25hbWUYBCABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBSABKA0iQgoXQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2USFAoMaG91c2Vob2xkX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSJSChZMaXN0TWVtYmVyc2hpcHNSZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBASJvCgpNZW1iZXJzaGlwEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIWCg5ob3VzZWhvbGRfbmFtZRgCIAEoCRIRCgltZW1iZXJfaWQYAyABKAkSIAoHbWVtYmVycxgEIAMoCzIPLmNhc2EudjEuTWVtYmVyIjEKBk1lbWJlchIRCgltZW1iZXJfaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJIkMKF0xpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEigKC21lbWJlcnNoaXBzGAEgAygLMhMuY2FzYS52MS5NZW1iZXJzaGlwIlQKGEdldE9wZXJhdG9yTm90aWNlUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQEiMAoPTm90aWNlUGFyYWdyYXBoEgwKBHRleHQYASABKAkSDwoHZmVhdHVyZRgCIAEoCSKlAQoZR2V0T3BlcmF0b3JOb3RpY2VSZXNwb25zZRIPCgd2YXJpYW50GAEgASgJEg8KB3ZlcnNpb24YAiABKA0SDQoFdGl0bGUYAyABKAkSLAoKcGFyYWdyYXBocxgEIAMoCzIYLmNhc2EudjEuTm90aWNlUGFyYWdyYXBoEhQKDGFja25vd2xlZGdlZBgFIAEoCBITCgt0ZXh0X3NoYTI1NhgGIAEoDCLLAQogQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEi8KB3ZhcmlhbnQYAiABKAlCHrpIG3IZUgZjb3VwbGVSBmZhbWlseVIHZ2VuZXJhbBIeCgd2ZXJzaW9uGAMgASgNQg26SAoqCBj/////ByAAEhwKC3RleHRfc2hhMjU2GAQgASgMQge6SAR6AmggIiMKIUFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSJzChdDcmVhdGVJbnZpdGF0aW9uUmVxdWVzdBI4Cg9yZXF1ZXN0X2NvbnRleHQYASABKAsyFy5jYXNhLnYxLlJlcXVlc3RDb250ZXh0Qga6SAPIAQESHgoMaG91c2Vob2xkX2lkGAIgASgJQgi6SAVyA7ABASJhChhDcmVhdGVJbnZpdGF0aW9uUmVzcG9uc2USFQoNaW52aXRhdGlvbl9pZBgBIAEoCRIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKXAQoaSXNzdWVJbnZpdGF0aW9uTGlua1JlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEibAobSXNzdWVJbnZpdGF0aW9uTGlua1Jlc3BvbnNlEh0KEGludml0YXRpb25fdG9rZW4YASABKAlCA4ABARIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKUAQoXQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEh4KDGhvdXNlaG9sZF9pZBgCIAEoCUIIukgFcgOwAQESHwoNaW52aXRhdGlvbl9pZBgDIAEoCUIIukgFcgOwAQEiGgoYQ2FuY2VsSW52aXRhdGlvblJlc3BvbnNlIlQKEEludml0YXRpb25Tb3VyY2USHwoQaW52aXRhdGlvbl90b2tlbhgBIAEoCUIDgAEBSAASFQoLZnJvbV9zaWdudXAYAiABKAhIAEIICgZzb3VyY2UifwoYUHJldmlld0ludml0YXRpb25SZXF1ZXN0EjgKD3JlcXVlc3RfY29udGV4dBgBIAEoCzIXLmNhc2EudjEuUmVxdWVzdENvbnRleHRCBrpIA8gBARIpCgZzb3VyY2UYAiABKAsyGS5jYXNhLnYxLkludml0YXRpb25Tb3VyY2UibwoZUHJldmlld0ludml0YXRpb25SZXNwb25zZRIWCg5ob3VzZWhvbGRfbmFtZRgBIAEoCRIcChRpbnZpdGVyX2Rpc3BsYXlfbmFtZRgCIAEoCRIcChRmb3JtZXJfbWVtYmVyX25vdGljZRgDIAEoCCLBAQoXQWNjZXB0SW52aXRhdGlvblJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBEikKBnNvdXJjZRgCIAEoCzIZLmNhc2EudjEuSW52aXRhdGlvblNvdXJjZRIgCgxkaXNwbGF5X25hbWUYAyABKAlCCrpIB3IFEAEYyAESHwoXYWdlX2RlY2xhcmF0aW9uX3ZlcnNpb24YBCABKA0iRwoYQWNjZXB0SW52aXRhdGlvblJlc3BvbnNlEhQKDGhvdXNlaG9sZF9pZBgBIAEoCRIVCg1pbnZpdGF0aW9uX2lkGAIgASgJIlUKGVdpdGhkcmF3QWNjZXB0YW5jZVJlcXVlc3QSOAoPcmVxdWVzdF9jb250ZXh0GAEgASgLMhcuY2FzYS52MS5SZXF1ZXN0Q29udGV4dEIGukgDyAEBIhwKGldpdGhkcmF3QWNjZXB0YW5jZVJlc3BvbnNlMuwHChBIb3VzZWhvbGRTZXJ2aWNlElwKD0NyZWF0ZUhvdXNlaG9sZBIfLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVxdWVzdBogLmNhc2EudjEuQ3JlYXRlSG91c2Vob2xkUmVzcG9uc2UiBoK1GAIIABJUCg9MaXN0TWVtYmVyc2hpcHMSHy5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1JlcXVlc3QaIC5jYXNhLnYxLkxpc3RNZW1iZXJzaGlwc1Jlc3BvbnNlEloKEUdldE9wZXJhdG9yTm90aWNlEiEuY2FzYS52MS5HZXRPcGVyYXRvck5vdGljZVJlcXVlc3QaIi5jYXNhLnYxLkdldE9wZXJhdG9yTm90aWNlUmVzcG9uc2USfAoZQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZRIpLmNhc2EudjEuQWNrbm93bGVkZ2VPcGVyYXRvck5vdGljZVJlcXVlc3QaKi5jYXNhLnYxLkFja25vd2xlZGdlT3BlcmF0b3JOb3RpY2VSZXNwb25zZSIIgrUYBAgAGAESXwoQQ3JlYXRlSW52aXRhdGlvbhIgLmNhc2EudjEuQ3JlYXRlSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNyZWF0ZUludml0YXRpb25SZXNwb25zZSIGgrUYAggAEmAKE0lzc3VlSW52aXRhdGlvbkxpbmsSIy5jYXNhLnYxLklzc3VlSW52aXRhdGlvbkxpbmtSZXF1ZXN0GiQuY2FzYS52MS5Jc3N1ZUludml0YXRpb25MaW5rUmVzcG9uc2USXwoQQ2FuY2VsSW52aXRhdGlvbhIgLmNhc2EudjEuQ2FuY2VsSW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkNhbmNlbEludml0YXRpb25SZXNwb25zZSIGgrUYAggAEloKEVByZXZpZXdJbnZpdGF0aW9uEiEuY2FzYS52MS5QcmV2aWV3SW52aXRhdGlvblJlcXVlc3QaIi5jYXNhLnYxLlByZXZpZXdJbnZpdGF0aW9uUmVzcG9uc2USXwoQQWNjZXB0SW52aXRhdGlvbhIgLmNhc2EudjEuQWNjZXB0SW52aXRhdGlvblJlcXVlc3QaIS5jYXNhLnYxLkFjY2VwdEludml0YXRpb25SZXNwb25zZSIGgrUYAggAEmkKEldpdGhkcmF3QWNjZXB0YW5jZRIiLmNhc2EudjEuV2l0aGRyYXdBY2NlcHRhbmNlUmVxdWVzdBojLmNhc2EudjEuV2l0aGRyYXdBY2NlcHRhbmNlUmVzcG9uc2UiCoK1GAYIABABGAFCmwEKC2NvbS5jYXNhLnYxQg5Ib3VzZWhvbGRQcm90b1ABWj9naXRodWIuY29tL2FiaXlhbnppbXJhbi9jYXNhL3NlcnZlci9pbnRlcm5hbC9nZW4vY2FzYS92MTtjYXNhdjGiAgNDWFiqAgdDYXNhLlYxygIHQ2FzYVxWMeICE0Nhc2FcVjFcR1BCTWV0YWRhdGHqAghDYXNhOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_casa_v1_command, file_casa_v1_request, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message casa.v1.CreateHouseholdRequest
@@ -467,6 +467,189 @@ export const CancelInvitationResponseSchema: GenMessage<CancelInvitationResponse
   messageDesc(file_casa_v1_household, 16);
 
 /**
+ * InvitationSource is where the invitation comes from: the token of a pasted
+ * link, or the invitation the caller's account signed up through (FAM.md
+ * FR-FAM-004/AC-14; built with sign-up through an invitation). No rule: an
+ * invalid token gets the one TOKEN_REJECTED, never a validation error
+ * (SEC-30).
+ *
+ * @generated from message casa.v1.InvitationSource
+ */
+export type InvitationSource = Message<"casa.v1.InvitationSource"> & {
+  /**
+   * @generated from oneof casa.v1.InvitationSource.source
+   */
+  source: {
+    /**
+     * @generated from field: string invitation_token = 1;
+     */
+    value: string;
+    case: "invitationToken";
+  } | {
+    /**
+     * @generated from field: bool from_signup = 2;
+     */
+    value: boolean;
+    case: "fromSignup";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message casa.v1.InvitationSource.
+ * Use `create(InvitationSourceSchema)` to create a new message.
+ */
+export const InvitationSourceSchema: GenMessage<InvitationSource> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 17);
+
+/**
+ * @generated from message casa.v1.PreviewInvitationRequest
+ */
+export type PreviewInvitationRequest = Message<"casa.v1.PreviewInvitationRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: casa.v1.InvitationSource source = 2;
+   */
+  source?: InvitationSource | undefined;
+};
+
+/**
+ * Describes the message casa.v1.PreviewInvitationRequest.
+ * Use `create(PreviewInvitationRequestSchema)` to create a new message.
+ */
+export const PreviewInvitationRequestSchema: GenMessage<PreviewInvitationRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 18);
+
+/**
+ * Only the names the invitee reads before accepting: no money data, no
+ * member list (FR-FAM-004/AC-1).
+ *
+ * @generated from message casa.v1.PreviewInvitationResponse
+ */
+export type PreviewInvitationResponse = Message<"casa.v1.PreviewInvitationResponse"> & {
+  /**
+   * @generated from field: string household_name = 1;
+   */
+  householdName: string;
+
+  /**
+   * @generated from field: string inviter_display_name = 2;
+   */
+  inviterDisplayName: string;
+
+  /**
+   * True when the caller is a former member of the household (FR-FAM-004
+   * AC-10, AC-11); always false until members can leave (step 6).
+   *
+   * @generated from field: bool former_member_notice = 3;
+   */
+  formerMemberNotice: boolean;
+};
+
+/**
+ * Describes the message casa.v1.PreviewInvitationResponse.
+ * Use `create(PreviewInvitationResponseSchema)` to create a new message.
+ */
+export const PreviewInvitationResponseSchema: GenMessage<PreviewInvitationResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 19);
+
+/**
+ * @generated from message casa.v1.AcceptInvitationRequest
+ */
+export type AcceptInvitationRequest = Message<"casa.v1.AcceptInvitationRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+
+  /**
+   * @generated from field: casa.v1.InvitationSource source = 2;
+   */
+  source?: InvitationSource | undefined;
+
+  /**
+   * The invitee's display name (FR-FAM-006), 1 to 40 visible characters,
+   * checked as CreateHouseholdRequest.display_name.
+   *
+   * @generated from field: string display_name = 3;
+   */
+  displayName: string;
+
+  /**
+   * The version of the adult age statement shown (08 §7.1; SEC-80), as in
+   * CreateHouseholdRequest.
+   *
+   * @generated from field: uint32 age_declaration_version = 4;
+   */
+  ageDeclarationVersion: number;
+};
+
+/**
+ * Describes the message casa.v1.AcceptInvitationRequest.
+ * Use `create(AcceptInvitationRequestSchema)` to create a new message.
+ */
+export const AcceptInvitationRequestSchema: GenMessage<AcceptInvitationRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 20);
+
+/**
+ * @generated from message casa.v1.AcceptInvitationResponse
+ */
+export type AcceptInvitationResponse = Message<"casa.v1.AcceptInvitationResponse"> & {
+  /**
+   * @generated from field: string household_id = 1;
+   */
+  householdId: string;
+
+  /**
+   * @generated from field: string invitation_id = 2;
+   */
+  invitationId: string;
+};
+
+/**
+ * Describes the message casa.v1.AcceptInvitationResponse.
+ * Use `create(AcceptInvitationResponseSchema)` to create a new message.
+ */
+export const AcceptInvitationResponseSchema: GenMessage<AcceptInvitationResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 21);
+
+/**
+ * No household_id: the server finds the caller's acceptance (plan 1.6
+ * decision 14).
+ *
+ * @generated from message casa.v1.WithdrawAcceptanceRequest
+ */
+export type WithdrawAcceptanceRequest = Message<"casa.v1.WithdrawAcceptanceRequest"> & {
+  /**
+   * @generated from field: casa.v1.RequestContext request_context = 1;
+   */
+  requestContext?: RequestContext | undefined;
+};
+
+/**
+ * Describes the message casa.v1.WithdrawAcceptanceRequest.
+ * Use `create(WithdrawAcceptanceRequestSchema)` to create a new message.
+ */
+export const WithdrawAcceptanceRequestSchema: GenMessage<WithdrawAcceptanceRequest> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 22);
+
+/**
+ * @generated from message casa.v1.WithdrawAcceptanceResponse
+ */
+export type WithdrawAcceptanceResponse = Message<"casa.v1.WithdrawAcceptanceResponse"> & {
+};
+
+/**
+ * Describes the message casa.v1.WithdrawAcceptanceResponse.
+ * Use `create(WithdrawAcceptanceResponseSchema)` to create a new message.
+ */
+export const WithdrawAcceptanceResponseSchema: GenMessage<WithdrawAcceptanceResponse> = /*@__PURE__*/
+  messageDesc(file_casa_v1_household, 23);
+
+/**
  * HouseholdService is the household module's API: households, memberships
  * and invitations (09.2 §1; 06 §3.1, §3.6). Its errors are mapped by one
  * function in the API layer (ADR-013 note 1.6).
@@ -569,6 +752,53 @@ export const HouseholdService: GenService<{
     methodKind: "unary";
     input: typeof CancelInvitationRequestSchema;
     output: typeof CancelInvitationResponseSchema;
+  },
+  /**
+   * Shows the invitee, before accepting, the household's name and the
+   * inviter's display name, and no other household data (FAM.md
+   * FR-FAM-004/AC-1). A token that is not valid, past its expiry, used,
+   * cancelled or replaced gets the one TOKEN_REJECTED answer of the
+   * identity service, under the same token-use rate limit (SEC-30; 10.1 §10
+   * note of 14 November 2026). Never writes; an online read, never held by
+   * NOTICE_UNREAD (plan 1.6 decisions 7, 16).
+   *
+   * @generated from rpc casa.v1.HouseholdService.PreviewInvitation
+   */
+  previewInvitation: {
+    methodKind: "unary";
+    input: typeof PreviewInvitationRequestSchema;
+    output: typeof PreviewInvitationResponseSchema;
+  },
+  /**
+   * Accepts an invitation (06 §3.6 F02): the invitation waits for the
+   * inviter to confirm the person (F04) and opens nothing of the household.
+   * An account-level command (09.2 §8). Checked in this order, all before
+   * the token is read: ALREADY_HOUSEHOLD_MEMBER for an account that is a
+   * member anywhere or has a live acceptance of its own, then
+   * AGE_DECLARATION_REQUIRED (SEC-32, SEC-38 (c), SEC-80); then every
+   * token or invitation failure, a full household included, is the one
+   * TOKEN_REJECTED (SEC-30).
+   *
+   * @generated from rpc casa.v1.HouseholdService.AcceptInvitation
+   */
+  acceptInvitation: {
+    methodKind: "unary";
+    input: typeof AcceptInvitationRequestSchema;
+    output: typeof AcceptInvitationResponseSchema;
+  },
+  /**
+   * Withdraws the caller's own acceptance (06 §3.6 F05): the server finds it
+   * from the caller's account, never from the request (plan 1.6 decision
+   * 14). NotFound without one; STATE_CHANGED for one past its expiry, which
+   * is recorded as expired first. Protective, so never held (lead ruling;
+   * SEC-151 (1)).
+   *
+   * @generated from rpc casa.v1.HouseholdService.WithdrawAcceptance
+   */
+  withdrawAcceptance: {
+    methodKind: "unary";
+    input: typeof WithdrawAcceptanceRequestSchema;
+    output: typeof WithdrawAcceptanceResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_casa_v1_household, 0);

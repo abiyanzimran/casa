@@ -35,6 +35,11 @@ var (
 	// made for, such as an acknowledgement of a notice version that is not
 	// the latest (10.1 §11 note of 14 November 2026 (b)).
 	ErrStateChanged = errors.New("state changed")
+	// ErrInvitationRejected: the invitation token finds no invitation that
+	// is open and before its expiry, whatever the reason (never issued,
+	// malformed, cancelled, expired, used, replaced), or the household is
+	// full; one answer for all (SEC-30; plan 1.6 decision 13).
+	ErrInvitationRejected = errors.New("invitation rejected")
 )
 
 // Service is the household module.

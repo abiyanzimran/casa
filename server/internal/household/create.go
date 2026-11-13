@@ -82,12 +82,8 @@ func (s *Service) Create(ctx context.Context, tx pgx.Tx, account, household pgty
 	}); err != nil {
 		return Member{}, err
 	}
-	if recordAge != 0 {
-		if err := q.InsertAgeDeclaration(ctx, householddb.InsertAgeDeclarationParams{
-			AccountID: account, TextVersion: int32(recordAge), RecordedAt: now, //nolint:gosec // G115: recordAge is currentAgeDeclarationVersion (CheckAgeDeclaration)
-		}); err != nil {
-			return Member{}, err
-		}
+	if err := recordAgeDeclaration(ctx, q, account, recordAge, now); err != nil {
+		return Member{}, err
 	}
 	return Member{HouseholdID: household, MemberID: memberID, AccountID: account}, nil
 }

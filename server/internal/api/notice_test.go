@@ -438,6 +438,7 @@ func heldMethods(t *testing.T) (held, exempt []protoreflect.MethodDescriptor) {
 var noticeFreeReads = []string{
 	casav1connect.HouseholdServiceListMembershipsProcedure,
 	casav1connect.HouseholdServiceGetOperatorNoticeProcedure,
+	casav1connect.HouseholdServicePreviewInvitationProcedure,
 }
 
 // methodOf is the contract's method of procedure.
@@ -520,7 +521,7 @@ func TestNoticeHold(t *testing.T) {
 
 	t.Run("notice_exempt commands and identity RPCs are never held", func(t *testing.T) {
 		_, exempt := heldMethods(t)
-		for _, name := range []string{"SignOut", "AcknowledgeOperatorNotice"} {
+		for _, name := range []string{"SignOut", "AcknowledgeOperatorNotice", "WithdrawAcceptance"} {
 			if !slices.ContainsFunc(exempt, func(m protoreflect.MethodDescriptor) bool { return string(m.Name()) == name }) {
 				t.Fatalf("exempt methods %v do not include %s", exempt, name)
 			}

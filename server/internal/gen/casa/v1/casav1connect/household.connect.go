@@ -45,6 +45,15 @@ const (
 	// HouseholdServiceCancelInvitationProcedure is the procedure name of the HouseholdService's
 	// CancelInvitation RPC.
 	HouseholdServiceCancelInvitationProcedure = "/casa.v1.HouseholdService/CancelInvitation"
+	// HouseholdServicePreviewInvitationProcedure is the procedure name of the HouseholdService's
+	// PreviewInvitation RPC.
+	HouseholdServicePreviewInvitationProcedure = "/casa.v1.HouseholdService/PreviewInvitation"
+	// HouseholdServiceAcceptInvitationProcedure is the procedure name of the HouseholdService's
+	// AcceptInvitation RPC.
+	HouseholdServiceAcceptInvitationProcedure = "/casa.v1.HouseholdService/AcceptInvitation"
+	// HouseholdServiceWithdrawAcceptanceProcedure is the procedure name of the HouseholdService's
+	// WithdrawAcceptance RPC.
+	HouseholdServiceWithdrawAcceptanceProcedure = "/casa.v1.HouseholdService/WithdrawAcceptance"
 )
 
 var (
@@ -97,6 +106,27 @@ var (
 			Procedure:  HouseholdServiceCancelInvitationProcedure,
 		}
 	})
+	householdServicePreviewInvitationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("PreviewInvitation"),
+			Procedure:  HouseholdServicePreviewInvitationProcedure,
+		}
+	})
+	householdServiceAcceptInvitationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("AcceptInvitation"),
+			Procedure:  HouseholdServiceAcceptInvitationProcedure,
+		}
+	})
+	householdServiceWithdrawAcceptanceSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("WithdrawAcceptance"),
+			Procedure:  HouseholdServiceWithdrawAcceptanceProcedure,
+		}
+	})
 )
 
 // HouseholdServiceClient is a client for the casa.v1.HouseholdService service.
@@ -141,6 +171,29 @@ type HouseholdServiceClient interface {
 	// Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
 	// gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
 	CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error)
+	// Shows the invitee, before accepting, the household's name and the
+	// inviter's display name, and no other household data (FAM.md
+	// FR-FAM-004/AC-1). A token that is not valid, past its expiry, used,
+	// cancelled or replaced gets the one TOKEN_REJECTED answer of the
+	// identity service, under the same token-use rate limit (SEC-30; 10.1 §10
+	// note of 14 November 2026). Never writes; an online read, never held by
+	// NOTICE_UNREAD (plan 1.6 decisions 7, 16).
+	PreviewInvitation(context.Context, *v1.PreviewInvitationRequest) (*v1.PreviewInvitationResponse, error)
+	// Accepts an invitation (06 §3.6 F02): the invitation waits for the
+	// inviter to confirm the person (F04) and opens nothing of the household.
+	// An account-level command (09.2 §8). Checked in this order, all before
+	// the token is read: ALREADY_HOUSEHOLD_MEMBER for an account that is a
+	// member anywhere or has a live acceptance of its own, then
+	// AGE_DECLARATION_REQUIRED (SEC-32, SEC-38 (c), SEC-80); then every
+	// token or invitation failure, a full household included, is the one
+	// TOKEN_REJECTED (SEC-30).
+	AcceptInvitation(context.Context, *v1.AcceptInvitationRequest) (*v1.AcceptInvitationResponse, error)
+	// Withdraws the caller's own acceptance (06 §3.6 F05): the server finds it
+	// from the caller's account, never from the request (plan 1.6 decision
+	// 14). NotFound without one; STATE_CHANGED for one past its expiry, which
+	// is recorded as expired first. Protective, so never held (lead ruling;
+	// SEC-151 (1)).
+	WithdrawAcceptance(context.Context, *v1.WithdrawAcceptanceRequest) (*v1.WithdrawAcceptanceResponse, error)
 }
 
 // NewHouseholdServiceClient constructs a client for the casa.v1.HouseholdService service. Multiple
@@ -191,6 +244,29 @@ type HouseholdServiceHandler interface {
 	// Cancels the caller's own open invitation (06 §3.6 F03). Any other caller
 	// gets NotFound; an invitation that is no longer open gets STATE_CHANGED.
 	CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error)
+	// Shows the invitee, before accepting, the household's name and the
+	// inviter's display name, and no other household data (FAM.md
+	// FR-FAM-004/AC-1). A token that is not valid, past its expiry, used,
+	// cancelled or replaced gets the one TOKEN_REJECTED answer of the
+	// identity service, under the same token-use rate limit (SEC-30; 10.1 §10
+	// note of 14 November 2026). Never writes; an online read, never held by
+	// NOTICE_UNREAD (plan 1.6 decisions 7, 16).
+	PreviewInvitation(context.Context, *v1.PreviewInvitationRequest) (*v1.PreviewInvitationResponse, error)
+	// Accepts an invitation (06 §3.6 F02): the invitation waits for the
+	// inviter to confirm the person (F04) and opens nothing of the household.
+	// An account-level command (09.2 §8). Checked in this order, all before
+	// the token is read: ALREADY_HOUSEHOLD_MEMBER for an account that is a
+	// member anywhere or has a live acceptance of its own, then
+	// AGE_DECLARATION_REQUIRED (SEC-32, SEC-38 (c), SEC-80); then every
+	// token or invitation failure, a full household included, is the one
+	// TOKEN_REJECTED (SEC-30).
+	AcceptInvitation(context.Context, *v1.AcceptInvitationRequest) (*v1.AcceptInvitationResponse, error)
+	// Withdraws the caller's own acceptance (06 §3.6 F05): the server finds it
+	// from the caller's account, never from the request (plan 1.6 decision
+	// 14). NotFound without one; STATE_CHANGED for one past its expiry, which
+	// is recorded as expired first. Protective, so never held (lead ruling;
+	// SEC-151 (1)).
+	WithdrawAcceptance(context.Context, *v1.WithdrawAcceptanceRequest) (*v1.WithdrawAcceptanceResponse, error)
 }
 
 // RegisterHouseholdServiceHandler registers svc as the casa.v1.HouseholdService implementation on
@@ -205,6 +281,9 @@ func RegisterHouseholdServiceHandler(server *connect.Server, svc HouseholdServic
 		connect.Method{Spec: householdServiceCreateInvitationSpec(), Handler: adapter.createInvitation},
 		connect.Method{Spec: householdServiceIssueInvitationLinkSpec(), Handler: adapter.issueInvitationLink},
 		connect.Method{Spec: householdServiceCancelInvitationSpec(), Handler: adapter.cancelInvitation},
+		connect.Method{Spec: householdServicePreviewInvitationSpec(), Handler: adapter.previewInvitation},
+		connect.Method{Spec: householdServiceAcceptInvitationSpec(), Handler: adapter.acceptInvitation},
+		connect.Method{Spec: householdServiceWithdrawAcceptanceSpec(), Handler: adapter.withdrawAcceptance},
 	)
 }
 
@@ -237,6 +316,18 @@ func (UnimplementedHouseholdServiceHandler) IssueInvitationLink(context.Context,
 
 func (UnimplementedHouseholdServiceHandler) CancelInvitation(context.Context, *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.CancelInvitation is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) PreviewInvitation(context.Context, *v1.PreviewInvitationRequest) (*v1.PreviewInvitationResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.PreviewInvitation is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) AcceptInvitation(context.Context, *v1.AcceptInvitationRequest) (*v1.AcceptInvitationResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.AcceptInvitation is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) WithdrawAcceptance(context.Context, *v1.WithdrawAcceptanceRequest) (*v1.WithdrawAcceptanceResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.WithdrawAcceptance is not implemented")
 }
 
 type householdServiceClient struct {
@@ -294,6 +385,30 @@ func (c *householdServiceClient) IssueInvitationLink(ctx context.Context, req *v
 func (c *householdServiceClient) CancelInvitation(ctx context.Context, req *v1.CancelInvitationRequest) (*v1.CancelInvitationResponse, error) {
 	var res v1.CancelInvitationResponse
 	if err := c.client.CallUnary(ctx, householdServiceCancelInvitationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) PreviewInvitation(ctx context.Context, req *v1.PreviewInvitationRequest) (*v1.PreviewInvitationResponse, error) {
+	var res v1.PreviewInvitationResponse
+	if err := c.client.CallUnary(ctx, householdServicePreviewInvitationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) AcceptInvitation(ctx context.Context, req *v1.AcceptInvitationRequest) (*v1.AcceptInvitationResponse, error) {
+	var res v1.AcceptInvitationResponse
+	if err := c.client.CallUnary(ctx, householdServiceAcceptInvitationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) WithdrawAcceptance(ctx context.Context, req *v1.WithdrawAcceptanceRequest) (*v1.WithdrawAcceptanceResponse, error) {
+	var res v1.WithdrawAcceptanceResponse
+	if err := c.client.CallUnary(ctx, householdServiceWithdrawAcceptanceSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -379,6 +494,42 @@ func (h householdServiceHandler) cancelInvitation(ctx context.Context, _ connect
 		return err
 	}
 	res, err := h.svc.CancelInvitation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) previewInvitation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.PreviewInvitationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.PreviewInvitation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) acceptInvitation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.AcceptInvitationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.AcceptInvitation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) withdrawAcceptance(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.WithdrawAcceptanceRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.WithdrawAcceptance(ctx, &req)
 	if err != nil {
 		return err
 	}

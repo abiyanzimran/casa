@@ -134,10 +134,12 @@ SELECT household_id, id FROM invitation
  WHERE household_id = @household_id AND state IN ('open', 'accepted');
 
 -- name: Invitation :one
--- One invitation of the household, for a command's guard and its
--- compare-and-set (plan 1.6 decision 11). By the primary key.
-SELECT inviter, state, expires_at, version FROM invitation
- WHERE household_id = @household_id AND id = @id;
+-- One invitation of the transaction's household, for a command's guard and
+-- its compare-and-set (plan 1.6 decision 11): the household is the one the
+-- selector check or the lookup found, never the request's (decision 3). By
+-- the primary key.
+SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_account_id FROM invitation
+ WHERE household_id = current_setting('app.household_id')::uuid AND id = @id;
 
 -- name: TransitionInvitation :execrows
 -- A state transition by compare-and-set on the version and state read
@@ -153,3 +155,41 @@ UPDATE invitation SET state = @to_state, closed_at = @closed_at::timestamptz, ve
 -- 1.6 decision 11). Only while the invitation is open as read.
 UPDATE invitation SET token_hash = @token_hash
  WHERE household_id = @household_id AND id = @id AND version = @version AND state = 'open';
+
+-- name: OpenInvitationByToken :one
+-- F02 and PreviewInvitation find an invitation by its token, in a lookup
+-- transaction (Scope{TokenHash}; 09.2 §3): only household_id and id (plan
+-- 1.6 decision 3), and only while it is open and before its expiry; a token
+-- path never writes the expiry (decision 12). Served by invitation_token.
+SELECT household_id, id FROM invitation
+ WHERE token_hash = @token_hash AND state = 'open' AND expires_at > @now::timestamptz;
+
+-- name: OwnAcceptance :one
+-- The account's own open acceptance, in a lookup transaction
+-- (Scope{AccountID}; the invitee clause of 09.2 §3; plan 1.6 decision 14):
+-- only household_id and id. Served by invitation_invitee, which also makes
+-- it one row at most.
+SELECT household_id, id FROM invitation
+ WHERE invitee_account_id = @account_id AND state = 'accepted';
+
+-- name: InvitationPreview :one
+-- What the invitee reads before accepting (FAM.md FR-FAM-004/AC-1): the
+-- household's name and the inviter's display name, of an invitation still
+-- open and before its expiry, in the household's own transaction. By the
+-- primary keys.
+SELECT h.name AS household_name, m.display_name AS inviter_display_name
+  FROM invitation i
+  JOIN household h ON h.id = i.household_id
+  JOIN membership m ON m.household_id = i.household_id AND m.member_id = i.inviter
+ WHERE i.household_id = @household_id AND i.id = @id AND i.state = 'open' AND i.expires_at > @now::timestamptz;
+
+-- name: AcceptInvitation :execrows
+-- F02 (06 §3.6) by compare-and-set on the version read, state open and the
+-- token hash carried (plan 1.6 decisions 11, 13): the token is cleared, so
+-- it cannot be used again (SEC-28). invitation_invitee refuses a second
+-- open acceptance of the same account (09.2 §5.1, note on decision 20).
+UPDATE invitation
+   SET state = 'accepted', invitee_account_id = @invitee_account_id, invitee_display_name = @invitee_display_name,
+       token_hash = NULL, version = version + 1
+ WHERE household_id = current_setting('app.household_id')::uuid AND id = @id AND version = @version
+   AND state = 'open' AND token_hash = @token_hash;
