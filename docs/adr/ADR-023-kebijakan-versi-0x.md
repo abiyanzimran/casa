@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: **opsi C** dengan kalimat ES §8 di butir 3 (pertanyaan S4-1 (iii), huruf A). Kata-katanya: "yang penting kan versi stable, versi stable ga musti dari 1 kan? apalagi yang baru? cek goolge aja" ([_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk", jawaban keempat). Bacaan lead: rilis 0.x final, bukan pra-rilis, boleh dipakai, sama dengan bunyi butir 3; dikukuhkan dengan "lanjut". Kalimat itu sudah dipasang lead di `ENGINEERING-STANDARDS.md` §8 |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 (FS-1 1.2: butir 6, modul tidak langsung); 13 November 2026 (FS-1 1.3: butir 7, SDK Go hasil generate BSR) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 (FS-1 1.2: butir 6, modul tidak langsung); 13 November 2026 (FS-1 1.3: butir 7, SDK Go hasil generate BSR); 14 November 2026 (FS-1 1.6: butir 8, `golang.org/x/text`) |
 | Pengusul | `architect` |
 | Mengubah | `ENGINEERING-STANDARDS.md` §8 (satu kalimat, butir 3; disetujui pemilik produk) |
 | Rincian | [09.1 §2, §5, §13](../09-technical-architecture/01-pilihan-teknologi.md); [ADR-012](ADR-012-ui-native-per-platform-dan-versi-os-minimum.md) butir 5 |
@@ -47,6 +47,7 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    | `golang.org/x/crypto/argon2` | v0.59.x | Hash kata sandi Argon2id (SEC-11) | Tidak ada padanan di stdlib. Implementasi Argon2id lain yang ≥ 1.0 bila ada saat itu, atau salinan paket `argon2` yang dipatok di repositori (lisensi BSD) **[Perlu validasi]** |
    | `golang.org/x/crypto/acme/autocert` | v0.59.x | Sertifikat TLS | certbot di VPS dan biner membaca berkas sertifikat (09.4 §1). pkg.go.dev menyebut `autocert` mungkin tidak ada di versi modul terbaru; dicek saat dipasang |
    | `golang.org/x/oauth2` (`google`) | v0.38.x | Token akses akun layanan FCM HTTP v1 | JWT akun layanan ditandatangani dengan `crypto/rsa` stdlib dan ditukar ke titik token Google lewat `net/http` |
+   | `golang.org/x/text/unicode/norm` (catatan 14 November 2026, FS-1 tugas 1.6) | v0.44.x | NFC atas nama rumah tangga dan nama tampilan sebelum panjangnya dihitung (putusan `product-analyst` atas rencana 1.6 Q5 (a)) | Tanpa NFC: panjang dihitung dalam rune sesudah dipangkas, dan klien menormalkan dengan fungsi platformnya sebelum mengirim; batas panjang itu **[Usulan]**, jadi selisih karakter terurai tidak melanggar aturan apa pun |
    | connect-kotlin | 0.10.x | Klien RPC Android | Pesan protobuf hasil generate resmi + klien HTTP biasa (unary Connect = HTTP POST) |
    | axum, sqlx | 0.8.x, 0.9.x | **Tidak dipakai**: Rust tidak dipilih (ADR-015) | actix-web v4 (stabil); Diesel 2.x (stabil) |
    | River | 0.51.x | **Tidak dipakai**; alternatif antrean | Tabel `job` sendiri (rekomendasi) |
@@ -73,6 +74,8 @@ Tanpa kebijakan, setiap butir ini menjadi perdebatan baru, atau ES §8 dibaca be
    1. versi plugin pembangkitnya dan versi modul sumbernya (komit di `buf.lock`) dipatok, dan komit di versi Go sama dengan komit di `buf.lock`;
    2. keduanya dicatat di PR yang memasang atau menaikkannya (ES §8 "Recorded"), bersama label rilis modul sumber yang menunjuk komit itu bila ada;
    3. versi plugin pembangkitnya sendiri bukan pra-rilis dan, bila 0.x, memenuhi butir 1.
+
+8. **`golang.org/x/text` menjadi dependensi langsung** (catatan 14 November 2026, FS-1 tugas 1.6; menurut butir 6.6). Modul ini sudah masuk sebagai modul tidak langsung lewat butir 6 (PR #13); sejak 1.6 kode kita mengimpor `unicode/norm`, jadi butir 1 berlaku penuh dan barisnya ada di tabel butir 2. Kelima syarat: (1) stdlib tidak punya normalisasi Unicode, dan menulisnya sendiri adalah kode tambahan milik kita; (2) aktif: v0.44.0 terbit 9 November 2026 ([proxy.golang.org, `@latest`](https://proxy.golang.org/golang.org/x/text/@latest), diakses 14 November 2026) **[Terverifikasi]**, dari proyek Go sendiri seperti `x/crypto`; (3) dipatok di `go.mod` dan `go.sum`; (4) dipakai hanya lewat satu fungsi penormal isian teks di modul `household`, yang dipakai ulang modul lain bila kelak perlu; (5) jalan mundur di baris tabelnya. Versinya tetap versi yang dipilih resolusi modul bersama dependensi lain yang menariknya.
 
 ## Konsekuensi
 

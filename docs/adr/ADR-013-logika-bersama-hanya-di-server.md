@@ -99,3 +99,23 @@ Putusan lead atas pertanyaan rencana 1.4 (Q6). Keputusan di atas tidak berubah. 
 - **Kata sandi umum** (SEC-11) bukan kode `ErrorCode`, melainkan pelanggaran per medan: `InvalidArgument` dengan detail `buf.validate.Violations`, `rule_id` `password.common`, pada jalur medan kata sandi (sama dengan catatan 1.3 di atas).
 - Setiap kode ditolak dengan satu pesan tetap per kode, sehingga penolakan seragam identik byte demi byte. Galat lain menjadi `Internal` dengan pesan tetap; teks PostgreSQL tidak pernah ke klien (09.2 §3 lapis 3).
 - Nama kode ini pengenal kontrak, bukan istilah glosarium.
+
+## Catatan 14 November 2026 (FS-1 tugas 1.6, `household`)
+
+Putusan `architect` atas pertanyaan rencana 1.6 (Q13). Keputusan di atas tidak berubah. Galat modul `household` dipetakan oleh satu fungsi di lapisan API, berdampingan dengan fungsi pemetaan `identity`:
+
+| Galat `household` | Kode Connect | `ErrorDetail.code` |
+|---|---|---|
+| Tidak ditemukan: pemilih rumah tangga yang bukan keanggotaan akun, objek rumah tangga lain, pelaku yang bukan pihak objek itu | `NotFound`, satu pesan tetap | tanpa detail (SEC-05; 09.2 §3 lapis 3) |
+| Token undangan ditolak, apa pun sebabnya | `PermissionDenied` | `ERROR_CODE_TOKEN_REJECTED`, dibentuk oleh **fungsi yang sama** dengan penolakan token `identity`, sehingga identik byte demi byte (SEC-30) |
+| Pernyataan usia diperlukan | `FailedPrecondition` | `ERROR_CODE_AGE_DECLARATION_REQUIRED = 12` |
+| Akun tidak boleh membuat rumah tangga | `PermissionDenied` | `ERROR_CODE_HOUSEHOLD_CREATION_NOT_ALLOWED = 13` |
+| Compare-and-set kalah atau state tidak lagi cocok (09.2 §9) | `FailedPrecondition` | `ERROR_CODE_STATE_CHANGED = 14` |
+| Sudah ada undangan yang belum gugur | `FailedPrecondition` | `ERROR_CODE_INVITATION_PENDING = 15` |
+| Rumah tangga sudah berisi dua anggota dewasa penuh (F01) | `FailedPrecondition` | `ERROR_CODE_HOUSEHOLD_FULL = 16` |
+| Tahan pemberitahuan (09.3 §1) | `FailedPrecondition` | `ERROR_CODE_NOTICE_UNREAD` (sudah ada) |
+| F02 oleh akun yang sudah anggota aktif rumah tangga mana pun (aturan server pilot; putusan lead Q18, 06 §3.6) | `FailedPrecondition` | `ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER = 17`; diperiksa atas keanggotaan pemanggil sendiri sebelum token dibaca |
+
+- `STATE_CHANGED` di 1.6 **tidak membawa state**. 09.2 §9 "beserta state terbaru yang boleh dibaca pemanggil" dipenuhi dengan pembacaan ulang lewat RPC baca yang memang boleh dipanggil pemanggil itu (`GetOpenInvitation`, `GetOperatorNotice`), sehingga tidak ada jalur kedua yang harus menegakkan SEC-152.
+- Pelanggaran unique `invitation_live` (dua F01 bersamaan) dipetakan di modul ke galat "sudah ada undangan", tidak pernah menjadi `Internal`.
+- Rumah tangga penuh pada F02 tidak memakai `HOUSEHOLD_FULL`, melainkan penolakan token yang seragam (SEC-30).

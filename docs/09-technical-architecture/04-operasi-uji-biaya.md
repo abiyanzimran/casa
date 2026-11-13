@@ -268,7 +268,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-28, SEC-30 sampai SEC-32 | Token undangan; tanggapan seragam; F04 dengan email; syarat sebelum aktif | `household` | 04 §2 |
 | SEC-158 | Pendaftaran tertutup; token pemasangan sekali pakai dari pengelola | `identity`; `household` | 04 §2 |
 | SEC-33 | Tanpa API admin | Subperintah `casa ops` lewat SSH | 04 §1 |
-| SEC-34 | Pemberitahuan operator berversi | `operator_notice`, `operator_notice_ack` | 02 §1 |
+| SEC-34 | Pemberitahuan operator berversi | Teks versi di biner (paket `household`), `operator_notice_ack` (catatan 14 November 2026, FS-1 tugas 1.6) | 02 §1; 03 §1 |
 | SEC-36 | Akses darurat | Tidak dibangun di pilot; wajib sebelum GR-4 (pengguna luar pertama, termasuk orang tua yang diberi login; keputusan 52; 10 §4.2; 14 QG-31 (a)) | Indeks §6 |
 | SEC-40 | TLS ≥ 1.2 | Biner Go | 04 §1 |
 | SEC-41 | Pengerasan VPS | Ops | 04 §1 |
@@ -323,7 +323,7 @@ Semua angka **[Asumsi]**, untuk dikalibrasi dengan pengukuran pilot.
 | SEC-174 | Kunci aplikasi web dan autentikasi ulang | Klien web (PBKDF2 Web Crypto); `identity` | 04 §2; ADR-030 butir 12 |
 | SEC-175 | Permukaan di luar aplikasi (judul halaman, URL, riwayat, isian otomatis, manifest) | Klien web | 08; 10.5 |
 | SEC-176, SEC-177 | Web Push: payload, langganan, daftar izin host, VAPID | `notify` (`push_token` `webpush`) | 02 §5.1; 03 §8; ADR-030 butir 14 |
-| SEC-178 | Pemberitahuan pengelola di web; tanpa laporan galat otomatis | `operator_notice`; klien web | 04 §3 |
+| SEC-178 | Pemberitahuan pengelola di web; tanpa laporan galat otomatis | Teks pemberitahuan di biner (paket `household`); klien web | 04 §3 |
 | SEC-179 | Halaman pemeriksaan diri hanya di staging | CI (pemeriksaan bundel produksi) | 04 §4, §5 |
 
 ---

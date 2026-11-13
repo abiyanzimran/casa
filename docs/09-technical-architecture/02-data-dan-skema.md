@@ -19,10 +19,10 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 | Modul | Isi | Tabel milik | Sumber aturan |
 |---|---|---|---|
 | `identity` | Akun, kata sandi, sesi per perangkat, token penyegar, autentikasi ulang, pemulihan email, batas laju, pendaftaran tertutup dengan token pemasangan. Catatan 13 November 2026 (FS-1 1.4): kueri sqlc-nya di `internal/identity/identitydb` | `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `setup_token`, `signup_verification`, `security_event` | Dokumen 10 SEC-11 sampai SEC-27, SEC-158 |
-| `household` | Rumah tangga, keanggotaan, peran, undangan, keluar dan masa tenggang, pihak luar, pemberitahuan operator, `full_adult_members`, sebutan anggota per pembaca (Tier 2, §5.5) | `household`, `membership`, `invitation`, `external_party`, `operator_notice`, `operator_notice_ack`, `consent_record`, `member_label` | 06 §3; SEC-10, SEC-28 sampai SEC-34, SEC-109, SEC-155 |
+| `household` | Rumah tangga, keanggotaan, peran, undangan, keluar dan masa tenggang, pihak luar, pemberitahuan operator, `full_adult_members`, sebutan anggota per pembaca (Tier 2, §5.5). Catatan 14 November 2026 (FS-1 tugas 1.6, putusan `architect` Q1, Q3, Q14): juga keempat konsep 06 §3.1 selain hubungan yang ditulis saat rumah tangga dibuat, tabel hubungan, dan **satu-satunya penulis `object_event`** (06 §2.5, INV-A01): modul lain yang menulis Peristiwa (`request` sejak langkah 4, `budget` untuk kesepakatan) memanggil fungsi `household` di transaksi yang sama, karena semuanya sudah bergantung pada `household` dan `household` tidak bergantung pada mereka. Teks pemberitahuan pengelola **bukan tabel**: setiap versi ikut di biner sebagai data yang di-`embed` di paket `household` (SEC-35, terbit bersama build), dan uji menyematkan hash setiap versi yang sudah terbit sehingga versi lama tidak dapat diubah; `operator_notice` dihapus dari daftar tabel. `membership.account_id` dan `display_name` adalah pemetaan identitas anggota (07 §8.2); `identity_map` di `ledger` hanya untuk pihak luar, dan perlu tidaknya tabel itu di samping `external_party` diputus di langkah yang membangun pihak luar. Kueri sqlc di `internal/household/householddb` | `household`, `membership`, `approval_authority`, `household_rule`, `relationship`, `invitation`, `object_event`, `external_party`, `operator_notice_ack`, `consent_record`, `member_label`. Ditambah tugasnya: `responsibility` (langkah 3, bersama tagihan berulang) | 06 §2.5, §3; SEC-10, SEC-28 sampai SEC-34, SEC-109, SEC-155 |
 | `ledger` | Entri, baris, tautan, rincian, posisi (tempat uang, piutang, kewajiban, aset), rekonsiliasi | `entry`, `line`, `entry_link`, `entry_detail`, `identity_map`, `holding`, `receivable`, `liability`, `asset`, `reconciliation` | 07 §1 sampai §3; ADR-002, ADR-004, ADR-007 |
 | `budget` | Kategori, tujuan, periode, anggaran, otorisasi, reservasi, jatah, tagihan berulang, cicilan, jadwal penyisihan, sumber penghasilan, penilaian tanda; **kecocokan kategori** tautan ke pos rutin dan larangan mengganti kategori entri yang tertaut (satu fungsi; SEC-92; 07 §3.15 butir 7b, INV-37) | `category`, `purpose`, `budget_period_setting`, `budget`, `budget_rule`, `authorization`, `reservation`, `installment`, `recurring_bill`, `set_aside_schedule`, `income_source`, `assessment_lane`, `entry_flag` | 07 §2, §3, §6; 06 S-8 |
-| `request` | Permintaan, versi syarat, tanggapan, kesepakatan rumah tangga, Peristiwa | `request`, `request_terms`, `request_response`, `object_event` | 06 §2, §4 sampai §8 |
+| `request` | Permintaan, versi syarat, tanggapan, kesepakatan rumah tangga. Catatan 14 November 2026 (FS-1 tugas 1.6): Peristiwa ditulis lewat fungsi `household` (baris `household`); `request` menambah `approval_mode` ke `household_rule` (expand) bersama `resolve_approvers` | `request`, `request_terms`, `request_response` | 06 §2, §4 sampai §8 |
 | `notify` | Niat notifikasi, penahanan jam tenang, ringkasan, pengingat, token push | `notification`, `push_token`, `digest_state` | 06 §10, §11; SEC-50 sampai SEC-58 |
 | `chat` | Percakapan, pesan, kartu, tanda air, kehadiran | `conversation`, `message`, `read_state`, `presence_last_active` | 06 §16; ADR-011 |
 | `files` | Lampiran dan isinya, re-encode, thumbnail | `attachment`, `attachment_blob` | SEC-65, SEC-66 |
@@ -63,6 +63,16 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 
    `internal/identity` dan `internal/command` tidak saling mengimpor dan tidak mengimpor kode kontrak: lapisan API yang memetakan pesan kontrak ke panggilan modul dan galat modul ke kode kontrak (ADR-013, catatan 13 November 2026 FS-1 1.4).
 8. Tepi FS-1 tugas 1.5 (catatan 13 November 2026; menambah butir 7): `cmd/casa` juga mengimpor `internal/webbundle`; `cmd/webpreview` hanya mengimpor `internal/api` dan `internal/webbundle`; `internal/webbundle` tidak mengimpor paket `internal/` lain. **Hanya `cmd/casa` dan `cmd/webpreview` yang mengimpor `internal/webbundle`**; `internal/api` tidak, sehingga uji `internal/api` tidak bergantung pada build web. Uji arsitektur (`allowedImports`) memuat tepi ini.
+9. Tepi FS-1 tugas 1.6 (catatan 14 November 2026, putusan `architect` Q10; menambah butir 7 dan 8):
+
+   | Paket | Tepi baru (paket `internal/` saja) |
+   |---|---|
+   | `cmd/casa` | `internal/household` |
+   | `internal/api` | `internal/household` |
+   | `internal/household` | `internal/database`, `internal/household/householddb` (seluruh daftarnya) |
+   | `internal/household/householddb` | tidak ada |
+
+   **`household` dan `identity` tidak saling mengimpor.** Perintah yang menyentuh keduanya disusun lapisan API di dalam satu transaksi `command.Run` atau `command.RunForAccount`; `identity` menerima pemeriksaan undangan sebagai parameter fungsi, bukan sebagai impor. Ekspor baru `identity`: `RecordSecurityEvent`, `SignupVia`, `AccountEmail`, `TokenUseAttempt`, `NewToken`, `HashToken`, `SignupInvitation`; ekspor baru `command`: `RunForAccount`, `StoredForAccount` (§8: `scope_id = account_id`). Token undangan dibuat dan di-hash hanya oleh `identity.NewToken` dan `identity.HashToken`, dipanggil lapisan API: `household` hanya menerima hash, sehingga pembuat token tetap satu implementasi. Pembacaan email penerima lewat `identity.AccountEmail` oleh lapisan API (rencana 1.6 keputusan 16) adalah pengecualian sementara atas aturan 2: sejak `read` dibangun (1.7), pembacaan itu lewat `read`.
 
 ```mermaid
 flowchart LR
@@ -132,6 +142,20 @@ flowchart LR
 | 6. Uji | Untuk setiap kueri yang disiapkan sqlc, uji lintas rumah tangga yang dibangkitkan: data rumah tangga X tidak pernah kembali bagi sesi rumah tangga Y (§9 berkas 04) | ES §4; LM-09 |
 
 **Tabel global** (tanpa `household_id`): `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `security_event`, `push_token` (milik sesi), `currency` (tabel produk), dan `sentence_pool` (tanpa data rumah tangga). Kebijakan RLS-nya memakai `app.account_id`; `currency` dan `sentence_pool` hanya `SELECT` bagi `app_rw`.
+
+Catatan 14 November 2026 (FS-1 tugas 1.6; putusan `architect` atas rencana 1.6 Q3 dan F05, putusan `security-privacy` atas Q2 dan Q6 di [10.1 §5.1](../10-security-privacy/01-ancaman-dan-akses.md) catatan tanggal itu dan [10.3 SEC-80](../10-security-privacy/03-anak-penyalahgunaan-siklus.md)). Dua tabel global baru milik `household`, keduanya dengan kebijakan `account_id = A` di `USING` dan `WITH CHECK`, dan keduanya di daftar penghapusan akun (SEC-105) walau tanpa foreign key ke `account`: `operator_notice_ack` (`SELECT, INSERT, UPDATE (acknowledged_at)`) dan `consent_record` (`SELECT, INSERT`). Tabel rumah tangga memakai kebijakan lapis 4 (`household_id = current_setting('app.household_id')::uuid`, tanpa `missing_ok`), kecuali:
+
+| Tabel | `USING` | `WITH CHECK` |
+|---|---|---|
+| `household` | `id = H` (kuncinya `id`) | `id = H` |
+| `membership` | `household_id = H′ OR (H′ IS NULL AND account_id = A)` | `household_id = H′` |
+| `invitation` | `household_id = H′ OR (H′ IS NULL AND token_hash = T) OR (H′ IS NULL AND invitee_account_id = A)` | `household_id = H′` |
+| `signup_verification` (milik `identity`, migrasi `00008`) | `token_hash = T OR setup_token_hash = T OR invitation_token_hash = T OR account_id = A` | `setup_token_hash = T OR invitation_token_hash = T` |
+
+`H` = `current_setting('app.household_id')::uuid`; `H′` = `nullif(current_setting('app.household_id', true), '')::uuid`. Klausa pencarian hanya hidup di transaksi pencarian murni (`H′ IS NULL`) dan hanya di `USING`, sehingga transaksi yang membawa rumah tangga X tidak pernah membaca keanggotaan atau undangan rumah tangga Y (SEC-38 (b)), dan cakupan pencarian tidak dapat menulis. Transaksi pencarian hanya memilih `household_id` dan pengenal baris; sesudahnya perintah berjalan dengan `household_id` dari baris yang ditemukan, tidak pernah dari permintaan. Hak `UPDATE` `signup_verification`: `(token_hash, expires_at, used_at, account_id)`; `account_id` diisi sekali (`WHERE account_id IS NULL`), pengecualian kedua aturan 2 di atas.
+
+- **F02** menemukan undangan lewat `token_hash = T`; compare-and-set di transaksi tulis mensyaratkan `version` **dan** `token_hash` sama dengan hash yang dibawa (10.1 §5.1 catatan 1.6 butir 2).
+- **F05 `WithdrawAcceptance`** (putusan `architect`, menerima usulan `security-privacy`): penerima bukan anggota, jadi rumah tangganya ditemukan lewat klausa `invitee_account_id = A` di transaksi pencarian `Read(Scope{AccountID})`, dilayani indeks `invitation_invitee` (§5.1). Compare-and-set mensyaratkan `version`, `state = 'accepted'`, dan `invitee_account_id = A`. Alternatif yang ditolak: pemilih `household_id` dari klien (tetap memerlukan pencarian yang sama untuk memeriksanya, jadi hanya menambah medan), dan menyimpan rumah tangga penerima di tabel `identity` (tepi `identity` ke data rumah tangga).
 
 Catatan 13 November 2026 (FS-1 1.4, putusan lead Q2; dikukuhkan `security-privacy` dengan penyesuaian, [10.1 §5.1](../10-security-privacy/01-ancaman-dan-akses.md)). `setup_token` dan `signup_verification` (§5.1) juga tabel global. Masuk, autentikasi token, penyegaran, pemulihan, dan pendaftaran harus menemukan satu baris **sebelum akun diketahui**, jadi kebijakan `app.account_id` saja membuatnya mustahil sebagai `app_rw`. `database.Scope` karena itu membawa dua kunci pencarian lagi, dipasang dengan pola `SET LOCAL` yang sama per transaksi: `app.email` (dibandingkan sebagai `citext`) dan `app.token_hash` (SHA-256 token dalam hex), dengan aturan `nullif` di atas. Keduanya kunci pencarian, bukan hak, dan tunduk pada empat aturan 10.1 §5.1:
 
@@ -366,6 +390,150 @@ object_event (                            -- 06 §2.5: Peristiwa per objek
   ...,                                    -- 06 §2.5
   PRIMARY KEY (household_id, object_kind, object_id, seq)
 )
+
+-- Catatan 14 November 2026 (FS-1 tugas 1.6, migrasi 00005_household; putusan architect atas rencana 1.6
+-- Q1, Q3, Q8, Q14). Bentuk tabel rumah tangga, semuanya milik household (§1) dan menggantikan sketsa
+-- household dan object_event di atas. Kebijakan RLS lapis 4 (§3), kecuali household, membership, dan
+-- invitation (tabel di §3, catatan 14 November 2026). Tanpa FK dari tabel rumah tangga ke account: FK itu tidak dapat diawali
+-- household_id (§3 lapis 2) dan melintasi batas modul. currency pada approval_authority dan household_rule
+-- NULL bila jumlahnya NULL: FK komposit dengan satu kolom NULL tidak diperiksa ("MATCH SIMPLE allows any of
+-- the foreign key columns to be null; if any of them are null, the row is not required to have a match",
+-- postgresql.org/docs/18/sql-createtable.html, diakses 14 November 2026) [Terverifikasi], sehingga baris
+-- tanpa jumlah tidak menghalangi ganti mata uang sebelum ada baris uang (FR-FAM-001/AC-8, langkah 2; 07 T-45).
+household (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text NOT NULL, time_zone text NOT NULL,
+  currency char(3) NOT NULL DEFAULT 'IDR' REFERENCES currency (code),
+  income_source_market text NOT NULL DEFAULT 'ID' CHECK (income_source_market IN ('ID')),  -- 07 §3.1
+  version bigint NOT NULL DEFAULT 0, created_at timestamptz NOT NULL,
+  UNIQUE (id, currency)
+)
+membership (                              -- 06 §3.1 peran dan izin. Sampai F06 dibangun: baris ada = aktif;
+                                          -- F06 menambah state DEFAULT 'active' (expand)
+  household_id uuid NOT NULL REFERENCES household (id),
+  member_id    uuid NOT NULL DEFAULT gen_random_uuid(),  -- pengenal internal anggota; tidak pernah diputus
+  account_id   uuid NULL,                 -- pemetaan identitas anggota (07 §8.2): diputus = NULL
+  display_name text NULL,                 -- FR-FAM-006; diputus bersama account_id
+  role         text NOT NULL CHECK (role IN ('household_owner')),
+  permission_set text NOT NULL CHECK (permission_set IN ('two_equal_adults')),
+  joined_at    timestamptz NOT NULL,
+  PRIMARY KEY (household_id, member_id), UNIQUE (household_id, account_id)
+)
+CREATE UNIQUE INDEX membership_one_household ON membership (account_id) WHERE account_id IS NOT NULL;
+                                          -- keanggotaan akun sendiri (§3 lapis 1) dan aturan produk pilot
+                                          -- "satu rumah tangga per akun"; lihat catatan balapan di bawah
+approval_authority (                      -- 06 §3.1 wewenang persetujuan
+  household_id, member_id, request_type text NOT NULL CHECK (request_type IN ('all')),
+  limit_amount bigint NULL, currency char(3) NULL,   -- §7: jumlah selalu berpasangan; keduanya NULL = tanpa batas
+  valid_from timestamptz NOT NULL, valid_until timestamptz NULL,
+  CHECK ((limit_amount IS NULL) = (currency IS NULL)),
+  PRIMARY KEY (household_id, member_id, request_type, valid_from),
+  FOREIGN KEY (household_id, member_id) REFERENCES membership,
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+)
+household_rule (                          -- 06 §3.1 aturan rumah tangga; tidak dapat diubah, versi baru = baris baru
+  household_id, version int NOT NULL,
+  preset_id text NOT NULL CHECK (preset_id IN ('two_equal_adults')),
+  request_threshold bigint NULL, currency char(3) NULL,
+  agreement_mode text NOT NULL DEFAULT 'all' CHECK (agreement_mode IN ('all')),
+  created_at timestamptz NOT NULL,
+  CHECK ((request_threshold IS NULL) = (currency IS NULL)),
+  PRIMARY KEY (household_id, version),
+  FOREIGN KEY (household_id, currency) REFERENCES household (id, currency)
+)  -- approval_mode ditambah request (langkah 4, expand) bersama resolve_approvers: belum ada aturan yang membacanya
+relationship (                            -- 06 §3.1 hubungan: tabel ada, tanpa baris di pilot
+  household_id, member_id, other_member_id, kind text NOT NULL,
+  PRIMARY KEY (household_id, member_id, other_member_id),
+  FOREIGN KEY (household_id, member_id) REFERENCES membership,
+  FOREIGN KEY (household_id, other_member_id) REFERENCES membership
+)  -- app_rw hanya SELECT: tidak ada penulis sampai Tier 3
+invitation (                              -- 06 §3.6 F01 sampai F05; aturan token 10.1 SEC-28 (catatan 1.6, Q7)
+  household_id, id uuid DEFAULT gen_random_uuid(), inviter uuid NOT NULL,
+  token_hash bytea NULL,                  -- NULL sejak F01 sampai IssueInvitationLink pertama; setiap terbitan
+                                          -- ulang mengganti hash (tautan lama mati); F02 mengosongkannya (sekali
+                                          -- pakai). Token 256 bit hanya di jawaban IssueInvitationLink
+  state text NOT NULL CHECK (state IN ('open','accepted','confirmed','cancelled','rejected','withdrawn','expired')),
+                                          -- 06: open = undangan_terbuka, accepted = menunggu_konfirmasi_pengundang,
+                                          -- confirmed = F04 selesai; empat sisanya = gugur dengan sebabnya
+  invitee_account_id uuid NULL,           -- pemetaan identitas penerima, seperti membership.account_id
+  invitee_display_name text NULL,
+  created_at timestamptz NOT NULL, expires_at timestamptz NOT NULL,
+  closed_at timestamptz NULL,             -- gugur karena waktu: = expires_at, bukan saat ditulis
+  version bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (household_id, id),
+  FOREIGN KEY (household_id, inviter) REFERENCES membership
+)
+CREATE INDEX invitation_token ON invitation (token_hash) WHERE token_hash IS NOT NULL;
+CREATE UNIQUE INDEX invitation_live ON invitation (household_id) WHERE state IN ('open','accepted');
+CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE state = 'accepted';
+                                          -- F05 penerima (§3) dan satu penerimaan terbuka per akun
+-- Catatan 14 November 2026 (FS-1 tugas 1.6, putusan architect atas rencana 1.6 keputusan 20): balapan
+-- "sudah anggota di mana pun" (Q5 (d), Q18). Pemeriksaan keanggotaan berjalan di transaksi pencarian, dan
+-- transaksi tulis yang membawa rumah tangga tidak dapat mengulangnya (§3). Penegaknya karena itu dua indeks
+-- unik di atas: PostgreSQL memeriksa unique tanpa memandang RLS (§3 "Kebocoran lewat unique check"), jadi
+-- keduanya berlaku lintas rumah tangga. Keduanya pengecualian tercatat atas §3 lapis 2 (kunci tidak diawali
+-- household_id); kuncinya akun pemanggil sendiri. Keduanya aturan produk pilot dan dihapus (contract)
+-- bersama F-FAM-009 (Tier 3); saat F06 menambah membership.state, predikat membership_one_household menjadi
+-- state yang masih menghitung keanggotaan (aktif dan keluar_tenggang).
+--   * CreateHousehold ×2, CreateHousehold + F04, F02 ×2 dari satu akun: pelanggaran unik di transaksi
+--     pemanggil → galat modul ALREADY_HOUSEHOLD_MEMBER (17), tidak pernah Internal.
+--   * F04 ketika penerima sudah menjadi anggota rumah tangga lain sesudah F02 (CreateHousehold yang balapan
+--     dengan F02; tidak dapat dicegah indeks undangan saja, karena konfliknya lintas dua tabel):
+--     INSERT membership … ON CONFLICT (account_id) WHERE account_id IS NOT NULL DO NOTHING ("index_predicate
+--     … Used to allow inference of partial unique indexes", postgresql.org/docs/18/sql-insert.html, diakses
+--     14 November 2026) [Terverifikasi]. Bila tidak ada baris tersisip (diubah 14 November 2026 atas
+--     SEC-38 (c), 10.1 §10, diterima lead): transaksi F04 dibatalkan, lalu lapisan API menjalankan satu
+--     database.Write lagi yang menutup undangan **persis seperti penarikan F05 oleh penerima**: to_state
+--     'withdrawn', actor_kind 'invitee', perintah sama dengan F05, tanpa rule, idempotency_key UUIDv4 acak
+--     baru (penarikan sungguhan selalu membawa kunci, jadi NULL akan membedakannya);
+--     compare-and-set atas version dan state 'accepted' (kalah → tidak ada tulisan). F04 menjawab
+--     STATE_CHANGED, sama dengan kalah balapan dari penarikan sungguhan, dan tidak tercatat di
+--     idempotency_record, sehingga kiriman ulang menjawab STATE_CHANGED dari state 'withdrawn'. Peristiwa itu
+--     sengaja tidak membedakan sebabnya: pelaku tercatat jenis invitee walau penerima tidak memerintahkannya,
+--     pengecualian tercatat atas INV-A01 demi SEC-38 (c), karena sebab yang sebenarnya membuka bahwa penerima
+--     bergabung ke rumah tangga lain. INV-A48 (b) tetap (tidak ada transisi menuju aktif).
+--   * Kode 17 di jalur F02 (dikukuhkan security-privacy, 10.1 §10): transaksi F02 tidak menulis apa pun saat
+--     menjawab 17, dan percobaan itu dihitung pembatas tokenUse.
+--   * Uji: setiap pasangan di atas dengan dua goroutine di balik penghalang → tepat satu keanggotaan atau satu
+--     penerimaan terbuka per akun; F04 sesudah penerima membuat rumah tangga → STATE_CHANGED, undangan
+--     'withdrawn', tanpa membership, dan baris object_event-nya sama medan demi medan (selain pengenal dan
+--     waktu) dengan penarikan F05 sungguhan; F02 yang dijawab 17 → nol baris baru dan satu hitungan tokenUse.
+object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR-016 butir 5)
+  household_id,
+  object_kind  text NOT NULL CHECK (object_kind IN ('household','invitation')),  -- diperluas tiap modul penulis
+  object_id    uuid NOT NULL,
+  seq          bigint NOT NULL,           -- = version objek sesudah transisi (ADR-016 butir 7 "seq = versi
+                                          -- objek"); Peristiwa pembuatan seq 0
+  actor_kind   text NOT NULL CHECK (actor_kind IN ('member','invitee','system')),
+  actor        uuid NULL,                 -- member_id
+  rule         text NULL,                 -- system: pengenal aturan pemicu, mis. 'invitation.expired'
+  command      text NOT NULL, from_state text NULL, to_state text NOT NULL,
+  idempotency_key uuid NULL, server_time timestamptz NOT NULL,
+  CHECK ((actor_kind = 'member') = (actor IS NOT NULL)),
+  CHECK ((actor_kind = 'system') = (rule IS NOT NULL)),
+  CHECK (actor_kind <> 'invitee' OR object_kind = 'invitation'),
+  PRIMARY KEY (household_id, object_kind, object_id, seq),
+  FOREIGN KEY (household_id, actor) REFERENCES membership (household_id, member_id)
+)  -- terms_version (INV-A01) ditambah request bersama request_terms
+operator_notice_ack (                     -- tabel global (§3); SEC-34; FR-FAM-019/AC-3 riwayat
+  account_id uuid NOT NULL, variant text NOT NULL CHECK (variant IN ('couple','family','general')),
+  version int NOT NULL,
+  text_sha256 bytea NOT NULL,             -- SHA-256 teks yang sudah diisi nama pengelola: identitas versi bagi akun
+  issued_at timestamptz NOT NULL, acknowledged_at timestamptz NULL,
+  PRIMARY KEY (account_id, variant, version, text_sha256)
+)  -- hash atas penyandian berawalan panjang dari varian, nomor, judul, dan setiap paragraf beserta tanda
+   -- fiturnya; pengakuan membawa hash yang ditampilkan (10.1 catatan 14 November 2026 sesudah SEC-159, Q3 (a), (b))
+consent_record (                          -- tabel global (§3); SEC-80, SEC-109 (a); tanpa tanggal lahir
+  account_id uuid NOT NULL, kind text NOT NULL CHECK (kind IN ('adult_age')),
+  text_version int NOT NULL, recorded_at timestamptz NOT NULL,
+  PRIMARY KEY (account_id, kind, text_version)
+)  -- akun yang sudah punya baris adult_age tidak ditanya lagi saat versi teks berganti
+
+-- Catatan 14 November 2026 (FS-1 tugas 1.6, migrasi 00008, expand): signup_verification (identity) mendapat
+-- sumber undangan. Kebijakan dan hak di §3.
+--   source CHECK (source IN ('setup_token','invitation')),
+--   invitation_token_hash bytea NULL UNIQUE,   -- tidak pernah dapat diubah
+--   account_id uuid NULL,                      -- akun yang lahir darinya; diisi sekali
+--   CHECK (tepat satu dari setup_token_hash dan invitation_token_hash terisi, sesuai source)
 
 reader_feed (                             -- ADR-017: umpan per pembaca
   household_id uuid, member_id uuid,
