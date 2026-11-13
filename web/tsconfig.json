@@ -10,5 +10,6 @@
 		"vite.config.ts",
 		"playwright.config.ts",
 		"eslint.config.js"
-	]
+	],
+	"exclude": ["src/service-worker"]
 }

@@ -253,6 +253,11 @@ html {
 	color: var(--tinta);
 }
 
+/* 08 §19.13.6: screen margins come from --margin (16/24/32), not the browser's 8 px */
+body {
+	margin: 0;
+}
+
 /* 08 §19.4 number tokens: tabular figures; "Rp" is its own element (.rp) */
 .angka-utama,
 .angka-besar {

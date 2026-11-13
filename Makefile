@@ -25,7 +25,7 @@ OSV_SCANNER := $(CURDIR)/.cache/osv-scanner-$(OSV_SCANNER_VERSION)/osv-scanner
 WEB_LOCKFILE := web/pnpm-lock.yaml
 
 .PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
-.PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
+.PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
 
 check: check-server check-web
 
@@ -98,7 +98,7 @@ $(GOLANGCI_LINT):
 
 # Web client gates (ADR-030 items 8 and 18). web-install comes first; the
 # others assume web/node_modules is in place.
-check-web: web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-e2e
+check-web: web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
 
 web-install:
 	cd web && pnpm install --frozen-lockfile
@@ -111,8 +111,11 @@ web-fmt:
 web-lint:
 	cd web && pnpm exec svelte-kit sync && pnpm exec eslint --max-warnings 0 .
 
+# The service workers have their own tsconfig (WebWorker types), which svelte-check
+# does not read.
 web-check:
 	cd web && pnpm exec svelte-kit sync && pnpm exec svelte-check --fail-on-warnings
+	cd web && pnpm exec tsc -p src/service-worker && pnpm exec tsc -p emergency
 
 web-vuln: $(OSV_SCANNER)
 	$(OSV_SCANNER) scan source --lockfile $(WEB_LOCKFILE)
@@ -122,6 +125,11 @@ cpd-ts:
 
 web-bundle:
 	cd web && node scripts/check-bundle.mjs
+
+# Vitest unit tests (QG-05). svelte-kit sync writes the generated tsconfig
+# and $app types the tests compile against.
+web-unit:
+	cd web && pnpm exec svelte-kit sync && pnpm exec vitest run
 
 web-e2e:
 	cd web && pnpm exec playwright test

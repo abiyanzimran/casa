@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // SvelteKit 3 takes its options here; svelte.config.js is no longer read.
 export default defineConfig({
@@ -11,6 +11,9 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
+			// SEC-167 (c): registered only by registerServiceWorker() in
+			// src/lib/service-worker-registration.ts, behind the casa-sw policy.
+			serviceWorker: { register: false },
 			adapter: adapter({
 				// SPA mode (ADR-030 item 2): every unknown path gets the app shell.
 				fallback: 'index.html',
@@ -24,5 +27,12 @@ export default defineConfig({
 		// Source maps never ship in the production bundle. scripts/check-bundle.mjs
 		// sets BUNDLE_CHECK=1 to read package names from them in a temp build.
 		sourcemap: process.env.BUNDLE_CHECK === '1' ? 'hidden' : false
+	},
+	// Unit tests and golden vectors (ADR-030 item 4; 14 §2.2). Playwright owns tests/e2e.
+	test: {
+		include: ['src/**/*.test.ts'],
+		environment: 'node',
+		restoreMocks: true,
+		unstubGlobals: true
 	}
 });
