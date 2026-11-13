@@ -3,7 +3,7 @@ module github.com/abiyanzimran/casa/server
 go 1.27.4
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.1
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.2
 	buf.build/go/protovalidate v1.4.0
 	connectrpc.com/connect/v2 v2.0.2
 	github.com/jackc/pgx/v5 v5.13.0
