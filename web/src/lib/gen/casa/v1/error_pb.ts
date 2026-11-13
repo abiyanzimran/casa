@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file casa/v1/error.proto.
  */
 export const file_casa_v1_error: GenFile = /*@__PURE__*/
-  fileDesc("ChNjYXNhL3YxL2Vycm9yLnByb3RvEgdjYXNhLnYxIi8KC0Vycm9yRGV0YWlsEiAKBGNvZGUYASABKA4yEi5jYXNhLnYxLkVycm9yQ29kZSrKAQoJRXJyb3JDb2RlEhoKFkVSUk9SX0NPREVfVU5TUEVDSUZJRUQQABImCiJFUlJPUl9DT0RFX0NMSUVOVF9VUEdSQURFX1JFUVVJUkVEEAESHgoaRVJST1JfQ09ERV9TRVNTSU9OX0VYUElSRUQQAhIeChpFUlJPUl9DT0RFX1NFU1NJT05fUkVWT0tFRBADEhsKF0VSUk9SX0NPREVfV1JJVEVfRlJPWkVOEAQSHAoYRVJST1JfQ09ERV9OT1RJQ0VfVU5SRUFEEAVClwEKC2NvbS5jYXNhLnYxQgpFcnJvclByb3RvUAFaP2dpdGh1Yi5jb20vYWJpeWFuemltcmFuL2Nhc2Evc2VydmVyL2ludGVybmFsL2dlbi9jYXNhL3YxO2Nhc2F2MaICA0NYWKoCB0Nhc2EuVjHKAgdDYXNhXFYx4gITQ2FzYVxWMVxHUEJNZXRhZGF0YeoCCENhc2E6OlYxYgZwcm90bzM");
+  fileDesc("ChNjYXNhL3YxL2Vycm9yLnByb3RvEgdjYXNhLnYxIi8KC0Vycm9yRGV0YWlsEiAKBGNvZGUYASABKA4yEi5jYXNhLnYxLkVycm9yQ29kZSrLAgoJRXJyb3JDb2RlEhoKFkVSUk9SX0NPREVfVU5TUEVDSUZJRUQQABImCiJFUlJPUl9DT0RFX0NMSUVOVF9VUEdSQURFX1JFUVVJUkVEEAESHgoaRVJST1JfQ09ERV9TRVNTSU9OX0VYUElSRUQQAhIeChpFUlJPUl9DT0RFX1NFU1NJT05fUkVWT0tFRBADEhsKF0VSUk9SX0NPREVfV1JJVEVfRlJPWkVOEAQSHAoYRVJST1JfQ09ERV9OT1RJQ0VfVU5SRUFEEAUSHQoZRVJST1JfQ09ERV9UT0tFTl9SRUpFQ1RFRBAGEhsKF0VSUk9SX0NPREVfUkFURV9MSU1JVEVEEAcSIwofRVJST1JfQ09ERV9DUkVERU5USUFMU19SRUpFQ1RFRBAIEh4KGkVSUk9SX0NPREVfUkVUUllfRVhIQVVTVEVEEAlClwEKC2NvbS5jYXNhLnYxQgpFcnJvclByb3RvUAFaP2dpdGh1Yi5jb20vYWJpeWFuemltcmFuL2Nhc2Evc2VydmVyL2ludGVybmFsL2dlbi9jYXNhL3YxO2Nhc2F2MaICA0NYWKoCB0Nhc2EuVjHKAgdDYXNhXFYx4gITQ2FzYVxWMVxHUEJNZXRhZGF0YeoCCENhc2E6OlYxYgZwcm90bzM");
 
 /**
  * ErrorDetail is the Connect error detail that carries the domain error code
@@ -86,6 +86,39 @@ export enum ErrorCode {
    * @generated from enum value: ERROR_CODE_NOTICE_UNREAD = 5;
    */
   NOTICE_UNREAD = 5,
+
+  /**
+   * A setup, verification or recovery token is missing, malformed, unknown,
+   * expired, used, or bound to another email: one answer for every reason
+   * (SEC-30; SEC-158).
+   *
+   * @generated from enum value: ERROR_CODE_TOKEN_REJECTED = 6;
+   */
+  TOKEN_REJECTED = 6,
+
+  /**
+   * Too many failed attempts from this account or network address; retry
+   * later (SEC-12).
+   *
+   * @generated from enum value: ERROR_CODE_RATE_LIMITED = 7;
+   */
+  RATE_LIMITED = 7,
+
+  /**
+   * The email and password do not open a session, whichever of the two is
+   * wrong (SEC-12).
+   *
+   * @generated from enum value: ERROR_CODE_CREDENTIALS_REJECTED = 8;
+   */
+  CREDENTIALS_REJECTED = 8,
+
+  /**
+   * The server's serializable retries ran out under contention; the client
+   * may send the same request again (09.2 §6).
+   *
+   * @generated from enum value: ERROR_CODE_RETRY_EXHAUSTED = 9;
+   */
+  RETRY_EXHAUSTED = 9,
 }
 
 /**

@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package casa.v1;
+
+import "buf/validate/validate.proto";
+import "casa/v1/request.proto";
+import "google/protobuf/timestamp.proto";
+
+// IdentityService is the identity module's API: closed sign-up, sign-in and
+// sessions (09.2 §1; SEC-11, SEC-12, SEC-15, SEC-158). Its RPCs are outside
+// the command kind table and carry no idempotency key (09.2 §8; 09.3 §1).
+// Every password and token field is debug_redact, so it never appears in a
+// printed message.
+service IdentityService {
+  // Checks a setup token and the email it is bound to, then sends a
+  // verification link to that email (SEC-158 (b)). Every rejection is the
+  // same TOKEN_REJECTED (SEC-30).
+  rpc StartSignUp(StartSignUpRequest) returns (StartSignUpResponse);
+  // Opens the account with the emailed link and the person's own password,
+  // and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10).
+  rpc CompleteSignUp(CompleteSignUpRequest) returns (CompleteSignUpResponse);
+  // Opens a native session with email and password. An unknown email and a
+  // wrong password get the same CREDENTIALS_REJECTED (SEC-12).
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  // Rotates a native session's tokens. A refresh token used a second time
+  // revokes its session (SEC-15).
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+}
+
+message StartSignUpRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No validation rule on purpose: an empty or malformed token gets the same
+  // rejection as any other invalid token (SEC-30).
+  string setup_token = 2 [debug_redact = true];
+  string email = 3 [(buf.validate.field).string = {
+    email: true
+    max_len: 254
+  }];
+}
+
+message StartSignUpResponse {}
+
+message CompleteSignUpRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No validation rule, as setup_token above.
+  string verification_token = 2 [debug_redact = true];
+  // At least 12 characters (SEC-11); the upper bound keeps a huge password
+  // from tying up the hash [Usulan].
+  string password = 3 [
+    debug_redact = true,
+    (buf.validate.field).string = {
+      min_len: 12
+      max_len: 1024
+    }
+  ];
+}
+
+message CompleteSignUpResponse {
+  SessionTokens tokens = 1;
+}
+
+message SignInRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No email rule: a malformed email is rejected like an unknown one
+  // (SEC-12).
+  string email = 2 [(buf.validate.field).string.max_len = 254];
+  string password = 3 [
+    debug_redact = true,
+    (buf.validate.field).string.max_len = 1024
+  ];
+}
+
+message SignInResponse {
+  SessionTokens tokens = 1;
+}
+
+message RefreshSessionRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // No validation rule, as setup_token above.
+  string refresh_token = 2 [debug_redact = true];
+}
+
+message RefreshSessionResponse {
+  SessionTokens tokens = 1;
+}
+
+// SessionTokens are a native session's tokens (SEC-15; 09.4 §2). A web
+// session gets a cookie instead (1.5; SEC-161 (b)).
+message SessionTokens {
+  string access_token = 1 [debug_redact = true];
+  string refresh_token = 2 [debug_redact = true];
+  google.protobuf.Timestamp access_token_expires_at = 3;
+}

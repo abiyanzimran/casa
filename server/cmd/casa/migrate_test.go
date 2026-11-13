@@ -15,7 +15,7 @@ import (
 func TestMigrate(t *testing.T) {
 	t.Run("applies every migration and reports the version", func(t *testing.T) {
 		d := databasetest.Empty(t)
-		withCredential(t, d.URL("migrator"))
+		withCredential(t, migratorDatabaseURL, d.URL("migrator"))
 		p, err := schema.NewProvider(d.SQL(t, "migrator"))
 		if err != nil {
 			t.Fatal(err)
@@ -32,7 +32,7 @@ func TestMigrate(t *testing.T) {
 
 	t.Run("refuses a role other than migrator", func(t *testing.T) {
 		d := databasetest.Empty(t)
-		withCredential(t, d.URL(d.AdminRole))
+		withCredential(t, migratorDatabaseURL, d.URL(d.AdminRole))
 		code, _, stderr := runCasa(t, "migrate")
 		want := "casa migrate: must run as role migrator, connected as " + d.AdminRole
 		if code != 1 || !strings.Contains(stderr, want) {
@@ -47,7 +47,7 @@ func TestMigrate(t *testing.T) {
 			"postgres://migrator:" + marker + "@127.0.0.1:1/casa?connect_timeout=2",
 			"postgres://migrator:" + marker + "@[bad",
 		} {
-			withCredential(t, credential)
+			withCredential(t, migratorDatabaseURL, credential)
 			code, stdout, stderr := runCasa(t, "migrate")
 			if code != 1 || strings.Contains(stdout+stderr, marker) {
 				t.Errorf("exit %d, output %q; want 1 without the password (ES §4)", code, stdout+stderr)
@@ -57,7 +57,7 @@ func TestMigrate(t *testing.T) {
 
 	t.Run("fails on an empty credential", func(t *testing.T) {
 		// An empty connection string would fall back to the PG* environment.
-		withCredential(t, "\n")
+		withCredential(t, migratorDatabaseURL, "\n")
 		code, _, stderr := runCasa(t, "migrate")
 		if want := "casa migrate: credential migrator-database-url is empty\n"; code != 1 || stderr != want {
 			t.Fatalf("exit %d, stderr %q; want 1, %q", code, stderr, want)
@@ -81,11 +81,11 @@ func TestMigrate(t *testing.T) {
 	})
 }
 
-// withCredential writes credential as systemd LoadCredential= would.
-func withCredential(t *testing.T, credential string) {
+// withCredential writes the credential name as systemd LoadCredential= would.
+func withCredential(t *testing.T, name, credential string) {
 	t.Helper()
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "migrator-database-url"), []byte(credential+"\n"), 0o400); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, name), []byte(credential+"\n"), 0o400); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("CREDENTIALS_DIRECTORY", dir)
