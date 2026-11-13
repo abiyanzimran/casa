@@ -83,7 +83,7 @@ SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::
 -- caller writes the security trail line once per issue.
 INSERT INTO operator_notice_ack (account_id, issue_seq, variant, version, text_sha256, issued_at)
 VALUES (@account_id, @issue_seq, @variant, @version, @text_sha256, @issued_at)
-ON CONFLICT (account_id, issue_seq) DO NOTHING;
+ON CONFLICT (account_id, issue_seq) DO UPDATE SET acknowledged_at = operator_notice_ack.acknowledged_at;
 
 -- name: AcknowledgeNotice :execrows
 -- SEC-34: only the last issue, only with its identity; the first

@@ -250,7 +250,7 @@ func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventPa
 const issueNotice = `-- name: IssueNotice :execrows
 INSERT INTO operator_notice_ack (account_id, issue_seq, variant, version, text_sha256, issued_at)
 VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (account_id, issue_seq) DO NOTHING
+ON CONFLICT (account_id, issue_seq) DO UPDATE SET acknowledged_at = operator_notice_ack.acknowledged_at
 `
 
 type IssueNoticeParams struct {
