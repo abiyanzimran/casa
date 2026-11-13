@@ -551,6 +551,23 @@ func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignup
 	return err
 }
 
+const useAccountRecoveryTokens = `-- name: UseAccountRecoveryTokens :exec
+UPDATE recovery_token SET used_at = $1::timestamptz
+ WHERE account_id = $2 AND used_at IS NULL
+`
+
+type UseAccountRecoveryTokensParams struct {
+	Now       time.Time
+	AccountID pgtype.UUID
+}
+
+// A credential reset uses up every open recovery link of the account
+// (SEC-15, SEC-24); served by recovery_token_account_open.
+func (q *Queries) UseAccountRecoveryTokens(ctx context.Context, arg UseAccountRecoveryTokensParams) error {
+	_, err := q.db.Exec(ctx, useAccountRecoveryTokens, arg.Now, arg.AccountID)
+	return err
+}
+
 const useReauthGrant = `-- name: UseReauthGrant :execrows
 UPDATE reauth_grant g SET used_at = $1::timestamptz
  WHERE g.used_at IS NULL AND g.id = (

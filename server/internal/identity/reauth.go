@@ -94,17 +94,22 @@ func (s *Service) ChangePassword(ctx context.Context, tx pgx.Tx, session Session
 	})
 }
 
-// replaceCredential writes hash as account's credential.
+// replaceCredential writes hash as account's credential and uses up every
+// open recovery link of the account, so no older link resets it again
+// (SEC-15, SEC-24; lead ruling on PR B).
 func replaceCredential(ctx context.Context, q *identitydb.Queries, account pgtype.UUID, hash PasswordHash, now time.Time) error {
 	updated, err := q.UpdateCredential(ctx, identitydb.UpdateCredentialParams{
 		AccountID: account, Salt: hash.salt, Hash: hash.hash,
 		TimeCost: int32(hash.params.Time), MemoryKib: int32(hash.params.MemoryKiB), //nolint:gosec // G115: Argon2 parameters fit in int32
 		Parallelism: int16(hash.params.Parallelism), UpdatedAt: now,
 	})
-	if err == nil && updated != 1 {
-		err = fmt.Errorf("%d credentials updated, want 1", updated)
+	switch {
+	case err != nil:
+		return err
+	case updated != 1:
+		return fmt.Errorf("%d credentials updated, want 1", updated)
 	}
-	return err
+	return q.UseAccountRecoveryTokens(ctx, identitydb.UseAccountRecoveryTokensParams{Now: now, AccountID: account})
 }
 
 // HashNewPassword hashes the new password of ChangePassword, outside the

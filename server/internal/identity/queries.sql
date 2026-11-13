@@ -137,3 +137,9 @@ UPDATE recovery_token SET used_at = @now::timestamptz
 UPDATE session SET revoked_at = @now::timestamptz, revoke_reason = @reason::text
  WHERE account_id = @account_id AND revoked_at IS NULL
 RETURNING id;
+
+-- name: UseAccountRecoveryTokens :exec
+-- A credential reset uses up every open recovery link of the account
+-- (SEC-15, SEC-24); served by recovery_token_account_open.
+UPDATE recovery_token SET used_at = @now::timestamptz
+ WHERE account_id = @account_id AND used_at IS NULL;

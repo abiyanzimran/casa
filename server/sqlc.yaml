@@ -12,6 +12,7 @@ sql:
     schema:
       - internal/schema/00001_currency.sql
       - internal/schema/00002_identity.sql
+      - internal/schema/00003_recovery_token_open.sql
     queries: internal/identity/queries.sql
     gen:
       go:
@@ -27,6 +28,7 @@ sql:
     schema:
       - internal/schema/00001_currency.sql
       - internal/schema/00002_identity.sql
+      - internal/schema/00003_recovery_token_open.sql
     queries: internal/command/queries.sql
     gen:
       go:

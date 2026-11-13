@@ -1064,6 +1064,36 @@ func TestRecovery(t *testing.T) {
 		_, err = h.completeRecovery(ios, link, next)
 		wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
 	})
+	t.Run("SEC-15 a reset uses up every other recovery link", func(t *testing.T) {
+		// Lead ruling on PR B: a recovery and a password change each leave
+		// no older recovery link usable.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		links := make([]string, 3)
+		for i := range links {
+			_, err := h.startRecovery(email)
+			wantOK(t, err)
+			links[i] = h.lastLink(t)
+		}
+		_, err := h.completeRecovery(ios, links[1], next)
+		wantOK(t, err)
+		for _, i := range []int{0, 2} {
+			_, err := h.completeRecovery(ios, links[i], password)
+			wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+		}
+		_, err = h.startRecovery(email)
+		wantOK(t, err)
+		link := h.lastLink(t)
+		tokens, err := h.signIn(email, next)
+		wantOK(t, err)
+		_, err = h.reauthenticate(tokens.GetAccessToken(), next)
+		wantOK(t, err)
+		wantOK(t, h.changePassword(tokens.GetAccessToken(), password))
+		_, err = h.completeRecovery(ios, link, next)
+		wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+		_, err = h.signIn(email, password)
+		wantOK(t, err)
+	})
 	t.Run("SEC-11 a recovery with a common password is refused and the link stays usable", func(t *testing.T) {
 		h := startIdentity(t)
 		h.signUp(t, email, password)
