@@ -115,7 +115,14 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 	if err != nil {
 		return Tokens{}, fmt.Errorf("read the recovery link: %w", err)
 	}
-	// Hashed outside the transaction, which may run more than once.
+	// Red proof: the token is used up before the hash runs.
+	err = database.Write(ctx, s.pool, database.Scope{AccountID: row.AccountID}, func(tx pgx.Tx) error {
+		_, err := identitydb.New(tx).UseRecoveryToken(ctx, identitydb.UseRecoveryTokenParams{Now: s.config.Now(), TokenHash: tokenHash})
+		return err
+	})
+	if err != nil {
+		return Tokens{}, err
+	}
 	hash, err := s.hasher.hash(ctx, newPassword)
 	if err != nil {
 		return Tokens{}, fmt.Errorf("hash the password: %w", err)
@@ -126,9 +133,8 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 	err = database.Write(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) error {
 		now := s.config.Now()
 		q := identitydb.New(tx)
-		used, err := q.UseRecoveryToken(ctx, identitydb.UseRecoveryTokenParams{Now: now, TokenHash: tokenHash})
-		if err != nil || used == 0 {
-			return errors.Join(err, rejectedIfNone(used))
+		if _, err := q.UseRecoveryToken(ctx, identitydb.UseRecoveryTokenParams{Now: now, TokenHash: tokenHash}); err != nil {
+			return err
 		}
 		if err := replaceCredential(ctx, q, account, hash, now); err != nil {
 			return err
