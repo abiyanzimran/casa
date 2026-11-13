@@ -64,6 +64,14 @@ test('SEC-169 (b): API, stream, and other requests are never cached', async ({ p
 	).toEqual([]);
 });
 
+test('SEC-169 (b): the service worker never answers a navigation to the API', async ({ page }) => {
+	await page.goto('/');
+	await serviceWorkerReady(page);
+	await page.reload(); // now controlled by the service worker
+	const response = await page.goto('/v1/probe');
+	expect(response?.fromServiceWorker()).toBe(false);
+});
+
 test('SEC-169 (b): after the first visit the app opens without a network', async ({
 	page,
 	context
