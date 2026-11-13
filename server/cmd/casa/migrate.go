@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib" // the database/sql driver "pgx"
 
@@ -39,7 +40,7 @@ func migrate(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 }
 
 func migrateUp(ctx context.Context) (int64, error) {
-	s, err := connString(migratorDatabaseURL)
+	s, err := connString(migratorDatabaseURL, false)
 	if err != nil {
 		return 0, err
 	}
@@ -54,8 +55,11 @@ func migrateUp(ctx context.Context) (int64, error) {
 // connString reads the connection string in credential name and checks it
 // parses, so no later parse error can quote it, password included (ES §4).
 // An empty one is refused: pgx would fall back to the PG* environment
-// variables.
-func connString(name string) (string, error) {
+// variables. pooled: the string goes to pgxpool, which takes pool_
+// parameters; otherwise it goes to one connection through database/sql,
+// where pgx would send a pool_ parameter to the server as a setting, so it
+// is refused here.
+func connString(name string, pooled bool) (string, error) {
 	s, err := readCredential(name)
 	if err != nil {
 		return "", err
@@ -63,10 +67,28 @@ func connString(name string) (string, error) {
 	if s == "" {
 		return "", fmt.Errorf("credential %s is empty", name)
 	}
-	// pgxpool's parse also checks the pool_ parameters, then pgx's.
-	if _, err := pgxpool.ParseConfig(s); err != nil {
+	parse := func(s string) (map[string]string, error) {
+		config, err := pgx.ParseConfig(s)
+		if err != nil {
+			return nil, err
+		}
+		return config.RuntimeParams, nil
+	}
+	if pooled {
+		parse = func(s string) (map[string]string, error) {
+			_, err := pgxpool.ParseConfig(s) // pool_ parameters first, then pgx's parse
+			return nil, err
+		}
+	}
+	settings, err := parse(s)
+	if err != nil {
 		// Replaced, not wrapped: the error can quote the string.
 		return "", fmt.Errorf("cannot parse the connection string in credential %s", name)
+	}
+	for setting := range settings {
+		if strings.HasPrefix(setting, "pool_") {
+			return "", fmt.Errorf("credential %s has pool_ parameters, which do not apply to one connection", name)
+		}
 	}
 	return s, nil
 }

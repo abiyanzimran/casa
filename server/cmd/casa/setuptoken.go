@@ -67,7 +67,7 @@ func validEmail(email string) bool {
 // openAppPool connects as app_rw with the connection string from its
 // credential (09.4 §1; SEC-42).
 func openAppPool(ctx context.Context) (*pgxpool.Pool, error) {
-	s, err := connString(appDatabaseURL)
+	s, err := connString(appDatabaseURL, true)
 	if err != nil {
 		return nil, err
 	}
