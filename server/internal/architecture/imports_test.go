@@ -33,7 +33,7 @@ var allowedImports = map[string][]string{
 	"internal/identity/identitydb":       {},
 	"internal/schema":                    {},
 	// Only cmd/casa and cmd/webpreview embed the bundle; internal/api takes it
-	// as an fs.FS (FS-1 1.5 plan, Tugas 1).
+	// as an fs.FS (FS-1 1.5 plan, Task 1).
 	"internal/webbundle": {},
 }
 

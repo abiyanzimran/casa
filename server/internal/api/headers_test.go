@@ -78,8 +78,11 @@ func TestSecurityHeaders(t *testing.T) {
 	connectJSON := http.Header{"Content-Type": {"application/json"}}
 
 	t.Run("SEC-166 every kind of answer carries the security headers", func(t *testing.T) {
-		// SEC-166 (CSP and security headers on every answer of the origin);
-		// SEC-160 (c); ADR-030 item 7. Cache-Control per plan decisions 3 and 5.
+		// SEC-166, the CI part: the header set of every kind of answer of the
+		// origin is compared with plan decision 5 (SEC-160 (c); ADR-030 item
+		// 7; Cache-Control per plan decisions 3 and 5). The rest of SEC-166 is
+		// proved elsewhere: the injected-script check by the browser test of
+		// task 2, the scan of the production headers at release step 7.
 		for _, tc := range []struct {
 			method, target string
 			header         http.Header
@@ -95,6 +98,11 @@ func TestSecurityHeaders(t *testing.T) {
 			{http.MethodPost, "/casa.v1.IdentityService/Unknown", connectJSON, http.StatusNotImplemented, "no-store"},
 			{http.MethodGet, "/_app/immutable/missing.js", nil, http.StatusNotFound, "no-store"},
 			{http.MethodPut, "/", nil, http.StatusMethodNotAllowed, "no-store"},
+			// Range and If-Match are not served (plan decision 3), so
+			// ServeContent never answers 416 or 412, whose error path drops
+			// Cache-Control or keeps the immutable one.
+			{http.MethodGet, "/", http.Header{"Range": {"bytes=999999-"}}, http.StatusOK, "no-cache"},
+			{http.MethodGet, "/_app/immutable/entry/start.abc.js", http.Header{"If-Match": {`"nope"`}}, http.StatusOK, "public, max-age=31536000, immutable"},
 		} {
 			request := tc.method + " " + tc.target
 			rec := serve(mux, tc.method, tc.target, tc.header)

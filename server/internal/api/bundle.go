@@ -165,6 +165,11 @@ func (b *Bundle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		header.Set("Cache-Control", "no-cache")
 	}
+	// Range and If-Match are not part of plan decision 3, and ServeContent's
+	// answers to them (416, 412) drop Cache-Control or keep the immutable one,
+	// against plan decision 5. Without them the only answers are 200 and 304.
+	r.Header.Del("Range")
+	r.Header.Del("If-Match")
 	http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(file.content))
 }
 
