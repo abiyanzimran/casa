@@ -39,6 +39,10 @@ func (s *Service) SignIn(ctx context.Context, client Client, email, password str
 		done(NotTried)
 		return Tokens{}, err
 	}
+	if !known {
+		done(Failed)
+		return Tokens{}, ErrCredentialsRejected
+	}
 	// Outside any transaction: a retried transaction must not hash twice.
 	match, err := s.hasher.verify(ctx, stored, password)
 	if err != nil {
