@@ -10,7 +10,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/abiyanzimran/casa/server/internal/schema"
 )
+
+var _ = schema.Roles
 
 // Scope is the household and account a transaction acts for. It is built only
 // from values already checked against the session's membership (09.2 §3 layer 1;
