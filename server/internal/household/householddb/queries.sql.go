@@ -657,27 +657,35 @@ func (q *Queries) ReplaceInvitationToken(ctx context.Context, arg ReplaceInvitat
 }
 
 const transitionInvitation = `-- name: TransitionInvitation :execrows
-UPDATE invitation SET state = $1, closed_at = $2::timestamptz, version = version + 1
- WHERE household_id = $3 AND id = $4 AND version = $5 AND state = $6
+UPDATE invitation
+   SET state = $1, closed_at = $2::timestamptz, version = version + 1,
+       invitee_account_id = CASE WHEN $3::boolean THEN NULL ELSE invitee_account_id END,
+       invitee_display_name = CASE WHEN $3::boolean THEN NULL ELSE invitee_display_name END
+ WHERE household_id = $4 AND id = $5 AND version = $6 AND state = $7
 `
 
 type TransitionInvitationParams struct {
-	ToState     string
-	ClosedAt    time.Time
-	HouseholdID pgtype.UUID
-	ID          pgtype.UUID
-	Version     int64
-	FromState   string
+	ToState      string
+	ClosedAt     time.Time
+	ClearInvitee bool
+	HouseholdID  pgtype.UUID
+	ID           pgtype.UUID
+	Version      int64
+	FromState    string
 }
 
 // A state transition by compare-and-set on the version and state read
 // (plan 1.6 decision 11; 09.2 §9): zero rows means another command came
 // first. version moves on every transition and expires_at never changes,
 // so a guard on expires_at checked against the row read still holds here.
+// clear_invitee removes the invitee's account and display name: a withdrawal
+// leaves no trace in the household but the invitation's events
+// (FR-FAM-004/AC-5; lead ruling on the Task 6 review of the 1.6 plan).
 func (q *Queries) TransitionInvitation(ctx context.Context, arg TransitionInvitationParams) (int64, error) {
 	result, err := q.db.Exec(ctx, transitionInvitation,
 		arg.ToState,
 		arg.ClosedAt,
+		arg.ClearInvitee,
 		arg.HouseholdID,
 		arg.ID,
 		arg.Version,

@@ -407,6 +407,12 @@ func TestAcceptInvitation(t *testing.T) {
 		if n := h.count(t, "SELECT count(*) FROM membership WHERE account_id = $1", b.account); n != 0 {
 			t.Fatalf("%d memberships of the invitee, want 0", n)
 		}
+		// The invitee's identity leaves the invitation; its events keep their
+		// actor kind (lead ruling on the Task 6 review).
+		if n := h.count(t, "SELECT count(*) FROM invitation WHERE id = $1 AND invitee_account_id IS NULL AND invitee_display_name IS NULL",
+			inv.id); n != 1 {
+			t.Fatal("the withdrawn invitation still holds the invitee's account or display name")
+		}
 		for table, want := range map[string]int{"membership": 1, "approval_authority": 1, "household_rule": 1, "relationship": 0} {
 			if n := h.count(t, "SELECT count(*) FROM "+table+" WHERE household_id = $1", inv.household); n != want {
 				t.Fatalf("%d rows in %s, want %d", n, table, want)
@@ -486,6 +492,15 @@ func TestAcceptInvitation(t *testing.T) {
 		}
 		if n := h.count(t, "SELECT count(*) FROM object_event WHERE object_kind = 'invitation'"); n != 2 {
 			t.Fatalf("%d invitation events, want 2", n)
+		}
+		// The losing transaction wrote nothing: one consent record and one
+		// idempotency record, both the winner's.
+		if n := h.count(t, "SELECT count(*) FROM consent_record WHERE account_id = ANY($1::uuid[])",
+			[]string{takers[0].account, takers[1].account}); n != 1 {
+			t.Fatalf("%d consent records of the two takers, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM idempotency_record WHERE command = $1", casav1connect.HouseholdServiceAcceptInvitationProcedure); n != 1 {
+			t.Fatalf("%d idempotency records of AcceptInvitation, want 1", n)
 		}
 	})
 

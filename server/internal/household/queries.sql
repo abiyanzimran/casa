@@ -146,7 +146,13 @@ SELECT household_id, inviter, state, expires_at, version, token_hash, invitee_ac
 -- (plan 1.6 decision 11; 09.2 §9): zero rows means another command came
 -- first. version moves on every transition and expires_at never changes,
 -- so a guard on expires_at checked against the row read still holds here.
-UPDATE invitation SET state = @to_state, closed_at = @closed_at::timestamptz, version = version + 1
+-- clear_invitee removes the invitee's account and display name: a withdrawal
+-- leaves no trace in the household but the invitation's events
+-- (FR-FAM-004/AC-5; lead ruling on the Task 6 review of the 1.6 plan).
+UPDATE invitation
+   SET state = @to_state, closed_at = @closed_at::timestamptz, version = version + 1,
+       invitee_account_id = CASE WHEN @clear_invitee::boolean THEN NULL ELSE invitee_account_id END,
+       invitee_display_name = CASE WHEN @clear_invitee::boolean THEN NULL ELSE invitee_display_name END
  WHERE household_id = @household_id AND id = @id AND version = @version AND state = @from_state;
 
 -- name: ReplaceInvitationToken :execrows

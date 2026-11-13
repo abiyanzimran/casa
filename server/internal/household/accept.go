@@ -164,8 +164,13 @@ func (s *Service) Withdraw(ctx context.Context, tx pgx.Tx, account, invitation p
 // withdraw is the one writer of a withdrawal (plan 1.6 decision 14; 10.1
 // §10 note): the invitation read in row, accepted and before its expiry,
 // else ErrStateChanged, becomes withdrawn by compare-and-set on its version
-// and state, closed now, with the event of the invitee. The version pins the
-// invitee too: invitee_account_id changes only with F02's version bump.
+// and state, closed now, with the event of the invitee; the invitee's
+// account and display name are cleared (FR-FAM-004/AC-5). The invitee is
+// checked by the caller on the row read in this SERIALIZABLE transaction:
+// a concurrent write to the row, such as an account deletion clearing
+// invitee_account_id (step 6), makes one of the two fail with a
+// serialization failure, so the first updater wins and the retry reads the
+// row again.
 func (s *Service) withdraw(ctx context.Context, tx pgx.Tx, invitation pgtype.UUID, row householddb.InvitationRow, key pgtype.UUID) error {
 	if row.State != "accepted" || !s.now().Before(row.ExpiresAt) {
 		return ErrStateChanged

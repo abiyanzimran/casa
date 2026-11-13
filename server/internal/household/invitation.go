@@ -104,12 +104,16 @@ func live(state string) bool { return state == "open" || state == "accepted" }
 // transition moves invitation from the state read in row to to, by
 // compare-and-set on its version and state (plan 1.6 decision 11), and
 // records event with the transition's seq, states and object, at closedAt.
-// A lost compare-and-set is ErrStateChanged and writes nothing.
+// A lost compare-and-set is ErrStateChanged and writes nothing. Only a
+// withdrawal clears the invitee's account and display name
+// (FR-FAM-004/AC-5); a rejection or an expiry keeps them, and the event
+// keeps its actor.
 func (s *Service) transition(ctx context.Context, tx pgx.Tx, household, invitation pgtype.UUID,
 	row householddb.InvitationRow, to string, closedAt time.Time, event Event,
 ) error {
 	n, err := householddb.New(tx).TransitionInvitation(ctx, householddb.TransitionInvitationParams{
 		ToState: to, ClosedAt: closedAt, HouseholdID: household, ID: invitation, Version: row.Version, FromState: row.State,
+		ClearInvitee: to == "withdrawn",
 	})
 	if err != nil {
 		return err
