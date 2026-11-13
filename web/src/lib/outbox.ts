@@ -98,6 +98,10 @@ export function createOutbox(db: LocalDb, send: Send, clock: () => number = Date
 		 * (SEC-171 (f)); a send error after saving is reported, never thrown at the caller.
 		 */
 		async enqueue(command: NewCommand): Promise<OutboxEntry> {
+			// The caller passes the contract's value; anything else would hold or send at random.
+			if (!Number.isSafeInteger(command.holdSeconds) || command.holdSeconds < 0) {
+				throw new RangeError('holdSeconds must be a whole number of seconds, 0 or more');
+			}
 			const createdAt = clock();
 			const entry: OutboxEntry = {
 				idempotencyKey: crypto.randomUUID(),
@@ -113,13 +117,14 @@ export function createOutbox(db: LocalDb, send: Send, clock: () => number = Date
 		},
 
 		/**
-		 * Removes a command still inside its undo window (09.3 §1). The clock is read inside
-		 * the write transaction, so it cannot race a flush taking the same command.
+		 * Removes a command still inside its undo window (09.3 §1); a rejected command is never
+		 * removed here and stays counted as unsent (08 §13.2). The clock is read inside the write
+		 * transaction, so it cannot race a flush taking the same command.
 		 */
 		async undo(idempotencyKey: string): Promise<boolean> {
 			return db.transaction('rw', db.outbox, async () => {
 				const entry = await db.outbox.get(idempotencyKey);
-				if (!entry || isDue(entry, clock())) return false;
+				if (!entry || entry.rejectedCode !== undefined || isDue(entry, clock())) return false;
 				await db.outbox.delete(idempotencyKey);
 				return true;
 			});

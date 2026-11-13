@@ -88,6 +88,23 @@ test('FR-FIN-040/AC-17: undo after the undo window keeps the command', async () 
 	expect(await outbox.unsentCount()).toBe(1);
 });
 
+test('FR-FIN-040/AC-17: undo of a rejected command keeps it', async () => {
+	const rejecting = vi.fn<Send>(() => Promise.resolve({ kind: 'rejected', code: 'state_changed' }));
+	const outbox = createOutbox(localDb(), rejecting, clock);
+	const entry = await save(outbox, protective);
+	expect(rejecting).toHaveBeenCalledTimes(1);
+	expect(await outbox.undo(entry.idempotencyKey)).toBe(false);
+	expect(await outbox.unsentCount()).toBe(1);
+});
+
+test('FR-FIN-040/AC-17: an undo window that is not a whole number of seconds is refused and nothing is queued', async () => {
+	const outbox = createOutbox(localDb(), accepting, clock);
+	for (const holdSeconds of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+		await expect(outbox.enqueue({ ...ordinary, holdSeconds })).rejects.toThrow(RangeError);
+	}
+	expect(await outbox.unsentCount()).toBe(0);
+});
+
 test('FR-FIN-040/AC-17: a command saved before its tab closed is sent at the next open', async () => {
 	const first = secondTab();
 	await save(createOutbox(first, accepting, clock), ordinary);
