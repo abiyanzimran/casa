@@ -12,10 +12,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const acknowledgeNotice = `-- name: AcknowledgeNotice :exec
-UPDATE operator_notice_ack SET acknowledged_at = $1::timestamptz
- WHERE account_id = $2 AND variant = $3 AND version = $4 AND text_sha256 = $5
-   AND acknowledged_at IS NULL
+const acknowledgeNotice = `-- name: AcknowledgeNotice :execrows
+UPDATE operator_notice_ack o SET acknowledged_at = $1::timestamptz
+ WHERE o.account_id = $2
+   AND o.issue_seq = (SELECT max(last.issue_seq) FROM operator_notice_ack last WHERE last.account_id = o.account_id)
+   AND o.variant = $3 AND o.version = $4 AND o.text_sha256 = $5
+   AND o.acknowledged_at IS NULL
 `
 
 type AcknowledgeNoticeParams struct {
@@ -26,16 +28,20 @@ type AcknowledgeNoticeParams struct {
 	TextSha256     []byte
 }
 
-// FR-FAM-019/AC-2: the first acknowledgement's time stays.
-func (q *Queries) AcknowledgeNotice(ctx context.Context, arg AcknowledgeNoticeParams) error {
-	_, err := q.db.Exec(ctx, acknowledgeNotice,
+// SEC-34: only the last issue, only with its identity; the first
+// acknowledgement's time stays (FR-FAM-019/AC-2), so a repeat changes no row.
+func (q *Queries) AcknowledgeNotice(ctx context.Context, arg AcknowledgeNoticeParams) (int64, error) {
+	result, err := q.db.Exec(ctx, acknowledgeNotice,
 		arg.AcknowledgedAt,
 		arg.AccountID,
 		arg.Variant,
 		arg.Version,
 		arg.TextSha256,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const hasAgeDeclaration = `-- name: HasAgeDeclaration :one
@@ -242,25 +248,27 @@ func (q *Queries) InsertObjectEvent(ctx context.Context, arg InsertObjectEventPa
 }
 
 const issueNotice = `-- name: IssueNotice :execrows
-INSERT INTO operator_notice_ack (account_id, variant, version, text_sha256, issued_at)
-VALUES ($1, $2, $3, $4, $5)
-ON CONFLICT (account_id, variant, version, text_sha256) DO NOTHING
+INSERT INTO operator_notice_ack (account_id, issue_seq, variant, version, text_sha256, issued_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (account_id, issue_seq) DO NOTHING
 `
 
 type IssueNoticeParams struct {
 	AccountID  pgtype.UUID
+	IssueSeq   int32
 	Variant    string
 	Version    int32
 	TextSha256 []byte
 	IssuedAt   time.Time
 }
 
-// 09.3 §1 "Mekanisme": the first sight of a version identity writes its row;
-// a second, concurrent or later, writes nothing (1 row, then 0), so the
-// caller writes the security trail line once.
+// 09.3 §1 "Mekanisme": a new issue goes at the last issue_seq + 1; a
+// concurrent first sight conflicts on the key and writes nothing, so the
+// caller writes the security trail line once per issue.
 func (q *Queries) IssueNotice(ctx context.Context, arg IssueNoticeParams) (int64, error) {
 	result, err := q.db.Exec(ctx, issueNotice,
 		arg.AccountID,
+		arg.IssueSeq,
 		arg.Variant,
 		arg.Version,
 		arg.TextSha256,
@@ -270,6 +278,37 @@ func (q *Queries) IssueNotice(ctx context.Context, arg IssueNoticeParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const lastNoticeIssue = `-- name: LastNoticeIssue :one
+SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::boolean AS acknowledged
+  FROM operator_notice_ack
+ WHERE account_id = $1
+ ORDER BY issue_seq DESC
+ LIMIT 1
+`
+
+type LastNoticeIssueRow struct {
+	IssueSeq     int32
+	Variant      string
+	Version      int32
+	TextSha256   []byte
+	Acknowledged bool
+}
+
+// 09.3 §1 "Mekanisme": the version last issued to the account, by the
+// primary key (one row).
+func (q *Queries) LastNoticeIssue(ctx context.Context, accountID pgtype.UUID) (LastNoticeIssueRow, error) {
+	row := q.db.QueryRow(ctx, lastNoticeIssue, accountID)
+	var i LastNoticeIssueRow
+	err := row.Scan(
+		&i.IssueSeq,
+		&i.Variant,
+		&i.Version,
+		&i.TextSha256,
+		&i.Acknowledged,
+	)
+	return i, err
 }
 
 const membershipsOfAccount = `-- name: MembershipsOfAccount :many
@@ -318,29 +357,4 @@ func (q *Queries) NewID(ctx context.Context) (pgtype.UUID, error) {
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
-}
-
-const noticeAcknowledged = `-- name: NoticeAcknowledged :one
-SELECT (acknowledged_at IS NOT NULL)::boolean AS acknowledged FROM operator_notice_ack
- WHERE account_id = $1 AND variant = $2 AND version = $3 AND text_sha256 = $4
-`
-
-type NoticeAcknowledgedParams struct {
-	AccountID  pgtype.UUID
-	Variant    string
-	Version    int32
-	TextSha256 []byte
-}
-
-// One row by its primary key.
-func (q *Queries) NoticeAcknowledged(ctx context.Context, arg NoticeAcknowledgedParams) (bool, error) {
-	row := q.db.QueryRow(ctx, noticeAcknowledged,
-		arg.AccountID,
-		arg.Variant,
-		arg.Version,
-		arg.TextSha256,
-	)
-	var acknowledged bool
-	err := row.Scan(&acknowledged)
-	return acknowledged, err
 }

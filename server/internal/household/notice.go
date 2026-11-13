@@ -7,6 +7,7 @@ import (
 	"embed"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"strconv"
@@ -131,44 +132,53 @@ func (s *Service) latestNotice(variant string) (Notice, error) {
 }
 
 // CurrentNotice is the latest version for account, in tx whose scope is the
-// account. It issues the version's identity to the account on first sight
-// (INSERT … ON CONFLICT DO NOTHING); issued is true only when this call
-// inserted, so the caller writes the security trail line in the same tx,
-// once per identity per account (09.3 §1 "Mekanisme"; SEC-34).
+// account. The version is issued when its identity differs from the one last
+// issued to the account, a rename back A→B→A included: a new row at the last
+// issue_seq + 1 (INSERT … ON CONFLICT DO NOTHING). issued is true only when
+// this call inserted, so the caller writes the security trail line in the
+// same tx, once per issue; a concurrent first sight fails serialization and
+// retries (09.3 §1 "Mekanisme"; 10.1 note before §11.3; SEC-34).
+// Acknowledged is the last issue's.
 func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.UUID) (n Notice, issued bool, err error) {
 	if n, err = s.latestNotice(pilotNoticeVariant); err != nil {
 		return Notice{}, false, err
 	}
 	q := householddb.New(tx)
+	last, err := q.LastNoticeIssue(ctx, account)
+	switch {
+	case err == nil && last.Variant == n.Variant && last.Version == n.Version && bytes.Equal(last.TextSha256, n.TextSHA256):
+		n.Acknowledged = last.Acknowledged
+		return n, false, nil
+	case err != nil && !errors.Is(err, pgx.ErrNoRows):
+		return Notice{}, false, err
+	}
 	inserted, err := q.IssueNotice(ctx, householddb.IssueNoticeParams{
-		AccountID: account, Variant: n.Variant, Version: n.Version, TextSha256: n.TextSHA256, IssuedAt: s.now(),
+		AccountID: account, IssueSeq: last.IssueSeq + 1, Variant: n.Variant, Version: n.Version, TextSha256: n.TextSHA256,
+		IssuedAt: s.now(),
 	})
 	if err != nil {
 		return Notice{}, false, err
 	}
-	n.Acknowledged, err = q.NoticeAcknowledged(ctx, householddb.NoticeAcknowledgedParams{
-		AccountID: account, Variant: n.Variant, Version: n.Version, TextSha256: n.TextSHA256,
-	})
-	if err != nil {
-		return Notice{}, false, err
-	}
+	// Not inserted only if another issue took the key; unacknowledged holds.
 	return n, inserted == 1, nil
 }
 
-// AcknowledgeNotice records account's acknowledgement of the version it
-// was shown, in tx after CurrentNotice issued the latest one. Only the
-// latest identity is accepted, all three of variant, version and hash, else
-// ErrStateChanged (SEC-34; 10.1 §11 note of 14 November 2026 (b)). A second
-// acknowledgement keeps the first one's time (FR-FAM-019/AC-2).
-func (s *Service) AcknowledgeNotice(ctx context.Context, tx pgx.Tx, account pgtype.UUID, variant string, version int32, textSHA256 []byte) error {
+// AcknowledgeNotice records account's acknowledgement of the version it was
+// shown, in tx after CurrentNotice issued the latest one. Only the last
+// issue, with all three of variant, version and hash, is accepted, else
+// ErrStateChanged (SEC-34; 10.1 §11 note of 14 November 2026 (b)).
+// acknowledged is false for a repeat: the first acknowledgement's time stays
+// (FR-FAM-019/AC-2) and no second trail line is written.
+func (s *Service) AcknowledgeNotice(ctx context.Context, tx pgx.Tx, account pgtype.UUID, variant string, version int32, textSHA256 []byte) (acknowledged bool, err error) {
 	latest, err := s.latestNotice(pilotNoticeVariant)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if variant != latest.Variant || version != latest.Version || !bytes.Equal(textSHA256, latest.TextSHA256) {
-		return ErrStateChanged
+		return false, ErrStateChanged
 	}
-	return householddb.New(tx).AcknowledgeNotice(ctx, householddb.AcknowledgeNoticeParams{
+	changed, err := householddb.New(tx).AcknowledgeNotice(ctx, householddb.AcknowledgeNoticeParams{
 		AcknowledgedAt: s.now(), AccountID: account, Variant: variant, Version: version, TextSha256: textSHA256,
 	})
+	return changed == 1, err
 }

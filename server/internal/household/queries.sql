@@ -68,21 +68,28 @@ SELECT h.name AS household_name, m.member_id, m.display_name
  ORDER BY m.joined_at, m.member_id
  LIMIT 20;
 
+-- name: LastNoticeIssue :one
+-- 09.3 §1 "Mekanisme": the version last issued to the account, by the
+-- primary key (one row).
+SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::boolean AS acknowledged
+  FROM operator_notice_ack
+ WHERE account_id = @account_id
+ ORDER BY issue_seq DESC
+ LIMIT 1;
+
 -- name: IssueNotice :execrows
--- 09.3 §1 "Mekanisme": the first sight of a version identity writes its row;
--- a second, concurrent or later, writes nothing (1 row, then 0), so the
--- caller writes the security trail line once.
-INSERT INTO operator_notice_ack (account_id, variant, version, text_sha256, issued_at)
-VALUES (@account_id, @variant, @version, @text_sha256, @issued_at)
-ON CONFLICT (account_id, variant, version, text_sha256) DO NOTHING;
+-- 09.3 §1 "Mekanisme": a new issue goes at the last issue_seq + 1; a
+-- concurrent first sight conflicts on the key and writes nothing, so the
+-- caller writes the security trail line once per issue.
+INSERT INTO operator_notice_ack (account_id, issue_seq, variant, version, text_sha256, issued_at)
+VALUES (@account_id, @issue_seq, @variant, @version, @text_sha256, @issued_at)
+ON CONFLICT (account_id, issue_seq) DO NOTHING;
 
--- name: NoticeAcknowledged :one
--- One row by its primary key.
-SELECT (acknowledged_at IS NOT NULL)::boolean AS acknowledged FROM operator_notice_ack
- WHERE account_id = @account_id AND variant = @variant AND version = @version AND text_sha256 = @text_sha256;
-
--- name: AcknowledgeNotice :exec
--- FR-FAM-019/AC-2: the first acknowledgement's time stays.
-UPDATE operator_notice_ack SET acknowledged_at = @acknowledged_at::timestamptz
- WHERE account_id = @account_id AND variant = @variant AND version = @version AND text_sha256 = @text_sha256
-   AND acknowledged_at IS NULL;
+-- name: AcknowledgeNotice :execrows
+-- SEC-34: only the last issue, only with its identity; the first
+-- acknowledgement's time stays (FR-FAM-019/AC-2), so a repeat changes no row.
+UPDATE operator_notice_ack o SET acknowledged_at = @acknowledged_at::timestamptz
+ WHERE o.account_id = @account_id
+   AND o.issue_seq = (SELECT max(last.issue_seq) FROM operator_notice_ack last WHERE last.account_id = o.account_id)
+   AND o.variant = @variant AND o.version = @version AND o.text_sha256 = @text_sha256
+   AND o.acknowledged_at IS NULL;

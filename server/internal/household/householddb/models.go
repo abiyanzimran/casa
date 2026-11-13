@@ -121,6 +121,7 @@ type ObjectEvent struct {
 
 type OperatorNoticeAck struct {
 	AccountID      pgtype.UUID
+	IssueSeq       int32
 	Variant        string
 	Version        int32
 	TextSha256     []byte

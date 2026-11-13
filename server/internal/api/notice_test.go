@@ -130,6 +130,11 @@ func TestOperatorNotice(t *testing.T) {
 				t.Errorf("paragraph %d = %q %q, want %q without a tag", i+1, p.GetText(), p.GetFeature(), text)
 			}
 		}
+		// FR-FAM-019/AC-11, the text part: the [Klien web] paragraph says a
+		// changed web app leaves no line in the security history (10.1 §11.3).
+		if !strings.HasSuffix(n.GetParagraphs()[3].GetText(), " Perubahan seperti itu tidak tercatat di riwayat keamanan akunmu.") {
+			t.Fatalf("paragraph 4 = %q, want the [Klien web] paragraph with its third sentence", n.GetParagraphs()[3].GetText())
+		}
 		if !strings.Contains(n.GetParagraphs()[0].GetText(), "dikelola oleh "+testOperatorName+",") {
 			t.Fatalf("paragraph 1 = %q, want the operator name filled in", n.GetParagraphs()[0].GetText())
 		}
@@ -267,6 +272,52 @@ func TestOperatorNotice(t *testing.T) {
 		}
 	})
 
+	// 10.1 note before §11.3 (A→B→A); 09.3 §1 "Mekanisme": the identity in
+	// force is compared with the one last issued to the account, not with
+	// any it acknowledged before.
+	t.Run("SEC-34 renaming the operator back is a new issue that holds and writes its trail line", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpMember(t, "a@example.test")
+		first := h.notice(t, a)
+		h.clock.advance(time.Minute)
+		h.reopen("Nama Lain", household.PublishedNotices)
+		h.ack(t, a)
+		h.clock.advance(time.Minute)
+		h.reopen(testOperatorName, household.PublishedNotices)
+		if !h.held(t, a) {
+			t.Fatal("renaming the operator back does not hold")
+		}
+		back := h.notice(t, a)
+		if back.GetAcknowledged() || !bytes.Equal(back.GetTextSha256(), first.GetTextSha256()) {
+			t.Fatalf("notice after renaming back = acknowledged %v, hash %x; want unacknowledged, the first hash %x",
+				back.GetAcknowledged(), back.GetTextSha256(), first.GetTextSha256())
+		}
+		if err := h.acknowledge(a, back); err != nil {
+			t.Fatal(err)
+		}
+		if h.held(t, a) {
+			t.Fatal("still held after acknowledging")
+		}
+		if n := h.count(t, "SELECT count(*) FROM operator_notice_ack WHERE account_id = $1", a.account); n != 3 {
+			t.Fatalf("%d issue rows, want 3", n)
+		}
+		hexA := hex.EncodeToString(first.GetTextSha256())[:8]
+		var hexB string
+		for _, line := range h.trail(t, a) {
+			if detail, ok := strings.CutPrefix(line, "notice_version couple:1:"); ok && detail != hexA {
+				hexB = detail
+			}
+		}
+		want := []string{
+			"notice_version couple:1:" + hexA, "notice_acknowledged couple:1:" + hexA,
+			"notice_version couple:1:" + hexB, "notice_acknowledged couple:1:" + hexB,
+			"notice_version couple:1:" + hexA, "notice_acknowledged couple:1:" + hexA,
+		}
+		if got := h.trail(t, a); hexB == "" || !slices.Equal(got, want) {
+			t.Fatalf("trail = %q, want %q", got, want)
+		}
+	})
+
 	t.Run("SEC-34 every version writes one line in the account's security trail", func(t *testing.T) {
 		h := startHousehold(t)
 		v1 := &fstest.MapFile{Data: publishedV1(t)}
@@ -280,8 +331,10 @@ func TestOperatorNotice(t *testing.T) {
 		if got, want := h.trail(t, a), []string{"notice_version couple:1:" + hex.EncodeToString(n1.GetTextSha256())[:8]}; !slices.Equal(got, want) {
 			t.Fatalf("trail after reads = %q, want %q", got, want)
 		}
-		if err := h.acknowledge(a, n1); err != nil {
-			t.Fatal(err)
+		for range 2 { // a second acknowledgement changes nothing and writes no line
+			if err := h.acknowledge(a, n1); err != nil {
+				t.Fatal(err)
+			}
 		}
 		h.clock.advance(time.Minute)
 		h.reopen(testOperatorName, fstest.MapFS{"couple-1.json": v1, "couple-2.json": noticeFile(t, "Judul", household.NoticeParagraph{Text: "Teks baru."})})

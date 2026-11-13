@@ -15,8 +15,12 @@ import (
 // (09.3 §1 "Mekanisme"; SEC-34, SEC-35): a published version never changes,
 // so new text is always a new file with a new number, and a new file adds
 // its line here.
+//
+// couple-1.json was replaced once before any issue to anyone, for the
+// [Klien web] sentence of FR-FAM-019/AC-11 (10.1 note before §11.3: it stays
+// v1); from the first deploy on, a change is a new number.
 var publishedNoticeHashes = map[string]string{
-	"couple-1.json": "977fd626ada2417b06923fced1054554c3a2ba9d5436acf1a9e4c585c57489f2",
+	"couple-1.json": "02b46c0f6c1295a05c2b71b1fe6850517158ecd2e50cc4e4eb040e09f151b468",
 }
 
 func TestPublishedNoticesAreFrozen(t *testing.T) {

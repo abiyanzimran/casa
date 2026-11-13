@@ -237,10 +237,8 @@ func (s householdHandler) AcknowledgeOperatorNotice(ctx context.Context, req *ca
 				return nil, err
 			}
 			version := int32(req.GetVersion()) //nolint:gosec // G115: the contract bounds it to 2147483647
-			if err := s.h.AcknowledgeNotice(ctx, tx, account, req.GetVariant(), version, req.GetTextSha256()); err != nil {
-				return nil, err
-			}
-			if !n.Acknowledged {
+			acknowledged, err := s.h.AcknowledgeNotice(ctx, tx, account, req.GetVariant(), version, req.GetTextSha256())
+			if err == nil && acknowledged {
 				err = identity.RecordSecurityEvent(ctx, tx, account, "notice_acknowledged", noticeDetail(n), s.h.Now())
 			}
 			return &casav1.AcknowledgeOperatorNoticeResponse{}, err
