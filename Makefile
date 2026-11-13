@@ -117,14 +117,15 @@ cpd-go:
 idcheck:
 	cd server && go run ./cmd/idcheck -docs ../docs -repo .. -scope ../traceability/scope.txt
 
-# Betterleaks' default git scan reads every commit reachable from any ref
-# (git log --full-history --all), not only the changed files, with the
-# tool's default rules. Inline allow comments are ignored so every exception
-# sits in a reviewable ignore file with its reason; findings are redacted
-# from the output. Live validation stays off: nothing leaves the machine.
+# Betterleaks reads every commit reachable from HEAD (--log-opts=HEAD, the
+# whole history of the branch being checked), not only the changed files,
+# with the tool's default rules. Not --all: the CI checkout (fetch-depth 0)
+# also fetches other branches, whose test fixtures are ignored only on them.
+# Inline allow comments are ignored so every exception sits in a reviewable
+# ignore file with its reason; findings are redacted from the output. Live validation stays off: nothing leaves the machine.
 secrets:
 	go run github.com/betterleaks/betterleaks@$(BETTERLEAKS_VERSION) git \
-		--no-banner --redact --ignore-gitleaks-allow .
+		--no-banner --redact --ignore-gitleaks-allow --log-opts=HEAD .
 
 # ponytail: linux-amd64 only (the CI runner and current dev machine); other
 # platforms need their own pinned checksum.

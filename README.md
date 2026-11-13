@@ -31,7 +31,7 @@ make check-web
 make check-contract
 ```
 
-`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
+`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole history of the checked-out branch (every commit reachable from `HEAD`). `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
 
 ## Database
 

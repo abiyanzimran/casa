@@ -27,3 +27,7 @@ b09ec31b728fb0a36d6de442a9d8f7957e0ff19a:.betterleaksignore:generic-password:21
 ff9f33fcd3b575ec1ce3b1560b195e3688538729:server/internal/api/identity_test.go:generic-password:214
 5a1483898be9c402add842f1beefb30576b7e375:server/internal/api/identity_test.go:generic-password:474
 111418d7ca613b7aeb5319fbf586d022f792d22d:server/internal/identity/signin_test.go:generic-password:69
+
+# connString's test feeds an unparsable connection string with a fake
+# password, to prove the error never quotes it (ES §4).
+26bf72eaca754aea5cf53f334d0458c6578cd4b9:server/cmd/casa/connstring_test.go:generic-credential-uri:25
