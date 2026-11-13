@@ -67,7 +67,8 @@ const serviceWorkerRegistration = [
 ];
 
 export default defineConfig(
-	{ ignores: ['build/', '.svelte-kit/', 'playwright-report/', 'test-results/'] },
+	// src/lib/gen/ is generated from proto/ (make proto-generate) and never edited by hand (ES §2).
+	{ ignores: ['build/', '.svelte-kit/', 'playwright-report/', 'test-results/', 'src/lib/gen/'] },
 	ts.configs.strictTypeChecked,
 	svelte.configs.recommended,
 	{

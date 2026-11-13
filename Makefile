@@ -35,7 +35,7 @@ BUF_AGAINST_REF ?= refs/remotes/origin/main
 
 .PHONY: check check-server server-fmt server-lint server-vuln server-test cpd-go idcheck secrets db-up db-down
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
-.PHONY: check-contract proto-fmt proto-lint proto-breaking
+.PHONY: check-contract proto-fmt proto-lint proto-breaking proto-generate proto-generated
 
 check: check-server check-web check-contract
 
@@ -108,7 +108,7 @@ $(GOLANGCI_LINT):
 
 # Contract gates (QG-04; 14 §4.6): proto/ is the one source of the API
 # contract (ES §2; ADR-013 item 4).
-check-contract: proto-fmt proto-lint proto-breaking
+check-contract: proto-fmt proto-lint proto-breaking proto-generated
 
 proto-fmt: $(BUF)
 	$(BUF) format --diff --exit-code
@@ -127,6 +127,22 @@ proto-breaking: $(BUF)
 		echo "proto-breaking: no contract on $(BUF_AGAINST_REF) yet (first contract, FS-1 1.3)"; exit 0; \
 	fi; \
 	$(BUF) breaking --against '.git#ref=$(BUF_AGAINST_REF)'
+
+# Writes the Go and TypeScript code of the contract (buf.gen.yaml); --clean
+# removes stale output first. protoc-gen-es comes from web-install.
+proto-generate: $(BUF)
+	$(BUF) generate --clean
+
+# The committed generated code must be exactly what the contract generates
+# (14 §4.6 item 2; ES §2): no hand edit, no missed regeneration, no
+# uncommitted new file.
+proto-generated: proto-generate
+	if ! git diff --exit-code -- server/internal/gen web/src/lib/gen \
+		|| [ -n "$$(git status --porcelain -- server/internal/gen web/src/lib/gen)" ]; then \
+		git status --short -- server/internal/gen web/src/lib/gen; \
+		echo "proto-generated: generated code differs from the contract; run make proto-generate and commit"; \
+		exit 1; \
+	fi
 
 # ponytail: linux-amd64 only, like golangci-lint above.
 $(BUF):

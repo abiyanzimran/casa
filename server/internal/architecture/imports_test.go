@@ -23,6 +23,7 @@ var allowedImports = map[string][]string{
 	"internal/architecture":          {},
 	"internal/database":              {},
 	"internal/database/databasetest": {"internal/schema"},
+	"internal/gen/casa/v1":           {},
 	"internal/schema":                {},
 }
 
