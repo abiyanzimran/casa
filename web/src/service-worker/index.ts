@@ -14,11 +14,8 @@ import { version } from '$app/env';
 import { assets, immutable } from '$app/manifest';
 import { self } from '$app/service-worker';
 import { APP_SHELL_CACHE_PREFIX } from '../lib/app-shell';
-// @ts-expect-error -- red proof only: ms has no types; a package off the bundle allowlist
-import ms from 'ms';
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- red proof only: untyped package
-const cacheName = `${APP_SHELL_CACHE_PREFIX}-${version}-${String(ms(0))}`;
+const cacheName = `${APP_SHELL_CACHE_PREFIX}-${version}`;
 const indexPage = '/';
 
 // Licence and readme texts in static/ are not part of the shell.
