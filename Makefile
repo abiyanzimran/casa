@@ -117,14 +117,9 @@ proto-lint: $(BUF)
 	$(BUF) lint
 
 # A missing ref fails: a gate that compares nothing is never green.
-# ponytail: the "no contract on the ref yet" branch exists only until the first
-# contract (FS-1 1.3) is on main; the follow-up change removes it.
 proto-breaking: $(BUF)
 	if ! git rev-parse --verify -q '$(BUF_AGAINST_REF)^{commit}' >/dev/null; then \
 		echo "proto-breaking: $(BUF_AGAINST_REF) not found; fetch it first"; exit 1; \
-	fi; \
-	if ! git cat-file -e '$(BUF_AGAINST_REF):buf.yaml' 2>/dev/null; then \
-		echo "proto-breaking: no contract on $(BUF_AGAINST_REF) yet (first contract, FS-1 1.3)"; exit 0; \
 	fi; \
 	$(BUF) breaking --against '.git#ref=$(BUF_AGAINST_REF)'
 
