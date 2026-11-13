@@ -511,7 +511,7 @@ p {
   background-color: var(--sorot);
   color: var(--di-atas-sorot);
   /* at least 13 px, never larger than the tab label it belongs to (08 §25.4) */
-  font-size: min(var(--ukuran-label, 1em), max(var(--lencana-huruf-min), 0.8 * var(--ukuran-label, 1em)));
+  font-size: min(var(--ukuran-label, 1em), max(var(--huruf-label-min), 0.8 * var(--ukuran-label, 1em)));
   font-weight: 700;
   display: inline-grid;
   place-items: center;
@@ -674,6 +674,9 @@ p {
   border-radius: var(--penuh);
   color: var(--tinta);
   text-decoration: none;
+  /* one DOM for every width: knot, Catat, destinations (08 §19.13.6); dock and top bar show
+     Catat on the right */
+  order: 1;
 }
 
 .catat-bulat {
@@ -730,9 +733,7 @@ p {
 }
 
 /* Sedang and Lebar (600-1199): the left rail, 80 wide, full height, on kertas (08 §19.13.6).
-   From the top: 16, the knot 32, 16, Catat (80 x 76), 24, the destinations (80 x 64).
-   ponytail: the rail shows Catat above the destinations with `order`, so keyboard order is
-   destinations then Catat; the product can render Catat first if 08 wants the visual order. */
+   From the top: 16, the knot 32, 16, Catat (80 x 76), 24, the destinations (80 x 64), in DOM order. */
 @media (min-width: 600px) and (max-width: 1199.98px) {
   body:has(> .bilah) {
     padding-left: calc(var(--lebar-rail) + env(safe-area-inset-left));
@@ -765,7 +766,7 @@ p {
   }
 
   .catat {
-    order: 1;
+    order: 0;
     display: flex;
     flex-direction: column;
     flex: none;
@@ -798,7 +799,6 @@ p {
   }
 
   .tab-grup {
-    order: 2;
     flex: none;
     margin-top: var(--jarak-6);
     padding: 0;
@@ -825,6 +825,17 @@ p {
 
   .tab[aria-current="page"]::before {
     background-color: var(--tinta);
+  }
+
+  /* the label stops at the pill, not the 80 tab, so "Beranda" stays inside it at large text */
+  .label-tab,
+  .tab .lencana {
+    --ukuran-label: min(var(--ukuran-terkecil), var(--pil-tab-lebar) / var(--lebar-label-tab-em));
+  }
+
+  /* lime on kertas is about 1.1:1; the rail ring uses the blue ink (3:1 and more) */
+  .tab:focus-visible {
+    outline-color: var(--aksen-tinta);
   }
 }
 
@@ -972,7 +983,7 @@ p {
 
     .label-tab,
     .tab .lencana {
-      --ukuran-label: min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em));
+      --ukuran-label: max(var(--huruf-label-min), min(var(--ukuran-terkecil), 100cqi / var(--lebar-label-tab-em)));
     }
 
     .tab .lencana {
@@ -1143,11 +1154,26 @@ p {
   min-width: 0;
 }
 
+/* Two lines: the amount stays on the title line (08 §19.13.5 "Baris daftar"); the second line
+   takes a line of its own under both. The words' box dissolves so title, amount and second line
+   share the row's lines; when title and amount do not fit (large text) the amount wraps under
+   the title, never cut (§15). */
+.baris.dua {
+  align-content: center;
+}
+
 .dua .kata {
-  display: grid;
+  display: contents;
+}
+
+.dua .kata > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .dua .kata > :last-child {
+  order: 1;
+  flex-basis: 100%;
   font-size: var(--ukuran-terkecil);
   color: var(--tinta-2);
 }
@@ -1210,7 +1236,7 @@ button.baris-tautan {
 }
 
 .baris-pemegang,
-.ringkas {
+.baris-ringkasan {
   /* summary rows that are not links: 48 (08 §19.13.5) */
   min-height: var(--sasaran);
 }

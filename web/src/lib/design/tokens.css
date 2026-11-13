@@ -106,7 +106,7 @@
 	/* 08 §25.4 "Navigasi": a tab label stops growing at its tab's width. "Beranda", the longest
 	   label, is 3.71 em in Figtree 600; +2% gives the divisor of the tab's inline size (cqi) */
 	--lebar-label-tab-em: 3.8;
-	--lencana-huruf-min: 13px; /* badge digits never below 13 px, never above the tab label */
+	--huruf-label-min: 13px; /* tab labels and badge digits never below 13 px (08 §25.4) */
 	--tebal-batang: 12px;
 	--celah-segmen: 4px;
 	--tinggi-pil-status: 24px;
