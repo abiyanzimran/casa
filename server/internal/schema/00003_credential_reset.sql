@@ -12,6 +12,9 @@ ALTER TABLE session
 		CHECK (revoke_reason IN ('user', 'reuse_detected', 'exit', 'purge', 'recovery', 'password_changed'));
 
 -- +goose Down
+-- Fails by design once a session has revoke_reason 'password_changed': the
+-- narrower check would reject that row. A rollback is the old binary on this
+-- schema, not this Down (09.2 §10).
 ALTER TABLE session
 	DROP CONSTRAINT session_revoke_reason_check,
 	ADD CONSTRAINT session_revoke_reason_check

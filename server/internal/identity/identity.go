@@ -142,8 +142,9 @@ type Service struct {
 	decoy PasswordHash
 }
 
-// Wait returns when the work started after earlier responses is done; casa
-// serve calls it on shutdown.
+// Wait returns when the work started after earlier responses is done,
+// without refusing new work; tests call it to see that work. On shutdown
+// casa serve calls Close instead.
 func (s *Service) Wait() { s.background.Wait() }
 
 // Close refuses new background work and waits for the work already
