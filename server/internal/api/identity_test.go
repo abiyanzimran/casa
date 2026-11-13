@@ -497,29 +497,6 @@ func TestSessions(t *testing.T) {
 		}
 	})
 
-	t.Run("SEC-12 after 20 consecutive failed sign-ins the next waits, for any email and any letter case", func(t *testing.T) {
-		for _, email := range []string{"owner@example.test", "nobody@example.test"} {
-			h := startIdentity(t)
-			h.signUp(t, "owner@example.test", password)
-			for i := range 20 {
-				variant := strings.ToUpper(email[:1]) + email[1:]
-				if i%2 == 0 {
-					variant = " " + strings.ToUpper(email) + " "
-				}
-				_, err := h.signIn(variant, "a wrong passphrase")
-				wantErrorCode(t, err, connect.CodeUnauthenticated, credentialsRejected)
-			}
-			h.clock.advance(time.Second - time.Millisecond)
-			_, err := h.signIn(email, password)
-			wantErrorCode(t, err, connect.CodeResourceExhausted, rateLimited)
-			if email == "owner@example.test" {
-				h.clock.advance(time.Millisecond)
-				_, err = h.signIn(email, password)
-				wantOK(t, err)
-			}
-		}
-	})
-
 	t.Run("SEC-12 one address trying many accounts is limited", func(t *testing.T) {
 		h := startIdentity(t)
 		h.signUp(t, "owner@example.test", password)

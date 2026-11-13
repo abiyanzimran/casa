@@ -3,9 +3,12 @@ package identity
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
@@ -13,17 +16,19 @@ import (
 // TestSignInHashesAlike proves a failed sign-in costs the same for an
 // unknown email as for a wrong password: one Argon2 verification and the
 // same number of database transactions (SEC-12; 10.1 §5.1 rule 5).
-func TestSignInHashesAlike(t *testing.T) {
+// signedUp returns a service whose clock is *now, with one account
+// owner@example.test signed up with password.
+func signedUp(t *testing.T, now *time.Time, password string) (*Service, *pgxpool.Pool) {
+	t.Helper()
 	ctx := t.Context()
-	d := databasetest.Migrated(t)
-	pool := d.Pool(t, "app_rw")
+	pool := databasetest.Migrated(t).Pool(t, "app_rw")
 	var link string
 	s := New(pool, Config{
-		Origin: "https://casa.example", Now: time.Now, Password: cheapParams,
+		Origin: "https://casa.example", Now: func() time.Time { return *now }, Password: cheapParams,
 		SendMail: func(_ context.Context, m Message) error { link = m.Link; return nil },
 	})
 	client := Client{Kind: "ios", Version: "1.0.0", Address: "192.0.2.1:443"}
-	token, _, err := IssueSetupToken(ctx, pool, "owner@example.test", time.Now())
+	token, _, err := IssueSetupToken(ctx, pool, "owner@example.test", *now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,14 +36,23 @@ func TestSignInHashesAlike(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, verification, _ := strings.Cut(link, "#")
-	if _, err := s.CompleteSignUp(ctx, client, verification, "a long enough passphrase"); err != nil {
+	if _, err := s.CompleteSignUp(ctx, client, verification, password); err != nil {
 		t.Fatal(err)
 	}
+	return s, pool
+}
 
+// TestSignInHashesAlike proves a failed sign-in costs the same for an
+// unknown email as for a wrong password: one Argon2 verification and the
+// same number of database transactions (SEC-12; 10.1 §5.1 rule 5).
+func TestSignInHashesAlike(t *testing.T) {
+	now := time.Now()
+	s, pool := signedUp(t, &now, "a long enough passphrase")
+	client := Client{Kind: "ios", Version: "1.0.0", Address: "192.0.2.1:443"}
 	cost := func(email string) (hashes, transactions int64) {
 		t.Helper()
 		hashesBefore, acquiresBefore := s.hasher.count.Load(), pool.Stat().AcquireCount()
-		if _, err := s.SignIn(ctx, client, email, "a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
+		if _, err := s.SignIn(t.Context(), client, email, "a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
 			t.Fatalf("sign-in as %s: %v, want ErrCredentialsRejected", email, err)
 		}
 		return s.hasher.count.Load() - hashesBefore, pool.Stat().AcquireCount() - acquiresBefore
@@ -49,4 +63,39 @@ func TestSignInHashesAlike(t *testing.T) {
 		t.Fatalf("unknown email: %d hashes, %d transactions; wrong password: %d hashes, %d transactions; want 1 hash each and equal transactions",
 			unknownHashes, unknownTransactions, wrongHashes, wrongTransactions)
 	}
+}
+
+func TestSignInLimits(t *testing.T) {
+	const password = "a long enough passphrase"
+	t.Run("SEC-12 after 20 consecutive failed sign-ins the next waits, for any email and any letter case", func(t *testing.T) {
+		// Each attempt comes from its own address, so only the email key
+		// can stop the 21st (10.1 §8.1).
+		for _, email := range []string{"owner@example.test", "nobody@example.test"} {
+			now := time.Now()
+			s, _ := signedUp(t, &now, password)
+			signIn := func(i int, email, password string) error {
+				_, err := s.SignIn(t.Context(), Client{Kind: "ios", Address: fmt.Sprintf("198.51.100.%d:443", i)}, email, password)
+				return err
+			}
+			for i := range 20 {
+				variant := strings.ToUpper(email[:1]) + email[1:]
+				if i%2 == 0 {
+					variant = " " + strings.ToUpper(email) + " "
+				}
+				if err := signIn(i, variant, "a wrong passphrase"); !errors.Is(err, ErrCredentialsRejected) {
+					t.Fatalf("%s attempt %d: %v, want ErrCredentialsRejected", email, i, err)
+				}
+			}
+			now = now.Add(time.Second - time.Millisecond)
+			if err := signIn(20, email, password); !errors.Is(err, ErrRateLimited) {
+				t.Fatalf("%s 21st attempt: %v, want ErrRateLimited", email, err)
+			}
+			if email == "owner@example.test" {
+				now = now.Add(time.Millisecond)
+				if err := signIn(21, email, password); err != nil {
+					t.Fatalf("after the wait: %v", err)
+				}
+			}
+		}
+	})
 }
