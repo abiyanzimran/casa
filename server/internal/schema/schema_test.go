@@ -124,8 +124,10 @@ var catalogQueries = []struct{ name, query string }{
 		       aclexplode(coalesce(c.relacl, acldefault((CASE c.relkind WHEN 'S' THEN 's' ELSE 'r' END)::"char", c.relowner))) a
 		 WHERE c.relnamespace = 'public'::regnamespace AND c.relname NOT LIKE 'goose\_db\_version%'`},
 	{"columns", `
-		SELECT format('%s.%s %s not_null=%s default=%s', c.relname, a.attname,
-			format_type(a.atttypid, a.atttypmod), a.attnotnull, pg_get_expr(d.adbin, d.adrelid))
+		SELECT format('%s.%s %s not_null=%s default=%s identity=%s generated=%s collation=%s',
+			c.relname, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull,
+			pg_get_expr(d.adbin, d.adrelid), a.attidentity, a.attgenerated,
+			CASE WHEN a.attcollation <> 0 THEN a.attcollation::regcollation::text END)
 		  FROM pg_attribute a
 		  JOIN pg_class c ON c.oid = a.attrelid
 		  LEFT JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
@@ -137,6 +139,20 @@ var catalogQueries = []struct{ name, query string }{
 		  JOIN pg_class c ON c.oid = at.attrelid,
 		       aclexplode(at.attacl) a
 		 WHERE c.relnamespace = 'public'::regnamespace AND NOT at.attisdropped`},
+	{"view definitions", `
+		SELECT format('%s %s', relname, pg_get_viewdef(oid))
+		  FROM pg_class
+		 WHERE relnamespace = 'public'::regnamespace AND relkind IN ('v', 'm')`},
+	{"sequences", `
+		SELECT format('%s %s start=%s increment=%s min=%s max=%s cycle=%s owned_by=%s',
+			c.relname, format_type(s.seqtypid, NULL), s.seqstart, s.seqincrement, s.seqmin, s.seqmax,
+			s.seqcycle, (SELECT format('%s.%s', t.relname, a.attname)
+			               FROM pg_depend d
+			               JOIN pg_class t ON t.oid = d.refobjid
+			               JOIN pg_attribute a ON a.attrelid = d.refobjid AND a.attnum = d.refobjsubid
+			              WHERE d.classid = 'pg_class'::regclass AND d.objid = c.oid AND d.deptype IN ('a', 'i')))
+		  FROM pg_sequence s JOIN pg_class c ON c.oid = s.seqrelid
+		 WHERE c.relnamespace = 'public'::regnamespace AND c.relname NOT LIKE 'goose\_db\_version%'`},
 	{"constraints", `
 		SELECT format('%s %s %s', conrelid::regclass, conname, pg_get_constraintdef(oid))
 		  FROM pg_constraint
