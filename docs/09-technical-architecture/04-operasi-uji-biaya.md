@@ -52,7 +52,7 @@ flowchart TB
 | Hal | Rancangan | Persyaratan |
 |---|---|---|
 | Sistem operasi | Rilis LTS terbaru Ubuntu atau Debian stabil yang didukung PGDG; versi diperiksa saat penyiapan (ES §8) | — |
-| Proses | Satu unit systemd `casa` (API, SSE, pekerja), `postgresql`, dan timer `pgbackrest`. `GOMEMLIMIT` sekitar 512 MiB; `shared_buffers` PostgreSQL sekitar 1 GB pada RAM 4 GB **[Asumsi]**, disetel ulang sesudah pengukuran | ES §3 |
+| Proses | Satu unit systemd `casa` (API, SSE, pekerja), `postgresql`, dan timer `pgbackrest`. `GOMEMLIMIT` sekitar 512 MiB; `shared_buffers` PostgreSQL sekitar 1 GB pada RAM 4 GB **[Asumsi]**, disetel ulang sesudah pengukuran. Catatan 13 November 2026 (FS-1 1.2): sejak GR-2 staging berjalan di klaster PostgreSQL kedua dengan `shared_buffers` kecil, bukan di klaster produksi (ADR-028 butir 1; berkas 02 §3 lapis 5) | ES §3 |
 | TLS | Biner Go melayani TLS langsung dengan sertifikat ACME (`golang.org/x/crypto/acme/autocert`, 0.x menurut ADR-023, tantangan TLS-ALPN-01, sehingga hanya porta 443 yang terbuka), `MinVersion` TLS 1.2, tanpa pinning di aplikasi. Jalan mundur bila paket itu tidak tersedia saat dipasang: certbot di VPS dengan tantangan HTTP-01 lewat porta 80 yang hanya melayani tantangan itu, dan biner membaca berkas sertifikat | SEC-40 |
 | Porta | 443 dari internet. SSH 22 dengan kunci saja, tanpa kata sandi dan tanpa login root langsung. PostgreSQL hanya di `localhost` | SEC-41 |
 | Pemutakhiran | Pemutakhiran keamanan otomatis untuk paket OS; PostgreSQL minor diperbarui bulanan bersama pembaruan dependensi (ES §8) | SEC-41 |
