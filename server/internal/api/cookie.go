@@ -70,6 +70,6 @@ func clearSessionCookie(ctx context.Context) error {
 		return err
 	}
 	info, _ := connect.CallInfoForServerContext(ctx)
-	info.ResponseHeader().Set("Clear-Site-Data", `"cookies", "storage"`)
+	info.ResponseHeader().Set("Clear-Site-Data", `"cache", "cookies", "storage"`)
 	return nil
 }
