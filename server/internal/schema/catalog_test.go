@@ -41,7 +41,7 @@ var tables = map[string]tableRule{
 	"reauth_grant": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"used_at"},
 		policy:  ownAccount,
-		source:  "09.2 §3 \"Tabel global\"; SEC-13; lead ruling Q3 on the 1.4 plan"},
+		source:  "09.2 §3 \"Tabel global\"; SEC-13; SEC-161 (c) note 1.5 rule (7) (cookie_hash, 00004); lead ruling Q3 on the 1.4 plan"},
 	"recovery_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"used_at"},
 		policy:  accountOrToken,

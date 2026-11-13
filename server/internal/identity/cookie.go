@@ -108,6 +108,7 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 	}
 	result := CookieSession{Session: Session{
 		ID: row.ID, AccountID: row.AccountID, ClientKind: row.ClientKind, DeviceMode: row.DeviceMode, LastUsedAt: row.LastUsedAt,
+		CookieHash: hash,
 	}}
 	switch {
 	case row.Current && !now.Before(row.TokenIssuedAt.Add(cookieRotateAfter)):
@@ -144,31 +145,6 @@ func classifyCookie(ctx context.Context, q *identitydb.Queries, hash []byte, now
 		}
 	}
 	return result, false, nil
-}
-
-// RotateCookie gives a live web session a new cookie value whatever the age
-// of the current one; the value the browser holds serves as the previous
-// one for previousCookieGrace. A web re-authentication calls it (SEC-161 (c):
-// "selalu saat … autentikasi ulang", closing session fixation; plan 1.5
-// decision 12); sign-in and recovery open a new session instead. A session
-// that ended is ErrSessionExpired.
-func (s *Service) RotateCookie(ctx context.Context, session Session) (Cookie, error) {
-	if session.ClientKind != "web" {
-		return Cookie{}, errors.New("only a web session has a cookie") // SEC-161 (b)
-	}
-	var cookie Cookie
-	err := database.Write(ctx, s.pool, database.Scope{AccountID: session.AccountID}, func(tx pgx.Tx) error {
-		var err error
-		cookie, err = rotateCookie(ctx, identitydb.New(tx), session, s.config.Now())
-		return err
-	})
-	switch {
-	case errors.Is(err, ErrSessionExpired):
-		return Cookie{}, err
-	case err != nil:
-		return Cookie{}, fmt.Errorf("rotate the cookie: %w", err)
-	}
-	return cookie, nil
 }
 
 // rotateCookie makes a new current value for session; the value the

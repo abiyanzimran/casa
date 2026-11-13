@@ -25,6 +25,10 @@ type Session struct {
 	// LastUsedAt is the base of the idle limit when the session was read;
 	// TouchUserAction reads it (SEC-165 (g)).
 	LastUsedAt time.Time
+	// CookieHash is the hash of the cookie value this request presented,
+	// nil for a native session; a web re-authentication grant serves only
+	// that value (SEC-161 (c) note 1.5 rule (7)). Never the value itself.
+	CookieHash []byte
 }
 
 // SignIn opens a native or web session (SEC-12, SEC-15, SEC-161). An unknown

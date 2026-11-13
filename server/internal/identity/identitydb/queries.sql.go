@@ -285,19 +285,28 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 const hasOpenReauthGrant = `-- name: HasOpenReauthGrant :one
 SELECT EXISTS (
 	SELECT 1 FROM reauth_grant
-	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz)
+	 WHERE session_id = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > $3::timestamptz
+	   AND cookie_hash IS NOT DISTINCT FROM $4::bytea)
 `
 
 type HasOpenReauthGrantParams struct {
-	SessionID pgtype.UUID
-	Purpose   string
-	Now       time.Time
+	SessionID  pgtype.UUID
+	Purpose    string
+	Now        time.Time
+	CookieHash []byte
 }
 
 // The read-only check before hashing a new password; served by
-// reauth_grant_open.
+// reauth_grant_open. A web grant serves only the request that presents the
+// cookie value issued with it; a native grant (NULL) only a native request
+// (SEC-161 (c) note 1.5 rule (7)).
 func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrantParams) (bool, error) {
-	row := q.db.QueryRow(ctx, hasOpenReauthGrant, arg.SessionID, arg.Purpose, arg.Now)
+	row := q.db.QueryRow(ctx, hasOpenReauthGrant,
+		arg.SessionID,
+		arg.Purpose,
+		arg.Now,
+		arg.CookieHash,
+	)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -348,18 +357,21 @@ func (q *Queries) InsertCredential(ctx context.Context, arg InsertCredentialPara
 }
 
 const insertReauthGrant = `-- name: InsertReauthGrant :exec
-INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at, cookie_hash)
+VALUES ($1, $2, $3, $4, $5, $6::bytea)
 `
 
 type InsertReauthGrantParams struct {
-	SessionID pgtype.UUID
-	AccountID pgtype.UUID
-	Purpose   string
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	SessionID  pgtype.UUID
+	AccountID  pgtype.UUID
+	Purpose    string
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+	CookieHash []byte
 }
 
+// cookie_hash: the hash of the cookie value issued with a web grant, NULL
+// for native (SEC-161 (c) note 1.5 rule (7)).
 func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantParams) error {
 	_, err := q.db.Exec(ctx, insertReauthGrant,
 		arg.SessionID,
@@ -367,6 +379,7 @@ func (q *Queries) InsertReauthGrant(ctx context.Context, arg InsertReauthGrantPa
 		arg.Purpose,
 		arg.CreatedAt,
 		arg.ExpiresAt,
+		arg.CookieHash,
 	)
 	return err
 }
@@ -766,19 +779,27 @@ UPDATE reauth_grant g SET used_at = $1::timestamptz
  WHERE g.used_at IS NULL AND g.id = (
 	SELECT o.id FROM reauth_grant o
 	 WHERE o.session_id = $2 AND o.purpose = $3 AND o.used_at IS NULL AND o.expires_at > $1
+	   AND o.cookie_hash IS NOT DISTINCT FROM $4::bytea
 	 LIMIT 1)
 `
 
 type UseReauthGrantParams struct {
-	Now       time.Time
-	SessionID pgtype.UUID
-	Purpose   string
+	Now        time.Time
+	SessionID  pgtype.UUID
+	Purpose    string
+	CookieHash []byte
 }
 
-// Uses one open grant of the session for purpose (SEC-13); served by
-// reauth_grant_open.
+// Uses one open grant of the session for purpose (SEC-13), bound to the
+// presented cookie value as HasOpenReauthGrant is (SEC-161 (c) note 1.5 rule
+// (7)); served by reauth_grant_open.
 func (q *Queries) UseReauthGrant(ctx context.Context, arg UseReauthGrantParams) (int64, error) {
-	result, err := q.db.Exec(ctx, useReauthGrant, arg.Now, arg.SessionID, arg.Purpose)
+	result, err := q.db.Exec(ctx, useReauthGrant,
+		arg.Now,
+		arg.SessionID,
+		arg.Purpose,
+		arg.CookieHash,
+	)
 	if err != nil {
 		return 0, err
 	}

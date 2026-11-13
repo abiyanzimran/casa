@@ -162,23 +162,30 @@ UPDATE session SET token_hash = @token_hash, token_issued_at = @now, last_used_a
    AND last_used_at + idle_timeout > @now AND absolute_expiry > @now;
 
 -- name: InsertReauthGrant :exec
-INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at)
-VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at);
+-- cookie_hash: the hash of the cookie value issued with a web grant, NULL
+-- for native (SEC-161 (c) note 1.5 rule (7)).
+INSERT INTO reauth_grant (session_id, account_id, purpose, created_at, expires_at, cookie_hash)
+VALUES (@session_id, @account_id, @purpose, @created_at, @expires_at, sqlc.narg(cookie_hash)::bytea);
 
 -- name: HasOpenReauthGrant :one
 -- The read-only check before hashing a new password; served by
--- reauth_grant_open.
+-- reauth_grant_open. A web grant serves only the request that presents the
+-- cookie value issued with it; a native grant (NULL) only a native request
+-- (SEC-161 (c) note 1.5 rule (7)).
 SELECT EXISTS (
 	SELECT 1 FROM reauth_grant
-	 WHERE session_id = @session_id AND purpose = @purpose AND used_at IS NULL AND expires_at > @now::timestamptz);
+	 WHERE session_id = @session_id AND purpose = @purpose AND used_at IS NULL AND expires_at > @now::timestamptz
+	   AND cookie_hash IS NOT DISTINCT FROM sqlc.narg(cookie_hash)::bytea);
 
 -- name: UseReauthGrant :execrows
--- Uses one open grant of the session for purpose (SEC-13); served by
--- reauth_grant_open.
+-- Uses one open grant of the session for purpose (SEC-13), bound to the
+-- presented cookie value as HasOpenReauthGrant is (SEC-161 (c) note 1.5 rule
+-- (7)); served by reauth_grant_open.
 UPDATE reauth_grant g SET used_at = @now::timestamptz
  WHERE g.used_at IS NULL AND g.id = (
 	SELECT o.id FROM reauth_grant o
 	 WHERE o.session_id = @session_id AND o.purpose = @purpose AND o.used_at IS NULL AND o.expires_at > @now
+	   AND o.cookie_hash IS NOT DISTINCT FROM sqlc.narg(cookie_hash)::bytea
 	 LIMIT 1);
 
 -- name: UpdateCredential :execrows

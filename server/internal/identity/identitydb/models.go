@@ -44,13 +44,14 @@ type IdempotencyRecord struct {
 }
 
 type ReauthGrant struct {
-	ID        pgtype.UUID
-	SessionID pgtype.UUID
-	AccountID pgtype.UUID
-	Purpose   string
-	CreatedAt time.Time
-	ExpiresAt time.Time
-	UsedAt    pgtype.Timestamptz
+	ID         pgtype.UUID
+	SessionID  pgtype.UUID
+	AccountID  pgtype.UUID
+	Purpose    string
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+	UsedAt     pgtype.Timestamptz
+	CookieHash []byte
 }
 
 type RecoveryToken struct {

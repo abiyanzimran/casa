@@ -7,6 +7,7 @@ import (
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -103,7 +104,7 @@ func (p *probe) method(name string, schema protoreflect.MethodDescriptor, input 
 		if err := stream.Receive(dynamicpb.NewMessage(input)); err != nil {
 			return err
 		}
-		if session, ok := api.SessionFrom(ctx); !ok || !slices.Contains(slices.Collect(maps.Values(probeSessions)), session) {
+		if session, ok := api.SessionFrom(ctx); !ok || !slices.ContainsFunc(slices.Collect(maps.Values(probeSessions)), func(s identity.Session) bool { return reflect.DeepEqual(s, session) }) {
 			return connect.NewError(connect.CodeInternal, "the handler did not get the session")
 		}
 		calls.Add(1)

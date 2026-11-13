@@ -96,18 +96,15 @@ func (h identityHandler) Reauthenticate(ctx context.Context, req *casav1.Reauthe
 		return nil, connect.NewError(connect.CodeInternal, "internal error")
 	}
 	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
-	expiresAt, err := h.s.Reauthenticate(ctx, clientOf(ctx, req), session, req.GetPassword(), purpose)
+	expiresAt, cookie, err := h.s.Reauthenticate(ctx, clientOf(ctx, req), session, req.GetPassword(), purpose)
 	if err != nil {
 		return nil, identityError(err)
 	}
-	if session.ClientKind == "web" {
-		// SEC-161 (c): a re-authentication always rotates the cookie
-		// (session fixation); plan 1.5 decision 12.
-		cookie, err := h.s.RotateCookie(ctx, session)
-		if err != nil {
-			return nil, identityError(err)
-		}
-		if err := setSessionCookie(ctx, cookie); err != nil {
+	if cookie != nil {
+		// SEC-161 (c): a web re-authentication always rotates the cookie
+		// (session fixation), and its grant serves only this value (note
+		// 1.5 rule (7)).
+		if err := setSessionCookie(ctx, *cookie); err != nil {
 			return nil, identityError(err)
 		}
 	}

@@ -799,18 +799,39 @@ func TestCookieRotation(t *testing.T) {
 		return h.count(t, "SELECT count(*) FROM session WHERE revoke_reason = 'reuse_detected'"),
 			h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'session_revoked' AND detail = 'reuse_detected'")
 	}
-	wantNoRevocation := func(t *testing.T, h *identityHarness) {
+	// wantRevokedNone checks that no session is revoked and that the
+	// security trail holds only the sign_in row of every session opened and
+	// the reauths re-authentications the test made: anything more is a row
+	// the rotation wrote (SEC-161 (c) note 1.5 rules (2), (7): "tanpa baris
+	// jejak keamanan", "tanpa pencabutan").
+	wantRevokedNone := func(t *testing.T, h *identityHarness, reauths int) {
 		t.Helper()
 		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NOT NULL"); n != 0 {
 			t.Fatalf("%d sessions revoked, want none", n)
 		}
-		// Every session opened wrote its one sign_in row; anything more is a
-		// row the rotation wrote (SEC-161 (c) note 1.5 rule (2): "tanpa
-		// baris jejak keamanan").
-		if events, sessions := h.count(t, "SELECT count(*) FROM security_event"), h.count(t, "SELECT count(*) FROM session"); events != sessions {
-			t.Fatalf("%d security_event rows for %d sessions opened; want only their sign_in rows", events, sessions)
+		if events, sessions := h.count(t, "SELECT count(*) FROM security_event"), h.count(t, "SELECT count(*) FROM session"); events != sessions+reauths {
+			t.Fatalf("%d security_event rows for %d sessions opened and %d re-authentications; want only theirs", events, sessions, reauths)
 		}
 	}
+	wantNoRevocation := func(t *testing.T, h *identityHarness) { t.Helper(); wantRevokedNone(t, h, 0) }
+	// reauth re-authenticates for a password change in ctx and returns the
+	// call's info, which holds the response headers.
+	reauth := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, password string) (*connect.CallInfo, error) {
+		info, _ := connect.CallInfoForClientContext(ctx)
+		_, err := h.client.Reauthenticate(ctx, &casav1.ReauthenticateRequest{
+			RequestContext: identityRC(kind), Password: password, Purpose: casav1.ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD,
+		})
+		return info, err
+	}
+	// changePassword is a web ChangePassword in ctx.
+	changePassword := func(h *identityHarness, ctx context.Context) (*connect.CallInfo, error) {
+		info, _ := connect.CallInfoForClientContext(ctx)
+		rc := commandRC()
+		rc.ClientKind = web
+		_, err := h.client.ChangePassword(ctx, &casav1.ChangePasswordRequest{RequestContext: rc, NewPassword: next})
+		return info, err
+	}
+	reauthRequired := casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED
 	wantReuseRevoked := func(t *testing.T, h *identityHarness) {
 		t.Helper()
 		if sessions, events := revocations(t, h); sessions != 1 || events != 1 {
@@ -988,12 +1009,8 @@ func TestCookieRotation(t *testing.T) {
 		h.signUp(t, email, password)
 		a := h.webSignIn(t, email, password, personal)
 		h.clock.advance(15 * time.Minute)
-		ctx := sameOrigin(a)
-		info, _ := connect.CallInfoForClientContext(ctx)
-		rc := commandRC()
-		rc.ClientKind = web
-		_, err := h.client.ChangePassword(ctx, &casav1.ChangePasswordRequest{RequestContext: rc, NewPassword: next})
-		wantErrorCode(t, err, connect.CodePermissionDenied, casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED)
+		info, err := changePassword(h, sameOrigin(a))
+		wantErrorCode(t, err, connect.CodePermissionDenied, reauthRequired)
 		b := newCookie(t, info)
 		if b == nil || b.Value == a {
 			t.Fatal("the failing request set no new cookie; want one")
@@ -1009,20 +1026,12 @@ func TestCookieRotation(t *testing.T) {
 		h := startIdentity(t)
 		tokens := h.signUp(t, email, password)
 		a := h.webSignIn(t, email, password, personal)
-		reauth := func(ctx context.Context, kind casav1.ClientKind, password string) (*connect.CallInfo, error) {
-			info, _ := connect.CallInfoForClientContext(ctx)
-			_, err := h.client.Reauthenticate(ctx, &casav1.ReauthenticateRequest{
-				RequestContext: identityRC(kind), Password: password, Purpose: casav1.ReauthPurpose_REAUTH_PURPOSE_CHANGE_PASSWORD,
-			})
-			return info, err
-		}
-
-		info, err := reauth(sameOrigin(a), web, next) // wrong password: no rotation
+		info, err := reauth(h, sameOrigin(a), web, next) // wrong password: no rotation
 		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_CREDENTIALS_REJECTED)
 		if newCookie(t, info) != nil {
 			t.Fatal("a failed re-authentication set a cookie; want none")
 		}
-		info, err = reauth(sameOrigin(a), web, password)
+		info, err = reauth(h, sameOrigin(a), web, password)
 		wantOK(t, err)
 		b := newCookie(t, info)
 		if b == nil || b.Value == a || b.MaxAge != int((180*day).Seconds()) {
@@ -1030,7 +1039,7 @@ func TestCookieRotation(t *testing.T) {
 		}
 		served(t, h, b.Value)
 		served(t, h, a) // inside its 60-second window
-		info, err = reauth(bearer(tokens.GetAccessToken()), ios, password)
+		info, err = reauth(h, bearer(tokens.GetAccessToken()), ios, password)
 		wantOK(t, err)
 		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
 			t.Fatalf("a native re-authentication set %d cookies, want none", n)
@@ -1038,7 +1047,7 @@ func TestCookieRotation(t *testing.T) {
 		// At the rotation point the boundary rotates and the handler rotates
 		// again: the response carries only the last value.
 		h.clock.advance(15 * time.Minute)
-		info, err = reauth(sameOrigin(b.Value), web, password)
+		info, err = reauth(h, sameOrigin(b.Value), web, password)
 		wantOK(t, err)
 		c := newCookie(t, info)
 		if c == nil || c.Value == b.Value {
@@ -1050,10 +1059,80 @@ func TestCookieRotation(t *testing.T) {
 		h.clock.advance(59 * time.Second)
 		served(t, h, b.Value)
 
-		rc := commandRC()
-		rc.ClientKind = web
-		_, err = h.client.ChangePassword(sameOrigin(c.Value), &casav1.ChangePasswordRequest{RequestContext: rc, NewPassword: next})
-		wantOK(t, err) // the grant belongs to the session, not to a value
+		_, err = changePassword(h, sameOrigin(c.Value))
+		wantOK(t, err) // the grant of the value issued with it (SEC-161 (c) note 1.5 rule (7))
+	})
+
+	t.Run("a forced rotation keeps the value the browser holds and never discards the dropped one", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (6): a re-authentication carried by the
+		// previous value while the current one is unconfirmed keeps the
+		// previous value, with a new window; the unconfirmed value it drops
+		// may have reached the browser, so it is not discarded (3) and is
+		// answered by (5), never revoked.
+		h := startIdentity(t)
+		a, b, at := lostRotation(t, h)
+		h.clock.advance(10 * time.Second)
+		info, err := reauth(h, sameOrigin(a), web, password)
+		wantOK(t, err)
+		c := newCookie(t, info)
+		if c == nil || c.Value == a || c.Value == b {
+			t.Fatal("the re-authentication set no new value; want one")
+		}
+		h.clock.advance(at.Add(69 * time.Second).Sub(h.clock.Now())) // a's first window ended at 60 s
+		served(t, h, a)
+		got, err := h.webRead(t, b)
+		wantCode(t, err, connect.CodeUnauthenticated)
+		if d := details(t, err); d != nil || got != nil {
+			t.Fatalf("details %v, new cookie %t; want neither (rule (5))", d, got != nil)
+		}
+		wantRevokedNone(t, h, 1)
+		served(t, h, c.Value)
+	})
+
+	t.Run("a web re-authentication grant serves only the value issued with it", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (7): the value held before the
+		// re-authentication, inside its window, gets no grant, without a
+		// revocation; the value issued with the grant uses it.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		info, err := reauth(h, sameOrigin(a), web, password)
+		wantOK(t, err)
+		b := newCookie(t, info)
+		if b == nil {
+			t.Fatal("the re-authentication set no new value; want one")
+		}
+		_, err = changePassword(h, sameOrigin(a))
+		wantErrorCode(t, err, connect.CodePermissionDenied, reauthRequired)
+		wantRevokedNone(t, h, 1)
+		_, err = changePassword(h, sameOrigin(b.Value))
+		wantOK(t, err)
+	})
+
+	t.Run("a value reissued after a lost re-authentication response has no grant", func(t *testing.T) {
+		// SEC-161 (c) note 1.5 rule (7): a value issued later by any
+		// rotation, here (2), is not the one the grant was issued with.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		info, err := reauth(h, sameOrigin(a), web, password)
+		wantOK(t, err)
+		if newCookie(t, info) == nil { // dropped: never stored
+			t.Fatal("the re-authentication set no new value; want one")
+		}
+		h.clock.advance(61 * time.Second)
+		info, err = changePassword(h, sameOrigin(a))
+		wantErrorCode(t, err, connect.CodePermissionDenied, reauthRequired)
+		c := newCookie(t, info)
+		if c == nil || c.Value == a {
+			t.Fatal("no reissue; want a new value")
+		}
+		_, err = changePassword(h, sameOrigin(c.Value))
+		wantErrorCode(t, err, connect.CodePermissionDenied, reauthRequired)
+		wantRevokedNone(t, h, 1)
+		if n := h.count(t, "SELECT count(*) FROM reauth_grant WHERE used_at IS NULL"); n != 1 {
+			t.Fatalf("%d open grants, want the one, unused", n)
+		}
 	})
 
 	t.Run("a personal cookie in its last second is sent expired, never as a session cookie", func(t *testing.T) {
