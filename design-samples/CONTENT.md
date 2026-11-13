@@ -77,7 +77,7 @@ Judul halaman: **"Casa · Beranda"** (§25.9).
 
 ### 1.2 Kartu, urutan dari atas
 
-Setiap kartu: `kartu`, sudut 20, judul di dalam kartu sebagai kepala kartu tinggi 48 (lingkaran ikon 40 `sisip` dengan glif 20 `aksen-tinta`, jarak 12, judul `judul-bagian`, kendali kanan bila ada; §19.13.5 "Judul kartu", [Usulan lead]). Tombol di dalam kartu tinggi 40, padding 16, area 48. Chip di kepala kartu tinggi 32, area 48.
+Setiap kartu: `kartu`, sudut 20, judul di dalam kartu sebagai kepala kartu tinggi 48 (lingkaran ikon 40 `sisip` dengan glif 20 `aksen-tinta`, jarak 12, judul `judul-bagian`, kendali kanan bila ada; §19.13.5 "Judul kartu", diputuskan pemilik produk). Tombol di dalam kartu tinggi 40, padding 16, area 48. Chip di kepala kartu tinggi 32, area 48.
 
 **Kartu 1, Uang kita** (§6.1 bagian 2 sampai 4)
 
