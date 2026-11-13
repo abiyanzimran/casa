@@ -513,16 +513,6 @@ func TestSignUp(t *testing.T) {
 		wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
 	})
 
-	t.Run("a web client cannot open a session before the cookie transport exists (1.5)", func(t *testing.T) {
-		// SEC-161 (b): a web session token travels only in a cookie.
-		h := startIdentity(t)
-		wantOK(t, h.startSignUp(h.issue(t, "owner@example.test"), "owner@example.test"))
-		_, err := h.completeSignUp(casav1.ClientKind_CLIENT_KIND_WEB, h.lastLink(t), password)
-		wantCode(t, err, connect.CodeUnimplemented)
-		_, err = h.completeSignUp(ios, h.lastLink(t), password)
-		wantOK(t, err)
-	})
-
 	t.Run("SEC-12 failed token uses are limited per address", func(t *testing.T) {
 		// 10.1 §8.1: CompleteSignUp shares the token-use limit.
 		h := startIdentity(t)
@@ -699,15 +689,6 @@ func TestSessions(t *testing.T) {
 		if n := h.count(t, "SELECT count(DISTINCT session_id) FROM security_event WHERE kind = 'sign_in'"); n != 2 {
 			t.Fatalf("%d sign_in events with distinct sessions, want 2 (sign-up and sign-in)", n)
 		}
-	})
-
-	t.Run("a web client cannot sign in before the cookie transport exists (1.5)", func(t *testing.T) {
-		h := startIdentity(t)
-		h.signUp(t, "owner@example.test", password)
-		_, err := h.client.SignIn(context.Background(), &casav1.SignInRequest{
-			RequestContext: identityRC(casav1.ClientKind_CLIENT_KIND_WEB), Email: "owner@example.test", Password: password,
-		})
-		wantCode(t, err, connect.CodeUnimplemented)
 	})
 }
 
@@ -1005,8 +986,6 @@ func TestRecovery(t *testing.T) {
 			t.Fatalf("mails %d, last to %q kind %d link of %d characters; want a recovery link to %s", len(mails), last.To, last.Kind, len(last.Link), email)
 		}
 		link := h.lastLink(t)
-		_, err = h.completeRecovery(casav1.ClientKind_CLIENT_KIND_WEB, link, next)
-		wantCode(t, err, connect.CodeUnimplemented) // web sessions come with 1.5; the link stays usable
 		tokens, err := h.completeRecovery(ios, link, next)
 		wantOK(t, err)
 		wantOK(t, h.authenticated(tokens.GetAccessToken()))
@@ -1232,8 +1211,8 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	wantOK(t, err)
 	z, err := h.signIn(email, password)
 	wantOK(t, err)
-	// Y stands for a web session: web sign-in comes with 1.5, so the row
-	// is relabelled; its refresh token still reaches the server.
+	// Y stands for a web session: a native row relabelled, so its refresh
+	// token can still probe it until cookie authentication (1.5 Task 4).
 	yHash := sha256.Sum256(decodeToken(t, y.GetAccessToken()))
 	if _, err := h.admin.Exec(t.Context(), "UPDATE session SET client_kind = 'web' WHERE token_hash = $1", yHash[:]); err != nil {
 		t.Fatal(err)

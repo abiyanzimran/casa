@@ -44,9 +44,10 @@ INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, paralleli
 VALUES (@account_id, @salt, @hash, @time_cost, @memory_kib, @parallelism, @updated_at);
 
 -- name: InsertSession :one
-INSERT INTO session (account_id, client_kind, ua_summary, token_hash, client_version, created_at,
+-- device_mode and ua_summary are set once, here (SEC-165; SEC-161 (e)).
+INSERT INTO session (account_id, client_kind, device_mode, ua_summary, token_hash, client_version, created_at,
                      last_used_at, idle_timeout, absolute_expiry, token_issued_at)
-VALUES (@account_id, @client_kind, '', @token_hash, @client_version, @now,
+VALUES (@account_id, @client_kind, @device_mode, @ua_summary, @token_hash, @client_version, @now,
         @now, @idle_timeout, @absolute_expiry, @now)
 RETURNING id;
 

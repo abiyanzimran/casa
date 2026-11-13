@@ -22,9 +22,6 @@ var (
 	// ErrRateLimited: too many failed attempts from the account or the
 	// network address (SEC-12).
 	ErrRateLimited = errors.New("rate limited")
-	// ErrWebSessionNotYet: a web session token travels only in a cookie
-	// (SEC-161 (b)), which comes with 1.5 (lead ruling Q13 on the 1.4 plan).
-	ErrWebSessionNotYet = errors.New("web sessions come with the cookie transport")
 	// ErrCredentialsRejected: the email is unknown or the password is
 	// wrong, never told apart (SEC-12).
 	ErrCredentialsRejected = errors.New("credentials rejected")
@@ -49,6 +46,15 @@ const (
 	verificationLinkLifetime = 30 * time.Minute // lead ruling Q4 on the 1.4 plan [Usulan]
 	reauthLifetime           = 5 * time.Minute  // SEC-13 [Asumsi]; 09.4 §2
 	recoveryLinkLifetime     = 30 * time.Minute // SEC-24 [Asumsi]; 09.4 §2
+)
+
+// Lifetimes of a web session by its device mode (plan 1.5 decision 8; 09.4
+// §2).
+const (
+	personalIdleTimeout      = 30 * 24 * time.Hour  // SEC-161 (d) [Asumsi]
+	personalAbsoluteLifetime = 180 * 24 * time.Hour // SEC-161 (d) [Asumsi]
+	sharedIdleTimeout        = 30 * time.Minute     // SEC-165 (a) [Asumsi]
+	sharedAbsoluteLifetime   = 12 * time.Hour       // SEC-165 (a) [Asumsi]
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
@@ -104,18 +110,36 @@ type Message struct {
 	Link string
 }
 
-// Client is who calls: the kind and version from request_context and the
-// network peer address "host:port".
+// Client is who calls: the kind and version from request_context, the
+// network peer address "host:port", and for a web client its device mode and
+// User-Agent.
 type Client struct {
 	Kind    string // "ios", "android" or "web", as session.client_kind
 	Version string
 	Address string
+	// DeviceMode is "personal" or "shared" for web and "" for native, whose
+	// session is stored as personal (plan 1.5 decision 9; SEC-165).
+	DeviceMode string
+	// UserAgent is read only by summarizeUserAgent and never stored or
+	// logged (SEC-161 (e)).
+	UserAgent string
 }
 
-// Tokens are a native session's tokens (SEC-15).
+// Cookie is a web session's cookie (plan 1.5 decision 7; SEC-161 (b)).
+type Cookie struct {
+	Value string // the 43-character token; only its hash is stored
+	// MaxAge is the session's remaining absolute lifetime; 0 makes a
+	// session cookie, which shared mode uses (SEC-165 (a)).
+	MaxAge time.Duration
+}
+
+// Tokens are what opening a session gives the client: a native session's
+// tokens (SEC-15), or a web session's cookie, with the other fields empty
+// (SEC-161 (b)).
 type Tokens struct {
 	AccessToken, RefreshToken string
 	AccessTokenExpiresAt      time.Time
+	Cookie                    Cookie
 }
 
 // Service is the identity module.

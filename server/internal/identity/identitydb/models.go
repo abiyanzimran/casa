@@ -79,22 +79,24 @@ type SecurityEvent struct {
 }
 
 type Session struct {
-	ID             pgtype.UUID
-	AccountID      pgtype.UUID
-	ClientKind     string
-	DeviceMode     string
-	UaSummary      string
-	TokenHash      []byte
-	PrevTokenHash  []byte
-	PrevValidUntil pgtype.Timestamptz
-	ClientVersion  string
-	CreatedAt      time.Time
-	LastUsedAt     time.Time
-	IdleTimeout    time.Duration
-	AbsoluteExpiry time.Time
-	TokenIssuedAt  time.Time
-	RevokedAt      pgtype.Timestamptz
-	RevokeReason   pgtype.Text
+	ID                 pgtype.UUID
+	AccountID          pgtype.UUID
+	ClientKind         string
+	DeviceMode         string
+	UaSummary          string
+	TokenHash          []byte
+	PrevTokenHash      []byte
+	PrevValidUntil     pgtype.Timestamptz
+	ClientVersion      string
+	CreatedAt          time.Time
+	LastUsedAt         time.Time
+	IdleTimeout        time.Duration
+	AbsoluteExpiry     time.Time
+	TokenIssuedAt      time.Time
+	RevokedAt          pgtype.Timestamptz
+	RevokeReason       pgtype.Text
+	TokenConfirmedAt   pgtype.Timestamptz
+	DiscardedTokenHash []byte
 }
 
 type SetupToken struct {

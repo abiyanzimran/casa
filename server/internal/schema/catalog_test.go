@@ -26,9 +26,14 @@ var tables = map[string]tableRule{
 		policy:  ownAccount,
 		source:  "09.2 §3 \"Tabel global\"; SEC-11; lead ruling Q3 on the 1.4 plan"},
 	"session": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
-		updates: []string{"token_hash", "token_issued_at", "last_used_at", "revoked_at", "revoke_reason"},
-		policy:  accountOrToken,
-		source:  "09.2 §3 \"Tabel global\", §5.1; SEC-15; lead rulings Q2, Q3 on the 1.4 plan"},
+		// 00004_web_session: the cookie columns, and no UPDATE on device_mode
+		// or ua_summary (SEC-165).
+		updates: []string{"token_hash", "token_issued_at", "last_used_at", "revoked_at", "revoke_reason",
+			"prev_token_hash", "prev_valid_until", "token_confirmed_at", "discarded_token_hash"},
+		policy: lookupPolicy("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+
+			") OR (prev_token_hash = "+settingTokenHash+") OR (discarded_token_hash = "+settingTokenHash+"))",
+			"(account_id = "+settingAccount+")"),
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-15, SEC-161 (c); lead rulings Q2, Q3 on the 1.4 plan; plan 1.5 decision 15"},
 	"refresh_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		updates: []string{"used_at"},
 		policy:  accountOrToken,

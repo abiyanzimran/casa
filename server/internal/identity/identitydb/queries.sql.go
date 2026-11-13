@@ -353,16 +353,18 @@ func (q *Queries) InsertSecurityEvent(ctx context.Context, arg InsertSecurityEve
 }
 
 const insertSession = `-- name: InsertSession :one
-INSERT INTO session (account_id, client_kind, ua_summary, token_hash, client_version, created_at,
+INSERT INTO session (account_id, client_kind, device_mode, ua_summary, token_hash, client_version, created_at,
                      last_used_at, idle_timeout, absolute_expiry, token_issued_at)
-VALUES ($1, $2, '', $3, $4, $5,
-        $5, $6, $7, $5)
+VALUES ($1, $2, $3, $4, $5, $6, $7,
+        $7, $8, $9, $7)
 RETURNING id
 `
 
 type InsertSessionParams struct {
 	AccountID      pgtype.UUID
 	ClientKind     string
+	DeviceMode     string
+	UaSummary      string
 	TokenHash      []byte
 	ClientVersion  string
 	Now            time.Time
@@ -370,10 +372,13 @@ type InsertSessionParams struct {
 	AbsoluteExpiry time.Time
 }
 
+// device_mode and ua_summary are set once, here (SEC-165; SEC-161 (e)).
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, insertSession,
 		arg.AccountID,
 		arg.ClientKind,
+		arg.DeviceMode,
+		arg.UaSummary,
 		arg.TokenHash,
 		arg.ClientVersion,
 		arg.Now,
