@@ -81,3 +81,21 @@ Putusan lead atas pertanyaan rencana 1.3 (Q5, Q7). Keputusan di atas tidak berub
 
 - **Galat per medan:** detailnya memakai pesan kontrak `buf.validate.Violations` dari modul protovalidate (jalur medan dan `rule_id`, ter-generate untuk semua bahasa), dikirim dengan kode Connect `InvalidArgument`. Enum `ErrorCode` tidak memuat nilai per medan; yang dimaksud "kode galat per medan" di butir 3 dan 4 adalah detail itu.
 - **Nama kode di dokumen dan di enum:** nama kode galat di dokumen (`session_expired`, `session_revoked`, `WRITE_FROZEN`, `NOTICE_UNREAD`, `CLIENT_UPGRADE_REQUIRED`, dan yang menyusul) dipetakan ke enum `ErrorCode` sebagai `ERROR_CODE_<NAMA_HURUF_BESAR>` (misalnya `ERROR_CODE_SESSION_EXPIRED`), karena aturan `buf lint` STANDARD mewajibkan awalan nama enum pada setiap nilai.
+
+## Catatan 13 November 2026 (FS-1 1.4, `identity`)
+
+Putusan lead atas pertanyaan rencana 1.4 (Q6). Keputusan di atas tidak berubah. Kode galat baru di `ErrorCode`, masing-masing ditambahkan tugas yang pertama kali mengembalikannya; galat modul dipetakan ke kode kontrak oleh satu fungsi di lapisan API (`internal/api`):
+
+| Kode (`ERROR_CODE_…`) | Kode Connect | Arti |
+|---|---|---|
+| `TOKEN_REJECTED` | `PermissionDenied` | Token pemasangan, verifikasi, atau pemulihan kosong, tak dikenal, cacat, kedaluwarsa, terpakai, atau untuk email lain; satu tanggapan seragam (SEC-30, SEC-158) |
+| `CREDENTIALS_REJECTED` | `Unauthenticated` | Email atau kata sandi salah, tanpa membedakan email tak terdaftar (SEC-12) |
+| `RATE_LIMITED` | `ResourceExhausted` | Batas laju SEC-12 (09.4 §2) |
+| `REAUTH_REQUIRED` | `PermissionDenied` | Perintah memerlukan autentikasi ulang yang sah (SEC-13, SEC-151 (7)) |
+| `IDEMPOTENCY_CONFLICT` | `FailedPrecondition` | Kunci idempotensi yang sama dengan isi berbeda (09.2 §8) |
+| `RETRY_EXHAUSTED` | `Aborted` | Coba ulang `SERIALIZABLE` habis (09.2 §6, §9) |
+
+- `Unauthenticated` **tanpa** detail berarti token akses tidak ada, tak dikenal, atau lewat 15 menit: klien menyegarkan token, lalu masuk lagi bila gagal. `SESSION_EXPIRED` dan `SESSION_REVOKED` yang sudah ada tetap untuk sesi yang berakhir.
+- **Kata sandi umum** (SEC-11) bukan kode `ErrorCode`, melainkan pelanggaran per medan: `InvalidArgument` dengan detail `buf.validate.Violations`, `rule_id` `password.common`, pada jalur medan kata sandi (sama dengan catatan 1.3 di atas).
+- Setiap kode ditolak dengan satu pesan tetap per kode, sehingga penolakan seragam identik byte demi byte. Galat lain menjadi `Internal` dengan pesan tetap; teks PostgreSQL tidak pernah ke klien (09.2 §3 lapis 3).
+- Nama kode ini pengenal kontrak, bukan istilah glosarium.

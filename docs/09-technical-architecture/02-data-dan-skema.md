@@ -18,7 +18,7 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 
 | Modul | Isi | Tabel milik | Sumber aturan |
 |---|---|---|---|
-| `identity` | Akun, kata sandi, sesi per perangkat, token penyegar, autentikasi ulang, pemulihan email, batas laju, pendaftaran tertutup dengan token pemasangan | `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `setup_token`, `security_event` | Dokumen 10 SEC-11 sampai SEC-27, SEC-158 |
+| `identity` | Akun, kata sandi, sesi per perangkat, token penyegar, autentikasi ulang, pemulihan email, batas laju, pendaftaran tertutup dengan token pemasangan. Catatan 13 November 2026 (FS-1 1.4): kueri sqlc-nya di `internal/identity/identitydb` | `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `setup_token`, `signup_verification`, `security_event` | Dokumen 10 SEC-11 sampai SEC-27, SEC-158 |
 | `household` | Rumah tangga, keanggotaan, peran, undangan, keluar dan masa tenggang, pihak luar, pemberitahuan operator, `full_adult_members`, sebutan anggota per pembaca (Tier 2, §5.5) | `household`, `membership`, `invitation`, `external_party`, `operator_notice`, `operator_notice_ack`, `consent_record`, `member_label` | 06 §3; SEC-10, SEC-28 sampai SEC-34, SEC-109, SEC-155 |
 | `ledger` | Entri, baris, tautan, rincian, posisi (tempat uang, piutang, kewajiban, aset), rekonsiliasi | `entry`, `line`, `entry_link`, `entry_detail`, `identity_map`, `holding`, `receivable`, `liability`, `asset`, `reconciliation` | 07 §1 sampai §3; ADR-002, ADR-004, ADR-007 |
 | `budget` | Kategori, tujuan, periode, anggaran, otorisasi, reservasi, jatah, tagihan berulang, cicilan, jadwal penyisihan, sumber penghasilan, penilaian tanda; **kecocokan kategori** tautan ke pos rutin dan larangan mengganti kategori entri yang tertaut (satu fungsi; SEC-92; 07 §3.15 butir 7b, INV-37) | `category`, `purpose`, `budget_period_setting`, `budget`, `budget_rule`, `authorization`, `reservation`, `installment`, `recurring_bill`, `set_aside_schedule`, `income_source`, `assessment_lane`, `entry_flag` | 07 §2, §3, §6; 06 S-8 |
@@ -33,8 +33,11 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 | `care`, `shopping`, `maintenance`, `plan` (Tier 2) | Sesuai 06 §13 dan tier-2.md | Tabel masing-masing | 06 §13 |
 | `schema` (infrastruktur, `internal/schema`) | Migrasi goose (§10) dan tabel infrastruktur yang tidak dimiliki modul domain. Catatan 13 November 2026 (FS-1 tugas 1.2): `currency` dibuat di tugas 1.2. Baris `idempotency_record` ditulis jalur perintah di dalam transaksi perintah itu (§8); `schema` memiliki DDL-nya | `currency`, `idempotency_record` | ADR-016 butir 8, 9, 11 |
 | `database` (infrastruktur, `internal/database`) | Catatan 13 November 2026 (FS-1 tugas 1.2): transaksi bercakupan. `Scope` membawa konteks (`app.household_id` atau `app.account_id`) yang dipasang `SET LOCAL` di awal transaksi; `Write` membuka transaksi `SERIALIZABLE`, `Read` membuka `REPEATABLE READ READ ONLY` (§3 lapis 4, §6). Tidak mengimpor paket `internal/` lain | Tanpa tabel | ADR-016 |
-| `api` (lapisan API, `internal/api`) | Catatan 13 November 2026 (FS-1 1.3, kontrak dasar): server Connect tempat setiap layanan mendaftar, mux HTTP dengan `/healthz` (09.4 §3) dan batas ukuran permintaan (09.4 §1), serta satu interseptor batas dengan urutan tetap: deskriptor metode → `request_context` → versi klien minimum (perintah tulis dari `web`) → kunci idempotensi (perintah tulis, §8) → protovalidate atas seluruh pesan. Versi diperiksa sebelum validasi badan, sehingga klien lama mendapat `CLIENT_UPGRADE_REQUIRED` dan perintahnya tetap di antrean | Tanpa tabel | ADR-013 butir 4; ADR-005; ADR-030 butir 9; SEC-169 (d) |
+| `api` (lapisan API, `internal/api`) | Catatan 13 November 2026 (FS-1 1.3, kontrak dasar): server Connect tempat setiap layanan mendaftar, mux HTTP dengan `/healthz` (09.4 §3) dan batas ukuran permintaan (09.4 §1), serta satu interseptor batas dengan urutan tetap: deskriptor metode → `request_context` → versi klien minimum (perintah tulis dari `web`) → kunci idempotensi (perintah tulis, §8) → protovalidate atas seluruh pesan. Versi diperiksa sebelum validasi badan, sehingga klien lama mendapat `CLIENT_UPGRADE_REQUIRED` dan perintahnya tetap di antrean. Catatan 13 November 2026 (FS-1 1.4): langkah autentikasi sesi masuk **sesudah deskriptor dan sebelum pesan diterima**, sehingga urutannya deskriptor metode → autentikasi sesi → `request_context` → versi klien minimum → kunci idempotensi → protovalidate. Setiap prosedur wajib membawa `Authorization: Bearer <token akses>` yang diterima `identity`, kecuali daftar prosedur publik, yang hanya boleh memuat prosedur `casa.v1.IdentityService` yang dipakai sebelum ada sesi (pendaftaran, masuk, penyegaran, pemulihan); uji `internal/api` menolak prosedur publik di luar layanan itu. Di 1.4 jalur header hanya menerima sesi `ios` dan `android`; sesi `web` lewat cookie di 1.5 (SEC-161 (b)) | Tanpa tabel | ADR-013 butir 4; ADR-005; ADR-030 butir 9; SEC-169 (d); SEC-15 |
 | `gen/casa/v1` (kode hasil generate, `internal/gen/casa/v1`) | Catatan 13 November 2026 (FS-1 1.3, kontrak dasar): kode Go hasil `buf generate` dari `proto/casa/v1`. Tidak disunting tangan (ES §2) dan dibangkitkan ulang di CI yang menolak beda (14 §4.6). Tidak mengimpor paket `internal/` lain | Tanpa tabel | ADR-013 butir 4 |
+| `gen/casa/v1/casav1connect` (kode hasil generate, `internal/gen/casa/v1/casav1connect`) | Catatan 13 November 2026 (FS-1 1.4): kode handler dan klien Connect hasil `protoc-gen-connect-go` dalam `buf generate` yang sama. Tidak disunting tangan dan diperiksa CI seperti `gen/casa/v1`. Hanya mengimpor `internal/gen/casa/v1` | Tanpa tabel | ADR-013 butir 4 |
+| `command` (infrastruktur, `internal/command`) | Catatan 13 November 2026 (FS-1 1.4): jalur perintah. `command.Run` menjalankan satu perintah tulis di dalam satu `database.Write`: mengembalikan respons tersimpan untuk permintaan identik, menolak isi berbeda di kunci yang sama (`IDEMPOTENCY_CONFLICT`), atau menjalankan perintahnya lalu menulis `idempotency_record` (§6 langkah 1 dan 8, §8). Medan kontrak bertanda `debug_redact` dikosongkan sebelum `request_hash` dihitung, dan respons yang memuat medan itu tidak disimpan (SEC-11). Kueri sqlc-nya di `internal/command/commanddb` | Tanpa tabel (menulis `idempotency_record` milik `schema`) | ADR-005; ADR-016 butir 8 |
+| `identity/identitydb`, `command/commanddb` (kode hasil generate sqlc) | Catatan 13 November 2026 (FS-1 1.4): kode Go hasil `sqlc generate` dari `queries.sql` modulnya. Tidak disunting tangan; CI menolak beda (`sqlc-generated`). Tidak mengimpor paket `internal/` lain | Tanpa tabel | ES §2, §3 |
 | `read` | **Satu jalur baca**: `can_read(member, object)`, proyeksi layar, laporan, ekspor, dan masukan `AI` | Tanpa tabel; fungsi dipakai semua modul | SEC-06; LM-07 |
 
 **Aturan dependensi** (diperiksa uji arsitektur di CI, ADR-014):
@@ -45,6 +48,18 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
 4. Tidak ada modul yang membaca `read_state` atau `presence` selain `chat` (LM-11; INV-A45).
 5. Paket infrastruktur (catatan 13 November 2026, FS-1 tugas 1.2): `internal/database` tidak mengimpor paket `internal/` lain. Yang boleh mengimpor `schema` hanya `cmd/casa` (perintah `casa migrate`) dan `internal/database/databasetest` (menyiapkan basis data uji lewat migrasi yang sama); modul domain tidak mengimpornya.
 6. Lapisan API dan kode hasil generate (catatan 13 November 2026, FS-1 1.3, kontrak dasar): `internal/gen/casa/v1` tidak mengimpor paket `internal/` lain. `internal/api` hanya mengimpor `internal/gen/casa/v1`, dan tidak pernah `internal/schema`. `cmd/casa` mengimpor `internal/api` dan `internal/schema`. Tepi baru, misalnya `internal/api` ke modul domain sejak layanan pertama (1.4), ditambahkan ke aturan ini dan ke daftar izin uji arsitektur (`allowedImports`) di PR yang sama.
+7. Tepi FS-1 1.4 (catatan 13 November 2026, putusan lead Q12; menggantikan daftar `internal/api` dan `cmd/casa` di butir 6):
+
+   | Paket | Boleh mengimpor (paket `internal/` saja) |
+   |---|---|
+   | `cmd/casa` | `internal/api`, `internal/database`, `internal/gen/casa/v1`, `internal/identity`, `internal/schema` |
+   | `internal/api` | `internal/command`, `internal/database`, `internal/gen/casa/v1`, `internal/gen/casa/v1/casav1connect`, `internal/identity` |
+   | `internal/identity` | `internal/database`, `internal/identity/identitydb` |
+   | `internal/command` | `internal/command/commanddb`, `internal/database` |
+   | `internal/identity/identitydb`, `internal/command/commanddb` | tidak ada |
+   | `internal/gen/casa/v1/casav1connect` | `internal/gen/casa/v1` |
+
+   `internal/identity` dan `internal/command` tidak saling mengimpor dan tidak mengimpor kode kontrak: lapisan API yang memetakan pesan kontrak ke panggilan modul dan galat modul ke kode kontrak (ADR-013, catatan 13 November 2026 FS-1 1.4).
 
 ```mermaid
 flowchart LR
@@ -115,6 +130,31 @@ flowchart LR
 
 **Tabel global** (tanpa `household_id`): `account`, `credential`, `session`, `refresh_token`, `reauth_grant`, `recovery_token`, `security_event`, `push_token` (milik sesi), `currency` (tabel produk), dan `sentence_pool` (tanpa data rumah tangga). Kebijakan RLS-nya memakai `app.account_id`; `currency` dan `sentence_pool` hanya `SELECT` bagi `app_rw`.
 
+Catatan 13 November 2026 (FS-1 1.4, putusan lead Q2; dikukuhkan `security-privacy` dengan penyesuaian, [10.1 §5.1](../10-security-privacy/01-ancaman-dan-akses.md)). `setup_token` dan `signup_verification` (§5.1) juga tabel global. Masuk, autentikasi token, penyegaran, pemulihan, dan pendaftaran harus menemukan satu baris **sebelum akun diketahui**, jadi kebijakan `app.account_id` saja membuatnya mustahil sebagai `app_rw`. `database.Scope` karena itu membawa dua kunci pencarian lagi, dipasang dengan pola `SET LOCAL` yang sama per transaksi: `app.email` (dibandingkan sebagai `citext`) dan `app.token_hash` (SHA-256 token dalam hex), dengan aturan `nullif` di atas. Keduanya kunci pencarian, bukan hak, dan tunduk pada empat aturan 10.1 §5.1:
+
+1. **Pencarian hanya menemukan, tidak pernah menulis.** Pada tabel yang punya akun, klausa pencarian hanya ada di `USING`; `WITH CHECK` hanya klausa akun. Tabel tanpa akun (`setup_token`, `signup_verification`) menulis hanya lewat token sumbernya.
+2. **`UPDATE` per kolom.** `app_rw` tidak pernah mendapat `UPDATE` atas `id`, `account_id`, atau kolom pemilik lain, kecuali `setup_token.account_id` (diisi sekali saat dikonsumsi).
+3. **Email hanya untuk pencarian murni.** `database.Write` menolak `Scope` yang membawa `Email`; `database.Read` menolak `Email` bersama `AccountID` atau `HouseholdID`. Penolakan terjadi sebelum `BEGIN`.
+4. **Pencarian lewat email hanya memilih `id`**; medan akun lain dibaca sesudahnya dengan cakupan akun.
+
+Satu kebijakan `FOR ALL` per tabel. `A` = `nullif(current_setting('app.account_id', true), '')::uuid`, `E` = `nullif(current_setting('app.email', true), '')::citext`, `T` = `decode(nullif(current_setting('app.token_hash', true), ''), 'hex')`:
+
+| Tabel | `USING` | `WITH CHECK` | Hak `app_rw` |
+|---|---|---|---|
+| `account` | `id = A OR email = E` | `id = A` | `SELECT, INSERT` |
+| `credential` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (salt, hash, time_cost, memory_kib, parallelism, updated_at)` |
+| `session` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (token_hash, token_issued_at, last_used_at, revoked_at, revoke_reason)`; 1.5 menambah kolom cookie |
+| `refresh_token`, `recovery_token` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `reauth_grant` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
+| `setup_token` | `token_hash = T` | `token_hash = T` | `SELECT, INSERT, UPDATE (used_at, account_id)` |
+| `signup_verification` | `token_hash = T OR setup_token_hash = T` | `setup_token_hash = T` | `SELECT, INSERT, UPDATE (token_hash, expires_at, used_at)` |
+| `security_event` | `account_id = A` | `account_id = A` | `SELECT, INSERT` (tambah-saja; ADR-016 butir 5) |
+| `idempotency_record` | teks di tabel berikut, tanpa perubahan | sama | `SELECT, INSERT` |
+
+`signup_verification`: token tautan (`token_hash = T`) hanya menemukan baris; menulisnya hanya mungkin dengan hash token pemasangan sumbernya (`setup_token_hash = T`), dan `setup_token_hash` tidak pernah dapat diubah. Permintaan tautan ulang (`StartSignUp`, `Write` dengan `T` = hash token pemasangan) mengganti `token_hash` dan `expires_at` baris yang sama. `CompleteSignUp` membaca baris dengan `T` = hash tautan untuk mendapat `setup_token_hash`, lalu menulis dalam satu transaksi dengan `Scope{AccountID: id baru, TokenHash: setup_token_hash}`: `used_at` di `signup_verification`, `used_at` dan `account_id` di `setup_token`, lalu `account`, `credential`, dan sesi. 1.6 menambah klausa sumber undangan di kedua sisi menurut aturan yang sama.
+
+Tanpa setelan apa pun, setiap tabel di atas kosong dan tidak ada galat. Alur sebelum autentikasi selalu dua transaksi: baca dengan cakupan pencarian, lalu tulis dengan `app.account_id`. `TokenHash` di `Write` hanya diperlukan untuk `setup_token` dan `signup_verification`. `job_runner` dan `lifecycle_rw` tanpa hak atas tabel `identity` sampai tugas yang memerlukannya. Uji wajib, termasuk "pencarian menemukan tetapi tidak menulis" dan hak kolom, ada di 10.1 §5.1; uji hak kolom juga memeriksa bahwa `signup_verification.setup_token_hash` tidak dapat di-`UPDATE`.
+
 **Tabel infrastruktur dengan pemilik campuran** (CS-A-20):
 
 | Tabel | Kebijakan RLS bagi `app_rw` | Catatan |
@@ -167,7 +207,10 @@ account (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email       citext UNIQUE NOT NULL,
   time_zone   text NULL,                  -- 06 §2.4: kosong = zona rumah tangga
-  locale      text NOT NULL DEFAULT 'id'
+  locale      text NOT NULL DEFAULT 'id',
+  created_at  timestamptz NOT NULL,       -- catatan 13 November 2026 (FS-1 1.4)
+  signup_via  text NOT NULL CHECK (signup_via IN ('setup_token','invitation'))
+                                          -- SEC-158: hanya akun 'setup_token' yang boleh membuat rumah tangga
 )
 
 -- Satu baris per perangkat atau browser yang masuk (SEC-15, SEC-161, SEC-165; ADR-030 butir 5).
@@ -184,11 +227,92 @@ session (
   client_version   text NOT NULL,         -- dibandingkan dengan versi minimum per client_kind (ADR-028 butir 5)
   created_at       timestamptz NOT NULL,
   last_used_at     timestamptz NOT NULL,  -- dasar batas diam
-  idle_timeout     interval NOT NULL,     -- web pribadi 30 hari; web bersama 30 menit
-  absolute_expiry  timestamptz NOT NULL,  -- web pribadi +180 hari; web bersama +12 jam
+  idle_timeout     interval NOT NULL,     -- web pribadi 30 hari; web bersama 30 menit; native 30 hari [Usulan] (1.4 Q5)
+  absolute_expiry  timestamptz NOT NULL,  -- web pribadi +180 hari; web bersama +12 jam; native +180 hari [Usulan] (1.4 Q5)
+  token_issued_at  timestamptz NOT NULL,  -- 1.4: dasar umur token akses 15 menit (SEC-15); 1.5: dasar rotasi cookie 15 menit
   revoked_at       timestamptz NULL,
-  revoke_reason    text NULL,             -- user | reuse_detected | exit | purge (berakhir karena umur tidak dicatat di sini)
+  revoke_reason    text NULL CHECK (revoke_reason IN ('user','reuse_detected','exit','purge','recovery')),
+                                          -- 'recovery' sejak 1.4: pemulihan mencabut semua sesi lain (SEC-24);
+                                          -- berakhir karena umur tidak dicatat di sini
   CHECK (client_kind = 'web' OR device_mode = 'personal')   -- mode bersama hanya di web
+)
+CREATE INDEX session_account_live ON session (account_id) WHERE revoked_at IS NULL;  -- cabut semua (SEC-24)
+
+-- Catatan 13 November 2026 (FS-1 1.4, putusan lead Q3 dan Q8): tabel identity lain. Semua token
+-- 32 byte acak; yang disimpan hanya SHA-256-nya. Kebijakan RLS di §3 ("Tabel global").
+credential (                              -- SEC-11; 09.4 §2
+  account_id   uuid PRIMARY KEY REFERENCES account(id),
+  salt         bytea NOT NULL,
+  hash         bytea NOT NULL,
+  time_cost    int NOT NULL,              -- parameter Argon2id disimpan per baris agar dapat dinaikkan
+  memory_kib   int NOT NULL,
+  parallelism  smallint NOT NULL,
+  updated_at   timestamptz NOT NULL
+)
+
+refresh_token (                           -- SEC-15: satu keluarga per sesi, diputar setiap dipakai
+  token_hash   bytea PRIMARY KEY,
+  session_id   uuid NOT NULL REFERENCES session(id),
+  account_id   uuid NOT NULL REFERENCES account(id),
+  created_at   timestamptz NOT NULL,
+  used_at      timestamptz NULL           -- dipakai lagi sesudah terisi: sesi dicabut 'reuse_detected'
+)
+
+reauth_grant (                            -- SEC-13: terikat sesi dan tujuan, 5 menit, satu tindakan
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id   uuid NOT NULL REFERENCES session(id),
+  account_id   uuid NOT NULL REFERENCES account(id),
+  purpose      text NOT NULL CHECK (purpose IN ('change_password')),  -- tujuan lain ditambah tugasnya
+  created_at   timestamptz NOT NULL,
+  expires_at   timestamptz NOT NULL,
+  used_at      timestamptz NULL
+)
+CREATE INDEX reauth_grant_open ON reauth_grant (session_id, purpose) WHERE used_at IS NULL;
+
+recovery_token (                          -- SEC-24: tautan email sekali pakai, 30 menit
+  token_hash   bytea PRIMARY KEY,
+  account_id   uuid NOT NULL REFERENCES account(id),
+  created_at   timestamptz NOT NULL,
+  expires_at   timestamptz NOT NULL,
+  used_at      timestamptz NULL
+)
+
+setup_token (                             -- SEC-158 (b); 09.4 §2: terikat satu email, 7 hari
+  token_hash   bytea PRIMARY KEY,
+  email        citext NOT NULL,
+  created_at   timestamptz NOT NULL,
+  expires_at   timestamptz NOT NULL,
+  used_at      timestamptz NULL,
+  account_id   uuid NULL REFERENCES account(id)   -- akun yang lahir darinya
+)
+
+-- Tautan verifikasi email pendaftaran, umum untuk kedua jalur SEC-158 (Q8). Akun baru dibuat saat
+-- tautan dibuka dan kata sandi dipasang, sehingga tidak ada akun "belum terverifikasi".
+-- 1.4 hanya sumber 'setup_token'; 1.6 memperluas CHECK sumber ke 'invitation' dan menambah
+-- kolom rujukan undangannya (perubahan expand, §10).
+signup_verification (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  token_hash        bytea NOT NULL UNIQUE,              -- SHA-256 token tautan
+  source            text NOT NULL CHECK (source IN ('setup_token')),
+  setup_token_hash  bytea NULL UNIQUE REFERENCES setup_token(token_hash),
+                                                        -- satu tautan berlaku per token pemasangan;
+                                                        -- permintaan ulang mengganti token_hash dan expires_at
+  email             citext NOT NULL,                    -- alamat yang diverifikasi
+  created_at        timestamptz NOT NULL,
+  expires_at        timestamptz NOT NULL,               -- 30 menit (1.4 Q4) [Usulan]
+  used_at           timestamptz NULL,
+  CHECK ((source = 'setup_token') = (setup_token_hash IS NOT NULL))
+)
+
+security_event (                          -- jejak keamanan; tambah-saja (ADR-016 butir 5); SEC-16, SEC-39 (b)
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id   uuid NOT NULL REFERENCES account(id),
+  session_id   uuid NULL REFERENCES session(id),
+  kind         text NOT NULL CHECK (kind IN
+                 ('sign_in','session_revoked','reauthentication','password_changed','recovery')),
+  detail       text NULL,                 -- session_revoked: user | reuse_detected | recovery;
+                                          -- reauthentication: tujuannya. Tidak pernah token, kata sandi, atau email
+  occurred_at  timestamptz NOT NULL
 )
 
 idempotency_record (
@@ -405,6 +529,8 @@ Uji tambahan untuk keunikan: "Bunda" dan "bunda", serta bentuk NFC dan NFD dari 
 | Setiap perintah tulis | **`SERIALIZABLE`**, dicoba ulang otomatis pada `40001` (serialization failure) dan `40P01` (deadlock), paling banyak 5 kali dengan jeda acak yang membesar | INV-23: hasil dua perintah bersamaan sama dengan menjalankannya berurutan (18 §5.5) |
 | Bacaan layar, laporan, ekspor | `REPEATABLE READ READ ONLY` | Satu potret konsisten untuk beberapa kueri satu layar (misalnya uang yang ada dan rinciannya) |
 | Pekerjaan latar | Sama dengan perintah tulis | Pekerjaan adalah perintah sistem |
+
+Catatan 13 November 2026 (FS-1 1.4, putusan lead Q1): "paling banyak 5 kali" berarti **5 coba ulang sesudah percobaan pertama, jadi paling banyak 6 percobaan**. Jeda sebelum coba ulang ke-`n` acak penuh dalam `[0, 10 ms × 2^(n−1))`, yaitu batas atas 10, 20, 40, 80, dan 160 ms **[Usulan]**. Sesudah coba ulang kelima gagal, `database.Write` mengembalikan galat yang dikirim ke klien sebagai `RETRY_EXHAUSTED` (§9; ADR-013). Bacaan tidak pernah dicoba ulang. Karena isi transaksi dapat berjalan lebih dari sekali, tidak ada efek di luar transaksi di dalamnya (email, hash kata sandi, batas laju): semuanya sebelum atau sesudah `Write`.
 
 **Penilaian berurutan per anggota per periode** (06 S-8; INV-A37). SSI saja sudah mencegah hasil yang tidak berurutan, tetapi urutan pemenangnya tidak dapat diduga. Untuk membuat urutannya tetap, setiap entri yang dinilai terhadap jatah atau ambang mengambil kunci baris `SELECT … FOR UPDATE` atas `assessment_lane(household_id, member_id, period_start)` sebelum menghitung `terpakai_sebelum`. Entri yang tiba bersamaan dinilai sesuai urutan perolehan kunci itu, yang sama dengan urutan commit. Contoh urutan 07 §10.3 butir 7 menjadi uji konkurensi.
 
