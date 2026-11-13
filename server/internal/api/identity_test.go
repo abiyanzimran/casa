@@ -302,6 +302,24 @@ func TestSignUp(t *testing.T) {
 		if err := h.startSignUp(stillValid, "fresh@example.test"); err != nil {
 			t.Fatalf("a token just under 7 days old: %v", err)
 		}
+		// CompleteSignUp answers a bad link with the same rejection.
+		expiredLink := h.lastLink(t)
+		h.clock.advance(30 * time.Minute)
+		for _, c := range []struct{ name, link string }{
+			{"no link", ""},
+			{"malformed link", "abc"},
+			{"unknown link", neverIssued},
+			{"expired link", expiredLink},
+		} {
+			_, err := h.completeSignUp(ios, c.link, password)
+			wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+			if r := rejectionOf(t, err); !r.equal(first) {
+				t.Fatalf("CompleteSignUp, %s: rejection %+v differs from %+v", c.name, r, first)
+			}
+		}
+		if got := h.count(t, "SELECT count(*) FROM account"); got != accounts {
+			t.Fatalf("%d accounts made by rejected links", got-accounts)
+		}
 	})
 
 	t.Run("FR-FAM-001/AC-9 repeated failed sign-ups hit the rate limit", func(t *testing.T) {
