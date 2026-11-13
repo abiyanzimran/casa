@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { expect, test, vi } from 'vitest';
-import { deleteLocalDb, localDb } from './local-db';
+import { LocalDb } from './local-db';
 
 type Listener = (event: unknown) => void;
 
@@ -43,7 +43,8 @@ async function loadEmergencyWorker() {
 }
 
 test('SEC-169 (e): the emergency service worker takes over at once and empties Cache Storage without touching IndexedDB', async () => {
-	await localDb().outbox.add({
+	const db = new LocalDb();
+	await db.outbox.add({
 		idempotencyKey: crypto.randomUUID(),
 		kind: 'test_command',
 		payload: new Uint8Array([1]),
@@ -60,9 +61,9 @@ test('SEC-169 (e): the emergency service worker takes over at once and empties C
 			'casa-shell-v1',
 			'other'
 		]);
-		expect(await localDb().outbox.count()).toBe(1);
+		expect(await db.outbox.count()).toBe(1);
 	} finally {
-		await deleteLocalDb();
+		await db.delete();
 	}
 });
 

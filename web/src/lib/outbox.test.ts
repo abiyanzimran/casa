@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { LocalDb, deleteLocalDb, localDb, type OutboxEntry } from './local-db';
+import Dexie from 'dexie';
+import { LocalDb, type OutboxEntry } from './local-db';
 import { createOutbox, type Send, type SendResult } from './outbox';
 
 let t = 0;
@@ -18,16 +19,20 @@ const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 
 const accepted: SendResult = { kind: 'accepted' };
 let accepting = vi.fn<Send>();
-const extraDbs: LocalDb[] = [];
+// One connection per tab; the app's db singleton is not used, so a wipe in one test
+// cannot leave the next one without a database.
+const tabs: LocalDb[] = [];
+let db: LocalDb;
 
 beforeEach(() => {
 	t = 0;
+	db = openTab();
 	accepting = vi.fn<Send>(() => Promise.resolve(accepted));
 });
 
 afterEach(async () => {
-	for (const db of extraDbs.splice(0)) db.close();
-	await deleteLocalDb();
+	for (const tab of tabs.splice(0)) tab.close();
+	await Dexie.delete('casa');
 });
 
 type Outbox = ReturnType<typeof createOutbox>;
@@ -46,14 +51,14 @@ function fakeDocument(visibilityState: DocumentVisibilityState) {
 	return Object.assign(new EventTarget(), { visibilityState });
 }
 
-function secondTab(): LocalDb {
-	const db = new LocalDb();
-	extraDbs.push(db);
-	return db;
+function openTab(): LocalDb {
+	const tab = new LocalDb();
+	tabs.push(tab);
+	return tab;
 }
 
 test('FR-FIN-040/AC-17: a saved command is stored at once and not sent before its 5-second undo window ends', async () => {
-	const outbox = createOutbox(localDb(), accepting, clock);
+	const outbox = createOutbox(db, accepting, clock);
 	await save(outbox, ordinary);
 	expect(await outbox.unsentCount()).toBe(1);
 	t = 4999;
@@ -66,7 +71,7 @@ test('FR-FIN-040/AC-17: a saved command is stored at once and not sent before it
 });
 
 test('FR-FIN-040/AC-17: undo inside the undo window removes the command and nothing is sent', async () => {
-	const outbox = createOutbox(localDb(), accepting, clock);
+	const outbox = createOutbox(db, accepting, clock);
 	const entry = await save(outbox, ordinary);
 	t = 4999;
 	expect(await outbox.undo(entry.idempotencyKey)).toBe(true);
@@ -78,7 +83,7 @@ test('FR-FIN-040/AC-17: undo inside the undo window removes the command and noth
 
 test('FR-FIN-040/AC-17: undo after the undo window keeps the command', async () => {
 	const outbox = createOutbox(
-		localDb(),
+		db,
 		vi.fn<Send>(() => Promise.resolve({ kind: 'retry' })),
 		clock
 	);
@@ -90,7 +95,7 @@ test('FR-FIN-040/AC-17: undo after the undo window keeps the command', async () 
 
 test('FR-FIN-040/AC-17: undo of a rejected command keeps it', async () => {
 	const rejecting = vi.fn<Send>(() => Promise.resolve({ kind: 'rejected', code: 'state_changed' }));
-	const outbox = createOutbox(localDb(), rejecting, clock);
+	const outbox = createOutbox(db, rejecting, clock);
 	const entry = await save(outbox, protective);
 	expect(rejecting).toHaveBeenCalledTimes(1);
 	expect(await outbox.undo(entry.idempotencyKey)).toBe(false);
@@ -98,7 +103,7 @@ test('FR-FIN-040/AC-17: undo of a rejected command keeps it', async () => {
 });
 
 test('FR-FIN-040/AC-17: an undo window that is not a whole number of seconds is refused and nothing is queued', async () => {
-	const outbox = createOutbox(localDb(), accepting, clock);
+	const outbox = createOutbox(db, accepting, clock);
 	for (const holdSeconds of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
 		await expect(outbox.enqueue({ ...ordinary, holdSeconds })).rejects.toThrow(RangeError);
 	}
@@ -106,16 +111,16 @@ test('FR-FIN-040/AC-17: an undo window that is not a whole number of seconds is 
 });
 
 test('FR-FIN-040/AC-17: a command saved before its tab closed is sent at the next open', async () => {
-	const first = secondTab();
+	const first = openTab();
 	await save(createOutbox(first, accepting, clock), ordinary);
 	first.close();
 	t = 5000;
-	await createOutbox(secondTab(), accepting, clock).flush();
+	await createOutbox(openTab(), accepting, clock).flush();
 	expect(accepting).toHaveBeenCalledTimes(1);
 });
 
 test('FR-FIN-040/AC-17: a device clock moved back after saving does not hold the command', async () => {
-	const outbox = createOutbox(localDb(), accepting, clock);
+	const outbox = createOutbox(db, accepting, clock);
 	t = 10_000;
 	const entry = await save(outbox, ordinary);
 	t = 1000;
@@ -128,7 +133,7 @@ test('FR-FIN-040/AC-17: a device clock moved back after saving does not hold the
 test('SEC-151: a protective command is not held and is sent before older ordinary commands', async () => {
 	const sent: string[] = [];
 	const outbox = createOutbox(
-		localDb(),
+		db,
 		(entry) => {
 			sent.push(entry.idempotencyKey);
 			return Promise.resolve(accepted);
@@ -152,8 +157,8 @@ test('SEC-173 (a): two tabs flushing at once send every command exactly once', a
 		sentKeys.push(entry.idempotencyKey);
 		return accepted;
 	};
-	const a = createOutbox(secondTab(), slowSend, clock);
-	const b = createOutbox(secondTab(), slowSend, clock);
+	const a = createOutbox(openTab(), slowSend, clock);
+	const b = createOutbox(openTab(), slowSend, clock);
 	const saved = await Promise.all([a.enqueue(ordinary), a.enqueue(ordinary), b.enqueue(ordinary)]);
 	await Promise.all([a.flush(), b.flush()]);
 	t = 5000;
@@ -164,7 +169,7 @@ test('SEC-173 (a): two tabs flushing at once send every command exactly once', a
 
 test('FR-FIN-040/AC-18: a retry answer stops the pass and keeps every command queued', async () => {
 	const retrying = vi.fn<Send>(() => Promise.resolve({ kind: 'retry' }));
-	const outbox = createOutbox(localDb(), retrying, clock);
+	const outbox = createOutbox(db, retrying, clock);
 	await Promise.all([outbox.enqueue(ordinary), outbox.enqueue(ordinary), outbox.enqueue(ordinary)]);
 	await outbox.flush();
 	t = 5000;
@@ -175,11 +180,11 @@ test('FR-FIN-040/AC-18: a retry answer stops the pass and keeps every command qu
 
 test('FR-FIN-040/AC-18: a rejected command stays queued with its code and is not sent again', async () => {
 	const rejecting = vi.fn<Send>(() => Promise.resolve({ kind: 'rejected', code: 'state_changed' }));
-	const outbox = createOutbox(localDb(), rejecting, clock);
+	const outbox = createOutbox(db, rejecting, clock);
 	const entry = await save(outbox, ordinary);
 	t = 5000;
 	await outbox.flush();
-	const stored: OutboxEntry | undefined = await localDb().outbox.get(entry.idempotencyKey);
+	const stored: OutboxEntry | undefined = await db.outbox.get(entry.idempotencyKey);
 	expect(stored?.rejectedCode).toBe('state_changed');
 	expect(await outbox.unsentCount()).toBe(1);
 	await outbox.flush();
@@ -187,7 +192,7 @@ test('FR-FIN-040/AC-18: a rejected command stays queued with its code and is not
 });
 
 test('FR-FIN-040/AC-18: a send that throws leaves the command queued', async () => {
-	const outbox = createOutbox(localDb(), () => Promise.reject(new Error('network down')), clock);
+	const outbox = createOutbox(db, () => Promise.reject(new Error('network down')), clock);
 	await save(outbox, ordinary);
 	t = 5000;
 	await expect(outbox.flush()).rejects.toThrow('network down');
@@ -195,7 +200,6 @@ test('FR-FIN-040/AC-18: a send that throws leaves the command queued', async () 
 });
 
 test('SEC-171 (f): a failed write rejects the save with the original error and queues nothing', async () => {
-	const db = localDb();
 	const outbox = createOutbox(db, accepting, clock);
 	vi.spyOn(db.outbox, 'add').mockRejectedValue(new DOMException('full', 'QuotaExceededError'));
 	await expect(outbox.enqueue(protective)).rejects.toMatchObject({ name: 'QuotaExceededError' });
@@ -209,7 +213,7 @@ test('ADR-005: the idempotency key is a UUIDv4 made at save time and kept on eve
 		.fn<Send>()
 		.mockResolvedValueOnce({ kind: 'retry' })
 		.mockResolvedValueOnce(accepted);
-	const outbox = createOutbox(localDb(), send, clock);
+	const outbox = createOutbox(db, send, clock);
 	const entry = await save(outbox, ordinary);
 	expect(entry.idempotencyKey).toMatch(uuidV4);
 	t = 5000;
@@ -225,8 +229,8 @@ test('SEC-171 (d): the outbox sends on open, on online, and when the page become
 	const win = new EventTarget();
 	const doc = fakeDocument('hidden');
 	const retrying = vi.fn<Send>(() => Promise.resolve({ kind: 'retry' }));
-	const outbox = createOutbox(localDb(), retrying, clock);
-	await localDb().outbox.add({
+	const outbox = createOutbox(db, retrying, clock);
+	await db.outbox.add({
 		idempotencyKey: crypto.randomUUID(),
 		kind: 'test_command',
 		payload: new Uint8Array([1]),
@@ -260,7 +264,7 @@ test('SEC-171 (d): a new command is sent when its undo window ends without anoth
 	try {
 		const win = new EventTarget();
 		const doc = fakeDocument('visible');
-		const outbox = createOutbox(localDb(), accepting, Date.now);
+		const outbox = createOutbox(db, accepting, Date.now);
 		const stop = outbox.start(win, doc);
 		await outbox.enqueue(ordinary);
 		await outbox.flush();

@@ -1,10 +1,16 @@
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { deleteLocalDb, localDb } from './local-db';
-import { createOutbox, type SendResult } from './outbox';
-import { onTabSignal, type TabSignal } from './tab-signal';
-import { broadcastWipe, wipeLocalData } from './wipe';
+import type { SendResult } from './outbox';
+import type { TabSignal } from './tab-signal';
+
+// Fresh modules per test: after a wipe, localDb() refuses until the page reloads, which new
+// modules stand for here.
+let localDb: typeof import('./local-db').localDb;
+let createOutbox: typeof import('./outbox').createOutbox;
+let onTabSignal: typeof import('./tab-signal').onTabSignal;
+let broadcastWipe: typeof import('./wipe').broadcastWipe;
+let wipeLocalData: typeof import('./wipe').wipeLocalData;
 
 let cacheNames: string[] = [];
 const cacheStorage = {
@@ -15,7 +21,12 @@ const unsubscribe = vi.fn(() => Promise.resolve(true));
 const getSubscription = vi.fn(() => Promise.resolve({ unsubscribe }));
 const stops: (() => void)[] = [];
 
-beforeEach(() => {
+beforeEach(async () => {
+	vi.resetModules();
+	({ localDb } = await import('./local-db'));
+	({ createOutbox } = await import('./outbox'));
+	({ onTabSignal } = await import('./tab-signal'));
+	({ broadcastWipe, wipeLocalData } = await import('./wipe'));
 	cacheNames = ['casa-shell-v1', 'other'];
 	cacheStorage.keys.mockImplementation(() => Promise.resolve([...cacheNames]));
 	vi.stubGlobal('caches', cacheStorage);
@@ -33,7 +44,7 @@ beforeEach(() => {
 
 afterEach(async () => {
 	for (const stop of stops.splice(0)) stop();
-	await deleteLocalDb();
+	await (await import('./local-db')).deleteLocalDb();
 });
 
 async function queueOne(): Promise<void> {

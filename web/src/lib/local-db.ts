@@ -41,12 +41,15 @@ export class LocalDb extends Dexie {
 }
 
 let instance: LocalDb | undefined;
+let wiped = false;
 
 /**
  * This tab's database. Creating it does not open IndexedDB; Dexie opens on the first
- * operation. Shared-device mode never calls this (SEC-165; ADR-024 item 7 (e)).
+ * operation. Shared-device mode never calls this (SEC-165; ADR-024 item 7 (e)). After
+ * deleteLocalDb() it throws until the page reloads, so nothing recreates the wiped database.
  */
 export function localDb(): LocalDb {
+	if (wiped) throw new Error('local data was wiped; the page reloads');
 	return (instance ??= new LocalDb());
 }
 
@@ -58,9 +61,10 @@ export function localDbExists(): Promise<boolean> {
 /**
  * Deletes the local database (SEC-164 (c), SEC-172 (a)). The old instance is closed without
  * auto-reopen, so a late write from a send still in flight fails instead of creating the
- * database again; the next localDb() call starts a new, empty one.
+ * database again, and localDb() refuses for the rest of this page (the wipe then reloads).
  */
 export async function deleteLocalDb(): Promise<void> {
+	wiped = true;
 	const closing = instance;
 	instance = undefined;
 	closing?.close({ disableAutoOpen: true });
