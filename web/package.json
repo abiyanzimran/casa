@@ -2,6 +2,9 @@
 	"name": "casa-web",
 	"private": true,
 	"type": "module",
+	"imports": {
+		"#lib/*": "./src/lib/*"
+	},
 	"packageManager": "pnpm@12.18.0",
 	"scripts": {
 		"build": "vite build",
