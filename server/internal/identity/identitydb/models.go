@@ -90,7 +90,7 @@ type Session struct {
 	ClientVersion  string
 	CreatedAt      time.Time
 	LastUsedAt     time.Time
-	IdleTimeout    pgtype.Interval
+	IdleTimeout    time.Duration
 	AbsoluteExpiry time.Time
 	TokenIssuedAt  time.Time
 	RevokedAt      pgtype.Timestamptz

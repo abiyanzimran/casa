@@ -1,5 +1,3 @@
-// Package identity holds accounts, credentials, sessions, rate limits and
-// closed sign-up (09.2 §1; SEC-11 to SEC-27, SEC-158).
 package identity
 
 import (

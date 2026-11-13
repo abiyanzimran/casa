@@ -8,7 +8,199 @@ package identitydb
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const getAccountIDByEmail = `-- name: GetAccountIDByEmail :one
+SELECT id FROM account WHERE email = $1
+`
+
+// 10.1 §5.1 rule 4: a lookup by email selects only the id.
+func (q *Queries) GetAccountIDByEmail(ctx context.Context, email string) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getAccountIDByEmail, email)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getSetupTokenForEmail = `-- name: GetSetupTokenForEmail :one
+SELECT email, expires_at, used_at FROM setup_token
+ WHERE token_hash = $1 AND email = $2
+`
+
+type GetSetupTokenForEmailParams struct {
+	TokenHash []byte
+	Email     string
+}
+
+type GetSetupTokenForEmailRow struct {
+	Email     string
+	ExpiresAt time.Time
+	UsedAt    pgtype.Timestamptz
+}
+
+// SEC-158 (b): the token is found by its hash and matches only the email it
+// is bound to, compared as citext (the same rule as account.email).
+func (q *Queries) GetSetupTokenForEmail(ctx context.Context, arg GetSetupTokenForEmailParams) (GetSetupTokenForEmailRow, error) {
+	row := q.db.QueryRow(ctx, getSetupTokenForEmail, arg.TokenHash, arg.Email)
+	var i GetSetupTokenForEmailRow
+	err := row.Scan(&i.Email, &i.ExpiresAt, &i.UsedAt)
+	return i, err
+}
+
+const getSignupVerification = `-- name: GetSignupVerification :one
+SELECT setup_token_hash, email, expires_at, used_at, gen_random_uuid()::uuid AS new_account_id
+  FROM signup_verification
+ WHERE token_hash = $1
+`
+
+type GetSignupVerificationRow struct {
+	SetupTokenHash []byte
+	Email          string
+	ExpiresAt      time.Time
+	UsedAt         pgtype.Timestamptz
+	NewAccountID   pgtype.UUID
+}
+
+// The id of the account the link would open is drawn here (09.2 §4).
+func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (GetSignupVerificationRow, error) {
+	row := q.db.QueryRow(ctx, getSignupVerification, tokenHash)
+	var i GetSignupVerificationRow
+	err := row.Scan(
+		&i.SetupTokenHash,
+		&i.Email,
+		&i.ExpiresAt,
+		&i.UsedAt,
+		&i.NewAccountID,
+	)
+	return i, err
+}
+
+const insertAccount = `-- name: InsertAccount :exec
+INSERT INTO account (id, email, created_at, signup_via)
+VALUES ($1, $2, $3, 'setup_token')
+`
+
+type InsertAccountParams struct {
+	ID        pgtype.UUID
+	Email     string
+	CreatedAt time.Time
+}
+
+func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) error {
+	_, err := q.db.Exec(ctx, insertAccount, arg.ID, arg.Email, arg.CreatedAt)
+	return err
+}
+
+const insertCredential = `-- name: InsertCredential :exec
+INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, parallelism, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertCredentialParams struct {
+	AccountID   pgtype.UUID
+	Salt        []byte
+	Hash        []byte
+	TimeCost    int32
+	MemoryKib   int32
+	Parallelism int16
+	UpdatedAt   time.Time
+}
+
+func (q *Queries) InsertCredential(ctx context.Context, arg InsertCredentialParams) error {
+	_, err := q.db.Exec(ctx, insertCredential,
+		arg.AccountID,
+		arg.Salt,
+		arg.Hash,
+		arg.TimeCost,
+		arg.MemoryKib,
+		arg.Parallelism,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
+const insertRefreshToken = `-- name: InsertRefreshToken :exec
+INSERT INTO refresh_token (token_hash, session_id, account_id, created_at)
+VALUES ($1, $2, $3, $4)
+`
+
+type InsertRefreshTokenParams struct {
+	TokenHash []byte
+	SessionID pgtype.UUID
+	AccountID pgtype.UUID
+	CreatedAt time.Time
+}
+
+func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) error {
+	_, err := q.db.Exec(ctx, insertRefreshToken,
+		arg.TokenHash,
+		arg.SessionID,
+		arg.AccountID,
+		arg.CreatedAt,
+	)
+	return err
+}
+
+const insertSecurityEvent = `-- name: InsertSecurityEvent :exec
+INSERT INTO security_event (account_id, session_id, kind, detail, occurred_at)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type InsertSecurityEventParams struct {
+	AccountID  pgtype.UUID
+	SessionID  pgtype.UUID
+	Kind       string
+	Detail     pgtype.Text
+	OccurredAt time.Time
+}
+
+// The account's security trail (SEC-16, SEC-39 (b)); detail never holds a
+// token, a password or an email.
+func (q *Queries) InsertSecurityEvent(ctx context.Context, arg InsertSecurityEventParams) error {
+	_, err := q.db.Exec(ctx, insertSecurityEvent,
+		arg.AccountID,
+		arg.SessionID,
+		arg.Kind,
+		arg.Detail,
+		arg.OccurredAt,
+	)
+	return err
+}
+
+const insertSession = `-- name: InsertSession :one
+INSERT INTO session (account_id, client_kind, ua_summary, token_hash, client_version, created_at,
+                     last_used_at, idle_timeout, absolute_expiry, token_issued_at)
+VALUES ($1, $2, '', $3, $4, $5,
+        $5, $6, $7, $5)
+RETURNING id
+`
+
+type InsertSessionParams struct {
+	AccountID      pgtype.UUID
+	ClientKind     string
+	TokenHash      []byte
+	ClientVersion  string
+	Now            time.Time
+	IdleTimeout    time.Duration
+	AbsoluteExpiry time.Time
+}
+
+func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, insertSession,
+		arg.AccountID,
+		arg.ClientKind,
+		arg.TokenHash,
+		arg.ClientVersion,
+		arg.Now,
+		arg.IdleTimeout,
+		arg.AbsoluteExpiry,
+	)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
 
 const insertSetupToken = `-- name: InsertSetupToken :exec
 INSERT INTO setup_token (token_hash, email, created_at, expires_at)
@@ -31,4 +223,70 @@ func (q *Queries) InsertSetupToken(ctx context.Context, arg InsertSetupTokenPara
 		arg.ExpiresAt,
 	)
 	return err
+}
+
+const upsertSignupVerification = `-- name: UpsertSignupVerification :exec
+INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
+VALUES ($1, 'setup_token', $2, $3, $4, $5)
+ON CONFLICT (setup_token_hash) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at
+`
+
+type UpsertSignupVerificationParams struct {
+	TokenHash      []byte
+	SetupTokenHash []byte
+	Email          string
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+}
+
+// One link per setup token: a new request replaces the old link (09.2 §5.1).
+func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignupVerificationParams) error {
+	_, err := q.db.Exec(ctx, upsertSignupVerification,
+		arg.TokenHash,
+		arg.SetupTokenHash,
+		arg.Email,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
+const useSetupToken = `-- name: UseSetupToken :execrows
+UPDATE setup_token SET used_at = $1::timestamptz, account_id = $2
+ WHERE token_hash = $3 AND used_at IS NULL AND expires_at > $1::timestamptz
+`
+
+type UseSetupTokenParams struct {
+	Now       time.Time
+	AccountID pgtype.UUID
+	TokenHash []byte
+}
+
+// SEC-158: the token ends with the account it opened.
+func (q *Queries) UseSetupToken(ctx context.Context, arg UseSetupTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useSetupToken, arg.Now, arg.AccountID, arg.TokenHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const useSignupVerification = `-- name: UseSignupVerification :execrows
+UPDATE signup_verification SET used_at = $1::timestamptz
+ WHERE token_hash = $2 AND setup_token_hash = $3
+   AND used_at IS NULL AND expires_at > $1::timestamptz
+`
+
+type UseSignupVerificationParams struct {
+	Now            time.Time
+	TokenHash      []byte
+	SetupTokenHash []byte
+}
+
+func (q *Queries) UseSignupVerification(ctx context.Context, arg UseSignupVerificationParams) (int64, error) {
+	result, err := q.db.Exec(ctx, useSignupVerification, arg.Now, arg.TokenHash, arg.SetupTokenHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
