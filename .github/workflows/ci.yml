@@ -96,6 +96,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 25.0.5+8 # PMD CPD
+      # web-e2e serves the embedded bundle with cmd/webpreview, under the
+      # production headers (SEC-166; plan 1.5 decision 6).
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - name: web-install
         run: make web-install
       # Both engines are required (ADR-030 item 4); a missing one fails the

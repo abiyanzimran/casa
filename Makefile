@@ -42,7 +42,7 @@ BUF_AGAINST_REF ?= refs/remotes/origin/main
 .PHONY: check check-server server-fmt server-lint server-vuln server-test server-test-old-binary cpd-go idcheck secrets db-up db-down
 .PHONY: sqlc-generate sqlc-generated
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
-.PHONY: bundle-copy casa
+.PHONY: bundle-copy casa web-preview
 .PHONY: check-contract proto-fmt proto-lint proto-breaking proto-generate proto-generated
 
 check: check-server check-web check-contract
@@ -175,6 +175,11 @@ bundle-copy:
 
 casa: bundle-copy
 	cd server && go build -trimpath -o '$(CURDIR)/.cache/casa' ./cmd/casa
+
+# The Playwright server (plan 1.5 decision 6): the embedded bundle with the
+# production headers, no API and no database. Never deployed.
+web-preview: bundle-copy
+	cd server && go run ./cmd/webpreview -listen 127.0.0.1:4173
 
 # Contract gates (QG-04; 14 §4.6): proto/ is the one source of the API
 # contract (ES §2; ADR-013 item 4).
