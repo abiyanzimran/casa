@@ -222,8 +222,20 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 				t.Errorf("%s with only its token hash: err = %v, want 42501", c.statement, err)
 			}
 		}
+		// The positive half: the setup token's hash, the one the policy's
+		// WITH CHECK names, may write the row the link found.
+		err := database.Write(ctx, app, database.Scope{TokenHash: a.setupHash}, func(tx pgx.Tx) error {
+			tag, err := tx.Exec(ctx, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1", a.linkHash)
+			if err == nil && tag.RowsAffected() != 1 {
+				err = fmt.Errorf("%d rows updated, want 1", tag.RowsAffected())
+			}
+			return err
+		})
+		if err != nil {
+			t.Errorf("signup_verification with its setup token hash: %v", err)
+		}
 		// database.Write refuses an email, so the setting is set by hand.
-		err := pgx.BeginFunc(ctx, app, func(tx pgx.Tx) error {
+		err = pgx.BeginFunc(ctx, app, func(tx pgx.Tx) error {
 			if _, err := tx.Exec(ctx, "SELECT set_config('app.email', $1, true)", a.email); err != nil {
 				return err
 			}
