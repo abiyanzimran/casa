@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"buf.build/go/protovalidate"
@@ -20,6 +21,8 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
+	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
+	"github.com/abiyanzimran/casa/server/internal/identity"
 )
 
 // maxRequestBytes bounds every request message, on the wire and once
@@ -37,6 +40,10 @@ var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().
 //
 //  1. the method has its descriptor, else CodeInternal (fail closed: without
 //     it a write command cannot be told from a read);
+//     1b. outside publicProcedures, "Authorization: Bearer <access token>" is
+//     accepted by authenticate, before the request is received, else
+//     CodeUnauthenticated (SEC-15; 09.4 §2; 09.2 §1); the handler reads the
+//     session with SessionFrom;
 //  2. request_context is present and its client_kind and client_version are
 //     valid (protovalidate), else CodeInvalidArgument;
 //  3. a write command from a web client is at least minimumWebVersion, else
@@ -54,8 +61,26 @@ var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().
 // rejection that drops it (SEC-169 (d); ADR-030 item 9). A write command is a
 // method with the casa.v1.command option (09.3 §1; lead ruling Q4).
 // Validation errors carry a buf.validate.Violations detail (lead ruling Q5).
-func NewServer(minimumWebVersion Version) *connect.Server {
-	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion}.intercept)
+func NewServer(minimumWebVersion Version, authenticate func(context.Context, string) (identity.Session, error)) *connect.Server {
+	return connect.NewServer(boundary{minimumWebVersion: minimumWebVersion, authenticate: authenticate}.intercept)
+}
+
+// publicProcedures are the only procedures served without a session: the
+// identity RPCs used before one exists (09.2 §1; SEC-15).
+var publicProcedures = map[string]bool{
+	casav1connect.IdentityServiceStartSignUpProcedure:    true,
+	casav1connect.IdentityServiceCompleteSignUpProcedure: true,
+	casav1connect.IdentityServiceSignInProcedure:         true,
+	casav1connect.IdentityServiceRefreshSessionProcedure: true,
+}
+
+type sessionKey struct{}
+
+// SessionFrom returns the session a request was authenticated with; false
+// for a public procedure.
+func SessionFrom(ctx context.Context) (identity.Session, bool) {
+	session, ok := ctx.Value(sessionKey{}).(identity.Session)
+	return session, ok
 }
 
 // NewMux serves the procedures of server and GET /healthz.
@@ -71,6 +96,7 @@ func NewMux(server *connect.Server) http.Handler {
 
 type boundary struct {
 	minimumWebVersion Version
+	authenticate      func(context.Context, string) (identity.Session, error)
 }
 
 func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
@@ -79,8 +105,32 @@ func (b boundary) intercept(next connect.ServerFunc) connect.ServerFunc {
 		if !ok {
 			return connect.Errorf(connect.CodeInternal, "procedure %s has no method descriptor", spec.Procedure)
 		}
+		if !publicProcedures[spec.Procedure] {
+			session, err := b.session(ctx)
+			if err != nil {
+				return err
+			}
+			ctx = context.WithValue(ctx, sessionKey{}, session)
+		}
 		return next(ctx, spec, &checkedStream{ServerStream: stream, boundary: b, method: method})
 	}
+}
+
+// session authenticates the request's bearer access token.
+func (b boundary) session(ctx context.Context) (identity.Session, error) {
+	var authorization string
+	if info, ok := connect.CallInfoForServerContext(ctx); ok {
+		authorization = info.RequestHeader().Get("Authorization")
+	}
+	token, ok := strings.CutPrefix(authorization, "Bearer ")
+	if !ok {
+		return identity.Session{}, identityError(identity.ErrUnauthenticated)
+	}
+	session, err := b.authenticate(ctx, token)
+	if err != nil {
+		return identity.Session{}, identityError(err)
+	}
+	return session, nil
 }
 
 // checkedStream runs the boundary checks on each request message as it is

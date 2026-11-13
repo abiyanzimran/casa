@@ -1,0 +1,25 @@
+# sqlc reads the migrations and each module's queries.sql and writes the Go
+# query code (ES §3: all production SQL through sqlc, parameterized). The
+# schema list names every migration, not the directory: roles.sql is not a
+# migration (TestSQLCReadsEveryMigration keeps the list complete). The output
+# is committed; CI regenerates it and fails on a difference (make
+# sqlc-generated). Every query runs inside a database.Write or database.Read
+# whose scope row-level security checks (09.2 §3; 10.1 §5.1); times are
+# parameters from the server's clock.
+version: "2"
+sql:
+  - engine: postgresql
+    schema:
+      - internal/schema/00001_currency.sql
+      - internal/schema/00002_identity.sql
+    queries: internal/identity/queries.sql
+    gen:
+      go:
+        package: identitydb
+        out: internal/identity/identitydb
+        sql_package: pgx/v5
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time
+          - db_type: pg_catalog.interval
+            go_type: time.Duration

@@ -16,13 +16,80 @@ import (
 // adds its row here, citing the document that defines the table and its grants.
 var tables = map[string]tableRule{
 	"currency": {global: true, grants: map[string]string{"app_rw": "SELECT"},
+		policy: "cmd=SELECT roles={public} PERMISSIVE using=true check=",
 		source: "09.2 §3 \"Tabel global\", §5.1; ADR-008"},
+	"account": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: lookupPolicy("((id = "+settingAccount+") OR (email = "+settingEmail+"))", "(id = "+settingAccount+")"),
+		source: "09.2 §3 \"Tabel global\", §5.1; lead rulings Q2, Q3 on the 1.4 plan"},
+	"credential": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"salt", "hash", "time_cost", "memory_kib", "parallelism", "updated_at"},
+		policy:  ownAccount,
+		source:  "09.2 §3 \"Tabel global\"; SEC-11; lead ruling Q3 on the 1.4 plan"},
+	"session": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"token_hash", "token_issued_at", "last_used_at", "revoked_at", "revoke_reason"},
+		policy:  accountOrToken,
+		source:  "09.2 §3 \"Tabel global\", §5.1; SEC-15; lead rulings Q2, Q3 on the 1.4 plan"},
+	"refresh_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"used_at"},
+		policy:  accountOrToken,
+		source:  "09.2 §3 \"Tabel global\"; SEC-15; lead rulings Q2, Q3 on the 1.4 plan"},
+	"reauth_grant": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"used_at"},
+		policy:  ownAccount,
+		source:  "09.2 §3 \"Tabel global\"; SEC-13; lead ruling Q3 on the 1.4 plan"},
+	"recovery_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"used_at"},
+		policy:  accountOrToken,
+		source:  "09.2 §3 \"Tabel global\"; SEC-24; lead rulings Q2, Q3 on the 1.4 plan"},
+	"setup_token": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"used_at", "account_id"},
+		policy:  lookupPolicy("(token_hash = "+settingTokenHash+")", "(token_hash = "+settingTokenHash+")"),
+		source:  "09.2 §3 \"Tabel global\", §5.1; SEC-158 (b); 09.4 §2; lead rulings Q2, Q3 on the 1.4 plan"},
+	"signup_verification": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates: []string{"token_hash", "expires_at", "used_at"},
+		policy: lookupPolicy("((token_hash = "+settingTokenHash+") OR (setup_token_hash = "+settingTokenHash+"))",
+			"(setup_token_hash = "+settingTokenHash+")"),
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158; lead rulings Q2, Q4, Q8 on the 1.4 plan"},
+	"security_event": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: ownAccount,
+		source: "09.2 §3 \"Tabel global\"; SEC-16, SEC-39 (b): append-only; lead ruling Q3 on the 1.4 plan"},
+	"idempotency_record": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policy: "cmd=ALL roles={public} PERMISSIVE using=((scope_id = " + settingHousehold + ") OR (scope_id = " + settingAccount + ")) check=",
+		source: "09.2 §3 \"Tabel infrastruktur dengan pemilik campuran\", §5.1, §8"},
 }
 
 type tableRule struct {
 	global bool              // no household_id column (09.2 §3 "Tabel global")
 	grants map[string]string // role → privileges, comma-separated in the order of allPrivileges; absent role: none
+	// updates are the only columns app_rw may UPDATE, as column grants
+	// (10.1 §5.1 rule 2; 09.2 §3).
+	updates []string
+	// policy is the one policy of a global table as PostgreSQL deparses it,
+	// in the form of householdPolicy's check below.
+	policy string
 	source string
+}
+
+// The settings of 09.2 §3 as PostgreSQL deparses them in a policy: A, E and
+// T of the "Tabel global" table (lead ruling Q2 on the 1.4 plan), and the
+// household setting read with missing_ok.
+const (
+	settingAccount   = "(NULLIF(current_setting('app.account_id'::text, true), ''::text))::uuid"
+	settingEmail     = "(NULLIF(current_setting('app.email'::text, true), ''::text))::citext"
+	settingTokenHash = "decode(NULLIF(current_setting('app.token_hash'::text, true), ''::text), 'hex'::text)" //nolint:gosec // G101: a policy expression naming a setting, no credential
+	settingHousehold = "(NULLIF(current_setting('app.household_id'::text, true), ''::text))::uuid"
+)
+
+// The policies of the identity tables of 09.2 §3 "Tabel global": a lookup
+// clause only in USING, never in WITH CHECK (10.1 §5.1 rule 1).
+var (
+	ownAccount     = lookupPolicy("(account_id = "+settingAccount+")", "(account_id = "+settingAccount+")")
+	accountOrToken = lookupPolicy("((account_id = "+settingAccount+") OR (token_hash = "+settingTokenHash+"))",
+		"(account_id = "+settingAccount+")")
+)
+
+func lookupPolicy(using, check string) string {
+	return "cmd=ALL roles={public} PERMISSIVE using=" + using + " check=" + check
 }
 
 // householdPolicy is the one policy of every household table, as PostgreSQL
@@ -104,13 +171,21 @@ func TestCatalog(t *testing.T) {
 			if !hasHouseholdID {
 				t.Errorf("household table %s has no household_id column", name)
 			}
-			policies := queryStrings(t, db, `
-				SELECT format('cmd=%s roles=%s %s using=%s check=%s', cmd, roles, permissive, qual, with_check)
-				  FROM pg_policies WHERE schemaname = 'public' AND tablename = $1
-				 ORDER BY 1`, name)
+			policies := tablePolicies(t, db, name)
 			want := "cmd=ALL roles={public} PERMISSIVE using=" + householdPolicy + " check=" + householdPolicy
 			if len(policies) != 1 || policies[0] != want {
 				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s", name, strings.Join(policies, "\n"), want)
+			}
+		}
+	})
+
+	t.Run("SEC-08 every global table has exactly its declared policy", func(t *testing.T) {
+		for name, rule := range tables {
+			if !rule.global {
+				continue
+			}
+			if got := tablePolicies(t, db, name); len(got) != 1 || got[0] != rule.policy {
+				t.Errorf("table %s policies:\n%s\nwant exactly:\n%s\n(%s)", name, strings.Join(got, "\n"), rule.policy, rule.source)
 			}
 		}
 	})
@@ -141,17 +216,39 @@ func TestCatalog(t *testing.T) {
 			}
 		}
 		// has_table_privilege and relacl do not see column grants, and RLS is
-		// no barrier for a role with them (any role can set
-		// app.household_id). No table may carry one until the declaration can
-		// express it (09.2 §3: job_runner's column UPDATE on job).
-		columnGrants := queryStrings(t, db, `
-			SELECT format('%s.%s %s', c.relname, a.attname, a.attacl)
-			  FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid
+		// no barrier for a role with them (any role can set the scope
+		// settings), so every column grant must be declared in updates.
+		var want []string
+		for name, rule := range tables {
+			for _, column := range rule.updates {
+				want = append(want, name+"."+column+" app_rw UPDATE")
+			}
+		}
+		slices.Sort(want)
+		got := queryStrings(t, db, `
+			SELECT format('%s.%s %s %s', c.relname, a.attname, g.grantee::regrole, g.privilege_type)
+			  FROM pg_attribute a JOIN pg_class c ON c.oid = a.attrelid, aclexplode(a.attacl) g
 			 WHERE c.relnamespace = 'public'::regnamespace AND c.relname <> 'goose_db_version'
 			   AND a.attacl IS NOT NULL
 			 ORDER BY 1`)
-		for _, g := range columnGrants {
-			t.Errorf("column grant %s is not declared", g)
+		slices.Sort(got)
+		if !slices.Equal(got, want) {
+			t.Errorf("column grants:\n%s\nwant exactly:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+		}
+	})
+
+	t.Run("app_rw never updates the owner of an identity row", func(t *testing.T) {
+		// 10.1 §5.1 rule 2: a lookup can find a row, but nothing can move a
+		// row to another owner; setup_token.account_id is filled once, when
+		// the token is used.
+		got := queryStrings(t, db, `
+			SELECT format('%s.%s', table_name, column_name)
+			  FROM information_schema.column_privileges
+			 WHERE grantee = 'app_rw' AND privilege_type = 'UPDATE' AND table_schema = 'public'
+			   AND column_name IN ('id', 'account_id', 'session_id', 'setup_token_hash', 'scope_id')
+			 ORDER BY 1`)
+		if want := []string{"setup_token.account_id"}; !slices.Equal(got, want) {
+			t.Errorf("app_rw may update the owner columns %v, want only %v", got, want)
 		}
 	})
 
@@ -211,6 +308,15 @@ func TestCatalog(t *testing.T) {
 			}
 		}
 	})
+}
+
+// tablePolicies returns the policies of table as PostgreSQL deparses them.
+func tablePolicies(t *testing.T, db *pgxpool.Pool, table string) []string {
+	t.Helper()
+	return queryStrings(t, db, `
+		SELECT format('cmd=%s roles=%s %s using=%s check=%s', cmd, roles, permissive, qual, with_check)
+		  FROM pg_policies WHERE schemaname = 'public' AND tablename = $1
+		 ORDER BY 1`, table)
 }
 
 // tablePrivileges returns the privileges role holds on table, comma-separated

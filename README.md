@@ -31,7 +31,7 @@ make check-web
 make check-contract
 ```
 
-`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole git history. `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
+`check-server` needs the test database (below) running. It runs every server gate that CI runs: format, lint, vulnerability scan, tests, duplication check, and the secrets check over the whole history of the checked-out branch (every commit reachable from `HEAD`). `check-web` installs the web dependencies from the lockfile, then runs every web gate: format, lint, type check, vulnerability scan, duplication check, the client bundle check, the Vitest unit tests (`make web-unit` runs them alone), and the Playwright tests in Chromium and WebKit. `check-contract` runs the contract gates (below). `make check` runs all three.
 
 ## Database
 
@@ -57,6 +57,15 @@ make check-contract   # buf format, buf lint, buf breaking against origin/main, 
 
 `proto-breaking` compares with `refs/remotes/origin/main` (`BUF_AGAINST_REF=...` to use another ref), so fetch it first.
 
+## Queries
+
+All production SQL is in each module's `queries.sql` (today `server/internal/identity/queries.sql`) and goes through sqlc; the generated Go (`server/internal/*/*db/`) is committed and never edited by hand. `server/sqlc.yaml` names every migration. After changing a query or a migration:
+
+```sh
+make sqlc-generate    # regenerate, then commit the result
+make sqlc-generated   # fails if the committed code differs (a check-server and CI gate)
+```
+
 ## Server
 
 ```sh
@@ -64,3 +73,11 @@ cd server && go run ./cmd/casa serve -listen 127.0.0.1:8080
 ```
 
 `GET /healthz` answers `ok`. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
+
+A setup token opens the first account of a household (closed sign-up, SEC-158 (b)). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
+
+```sh
+casa setup-token -email person@example.com
+```
+
+It connects as `app_rw` with the connection string in the systemd credential `app-database-url` (`$CREDENTIALS_DIRECTORY/app-database-url`) and prints the token once; the database keeps only its SHA-256.

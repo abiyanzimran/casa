@@ -11,7 +11,14 @@ import (
 	"time"
 
 	"github.com/abiyanzimran/casa/server/internal/api"
+	"github.com/abiyanzimran/casa/server/internal/identity"
 )
+
+// noSessions refuses every session until casa serve opens the database and
+// wires identity.Service.Authenticate (1.4 plan, Task 10).
+func noSessions(context.Context, string) (identity.Session, error) {
+	return identity.Session{}, identity.ErrUnauthenticated
+}
 
 const serveUsage = "usage: casa serve [-listen address] [-minimum-web-version MAJOR.MINOR.PATCH]\n"
 
@@ -41,7 +48,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	}
 	_, _ = fmt.Fprintf(stdout, "casa serve: listening on %s\n", listener.Addr())
 	server := &http.Server{
-		Handler: api.NewMux(api.NewServer(minimumWebVersion)),
+		Handler: api.NewMux(api.NewServer(minimumWebVersion, noSessions)),
 		// [Usulan]: bounds a client that never finishes its headers.
 		ReadHeaderTimeout: 10 * time.Second,
 		// step 7 (09.4 TLS): ReadTimeout and IdleTimeout before the binary faces the internet; no WriteTimeout (SSE)

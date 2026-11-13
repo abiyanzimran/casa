@@ -23,7 +23,11 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/api"
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
+	"github.com/abiyanzimran/casa/server/internal/identity"
 )
+
+// probeSession is the session the probe's authenticate accepts.
+var probeSession = identity.Session{ClientKind: "ios"}
 
 const uuidV4 = "0f8b2a6e-3c1d-4e5f-9a7b-1c2d3e4f5a6b" // a UUIDv4
 
@@ -45,7 +49,12 @@ func startProbe(t *testing.T) *probe {
 		file:  probeFile(t, probeMethod{name: "Read"}, probeMethod{name: "Write", command: &casav1.CommandOptions{HoldSeconds: proto.Uint32(5)}}),
 		calls: map[string]*atomic.Int32{},
 	}
-	server := api.NewServer(api.Version{Major: 1, Minor: 9})
+	server := api.NewServer(api.Version{Major: 1, Minor: 9}, func(_ context.Context, token string) (identity.Session, error) {
+		if token != "probe-token" {
+			return identity.Session{}, identity.ErrUnauthenticated
+		}
+		return probeSession, nil
+	})
 	methods := p.file.Services().Get(0).Methods()
 	read := methods.ByName("Read")
 	for i := range methods.Len() {
@@ -69,17 +78,26 @@ func (p *probe) method(name string, schema protoreflect.MethodDescriptor, input 
 	if schema != nil {
 		spec.Schema = schema
 	}
-	return connect.Method{Spec: spec, Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	return connect.Method{Spec: spec, Handler: func(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
 		if err := stream.Receive(dynamicpb.NewMessage(input)); err != nil {
 			return err
+		}
+		if session, ok := api.SessionFrom(ctx); !ok || session != probeSession {
+			return connect.NewError(connect.CodeInternal, "the handler did not get the session")
 		}
 		calls.Add(1)
 		return stream.Send(&emptypb.Empty{})
 	}}
 }
 
-// call sends a ProbeRequest with rc (nil: no request_context) and note.
+// call sends a ProbeRequest with rc (nil: no request_context) and note, in a
+// valid session.
 func (p *probe) call(client *connect.Client, method string, rc *casav1.RequestContext, note string) error {
+	return p.callWith(client, "Bearer probe-token", method, rc, note)
+}
+
+// callWith is call with the Authorization header authorization ("": none).
+func (p *probe) callWith(client *connect.Client, authorization, method string, rc *casav1.RequestContext, note string) error {
 	input := p.file.Services().Get(0).Methods().ByName("Read").Input()
 	req := dynamicpb.NewMessage(input)
 	if rc != nil {
@@ -87,7 +105,11 @@ func (p *probe) call(client *connect.Client, method string, rc *casav1.RequestCo
 	}
 	req.Set(input.Fields().ByName("note"), protoreflect.ValueOfString(note))
 	spec := connect.Spec{Procedure: "/casa.apitest.v1.ProbeService/" + method}
-	return client.CallUnary(context.Background(), spec, req, &emptypb.Empty{})
+	ctx, info := connect.NewClientContext(context.Background())
+	if authorization != "" {
+		info.RequestHeader().Set("Authorization", authorization)
+	}
+	return client.CallUnary(ctx, spec, req, &emptypb.Empty{})
 }
 
 func rc(kind casav1.ClientKind, version, key string) *casav1.RequestContext {
@@ -211,6 +233,20 @@ func TestBoundaryChecks(t *testing.T) {
 		if got := errorCodes(t, err); !slices.Equal(got, upgradeRequired) {
 			t.Fatalf("error codes = %v, want %v", got, upgradeRequired)
 		}
+		p.wantCalls(t, "Write", 0)
+	})
+	t.Run("SEC-15 a request without a valid session never reaches the handler", func(t *testing.T) {
+		p := startProbe(t)
+		for _, authorization := range []string{"", "Bearer x", "Basic cHJvYmU6dG9rZW4=", "probe-token", "Bearer  probe-token"} {
+			err := p.callWith(p.client, authorization, "Read", rc(web, "2.0.0", ""), "")
+			wantCode(t, err, connect.CodeUnauthenticated)
+			if got := details(t, err); got != nil {
+				t.Fatalf("Authorization %q: details %v, want none (refresh, then sign in)", authorization, got)
+			}
+		}
+		// Checked before the request is read: no validation detail either.
+		wantCode(t, p.callWith(p.client, "", "Write", nil, "toolong"), connect.CodeUnauthenticated)
+		p.wantCalls(t, "Read", 0)
 		p.wantCalls(t, "Write", 0)
 	})
 	t.Run("a request without request_context never reaches the handler", func(t *testing.T) {
