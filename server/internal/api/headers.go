@@ -19,7 +19,7 @@ const announcerStyleHash = "'sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo=
 // Access-Control-* header: the API is same-origin only (SEC-160 (b)). bundle
 // may be nil; the CSP then allows no inline script.
 func WithSecurityHeaders(next http.Handler, bundle *Bundle) http.Handler {
-	scriptSources := []string{"'self'"}
+	scriptSources := []string{"'self'", "'unsafe-inline'"}
 	if bundle != nil {
 		scriptSources = append(scriptSources, bundle.scriptHashes...)
 	}
