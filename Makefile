@@ -98,7 +98,8 @@ server-test:
 # rollback runs the old binary on the expand-contract schema). The tests of
 # BASE_REF run against databases migrated by this branch's casa binary. The
 # base ref's catalog, architecture and ID-check tests are left out: they check
-# its own old schema and imports, not the old code's behaviour.
+# its own old schema and imports, not the old code's behaviour. -count=1:
+# the test cache does not see the migrate binary, which the tests only exec.
 BASE_REF ?= refs/remotes/origin/main
 server-test-old-binary:
 	@set -e; \
@@ -110,12 +111,9 @@ server-test-old-binary:
 	git worktree remove --force .cache/base-tree 2>/dev/null || true; \
 	git worktree add --detach -q .cache/base-tree '$(BASE_REF)'; \
 	trap 'git worktree remove --force .cache/base-tree' EXIT; \
-	if ! grep -q CASA_TEST_MIGRATE_BINARY .cache/base-tree/server/internal/database/databasetest/databasetest.go; then \
-		echo "server-test-old-binary: $(BASE_REF) has no migrate hook yet (first, FS-1 1.4)"; exit 0; \
-	fi; \
 	cd .cache/base-tree/server && \
 	CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' CASA_TEST_MIGRATE_BINARY='$(CURDIR)/.cache/casa-head' \
-		go test -race -p 1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
+		go test -race -p 1 -count=1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
 
 # Writes the Go code of every module's queries.sql (server/sqlc.yaml): all
 # production SQL goes through sqlc, parameterized (ES §3, §4).
