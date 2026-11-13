@@ -110,9 +110,6 @@ server-test-old-binary:
 	git worktree remove --force .cache/base-tree 2>/dev/null || true; \
 	git worktree add --detach -q .cache/base-tree '$(BASE_REF)'; \
 	trap 'git worktree remove --force .cache/base-tree' EXIT; \
-	if ! grep -q CASA_TEST_MIGRATE_BINARY .cache/base-tree/server/internal/database/databasetest/databasetest.go; then \
-		echo "server-test-old-binary: $(BASE_REF) has no migrate hook yet (first, FS-1 1.4)"; exit 0; \
-	fi; \
 	cd .cache/base-tree/server && \
 	CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' CASA_TEST_MIGRATE_BINARY='$(CURDIR)/.cache/casa-head' \
 		go test -race -p 1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
