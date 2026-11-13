@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | **Diterima** pemilik produk di checkpoint S4, 12 November 2026: PostgreSQL 18, satu skema dengan `household_id` di setiap kunci, RLS, `SERIALIZABLE`, foto di basis data pada pilot (D-99, diterima dengan "lanjut"; [_progress.md](../_progress.md), "Checkpoint S4: jawaban pemilik produk") |
-| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4) |
+| Tanggal | 12 November 2026 (S4 fase C; diperbarui fase D; status checkpoint S4); 13 November 2026 catatan FS-1 tugas 1.2 di butir 3 (bunyi kebijakan, pembuatan peran) |
 | Pengusul | `architect` |
 | Mengubah | [ADR-005](ADR-005-idempotency-key-per-perintah-tulis.md): menetapkan bentuk kunci, cara keunikan dijaga, dan jangka simpan yang diserahkannya ke dokumen 09. [ADR-008](ADR-008-jumlah-uang-bilangan-bulat.md): menetapkan representasi di basis data, kontrak, dan perangkat |
 | Rincian | [09.2 §2 sampai §12](../09-technical-architecture/02-data-dan-skema.md) |
@@ -46,6 +46,8 @@ Riset 18 §5.5 mencatat PostgreSQL 18.6 (didukung sampai 14 November 2030). Ia j
 1. **PostgreSQL 18** (minor stabil terbaru), dengan satu skema untuk semua rumah tangga.
 2. **`household_id` memimpin setiap primary key, unique index, dan foreign key** milik rumah tangga. Rujukan lintas rumah tangga mustahil secara skema (SEC-02). Galat konstrain dipetakan ke galat domain tetap, dan "tidak ada" berbentuk sama dengan "tidak boleh" (SEC-05).
 3. **RLS dengan `FORCE ROW LEVEL SECURITY` sejak pilot**, memakai `SET LOCAL app.household_id` per transaksi. `household_id` dari permintaan hanya pemilih: nilainya dicocokkan dengan keanggotaan aktif akun sesi sebelum dipasang (09.2 §3). `idempotency_record` dan `job` punya kebijakan untuk pemilik campuran (rumah tangga atau akun; job sistem tanpa rumah tangga).
+   - Catatan 13 November 2026 (FS-1 tugas 1.2): pada koneksi pool, setelan `app.…` yang tidak dipasang di transaksi itu terbaca `''`, bukan NULL, sesudah koneksi pernah menjalankan `SET LOCAL`. Kebijakan yang membaca setelan dengan `missing_ok` karena itu memakai `nullif(current_setting('app.…', true), '')`; bunyi kebijakan, sumber, dan ujinya di 09.2 §3.
+   - Catatan 13 November 2026 (FS-1 tugas 1.2): peran butir 4 berlaku untuk seluruh cluster dan dibuat sekali per cluster oleh superuser lewat `roles.sql`, bukan oleh migrasi (09.2 §3 lapis 5).
 4. **Peran:**
    - `app_rw`: bukan pemilik, tanpa `BYPASSRLS` dan `SUPERUSER`.
    - `migrator`: pemilik skema.

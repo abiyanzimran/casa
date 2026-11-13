@@ -299,7 +299,7 @@ Semua versi diperiksa ulang secara langsung saat fase bangun dimulai (ES §8). T
 | Target API Android | 36 (wajib untuk aplikasi baru dan pembaruan sejak 31 Agustus 2026) | 18 §5 (fase D); [developer.android.com/google/play/requirements/target-sdk](https://developer.android.com/google/play/requirements/target-sdk) | Hanya berlaku bila Play dipakai; dicatat di ADR-012 |
 | Alat kualitas per bahasa | Lihat ADR-025 | ADR-025 | Dicek saat dipasang |
 | Svelte; SvelteKit; Vite | 5.57.3; 3.2.0; 8.3.8 | 18 §5.13.1 | Stabil; dicek saat dipasang |
-| `@vite-pwa/sveltekit`; vite-plugin-pwa; Workbox | 2.0.2; 2.0.0; 7.4.1 | 18 §5.13.1 | Stabil |
+| `@vite-pwa/sveltekit`; vite-plugin-pwa; Workbox | 2.0.2; 2.0.0; 7.4.1 | 18 §5.13.1 | **Tidak dipakai** sejak 13 November 2026: 2.0.x menarik paket 0.x di luar daftar bundel; diganti service worker bawaan SvelteKit (ADR-030 butir 2) |
 | Dexie | 4.4.7 | 18 §5.13.2 | Stabil |
 | `@connectrpc/connect-web`; `@bufbuild/protobuf` | 2.3.0; ^2.7.0 | 18 §5.13.1 | Stabil |
 | `webpush-go` (Go, pengirim Web Push) | v1.4.0 (2 Januari 2025) | 18 §5.13.3 | Stabil menurut nomor; perawatan **[Perlu validasi]**; jalan mundur stdlib (ADR-030 butir 14) |
@@ -312,7 +312,7 @@ Matriks framework, penyimpanan luring, dan autentikasi SSE ada di [ADR-030](../a
 
 | Keputusan | Pilihan | Alasan singkat |
 |---|---|---|
-| Framework | SvelteKit 3 mode SPA + Svelte 5 + `@vite-pwa/sveltekit` (`injectManifest`) | Paling ringan dengan router dan PWA bawaan; handler push sendiri |
+| Framework | SvelteKit 3 mode SPA + Svelte 5 + service worker bawaan SvelteKit, ditulis tangan (ADR-030 butir 2, catatan 13 November 2026) | Paling ringan dengan router dan service worker bawaan; handler push sendiri |
 | Penyimpanan | IndexedDB lewat Dexie 4 | Aturan di server; SQLite WASM menambah Worker, WASM, dan `'wasm-unsafe-eval'` tanpa manfaat |
 | Kontrak | connect-web 2.x dari kontrak yang sama | Tanpa proxy; server tidak berubah |
 | SSE | `EventSource` dengan cookie sesi same-origin | Token tidak terbaca skrip; tanpa pustaka |
