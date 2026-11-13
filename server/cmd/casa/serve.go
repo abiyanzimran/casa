@@ -44,6 +44,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		Handler: api.NewMux(api.NewServer(minimumWebVersion)),
 		// [Usulan]: bounds a client that never finishes its headers.
 		ReadHeaderTimeout: 10 * time.Second,
+		// step 7 (09.4 TLS): ReadTimeout and IdleTimeout before the binary faces the internet; no WriteTimeout (SSE)
 	}
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
