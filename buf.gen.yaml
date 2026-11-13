@@ -1,0 +1,24 @@
+# Generates the Go and TypeScript code of the contract (14 §4.6; ES §2). The
+# output is committed; CI regenerates it and fails on any difference
+# (make proto-generated). Never edit the output by hand.
+version: v2
+managed:
+  enabled: true
+  disable:
+    # protovalidate's own Go package stays the BSR one protovalidate-go imports.
+    - module: buf.build/bufbuild/protovalidate
+  override:
+    - file_option: go_package_prefix
+      value: github.com/abiyanzimran/casa/server/internal/gen
+inputs:
+  - directory: proto
+plugins:
+  # The go.mod tool directive keeps protoc-gen-go at the runtime's version.
+  - local: ["go", "-C", "server", "tool", "protoc-gen-go"]
+    out: server/internal/gen
+    opt: paths=source_relative
+  # The dev dependency in web/package.json, at the runtime's exact version.
+  - local: web/node_modules/.bin/protoc-gen-es
+    out: web/src/lib/gen
+    opt: target=ts
+    include_imports: true

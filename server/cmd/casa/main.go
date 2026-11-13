@@ -1,5 +1,5 @@
 // Command casa is the Casa server binary (09.4 §6.2; owner decision 71,
-// docs/17). Subcommands: migrate (1.2); serve comes with 1.3.
+// docs/17). Subcommands: migrate and serve.
 package main
 
 import (
@@ -31,8 +31,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprint(stderr, usage)
 		return 2
 	}
-	if args[0] == "migrate" {
+	switch args[0] {
+	case "migrate":
 		return migrate(ctx, args[1:], stdout, stderr)
+	case "serve":
+		return serve(ctx, args[1:], stdout, stderr)
 	}
 	_, _ = fmt.Fprintf(stderr, "casa: unknown command %q\n%s", args[0], usage)
 	return 2

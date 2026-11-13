@@ -1,5 +1,5 @@
-# Server and web merge gates (docs/14-engineering-roadmap.md §5.1: QG-01,
-# QG-02, QG-03, QG-05, and the QG-06 ID checker) and the repository secrets
+# Server, web, and contract merge gates (docs/14-engineering-roadmap.md §5.1: QG-01,
+# QG-02, QG-03, QG-04, QG-05, and the QG-06 ID checker) and the repository secrets
 # check (09.4 §5). Every gate step calls one Makefile target, so CI and a
 # local run cannot drift (ES §2, §7).
 name: ci
@@ -128,3 +128,43 @@ jobs:
           name: playwright-report
           path: web/playwright-report/
           if-no-files-found: ignore
+
+  # Contract gates (QG-04; 14 §4.6). proto-breaking compares with main, so the
+  # whole history is fetched.
+  contract:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Go and pnpm run the two generator plugins of proto-generated
+      # (buf.gen.yaml): protoc-gen-go from server/go.mod, protoc-gen-es from
+      # web/package.json.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+          cache: true
+          cache_dependency_path: web/pnpm-lock.yaml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: web/.nvmrc
+      - name: web-install
+        run: make web-install
+      # Every gate runs even after another fails, so each one's result shows.
+      - name: proto-fmt (QG-01)
+        if: ${{ !cancelled() }}
+        run: make proto-fmt
+      - name: proto-lint (QG-04)
+        if: ${{ !cancelled() }}
+        run: make proto-lint
+      - name: proto-breaking (QG-04)
+        if: ${{ !cancelled() }}
+        run: make proto-breaking
+      - name: proto-generated (QG-04)
+        if: ${{ !cancelled() }}
+        run: make proto-generated
