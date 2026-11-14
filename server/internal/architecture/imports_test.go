@@ -33,6 +33,8 @@ var allowedImports = map[string][]string{
 	"internal/household/householddb":     {},
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
+	"internal/jobs":                      {"internal/database", "internal/jobs/jobsdb"},
+	"internal/jobs/jobsdb":               {},
 	"internal/schema":                    {},
 	// Only cmd/casa and cmd/webpreview embed the bundle; internal/api takes it
 	// as an fs.FS (FS-1 1.5 plan, Task 1).

@@ -94,6 +94,18 @@ type Invitation struct {
 	Version            int64
 }
 
+type Job struct {
+	ID          pgtype.UUID
+	HouseholdID pgtype.UUID
+	Kind        string
+	RunAt       time.Time
+	UniqueKey   pgtype.Text
+	Payload     []byte
+	Attempts    int32
+	LockedUntil pgtype.Timestamptz
+	LastError   pgtype.Text
+}
+
 type Membership struct {
 	HouseholdID   pgtype.UUID
 	MemberID      pgtype.UUID
