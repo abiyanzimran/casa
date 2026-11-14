@@ -1457,6 +1457,27 @@ func TestSignUpEmailRetyped(t *testing.T) {
 		}
 	})
 
+	t.Run("an invitation link the invitation check rejects gets the unknown-link answer with the right or a wrong email", func(t *testing.T) {
+		// SEC-30; 10.4 SEC-158 note "halaman verifikasi" item 2: the email
+		// compare comes after invitationOpen.
+		h := startIdentity(t)
+		invited(t, h)
+		link := h.lastLink(t)
+		h.invitationOpen = func(context.Context, []byte) error { return identity.ErrTokenRejected }
+		complete := func(token, typed string) rejection {
+			_, err := h.fixtureClient(t).CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+				RequestContext: identityRC(ios), VerificationToken: token, Email: typed, Password: password,
+			})
+			return rejectionOf(t, err)
+		}
+		want := complete(strings.Repeat("B", 43), email)
+		for _, typed := range []string{email, "wrong@example.test"} {
+			if got := complete(link, typed); !got.equal(want) {
+				t.Fatalf("rejected invitation with email %q: %+v, want %+v", typed, got, want)
+			}
+		}
+	})
+
 	t.Run("an empty email is an invalid argument", func(t *testing.T) {
 		h := startIdentity(t)
 		setup(t, h)

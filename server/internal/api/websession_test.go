@@ -480,19 +480,6 @@ func TestCookieSession(t *testing.T) {
 		}
 	})
 
-	// wantCookieExpired checks that the response carries one Set-Cookie that
-	// expires the session cookie with the attributes of decision 7, never a
-	// new value (SEC-161 (b), (c)).
-	wantCookieExpired := func(t *testing.T, info *connect.CallInfo) {
-		t.Helper()
-		cookie, line := sessionCookie(t, info)
-		if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
-			!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
-			strings.Contains(strings.ToLower(line), "domain") {
-			t.Fatalf("Set-Cookie %q: want %s= expired (Max-Age=0), Secure, HttpOnly, SameSite=Strict, Path=/ and no Domain",
-				cookieShape(line), sessionCookieName)
-		}
-	}
 	// wantSiteCleared checks a web sign-out's answer (SEC-164 (b); plan 1.5
 	// decision 14): Clear-Site-Data exactly "cookies", "storage" (no
 	// "cache"), and the expired session cookie.
@@ -505,7 +492,7 @@ func TestCookieSession(t *testing.T) {
 	}
 
 	t.Run("SEC-161 a revoked or expired session's cookie is expired with the same attributes, without touching site data", func(t *testing.T) {
-		// 10.5 SEC-161 note of 15 November 2026 conditions (1) to (3);
+		// 10.5 SEC-161 note of 15 November 2026 conditions (1), (3) and (4);
 		// ADR-030 item 5; SEC-172 (d): local data stays.
 		check := func(t *testing.T, h *identityHarness, cookie string, code casav1.ErrorCode) {
 			t.Helper()
@@ -583,7 +570,7 @@ func TestCookieSession(t *testing.T) {
 	})
 
 	t.Run("a stale cookie of one browser never ends the session of another", func(t *testing.T) {
-		// 10.5 SEC-161 note of 15 November 2026 condition (4).
+		// 10.5 SEC-161 note of 15 November 2026, its "Uji" (also condition (2)).
 		for _, c := range []string{"signed out", "30 idle days"} {
 			t.Run(c, func(t *testing.T) {
 				h := startIdentity(t)
@@ -937,20 +924,31 @@ func TestCookieSession(t *testing.T) {
 	})
 }
 
+// wantCookieExpired checks that the response carries one Set-Cookie that
+// expires the session cookie with the attributes of decision 7, never a
+// new value (SEC-161 (b), (c)).
+func wantCookieExpired(t *testing.T, info *connect.CallInfo) {
+	t.Helper()
+	cookie, line := sessionCookie(t, info)
+	if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
+		!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
+		strings.Contains(strings.ToLower(line), "domain") {
+		t.Fatalf("Set-Cookie %q: want %s= expired (Max-Age=0), Secure, HttpOnly, SameSite=Strict, Path=/ and no Domain",
+			cookieShape(line), sessionCookieName)
+	}
+}
+
 // newCookie returns the session cookie a response set, checked for the
-// attributes every session cookie has, or nil for none or for an expired
-// one (an ended session's answer, which stores no value; the tests of
-// wantCookieExpired check its attributes); more than one fails the test (a
-// response sets at most one session cookie).
+// attributes every session cookie has, or nil for none; more than one fails
+// the test (a response sets at most one session cookie). An expired cookie
+// fails the host-cookie check: a test that expects an ended session reads
+// through webRead, which drops it.
 func newCookie(t *testing.T, info *connect.CallInfo) *http.Cookie {
 	t.Helper()
 	if len(info.ResponseHeader().Values("Set-Cookie")) == 0 {
 		return nil
 	}
 	cookie, line := sessionCookie(t, info)
-	if cookie.Value == "" && cookie.MaxAge < 0 {
-		return nil
-	}
 	wantHostCookie(t, cookie, line)
 	return cookie
 }
@@ -963,6 +961,11 @@ func (h *identityHarness) webRead(t *testing.T, cookie string) (*http.Cookie, er
 	ctx := sameOrigin(cookie)
 	info, _ := connect.CallInfoForClientContext(ctx)
 	err := h.read(ctx, web, true)
+	if len(info.ResponseHeader().Values("Set-Cookie")) == 1 {
+		if cookie, _ := sessionCookie(t, info); cookie.Value == "" && cookie.MaxAge < 0 {
+			return nil, err // an ended session's expired cookie stores no value
+		}
+	}
 	return newCookie(t, info), err
 }
 
@@ -1552,21 +1555,25 @@ func TestWithoutSession(t *testing.T) {
 		// 10.1 §8.1: 20 failed token uses per address, the 21st is limited.
 		h := startIdentity(t)
 		token := strings.Repeat("C", 43)
-		for i := range 20 {
+		// Q2-5: both requests, with and without the flag, share the limiter.
+		complete := func(i int, without bool) error {
 			ctx, _ := webCall(safariIPhone)
-			if i%2 == 0 {
-				wantErrorCode(t, completeSignUp(h, ctx, web, token, 0, true), connect.CodePermissionDenied, rejected)
-			} else {
-				wantErrorCode(t, completeSignUp(h, ctx, web, token, personal, false), connect.CodePermissionDenied, rejected)
-			}
-		}
-		for _, without := range []bool{true, false} {
 			mode := personal
 			if without {
 				mode = 0
 			}
-			ctx, _ := webCall(safariIPhone)
-			wantErrorCode(t, completeSignUp(h, ctx, web, token, mode, without), connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+			if i%2 == 0 {
+				return completeSignUp(h, ctx, web, token, mode, without)
+			}
+			return completeRecovery(h, ctx, web, token, mode, without)
+		}
+		for i := range 20 {
+			wantErrorCode(t, complete(i, i%4 < 2), connect.CodePermissionDenied, rejected)
+		}
+		for i := range 2 {
+			for _, without := range []bool{true, false} {
+				wantErrorCode(t, complete(i, without), connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+			}
 		}
 	})
 
@@ -1627,12 +1634,7 @@ func TestGetSession(t *testing.T) {
 		_, err = getSession(h, ctx, web)
 		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED)
 		info, _ := connect.CallInfoForClientContext(ctx)
-		if got := newCookie(t, info); got != nil {
-			t.Fatalf("revoked cookie: %v, want the expired cookie", got)
-		}
-		if len(info.ResponseHeader().Values("Set-Cookie")) != 1 {
-			t.Fatal("a revoked cookie gets no expired Set-Cookie")
-		}
+		wantCookieExpired(t, info)
 	})
 
 	t.Run("GetSession is never held and writes nothing but the boundary's touch", func(t *testing.T) {

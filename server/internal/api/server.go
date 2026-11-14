@@ -227,18 +227,10 @@ func (b boundary) session(ctx context.Context, header *connect.Header, cookie st
 	case withCookie:
 		session, err := b.sessions.Cookie(ctx, cookie)
 		if errors.Is(err, identity.ErrSessionExpired) || errors.Is(err, identity.ErrSessionRevoked) {
-			// ADR-030 item 5; 10.5 SEC-161 note of 15 November 2026: the
-			// cookie of a session that ended is expired, on four conditions:
-			// (1) the attributes of the set cookie with Max-Age=0; (2) never
-			// for an unknown, malformed or native value (those are
-			// ErrUnauthenticated, SEC-161 (c) rule (5)), and no
-			// Clear-Site-Data, so local data stays (SEC-172 (d)); (3)
-			// Cache-Control no-store, set on every answer by
-			// WithSecurityHeaders; (4) only the cookie this request carried,
-			// whose session ended, so another browser's session is never
-			// touched. The same note accepts that a late answer may expire a
-			// newer cookie of the same browser: one more sign-in, no leak
-			// (Q3). A reused value lands here too: its row was revoked.
+			// ADR-030 item 5; 10.5 SEC-161 note of 15 November 2026
+			// conditions (1) to (4); SEC-172 (d). Residual risk accepted
+			// (Q3): a late answer may expire a newer cookie of the same
+			// browser, costing one more sign-in, no leak.
 			// ponytail: a shared session that ends between this check and
 			// checkClient's UserAction touch is answered SESSION_EXPIRED
 			// without the expired cookie; the browser's next request gets it.

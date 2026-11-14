@@ -82,7 +82,7 @@ A setup token opens the first account of a household (closed sign-up, SEC-158 (b
 casa setup-token -email person@example.com -origin https://casa.example.com
 ```
 
-It connects as `app_rw` with the connection string in the systemd credential `app-database-url` (`$CREDENTIALS_DIRECTORY/app-database-url`) and prints the token once; the database keeps only its SHA-256.
+It connects as `app_rw` with the connection string in the systemd credential `app-database-url` (`$CREDENTIALS_DIRECTORY/app-database-url`) and prints the token once; the database keeps only its SHA-256. With `-origin` (the same value as `casa serve -origin`) it also prints a `link:` line with the setup link.
 
 ### Test server runbook
 
