@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -37,7 +36,7 @@ type Session struct {
 // 5). The email is trimmed and lower-cased once, for both the lookup and the
 // rate limit key.
 func (s *Service) SignIn(ctx context.Context, client Client, email, password string) (Tokens, error) {
-	email = strings.ToLower(strings.TrimSpace(email))
+	email = normalizeEmail(email)
 	// The key is a hash so the table in memory holds no email (10.1 §8.1).
 	emailKey := sha256.Sum256([]byte(email))
 	allowed, done := s.signIn.attempt(string(emailKey[:]), client.Address)

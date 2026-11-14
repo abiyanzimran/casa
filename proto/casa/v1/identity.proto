@@ -116,6 +116,16 @@ message CompleteSignUpRequest {
   // tokens (SEC-171 (b) (2) note Q2, 14 November 2026; ADR-030 item 11).
   // With it, device_mode must be unspecified; native clients never send it.
   bool without_session = 5;
+  // The email the link was sent to, typed again so a forwarded link cannot
+  // make an account for someone else (10.4 SEC-158 note "halaman
+  // verifikasi" items 2 and 7). Compared after trimming and lower-casing,
+  // like SignIn's lookup; no email rule here, since the same email with
+  // capitals or a trailing space must still open the account. Another email
+  // gets EMAIL_MISMATCH and the link stays usable.
+  string email = 6 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 254
+  }];
 }
 
 message CompleteSignUpResponse {

@@ -46,7 +46,7 @@ func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignU
 
 func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.CompleteSignUpRequest) (*casav1.CompleteSignUpResponse, error) {
 	client := clientOf(ctx, req)
-	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetPassword(), h.invitationOpen)
+	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetEmail(), req.GetPassword(), h.invitationOpen)
 	if err != nil {
 		return nil, identityError(err)
 	}
@@ -254,6 +254,10 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrRateLimited):
 		return errorWithDetail(connect.CodeResourceExhausted, "rate limited",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RATE_LIMITED})
+	case errors.Is(err, identity.ErrEmailMismatch):
+		// 10.4 SEC-158 note "halaman verifikasi" item 2; ADR-013 note 1.6.
+		return errorWithDetail(connect.CodeFailedPrecondition, "email mismatch",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_EMAIL_MISMATCH})
 	case errors.Is(err, identity.ErrPasswordTooCommon):
 		return passwordTooCommon((&casav1.CompleteSignUpRequest{}).ProtoReflect().Descriptor().Fields().ByName("password"))
 	case errors.Is(err, identity.ErrCredentialsRejected):

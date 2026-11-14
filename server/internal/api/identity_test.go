@@ -184,7 +184,7 @@ func (h *identityHarness) startSignUp(setupToken, email string) error {
 
 func (h *identityHarness) completeSignUp(kind casav1.ClientKind, link, password string) (*casav1.SessionTokens, error) {
 	res, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
-		RequestContext: identityRC(kind), VerificationToken: link, Password: password,
+		RequestContext: identityRC(kind), VerificationToken: link, Email: h.lastEmail(), Password: password,
 	})
 	return res.GetTokens(), err
 }
@@ -247,6 +247,17 @@ func (h *identityHarness) mails() []identity.Message {
 	return slices.Clone(h.mail)
 }
 
+// lastEmail returns the address the last mail went to: the email the link
+// was sent to, which CompleteSignUp asks to be typed again (10.4 SEC-158
+// note "halaman verifikasi" item 2).
+func (h *identityHarness) lastEmail() string {
+	mails := h.mails()
+	if len(mails) == 0 {
+		return "owner@example.test" // no mail: the link under test is not one of ours
+	}
+	return mails[len(mails)-1].To
+}
+
 // lastLink returns the token in the fragment of the last mail's link.
 func (h *identityHarness) lastLink(t *testing.T) string {
 	t.Helper()
@@ -278,7 +289,7 @@ func (h *identityHarness) fixtureSignUp(t *testing.T, start *casav1.StartSignUpR
 		t.Fatal(err)
 	}
 	res, err := client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
-		RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+		RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: start.Email, Password: password,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1351,4 +1362,125 @@ func decodeToken(t *testing.T, token string) []byte {
 		t.Fatal(err)
 	}
 	return raw
+}
+
+func wantEmailMismatch(t *testing.T, err error) {
+	t.Helper()
+	wantErrorCode(t, err, connect.CodeFailedPrecondition, casav1.ErrorCode_ERROR_CODE_EMAIL_MISMATCH)
+}
+
+func TestSignUpEmailRetyped(t *testing.T) {
+	// 10.4 SEC-158 note of 14 November 2026 "halaman verifikasi" items 2 and 7.
+	const email, password = "owner@example.test", "a long enough passphrase"
+	invited := func(t *testing.T, h *identityHarness) {
+		t.Helper()
+		h.invitationOpen = func(context.Context, []byte) error { return nil }
+		token, _ := identity.NewToken()
+		_, err := h.client.StartSignUp(context.Background(), &casav1.StartSignUpRequest{
+			RequestContext: identityRC(ios), InvitationToken: token, Email: email,
+		})
+		wantOK(t, err)
+	}
+	setup := func(t *testing.T, h *identityHarness) {
+		t.Helper()
+		wantOK(t, h.startSignUp(h.issue(t, email), email))
+	}
+
+	t.Run("a valid link with another email is refused on its own answer, writes nothing and keeps the link", func(t *testing.T) {
+		for name, start := range map[string]func(*testing.T, *identityHarness){"setup token": setup, "invitation": invited} {
+			h := startIdentity(t)
+			start(t, h)
+			link := h.lastLink(t)
+			accounts, sessions := h.count(t, "SELECT count(*) FROM account"), h.count(t, "SELECT count(*) FROM session")
+			_, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+				RequestContext: identityRC(ios), VerificationToken: link, Email: "other@example.test", Password: password,
+			})
+			wantEmailMismatch(t, err)
+			if a, s := h.count(t, "SELECT count(*) FROM account"), h.count(t, "SELECT count(*) FROM session"); a != accounts || s != sessions {
+				t.Fatalf("%s: accounts %d -> %d, sessions %d -> %d; want unchanged", name, accounts, a, sessions, s)
+			}
+			if n := h.count(t, "SELECT count(*) FROM signup_verification WHERE used_at IS NULL"); n != 1 {
+				t.Fatalf("%s: %d unused links, want the link kept", name, n)
+			}
+			_, err = h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+				RequestContext: identityRC(ios), VerificationToken: link, Email: "  " + strings.ToUpper(email) + " ", Password: password,
+			})
+			wantOK(t, err)
+			if n := h.count(t, "SELECT count(*) FROM account"); n != accounts+1 {
+				t.Fatalf("%s: %d accounts, want the account born", name, n)
+			}
+		}
+	})
+
+	t.Run("a mismatch counts one failure on the address limiter", func(t *testing.T) {
+		h := startIdentity(t)
+		setup(t, h)
+		link := h.lastLink(t)
+		complete := func(peer casav1connect.IdentityServiceClient, typed string) error {
+			_, err := peer.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+				RequestContext: identityRC(ios), VerificationToken: link, Email: typed, Password: password,
+			})
+			return err
+		}
+		peer := h.fixtureClient(t)
+		for range 20 {
+			wantEmailMismatch(t, complete(peer, "other@example.test"))
+		}
+		wantErrorCode(t, complete(peer, email), connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+		wantOK(t, complete(h.fixtureClient(t), email))
+	})
+
+	t.Run("a used or expired link gets the same TOKEN_REJECTED with the right or a wrong email", func(t *testing.T) {
+		h := startIdentity(t)
+		setup(t, h)
+		used := h.lastLink(t)
+		_, err := h.completeSignUp(ios, used, password)
+		wantOK(t, err)
+		other := "late@example.test"
+		wantOK(t, h.startSignUp(h.issue(t, other), other))
+		expired := h.lastLink(t)
+		h.clock.advance(30 * time.Minute)
+		_, unknown := h.fixtureClient(t).CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(ios), VerificationToken: strings.Repeat("B", 43), Email: email, Password: password,
+		})
+		want := rejectionOf(t, unknown)
+		for _, link := range []string{used, expired} {
+			for _, typed := range []string{email, other, "wrong@example.test"} {
+				peer := h.fixtureClient(t)
+				_, err := peer.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+					RequestContext: identityRC(ios), VerificationToken: link, Email: typed, Password: password,
+				})
+				if got := rejectionOf(t, err); !got.equal(want) {
+					t.Fatalf("link with email %q: %+v, want %+v", typed, got, want)
+				}
+			}
+		}
+	})
+
+	t.Run("an empty email is an invalid argument", func(t *testing.T) {
+		h := startIdentity(t)
+		setup(t, h)
+		_, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: "", Password: password,
+		})
+		wantCode(t, err, connect.CodeInvalidArgument)
+		if got, want := violations(t, err), []string{"email string.min_len"}; !slices.Equal(got, want) {
+			t.Fatalf("violations %v, want %v", got, want)
+		}
+	})
+
+	t.Run("the rule holds for a native client and without a session", func(t *testing.T) {
+		h := startIdentity(t)
+		setup(t, h)
+		link := h.lastLink(t)
+		_, err := h.client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(ios), VerificationToken: link, Email: "other@example.test", Password: password,
+		})
+		wantEmailMismatch(t, err)
+		ctx, _ := webCall(safariIPhone)
+		_, err = h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(web), VerificationToken: link, Email: "other@example.test", Password: password, WithoutSession: true,
+		})
+		wantEmailMismatch(t, err)
+	})
 }

@@ -64,6 +64,10 @@ enum ErrorCode {
   // command made it one (pilot server rule; 09.2 §5.1 note on decision 20;
   // ADR-013 note 1.6).
   ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER = 17;
+  // The verification link is valid but the email typed again is not the
+  // one it was sent to; nothing was written and the link stays usable (10.4
+  // SEC-158 note "halaman verifikasi" item 2; ADR-013 note 1.6).
+  ERROR_CODE_EMAIL_MISMATCH = 18;
 }
 
 // ErrorDetail is the Connect error detail that carries the domain error code

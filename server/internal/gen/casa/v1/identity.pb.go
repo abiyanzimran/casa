@@ -248,8 +248,15 @@ type CompleteSignUpRequest struct {
 	// tokens (SEC-171 (b) (2) note Q2, 14 November 2026; ADR-030 item 11).
 	// With it, device_mode must be unspecified; native clients never send it.
 	WithoutSession bool `protobuf:"varint,5,opt,name=without_session,json=withoutSession,proto3" json:"without_session,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The email the link was sent to, typed again so a forwarded link cannot
+	// make an account for someone else (10.4 SEC-158 note "halaman
+	// verifikasi" items 2 and 7). Compared after trimming and lower-casing,
+	// like SignIn's lookup; no email rule here, since the same email with
+	// capitals or a trailing space must still open the account. Another email
+	// gets EMAIL_MISMATCH and the link stays usable.
+	Email         string `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CompleteSignUpRequest) Reset() {
@@ -315,6 +322,13 @@ func (x *CompleteSignUpRequest) GetWithoutSession() bool {
 		return x.WithoutSession
 	}
 	return false
+}
+
+func (x *CompleteSignUpRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
 }
 
 type CompleteSignUpResponse struct {
@@ -1139,14 +1153,16 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\x12.\n" +
 	"\x10invitation_token\x18\x04 \x01(\tB\x03\x80\x01\x01R\x0finvitationToken\"\x15\n" +
-	"\x13StartSignUpResponse\"\xc3\x04\n" +
+	"\x13StartSignUpResponse\"\xe5\x04\n" +
 	"\x15CompleteSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x122\n" +
 	"\x12verification_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\x11verificationToken\x12)\n" +
 	"\bpassword\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\bpassword\x12>\n" +
 	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
 	"deviceMode\x12'\n" +
-	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
+	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession\x12 \n" +
+	"\x05email\x18\x06 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfe\x01R\x05email:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
 	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1a\xa1\x01this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)\"H\n" +
 	"\x16CompleteSignUpResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x90\x03\n" +

@@ -25,6 +25,10 @@ var (
 	// missing, malformed, unknown, expired, used, replaced, or bound to
 	// another email.
 	ErrTokenRejected = errors.New("token rejected")
+	// ErrEmailMismatch: the verification link is valid, but the email typed
+	// again is not the one it was sent to (10.4 SEC-158 note "halaman
+	// verifikasi" item 2). Reached only by the holder of a live link.
+	ErrEmailMismatch = errors.New("identity: the typed email is not the link's")
 	// ErrRateLimited: too many failed attempts from the account or the
 	// network address (SEC-12).
 	ErrRateLimited = errors.New("rate limited")

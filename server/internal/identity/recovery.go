@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -26,7 +25,7 @@ import (
 // no write. For a known email the link is stored and mailed after the
 // response, and a failure there is logged, never returned.
 func (s *Service) StartRecovery(ctx context.Context, client Client, email string) error {
-	email = strings.ToLower(strings.TrimSpace(email))
+	email = normalizeEmail(email)
 	emailKey := sha256.Sum256([]byte(email)) // no email in memory (10.1 §8.1)
 	allowed, done := s.recovery.attempt(string(emailKey[:]), client.Address)
 	if !allowed {

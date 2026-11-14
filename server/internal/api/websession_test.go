@@ -137,7 +137,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(safariIPhone)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: email, Password: password,
 		})
 		wantOK(t, err)
 		wantNativeTokens(t, info, signedUp.GetTokens())
@@ -228,7 +228,7 @@ func TestWebSessionOpening(t *testing.T) {
 				},
 				"CompleteSignUp": func() error {
 					_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-						RequestContext: identityRC(c.kind), VerificationToken: token, Password: password, DeviceMode: c.mode,
+						RequestContext: identityRC(c.kind), VerificationToken: token, Email: email, Password: password, DeviceMode: c.mode,
 					})
 					return err
 				},
@@ -256,7 +256,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(safariIPhone)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Password: password, DeviceMode: personal,
+			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Email: email, Password: password, DeviceMode: personal,
 		})
 		wantOK(t, err)
 		cookie, line := sessionCookie(t, info)
@@ -307,7 +307,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(userAgent)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Password: password, DeviceMode: personal,
+			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Email: email, Password: password, DeviceMode: personal,
 		})
 		wantOK(t, err)
 		keep(info, signedUp)
@@ -367,7 +367,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, _ := webCall(safariIPhone)
 		_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: email, Password: password,
 		})
 		wantOK(t, err)
 		ctx, info := webCall(safariIPhone)
@@ -1290,7 +1290,7 @@ func TestWithoutSession(t *testing.T) {
 
 	completeSignUp := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, link string, mode casav1.DeviceMode, without bool) error {
 		_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(kind), VerificationToken: link, Password: password, DeviceMode: mode, WithoutSession: without,
+			RequestContext: identityRC(kind), VerificationToken: link, Email: h.lastEmail(), Password: password, DeviceMode: mode, WithoutSession: without,
 		})
 		return err
 	}
@@ -1307,7 +1307,7 @@ func TestWithoutSession(t *testing.T) {
 		link := h.lastLink(t)
 		ctx, info := webCall(safariIPhone)
 		res, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(web), VerificationToken: link, Password: password, WithoutSession: true,
+			RequestContext: identityRC(web), VerificationToken: link, Email: email, Password: password, WithoutSession: true,
 		})
 		wantOK(t, err)
 		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || res.GetTokens() != nil {
