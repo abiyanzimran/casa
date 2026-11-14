@@ -118,14 +118,19 @@ function seedProbeCache(page: Page): Promise<void> {
 	});
 }
 
-/** Counts the wipes that reached the cache step (each calls caches.keys() once). */
+/**
+ * Counts the wipes that reached the cache step (each calls caches.keys() once). Patched on the
+ * prototype: WebKit may collect the `caches` wrapper and make a new one, which drops a
+ * property set on the instance (seen under load, losing the count).
+ */
 async function countCacheWipes(page: Page): Promise<() => Promise<number>> {
 	await page.addInitScript(() => {
-		const keys = caches.keys.bind(caches);
+		// eslint-disable-next-line @typescript-eslint/unbound-method -- called below with the instance as this
+		const keys = CacheStorage.prototype.keys;
 		Object.assign(window, { cacheWipes: 0 });
-		caches.keys = () => {
+		CacheStorage.prototype.keys = function (this: CacheStorage) {
 			(window as unknown as { cacheWipes: number }).cacheWipes++;
-			return keys();
+			return keys.call(this);
 		};
 	});
 	return () => page.evaluate(() => (window as unknown as { cacheWipes: number }).cacheWipes);
