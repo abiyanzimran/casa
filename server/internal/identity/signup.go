@@ -187,6 +187,9 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		link, err = identitydb.New(tx).GetSignupVerification(ctx, linkHash)
 		return err
 	})
+	if err == nil && normalizeEmail(email) != normalizeEmail(link.Email) {
+		return Tokens{}, ErrEmailMismatch
+	}
 	if errors.Is(err, pgx.ErrNoRows) || err == nil && (link.UsedAt.Valid || !s.config.Now().Before(link.ExpiresAt)) {
 		return Tokens{}, ErrTokenRejected
 	}
@@ -214,9 +217,6 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	// contract's email rule when it was stored, so it is ASCII and ToLower
 	// equals the citext comparison. After every read-side check that gives
 	// ErrTokenRejected, so that error never depends on the typed email.
-	if normalizeEmail(email) != normalizeEmail(link.Email) {
-		return Tokens{}, ErrEmailMismatch
-	}
 	// Hashed outside the transaction, which may run more than once.
 	credential, err := s.hasher.hash(ctx, password)
 	if err != nil {
