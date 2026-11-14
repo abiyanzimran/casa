@@ -353,3 +353,23 @@ message GetOpenInvitationResponse {
   // household data.
   string invitee_email = 5 [debug_redact = true];
 }
+
+// Household is the household object of sync (plan 1.7 decision 7).
+message Household {
+  string household_id = 1;
+  string name = 2;
+  // An IANA time zone name (06 §2.4).
+  string time_zone = 3;
+  // ISO 4217 code of the household's currency.
+  string currency = 4;
+}
+
+// Invitation is the live invitation object of sync: its state only. The
+// invitee's display name and email never travel in sync; the inviter reads
+// them online through GetOpenInvitation (plan 1.6 Q12; SEC-31).
+message Invitation {
+  string invitation_id = 1;
+  InvitationState state = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  string inviter_member_id = 4;
+}

@@ -18,10 +18,10 @@ const modulePath = "github.com/abiyanzimran/casa/server/"
 // backed by 09.2 §1 (its diagram or "Aturan dependensi") needs 09.2 §1 updated
 // by the architect first.
 var allowedImports = map[string][]string{
-	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/household", "internal/identity", "internal/jobs", "internal/schema", "internal/webbundle"},
+	"cmd/casa":                           {"internal/api", "internal/database", "internal/gen/casa/v1", "internal/household", "internal/identity", "internal/jobs", "internal/read", "internal/schema", "internal/sync", "internal/webbundle"},
 	"cmd/idcheck":                        {},
 	"cmd/webpreview":                     {"internal/api", "internal/webbundle"},
-	"internal/api":                       {"internal/command", "internal/database", "internal/gen/casa/v1", "internal/gen/casa/v1/casav1connect", "internal/household", "internal/identity"},
+	"internal/api":                       {"internal/command", "internal/database", "internal/gen/casa/v1", "internal/gen/casa/v1/casav1connect", "internal/household", "internal/identity", "internal/read", "internal/sync"},
 	"internal/command":                   {"internal/command/commanddb", "internal/database"},
 	"internal/command/commanddb":         {},
 	"internal/architecture":              {},
@@ -29,13 +29,17 @@ var allowedImports = map[string][]string{
 	"internal/database/databasetest":     {"internal/schema"},
 	"internal/gen/casa/v1":               {},
 	"internal/gen/casa/v1/casav1connect": {"internal/gen/casa/v1"},
-	"internal/household":                 {"internal/database", "internal/household/householddb", "internal/jobs"},
+	"internal/household":                 {"internal/database", "internal/household/householddb", "internal/jobs", "internal/read", "internal/sync"},
 	"internal/household/householddb":     {},
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
 	"internal/jobs":                      {"internal/database", "internal/jobs/jobsdb"},
 	"internal/jobs/jobsdb":               {},
+	"internal/read":                      {"internal/database", "internal/read/readdb"},
+	"internal/read/readdb":               {},
 	"internal/schema":                    {},
+	"internal/sync":                      {"internal/database", "internal/read", "internal/sync/syncdb"},
+	"internal/sync/syncdb":               {},
 	// Only cmd/casa and cmd/webpreview embed the bundle; internal/api takes it
 	// as an fs.FS (FS-1 1.5 plan, Task 1).
 	"internal/webbundle": {},

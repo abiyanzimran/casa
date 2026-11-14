@@ -4,8 +4,6 @@ import (
 	"slices"
 	"testing"
 	"time"
-
-	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 )
 
 // selectorCase is one session RPC that takes a household selector: the
@@ -41,6 +39,10 @@ var selectorCases = []selectorCase{
 	}},
 	{"GetOpenInvitation", false, func(h *householdHarness, m member, household, _ string) error {
 		_, err := h.openInvitation(m, household)
+		return err
+	}},
+	{"Sync", false, func(h *householdHarness, m member, household, _ string) error {
+		_, err := h.syncPage(m, household, "", 0)
 		return err
 	}},
 }
@@ -102,14 +104,18 @@ func TestHouseholdSelector(t *testing.T) {
 	}
 
 	t.Run("every RPC with a household selector has a selectorCases row", func(t *testing.T) {
-		methods := casav1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods()
-		for i := range methods.Len() {
-			m := methods.Get(i)
-			if m.Input().Fields().ByName("household_id") == nil {
-				continue
-			}
-			if !slices.ContainsFunc(selectorCases, func(c selectorCase) bool { return c.name == string(m.Name()) }) {
-				t.Errorf("%s takes household_id but has no selectorCases row", m.Name())
+		for _, file := range casaFiles(t) {
+			for s := range file.Services().Len() {
+				methods := file.Services().Get(s).Methods()
+				for i := range methods.Len() {
+					m := methods.Get(i)
+					if m.Input().Fields().ByName("household_id") == nil {
+						continue
+					}
+					if !slices.ContainsFunc(selectorCases, func(c selectorCase) bool { return c.name == string(m.Name()) }) {
+						t.Errorf("%s takes household_id but has no selectorCases row", m.FullName())
+					}
+				}
 			}
 		}
 	})
@@ -187,7 +193,7 @@ func TestHouseholdSelector(t *testing.T) {
 		// issued, F03 cancels it, so F04 and the rejection find it closed.
 		own := map[string]string{
 			"CreateInvitation": "invitation_pending", "IssueInvitationLink": "ok", "CancelInvitation": "ok",
-			"ConfirmInvitee": "state_changed", "RejectInvitee": "state_changed", "GetOpenInvitation": "ok",
+			"ConfirmInvitee": "state_changed", "RejectInvitee": "state_changed", "GetOpenInvitation": "ok", "Sync": "ok",
 		}
 		for _, sel := range []struct{ household, invitation, other string }{
 			{f.x, f.xInvitation, f.y}, {f.y, f.yInvitation, f.x},

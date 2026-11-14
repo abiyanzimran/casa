@@ -21,6 +21,8 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/household"
 	"github.com/abiyanzimran/casa/server/internal/identity"
+	"github.com/abiyanzimran/casa/server/internal/read"
+	"github.com/abiyanzimran/casa/server/internal/sync"
 )
 
 // The visible-character limits of FAM.md FR-FAM-001, note of 14 November
@@ -30,17 +32,19 @@ const (
 	maxDisplayName   = 40
 )
 
-// RegisterHouseholdService serves casa.v1.HouseholdService with h. A command
-// that touches identity too is composed here, since the two modules do not
-// import each other (09.2 §1 item 9).
-func RegisterHouseholdService(server *connect.Server, pool *pgxpool.Pool, h *household.Service, id *identity.Service) {
-	casav1connect.RegisterHouseholdServiceHandler(server, householdHandler{pool: pool, h: h, id: id})
+// RegisterHouseholdService serves casa.v1.HouseholdService with h, its
+// screens read through r, the one read path (09.2 §1 rule 2; SEC-06). A
+// command that touches identity too is composed here, since the two modules
+// do not import each other (09.2 §1 item 9).
+func RegisterHouseholdService(server *connect.Server, pool *pgxpool.Pool, h *household.Service, id *identity.Service, r *read.Service) {
+	casav1connect.RegisterHouseholdServiceHandler(server, householdHandler{pool: pool, h: h, id: id, r: r})
 }
 
 type householdHandler struct {
 	pool *pgxpool.Pool
 	h    *household.Service
 	id   *identity.Service
+	r    *read.Service
 }
 
 // CreateHousehold is an account-level command (09.2 §8; plan 1.6 decisions
@@ -157,7 +161,7 @@ func newHousehold(req *casav1.CreateHouseholdRequest) (household.NewHousehold, e
 
 func (s householdHandler) ListMemberships(ctx context.Context, _ *casav1.ListMembershipsRequest) (*casav1.ListMembershipsResponse, error) {
 	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
-	memberships, err := s.h.Memberships(ctx, session.AccountID)
+	memberships, err := s.r.Memberships(ctx, session.AccountID)
 	if err != nil {
 		return nil, householdError(err)
 	}
@@ -566,8 +570,11 @@ func householdErrorOrNil(err error) error {
 // internal and its text never reaches the client (09.2 §3 layer 3).
 func householdError(err error) error {
 	switch {
-	case errors.Is(err, household.ErrNotFound):
-		return connect.NewError(connect.CodeNotFound, "not found") // no detail (SEC-05)
+	case errors.Is(err, household.ErrNotFound), errors.Is(err, read.ErrNotFound), errors.Is(err, sync.ErrCursorRejected):
+		// One answer, no detail: a cursor not made for the caller says no
+		// more than a household that does not exist (SEC-05; plan 1.7
+		// decision 9).
+		return connect.NewError(connect.CodeNotFound, "not found")
 	case errors.Is(err, household.ErrInvitationPending):
 		return errorWithDetail(connect.CodeFailedPrecondition, "invitation pending",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_INVITATION_PENDING})
@@ -677,7 +684,7 @@ func (s householdHandler) GetOpenInvitation(ctx context.Context, req *casav1.Get
 	if err != nil {
 		return nil, householdError(err)
 	}
-	inv, found, err := s.h.OpenInvitation(ctx, m)
+	inv, found, err := s.r.OpenInvitation(ctx, read.Reader{HouseholdID: m.HouseholdID, AccountID: m.AccountID, MemberID: m.MemberID})
 	if err != nil {
 		return nil, householdError(err)
 	}
@@ -688,7 +695,7 @@ func (s householdHandler) GetOpenInvitation(ctx context.Context, req *casav1.Get
 		InvitationId: uuidString(inv.ID), State: liveInvitationStates[inv.State], ExpiresAt: timestamppb.New(inv.ExpiresAt),
 	}
 	if inv.InviteeAccount.Valid {
-		email, err := s.id.AccountEmail(ctx, inv.InviteeAccount)
+		email, err := s.r.AccountEmail(ctx, inv.InviteeAccount)
 		if err != nil {
 			return nil, householdError(err)
 		}

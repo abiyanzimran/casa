@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -23,6 +24,8 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/household"
 	"github.com/abiyanzimran/casa/server/internal/identity"
 	"github.com/abiyanzimran/casa/server/internal/jobs"
+	"github.com/abiyanzimran/casa/server/internal/read"
+	"github.com/abiyanzimran/casa/server/internal/sync"
 	"github.com/abiyanzimran/casa/server/internal/webbundle"
 )
 
@@ -87,6 +90,13 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
 		return 1
 	}
+	cursorKey, err := readCursorKey()
+	if err != nil {
+		jobPool.Close()
+		pool.Close()
+		_, _ = fmt.Fprintf(stderr, "casa serve: %v\n", err)
+		return 1
+	}
 	logger := slog.New(slog.NewJSONHandler(stderr, nil)) // JSON to journald (09.4 §3)
 	identityService := identity.New(pool, identity.Config{
 		Origin: *origin, SendMail: writeMail(*mailDir), Now: time.Now, Password: identity.DefaultPasswordParams,
@@ -115,7 +125,9 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		UserAction: identityService.TouchUserAction,
 	}, api.NoticeHeld(pool, householdService))
 	api.RegisterIdentityService(apiServer, pool, identityService, api.InvitationOpen(householdService))
-	api.RegisterHouseholdService(apiServer, pool, householdService, identityService)
+	readService := read.New(pool, now)
+	api.RegisterHouseholdService(apiServer, pool, householdService, identityService, readService)
+	api.RegisterSyncService(apiServer, householdService, sync.New(pool, readService, cursorKey), api.NoticeHeld(pool, householdService))
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
 		closeAll()
@@ -179,6 +191,26 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 // jobDatabaseURL names the LoadCredential= file holding the connection
 // string of role job_runner (plan 1.7 decision 4).
 const jobDatabaseURL = "job-database-url"
+
+// syncCursorKeyCredential names the LoadCredential= file holding the sync
+// cursor MAC key: 32 random bytes as 64 hex characters, made new for each
+// server and never copied (plan 1.7 decision 4; 14 §7.8). A new key rejects
+// every cursor, and clients start again from a snapshot (decision 9).
+const syncCursorKeyCredential = "sync-cursor-key" //nolint:gosec // G101: a credential file name, not the key
+
+// readCursorKey reads syncCursorKeyCredential; the key itself is never
+// printed (ES §4).
+func readCursorKey() (sync.CursorKey, error) {
+	text, err := readCredential(syncCursorKeyCredential)
+	if err != nil {
+		return sync.CursorKey{}, err
+	}
+	b, err := hex.DecodeString(text)
+	if err != nil || len(b) != 32 {
+		return sync.CursorKey{}, fmt.Errorf("credential %s is not 64 hex characters", syncCursorKeyCredential)
+	}
+	return sync.NewCursorKey(b)
+}
 
 // openPinged opens a pool with the connection string in credential and
 // pings it, so serve fails at start, not at the first request. pgx errors

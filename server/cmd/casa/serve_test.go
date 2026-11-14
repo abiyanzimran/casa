@@ -21,10 +21,20 @@ import (
 func served(t *testing.T) (mailDir string, d databasetest.Database) {
 	t.Helper()
 	d = databasetest.Migrated(t)
-	withCredentials(t, map[string]string{ //nolint:gosec // G101: test database URLs and a test name, no secret
-		appDatabaseURL: d.URL("app_rw"), jobDatabaseURL: d.URL("job_runner"), operatorNameCredential: "Pengelola Uji",
-	})
+	withCredentials(t, testCredentials(d))
 	return t.TempDir(), d
+}
+
+// testCursorKey is a fixed cursor key of the tests only; a test server makes
+// its own (plan 1.7 decision 4; 14 §7.8).
+const testCursorKey = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+
+// testCredentials are every credential serve needs, on database d.
+func testCredentials(d databasetest.Database) map[string]string {
+	return map[string]string{ //nolint:gosec // G101: test database URLs, a test name and a test key, no secret
+		appDatabaseURL: d.URL("app_rw"), jobDatabaseURL: d.URL("job_runner"), operatorNameCredential: "Pengelola Uji",
+		syncCursorKeyCredential: testCursorKey,
+	}
 }
 
 // TestMain gives every test a web bundle, so no test depends on whether
@@ -243,6 +253,26 @@ func TestServe(t *testing.T) {
 		code, stdout, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
 		if code != 1 || !strings.HasPrefix(stderr, "casa serve: open the job database:") || strings.Contains(stdout+stderr, fake) {
 			t.Fatalf("exit %d, stdout %q, stderr %q; want 1, the error, and no password", code, stdout, stderr)
+		}
+	})
+	t.Run("serve refuses a cursor key that is not 64 hex characters", func(t *testing.T) {
+		// Plan 1.7 decision 4: 32 random bytes as 64 hex characters, never
+		// printed.
+		credentials := testCredentials(databasetest.Migrated(t))
+		delete(credentials, syncCursorKeyCredential)
+		withCredentials(t, credentials)
+		code, _, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+		if code != 1 || !strings.HasPrefix(stderr, "casa serve: read credential sync-cursor-key:") {
+			t.Fatalf("exit %d, stderr %q; want 1 and the missing credential", code, stderr)
+		}
+		for _, key := range []string{"", testCursorKey[:62], testCursorKey + "00", "zz" + testCursorKey[2:], strings.ToUpper(testCursorKey)[:63] + "g"} {
+			credentials[syncCursorKeyCredential] = key
+			withCredentials(t, credentials)
+			code, stdout, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+			want := "casa serve: credential sync-cursor-key is not 64 hex characters\n"
+			if code != 1 || stderr != want || key != "" && strings.Contains(stdout+stderr, key) {
+				t.Errorf("key %q: exit %d, stdout %q, stderr %q; want 1 and %q", key, code, stdout, stderr, want)
+			}
 		}
 	})
 	t.Run("serve runs due jobs", func(t *testing.T) {

@@ -16,10 +16,11 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
 
-// householdTables are the tables of 00005_household; householdColumn names
-// each one's household column.
+// householdTables are the tables of 00005_household and 00010_reader_feed;
+// householdColumn names each one's household column.
 var householdTables = []string{
 	"household", "membership", "approval_authority", "household_rule", "relationship", "invitation", "object_event",
+	"reader_feed", "reader_feed_counter",
 }
 
 // lookupTables are the household tables whose policy has lookup clauses
@@ -97,6 +98,11 @@ func newHouseholdFixture(t *testing.T, admin *pgxpool.Pool) householdFixture {
 		                           idempotency_key, server_time)
 		  VALUES ($1, 'invitation', $2, 1, 'invitee', 'accept_invitation', 'open', 'accepted', gen_random_uuid(), $3)`,
 			[]any{f.y, f.byC, now}},
+		{`INSERT INTO reader_feed (household_id, member_id, pos, object_kind, object_id, change)
+		  VALUES ($1, $3, 1, 'household', $1, 'upsert'), ($2, $4, 1, 'household', $2, 'upsert')`,
+			[]any{f.x, f.y, f.ax, f.ay}},
+		{`INSERT INTO reader_feed_counter (household_id, member_id, last_pos) VALUES ($1, $3, 1), ($2, $4, 1)`,
+			[]any{f.x, f.y, f.ax, f.ay}},
 	} {
 		if _, err := admin.Exec(t.Context(), s.sql, s.args...); err != nil {
 			t.Fatalf("%s: %v", s.sql, err)
@@ -273,6 +279,38 @@ func TestHouseholdTablesAreHouseholdScoped(t *testing.T) {
 		for _, statement := range []string{"UPDATE object_event SET command = 'x'", "DELETE FROM object_event"} {
 			if err := tryWrite(t, app, database.Scope{HouseholdID: f.x}, statement); databasetest.PgErrorCode(err) != "42501" {
 				t.Errorf("%s: err = %v, want insufficient_privilege (42501)", statement, err)
+			}
+		}
+	})
+
+	t.Run("reader_feed is household-scoped and app_rw cannot update or delete it", func(t *testing.T) {
+		// 09.2 §3 layer 4 TO app_rw (note of 14 November 2026, Q1 (d)); the
+		// feed is append-only for app_rw (plan 1.7 Task 4), so a position,
+		// once written, never moves (ADR-017 item 3).
+		got := readColumn[pgtype.UUID](t, app, database.Scope{HouseholdID: f.x}, "reader_feed", "household_id")
+		if !slices.Equal(got, []pgtype.UUID{f.x}) {
+			t.Errorf("household X reads feed rows of households %v, want only X %v", got, f.x)
+		}
+		for _, statement := range []string{"UPDATE reader_feed SET pos = 2", "DELETE FROM reader_feed", "DELETE FROM reader_feed_counter"} {
+			if err := tryWrite(t, app, database.Scope{HouseholdID: f.x}, statement); databasetest.PgErrorCode(err) != "42501" {
+				t.Errorf("%s: err = %v, want insufficient_privilege (42501)", statement, err)
+			}
+		}
+	})
+
+	t.Run("a feed row of another household cannot be written", func(t *testing.T) {
+		for _, w := range []struct {
+			statement string
+			args      []any
+		}{
+			{`INSERT INTO reader_feed (household_id, member_id, pos, object_kind, object_id, change)
+			  VALUES ($1, $2, 2, 'household', $1, 'upsert')`, []any{f.x, f.ax}},
+			{"INSERT INTO reader_feed_counter (household_id, member_id, last_pos) VALUES ($1, $2, 5)", []any{f.x, f.bx}},
+			{`INSERT INTO reader_feed_counter (household_id, member_id, last_pos) VALUES ($1, $2, 1)
+			  ON CONFLICT (household_id, member_id) DO UPDATE SET last_pos = 9`, []any{f.x, f.ax}},
+		} {
+			if err := tryWrite(t, app, database.Scope{HouseholdID: f.y}, w.statement, w.args...); databasetest.PgErrorCode(err) != "42501" {
+				t.Errorf("as Y: %s: err = %v, want 42501", w.statement, err)
 			}
 		}
 	})

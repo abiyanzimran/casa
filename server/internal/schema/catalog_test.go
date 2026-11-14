@@ -115,6 +115,21 @@ var tables = map[string]tableRule{
 			rolePolicyText("job_runner", "true", ""),
 		},
 		source: "09.2 §3 \"Tabel infrastruktur dengan pemilik campuran\" and its note of 14 November 2026, §5.1; plan 1.7 decision 3"},
+	// 00010_reader_feed: the per-reader feed of sync (ADR-017 item 3),
+	// append-only for app_rw. Its layer 4 policy names app_rw from the
+	// start, so the pruning policy of job_runner (step 7) is not ANDed with
+	// a household setting it never sets (09.2 §3 note of 14 November 2026,
+	// Q1 (d)).
+	"reader_feed": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		policies: []string{rolePolicyText("app_rw", "(household_id = "+strictHousehold+")", "(household_id = "+strictHousehold+")")},
+		source:   "09.2 §3 note of 14 November 2026 (Q1 (d)), §5.1; ADR-017 item 3; plan 1.7 Task 4"},
+	// The counter moves only forward, by the fan-out (plan 1.7 decision 8);
+	// its policy names app_rw as the feed's does (lead ruling on the Task 4
+	// review).
+	"reader_feed_counter": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
+		updates:  []string{"last_pos"},
+		policies: []string{rolePolicyText("app_rw", "(household_id = "+strictHousehold+")", "(household_id = "+strictHousehold+")")},
+		source:   "09.2 §5.1; ADR-017 item 3; plan 1.7 Task 4; lead ruling on the Task 4 review"},
 }
 
 type tableRule struct {

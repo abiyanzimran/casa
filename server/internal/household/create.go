@@ -35,7 +35,11 @@ func (s *Service) NewHouseholdID(ctx context.Context) (pgtype.UUID, error) {
 // a lookup transaction (09.2 §3 layer 1; FR-FAM-001 note of 14 November
 // 2026, Q5 (d)).
 func (s *Service) MemberAnywhere(ctx context.Context, account pgtype.UUID) (bool, error) {
-	memberships, err := s.membershipsOf(ctx, account)
+	var memberships []householddb.MembershipsOfAccountRow
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		memberships, err = householddb.New(tx).MembershipsOfAccount(ctx, account)
+		return err
+	})
 	return len(memberships) > 0, err
 }
 
