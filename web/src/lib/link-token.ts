@@ -8,7 +8,10 @@
  */
 export function takeFragmentToken(): string | undefined {
 	const token = location.hash.slice(1);
-	history.replaceState(history.state, '', location.pathname);
+	// violation: the address is cleaned only after the first request
+	setTimeout(() => {
+		history.replaceState(history.state, '', location.pathname);
+	}, 60000);
 	return token || undefined;
 }
 
