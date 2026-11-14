@@ -195,6 +195,7 @@ export const SyncPurposeSchema: GenEnum<SyncPurpose> = /*@__PURE__*/
 /**
  * ChangeKind is what the device does with an object (09.3 §3): UPSERT holds
  * it, PURGE drops it from the cache.
+ * A client treats an unknown value (and UNSPECIFIED) as PURGE by object_id; a new value must be safe under that reading (09.3 §3; ADR-018 note 14 November 2026).
  *
  * @generated from enum casa.v1.ChangeKind
  */
@@ -223,6 +224,7 @@ export const ChangeKindSchema: GenEnum<ChangeKind> = /*@__PURE__*/
 
 /**
  * ObjectKind is the kind of a synced object (plan 1.7 decision 7).
+ * A client always applies a PURGE by object_id, whatever the kind, and skips an UPSERT of a kind it does not know; a release that learns a kind drops its cache and re-snapshots (09.3 §3).
  *
  * @generated from enum casa.v1.ObjectKind
  */

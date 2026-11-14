@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 
 	"connectrpc.com/connect/v2"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -64,26 +65,44 @@ func (s syncHandler) Sync(ctx context.Context, req *casav1.SyncRequest) (*casav1
 		OperatorNoticeUnacknowledged: unacknowledged,
 	}
 	for _, c := range page.Changes {
-		res.Changes = append(res.Changes, syncChange(c))
+		change, err := syncChange(c)
+		if err != nil {
+			return nil, householdError(err) // internal: its text never reaches the client
+		}
+		res.Changes = append(res.Changes, change)
 	}
 	return res, nil
 }
 
 // objectKinds are the contract's names of the synced kinds (plan 1.7
-// decision 7); reader_feed's CHECK allows no other.
+// decision 7).
 var objectKinds = map[read.ObjectKind]casav1.ObjectKind{
 	read.KindHousehold:  casav1.ObjectKind_OBJECT_KIND_HOUSEHOLD,
 	read.KindMember:     casav1.ObjectKind_OBJECT_KIND_MEMBER,
 	read.KindInvitation: casav1.ObjectKind_OBJECT_KIND_INVITATION,
 }
 
+// errUnsyncable: a change the contract cannot carry. It fails the Sync as
+// internal rather than send an UNSPECIFIED kind or state, or an UPSERT
+// without its object, that a client would misread (09.3 §3).
+var errUnsyncable = errors.New("sync change the contract cannot carry")
+
 // syncChange is c in the contract: a purge carries no object (09.3 §3).
-func syncChange(c sync.Change) *casav1.Change {
-	out := &casav1.Change{Kind: casav1.ChangeKind_CHANGE_KIND_PURGE, ObjectKind: objectKinds[c.Ref.Kind], ObjectId: uuidString(c.Ref.ID)}
-	if c.Kind == sync.Purge {
-		return out
+func syncChange(c sync.Change) (*casav1.Change, error) {
+	kind, ok := objectKinds[c.Ref.Kind]
+	if !ok {
+		return nil, errUnsyncable
 	}
-	out.Kind = casav1.ChangeKind_CHANGE_KIND_UPSERT
+	out := &casav1.Change{ObjectKind: kind, ObjectId: uuidString(c.Ref.ID)}
+	switch c.Kind {
+	case sync.Purge:
+		out.Kind = casav1.ChangeKind_CHANGE_KIND_PURGE
+		return out, nil
+	case sync.Upsert:
+		out.Kind = casav1.ChangeKind_CHANGE_KIND_UPSERT
+	default:
+		return nil, errUnsyncable
+	}
 	switch o := c.Object; {
 	case o.Household != nil:
 		out.Object = &casav1.Change_Household{Household: &casav1.Household{
@@ -92,10 +111,16 @@ func syncChange(c sync.Change) *casav1.Change {
 	case o.Member != nil:
 		out.Object = &casav1.Change_Member{Member: &casav1.Member{MemberId: uuidString(o.Member.MemberID), DisplayName: o.Member.DisplayName}}
 	case o.Invitation != nil:
+		state, ok := liveInvitationStates[o.Invitation.State]
+		if !ok {
+			return nil, errUnsyncable
+		}
 		out.Object = &casav1.Change_Invitation{Invitation: &casav1.Invitation{
-			InvitationId: uuidString(o.Invitation.ID), State: liveInvitationStates[o.Invitation.State],
+			InvitationId: uuidString(o.Invitation.ID), State: state,
 			ExpiresAt: timestamppb.New(o.Invitation.ExpiresAt), InviterMemberId: uuidString(o.Invitation.Inviter),
 		}}
+	default:
+		return nil, errUnsyncable
 	}
-	return out
+	return out, nil
 }

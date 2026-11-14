@@ -165,7 +165,6 @@ type OpenInvitation struct {
 	ID        pgtype.UUID
 	State     string
 	ExpiresAt time.Time
-	Inviter   pgtype.UUID
 	// InviteeDisplayName and InviteeAccount are set only for the inviter of
 	// an accepted invitation (decision 16; 10.1 §5.1 note 1.6 item 3 (a),
 	// (b)).
@@ -191,7 +190,7 @@ func (s *Service) OpenInvitation(ctx context.Context, r Reader) (inv OpenInvitat
 		if err != nil || !live {
 			return err
 		}
-		inv, found = OpenInvitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt, Inviter: row.Inviter}, true
+		inv, found = OpenInvitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt}, true
 		if row.State == "accepted" && row.Inviter == member {
 			inv.InviteeDisplayName, inv.InviteeAccount = row.InviteeDisplayName.String, row.InviteeAccountID
 		}
@@ -268,7 +267,8 @@ var snapshotOrder = []ObjectKind{KindHousehold, KindMember, KindInvitation}
 var nilID = pgtype.UUID{Valid: true}
 
 // kindPage is up to n live objects of kind in tx's household with an id
-// after after, by id. A household has one household object and at most one
+// after after, by id; errTooManyMembers when more than maxMembers members
+// follow after, so no member is ever dropped from a page. A household has one household object and at most one
 // live invitation (invitation_live), so only members need a keyset page.
 func (s *Service) kindPage(ctx context.Context, q *readdb.Queries, kind ObjectKind, after pgtype.UUID, n int) ([]Projected, error) {
 	var out []Projected
@@ -280,9 +280,14 @@ func (s *Service) kindPage(ctx context.Context, q *readdb.Queries, kind ObjectKi
 		}
 		out = append(out, Projected{ObjectRef{kind, h.ID}, Object{Household: &Household{ID: h.ID, Name: h.Name, TimeZone: h.TimeZone, Currency: h.Currency}}})
 	case KindMember:
-		rows, err := q.MemberViews(ctx, readdb.MemberViewsParams{After: after, Lim: int32(min(n, maxMembers+1))}) //nolint:gosec // bounded by maxMembers + 1
-		if err != nil {
+		// Always one more than maxMembers, whatever the page: more members
+		// fail the read instead of dropping one (ES §3).
+		rows, err := q.MemberViews(ctx, readdb.MemberViewsParams{After: after, Lim: maxMembers + 1})
+		switch {
+		case err != nil:
 			return nil, err
+		case len(rows) > maxMembers:
+			return nil, errTooManyMembers
 		}
 		for _, m := range rows {
 			out = append(out, Projected{ObjectRef{kind, m.MemberID}, Object{Member: &Member{MemberID: m.MemberID, DisplayName: m.DisplayName.String}}})
@@ -314,9 +319,6 @@ func (s *Service) Objects(ctx context.Context, tx pgx.Tx, r Reader, refs []Objec
 		all, err := s.kindPage(ctx, q, kind, nilID, maxMembers+1)
 		if err != nil {
 			return nil, err
-		}
-		if len(all) > maxMembers {
-			return nil, errTooManyMembers
 		}
 		for _, p := range all {
 			if slices.Contains(refs, p.Ref) {

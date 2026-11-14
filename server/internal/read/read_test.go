@@ -118,7 +118,7 @@ func TestRead(t *testing.T) {
 			household, inviter, invitee, now, expires)
 
 		inv, found, err := h.read.OpenInvitation(t.Context(), read.Reader{HouseholdID: household, AccountID: inviterAccount, MemberID: inviter})
-		want := read.OpenInvitation{ID: id, State: "accepted", ExpiresAt: expires, Inviter: inviter, InviteeDisplayName: "Citra", InviteeAccount: invitee}
+		want := read.OpenInvitation{ID: id, State: "accepted", ExpiresAt: expires, InviteeDisplayName: "Citra", InviteeAccount: invitee}
 		inv.ExpiresAt = inv.ExpiresAt.UTC() // the instant, not the session's zone
 		if err != nil || !found || inv != want {
 			t.Fatalf("inviter reads %+v %v %v, want %+v", inv, found, err, want)

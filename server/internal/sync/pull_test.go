@@ -416,6 +416,37 @@ func TestPull(t *testing.T) {
 		}
 	})
 
+	// ES §3; plan 1.6 "Batasan global": the member query is bounded at 20
+	// [Usulan], so more members fail the read instead of dropping a member
+	// from the snapshot or the projection.
+	t.Run("more than 20 members fail the snapshot and the projection instead of dropping one", func(t *testing.T) {
+		x := newHarness(t)
+		a := x.create(t)
+		r := reader(a)
+		for range 19 {
+			x.addMember(t, a.HouseholdID)
+		}
+		c := cache{}
+		x.catchUp(t, r, c, "", 100)
+		if len(c) != 21 {
+			t.Fatalf("%d objects with 20 members, want the household and 20 members", len(c))
+		}
+		extra := x.addMember(t, a.HouseholdID)
+		for _, limit := range []int{100, 5} {
+			_, err := x.sync.Pull(t.Context(), r, "", limit)
+			if err == nil {
+				t.Fatalf("snapshot of 21 members with limit %d: no error", limit)
+			}
+		}
+		err := database.Read(t.Context(), x.app, database.Scope{HouseholdID: r.HouseholdID, AccountID: r.AccountID}, func(tx pgx.Tx) error {
+			_, err := x.read.Objects(t.Context(), tx, r, []read.ObjectRef{{Kind: read.KindMember, ID: extra}})
+			return err
+		})
+		if err == nil {
+			t.Fatal("projection of 21 members: no error")
+		}
+	})
+
 	// Plan 1.7 decision 14: the page holds 1 to 500 changes; Pull refuses
 	// any other limit itself, so the contract's lte: 500 is not its only
 	// guard (lead ruling on the Task 5 review).

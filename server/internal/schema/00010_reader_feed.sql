@@ -30,11 +30,11 @@ CREATE TABLE reader_feed_counter (
 );
 
 -- Layer 4 of 09.2 §3, without missing_ok. Both policies name app_rw from
--- the start (the counter's by lead ruling on Task 4 review): without TO it would also be evaluated for job_runner's
--- pruning (step 7) and fail, since job_runner never sets app.household_id
--- (09.2 §3 note of 14 November 2026, Q1 (d)). The feed is append-only for
--- app_rw; the counter only moves last_pos. job_runner and lifecycle_rw get
--- nothing.
+-- the start (09.2 §3 note of 14 November 2026, Q1 (b), (d)): without TO a
+-- policy would also be evaluated for job_runner's pruning (step 7) and
+-- fail, since job_runner never sets app.household_id. The feed is
+-- append-only for app_rw; the counter only moves last_pos. job_runner and
+-- lifecycle_rw get nothing.
 ALTER TABLE reader_feed ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reader_feed FORCE ROW LEVEL SECURITY;
 CREATE POLICY household ON reader_feed FOR ALL TO app_rw

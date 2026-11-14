@@ -15,14 +15,17 @@ import (
 	"time"
 
 	"connectrpc.com/connect/v2"
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/abiyanzimran/casa/server/internal/api"
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/household"
+	"github.com/abiyanzimran/casa/server/internal/read"
 	casasync "github.com/abiyanzimran/casa/server/internal/sync"
 )
 
@@ -474,4 +477,28 @@ func TestSync(t *testing.T) {
 			t.Fatalf("job path %v, lazy path %v; want the same purge apart from the object id", fromJob, fromLazyPath)
 		}
 	})
+}
+
+// syncChange fails closed on a change it cannot put in the contract, so the
+// handler answers internal instead of sending an object a client misreads
+// (09.3 §3; final review of PR B).
+func TestSyncChange(t *testing.T) {
+	id := pgtype.UUID{Bytes: [16]byte{1}, Valid: true}
+	for name, c := range map[string]casasync.Change{
+		"an object kind the contract does not name": {Kind: casasync.Purge, Ref: read.ObjectRef{Kind: "account", ID: id}},
+		"an invitation state that is not live": {Kind: casasync.Upsert, Ref: read.ObjectRef{Kind: read.KindInvitation, ID: id},
+			Object: read.Object{Invitation: &read.Invitation{ID: id, State: "expired"}}},
+		"an upsert without an object": {Kind: casasync.Upsert, Ref: read.ObjectRef{Kind: read.KindMember, ID: id}},
+		"a change kind that is neither upsert nor purge": {Kind: 0, Ref: read.ObjectRef{Kind: read.KindMember, ID: id},
+			Object: read.Object{Member: &read.Member{MemberID: id}}},
+	} {
+		if got, err := api.SyncChange(c); err == nil {
+			t.Errorf("%s: %v, want an error", name, got)
+		}
+	}
+	got, err := api.SyncChange(casasync.Change{Kind: casasync.Purge, Ref: read.ObjectRef{Kind: read.KindInvitation, ID: id}})
+	want := &casav1.Change{Kind: casav1.ChangeKind_CHANGE_KIND_PURGE, ObjectKind: casav1.ObjectKind_OBJECT_KIND_INVITATION, ObjectId: uuidText(id)}
+	if err != nil || !proto.Equal(got, want) {
+		t.Fatalf("purge = %v, %v; want %v", got, err, want)
+	}
 }

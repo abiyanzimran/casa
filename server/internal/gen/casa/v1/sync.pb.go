@@ -76,6 +76,7 @@ func (SyncPurpose) EnumDescriptor() ([]byte, []int) {
 
 // ChangeKind is what the device does with an object (09.3 §3): UPSERT holds
 // it, PURGE drops it from the cache.
+// A client treats an unknown value (and UNSPECIFIED) as PURGE by object_id; a new value must be safe under that reading (09.3 §3; ADR-018 note 14 November 2026).
 type ChangeKind int32
 
 const (
@@ -126,6 +127,7 @@ func (ChangeKind) EnumDescriptor() ([]byte, []int) {
 }
 
 // ObjectKind is the kind of a synced object (plan 1.7 decision 7).
+// A client always applies a PURGE by object_id, whatever the kind, and skips an UPSERT of a kind it does not know; a release that learns a kind drops its cache and re-snapshots (09.3 §3).
 type ObjectKind int32
 
 const (
