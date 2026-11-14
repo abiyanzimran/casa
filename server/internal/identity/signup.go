@@ -167,7 +167,11 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 	}
 	tokens, err := s.completeSignUp(ctx, client, verificationToken, email, password, invitationOpen)
 	if err != nil {
-		done(outcomeOf(err))
+		if client.WithoutSession {
+			done(NotTried)
+		} else {
+			done(outcomeOf(err))
+		}
 		return Tokens{}, err
 	}
 	done(Succeeded)
