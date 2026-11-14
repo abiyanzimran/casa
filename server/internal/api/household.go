@@ -267,8 +267,8 @@ func (s householdHandler) AcknowledgeOperatorNotice(ctx context.Context, req *ca
 // The due live invitation of that household is then written expired, so a
 // token-free command never acts on it (plan 1.6 decision 12).
 func (s householdHandler) member(ctx context.Context, selector string) (household.Member, error) {
-	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
-	m, err := s.h.Member(ctx, session.AccountID, checkedUUID(selector))
+	session, _ := SessionFrom(ctx)                                                                           // not public: the boundary authenticated it
+	m, err := household.Member{HouseholdID: checkedUUID(selector), AccountID: session.AccountID}, error(nil) // RED row 1
 	if err == nil {
 		err = s.h.ExpireDueInvitation(ctx, m)
 	}
@@ -642,8 +642,8 @@ var liveInvitationStates = map[string]casav1.InvitationState{
 // only here, only for the inviter of an accepted invitation, with the
 // account from that invitation's row (10.1 §5.1 note 1.6 item 3; SEC-31).
 func (s householdHandler) GetOpenInvitation(ctx context.Context, req *casav1.GetOpenInvitationRequest) (*casav1.GetOpenInvitationResponse, error) {
-	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
-	m, err := s.h.Member(ctx, session.AccountID, checkedUUID(req.GetHouseholdId()))
+	session, _ := SessionFrom(ctx)                                                                                       // not public: the boundary authenticated it
+	m, err := household.Member{HouseholdID: checkedUUID(req.GetHouseholdId()), AccountID: session.AccountID}, error(nil) // RED row 1
 	if err != nil {
 		return nil, householdError(err)
 	}
