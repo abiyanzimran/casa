@@ -80,12 +80,14 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
     | `internal/jobs` | `internal/database`, `internal/jobs/jobsdb` (seluruh daftarnya) |
     | `internal/read` | `internal/database`, `internal/read/readdb` (seluruh daftarnya) |
     | `internal/sync` | `internal/database`, `internal/read`, `internal/sync/syncdb` (seluruh daftarnya) |
-    | `internal/household` | `internal/jobs`, `internal/sync` |
+    | `internal/household` | `internal/jobs`, `internal/read`, `internal/sync` |
     | `internal/api` | `internal/read`, `internal/sync` |
     | `cmd/casa` | `internal/jobs`, `internal/read`, `internal/sync` |
     | `internal/jobs/jobsdb`, `internal/read/readdb`, `internal/sync/syncdb`, `internal/isolation` (uji saja) | tidak ada |
 
     Arahnya `household → sync → read` dan `household → jobs`. `read` dan `jobs` tidak mengimpor modul domain mana pun, jadi tidak ada siklus. `sync` mengambil daftar anggota dan `can_read` dari `read`, tidak dari `household`. `sync.Changed` adalah satu-satunya penulis `reader_feed`: `household.RecordEvent` memanggilnya di transaksi yang sama, dan modul yang kelak mengubah proyeksi tanpa Peristiwa memanggilnya langsung (tepinya ditambahkan di sini bersama modul itu). Penangan job didaftarkan `cmd/casa` ke `jobs.Runner` sebagai fungsi, sehingga `jobs` tidak mengimpor modul yang job-nya ia jalankan. **Pengecualian sementara butir 9 berakhir:** `identity.AccountEmail` pindah menjadi `read.AccountEmail` dan ekspornya dihapus dari `identity`; aturan 2 kembali berlaku tanpa pengecualian.
+
+    Catatan 14 November 2026 (FS-1 1.7 PR B, tepi `household → read`): `household.RecordEvent` memanggil `sync.Changed` dengan jenis objek yang didefinisikan `read` (`read.KindHousehold` dan seterusnya), jadi `household` mengimpor `read` secara langsung; tepi itu ditambahkan ke baris `internal/household` di atas. Tetap tanpa siklus, karena `read` tidak mengimpor modul domain dan arah `household → sync → read` sudah ada. Konstanta string tersendiri di `household` ditolak: itu salinan kedua daftar jenis objek yang dapat menyimpang dari `read`, padahal `read` adalah satu-satunya pemilik jenis objek yang terbaca. Tepi ini untuk pengenal jenis objek; perluasan pemakaian `read` oleh `household` di luar itu diputuskan dulu di sini.
 
 ```mermaid
 flowchart LR
