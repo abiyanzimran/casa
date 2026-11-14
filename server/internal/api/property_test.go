@@ -95,17 +95,41 @@ func startPropertyHarness(t *testing.T) *propertyHarness {
 	return h
 }
 
-// rowCounts is the number of rows of every table, as "table=n ...".
-func (h *propertyHarness) rowCounts(t *rapid.T) string {
-	counts := make([]string, len(h.tables))
-	for i, table := range h.tables {
-		counts[i] = fmt.Sprintf("'%s=' || (SELECT count(*) FROM %s)", table, pgx.Identifier{table}.Sanitize())
+// rowsSnapshot is what a resend may not change: the row count of every
+// table but object_event and reader_feed, and every row of those two by key
+// (events: "kind id seq" to "actor_kind rule"; feed: "member pos" to
+// "object_kind object_id"), so that the rows a resend added can be told
+// apart (checkResend).
+type rowsSnapshot struct {
+	counts       string
+	events, feed map[string]string
+}
+
+func (h *propertyHarness) rows(t *rapid.T) rowsSnapshot {
+	var counts []string
+	for _, table := range h.tables {
+		if table != "object_event" && table != "reader_feed" {
+			counts = append(counts, fmt.Sprintf("'%s=' || (SELECT count(*) FROM %s)", table, pgx.Identifier{table}.Sanitize()))
+		}
 	}
-	var got string
-	if err := h.admin.QueryRow(t.Context(), "SELECT "+strings.Join(counts, " || ' ' || ")).Scan(&got); err != nil {
+	r := rowsSnapshot{events: map[string]string{}, feed: map[string]string{}}
+	if err := h.admin.QueryRow(t.Context(), "SELECT "+strings.Join(counts, " || ' ' || ")).Scan(&r.counts); err != nil {
 		t.Fatal(err)
 	}
-	return got
+	for into, query := range map[*map[string]string]string{
+		&r.events: "SELECT concat_ws(' ', object_kind, object_id, seq), concat_ws(' ', actor_kind, coalesce(rule, '-')) FROM object_event",
+		&r.feed:   "SELECT concat_ws(' ', member_id, pos), concat_ws(' ', object_kind, object_id) FROM reader_feed",
+	} {
+		rows, err := h.admin.Query(t.Context(), query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var key, value string
+		if _, err := pgx.ForEachRow(rows, []any{&key, &value}, func() error { (*into)[key] = value; return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return r
 }
 
 // account is one signed-up account of the machine, calling from a loopback
@@ -187,7 +211,7 @@ type step struct {
 // resendResult is what the last resend saw (ADR-005).
 type resendResult struct {
 	first, again          string
-	rowsBefore, rowsAfter string
+	rowsBefore, rowsAfter rowsSnapshot
 }
 
 // householdMachine: 2 to 5 accounts, the command log (actor index,
@@ -386,10 +410,10 @@ func (m *householdMachine) warmStart(t *rapid.T) {
 	})
 }
 
-// mustRun runs a command step that must succeed.
+// mustRun runs a scripted command step that must succeed.
 func (m *householdMachine) mustRun(t *rapid.T, actor int, procedure string, request proto.Message) {
 	if s := m.run(t, step{actor: actor, procedure: procedure, request: request}); !s.ok {
-		t.Fatalf("warm start %s: %s", procedure, s.answer)
+		t.Fatalf("scripted %s: %s", procedure, s.answer)
 	}
 }
 
@@ -430,10 +454,14 @@ func (m *householdMachine) resendAction(t *rapid.T) {
 	if len(accepted) == 0 {
 		t.Skip("no accepted command yet")
 	}
-	first := m.steps[rapid.SampledFrom(accepted).Draw(t, "resent")]
-	before := m.h.rowCounts(t)
+	m.resend(t, m.steps[rapid.SampledFrom(accepted).Draw(t, "resent")])
+}
+
+// resend sends first again with its key and keeps what checkResend checks.
+func (m *householdMachine) resend(t *rapid.T, first step) {
+	before := m.h.rows(t)
 	again := m.run(t, step{actor: first.actor, procedure: first.procedure, request: first.request, resend: true})
-	m.resent = &resendResult{first: first.answer, again: again.answer, rowsBefore: before, rowsAfter: m.h.rowCounts(t)}
+	m.resent = &resendResult{first: first.answer, again: again.answer, rowsBefore: before, rowsAfter: m.h.rows(t)}
 }
 
 // advanceClock moves the clock 1 minute to 8 days: two times in three less
@@ -837,6 +865,47 @@ func TestHouseholdProperties(t *testing.T) {
 			})
 		})
 	}
+
+	// The named example of the resend exclusion (14 §4.3 "Penyusutan dan
+	// benih"), so it runs every time and not only on a lucky seed: F01, the
+	// clock past its expiry with the job not run, then F01 again with its
+	// key. The resend writes the due expiry first (plan 1.6 decision 12)
+	// and nothing else; a write of any other kind is still a failure.
+	t.Run("a resend after the invitation's expiry is due writes only the expiry and returns its first answer", func(t *testing.T) {
+		h := startPropertyHarness(t)
+		rapid.MakeFuzz(func(rt *rapid.T) {
+			m := h.newMachine(rt, 2, identity5)
+			m.mustRun(rt, 0, casav1connect.HouseholdServiceCreateHouseholdProcedure, &casav1.CreateHouseholdRequest{
+				RequestContext: commandRC(), Name: "Rumah Kita", TimeZone: "Asia/Jakarta", DisplayName: "Ayu", AgeDeclarationVersion: 1,
+			})
+			m.mustRun(rt, 0, casav1connect.HouseholdServiceCreateInvitationProcedure, &casav1.CreateInvitationRequest{
+				RequestContext: commandRC(), HouseholdId: m.households[0],
+			})
+			invite := m.steps[len(m.steps)-1]
+			m.h.clock.advance(invitationLifetime + time.Minute)
+			m.signInAll(rt)
+			m.resend(rt, invite)
+			r := *m.resent
+			if len(r.rowsAfter.events) != len(r.rowsBefore.events)+1 || len(r.rowsAfter.feed) == len(r.rowsBefore.feed) {
+				rt.Fatalf("the resend wrote %d events and %d feed rows, want the expiry event and its feed rows",
+					len(r.rowsAfter.events)-len(r.rowsBefore.events), len(r.rowsAfter.feed)-len(r.rowsBefore.feed))
+			}
+			checkResend(rt, m)
+
+			other := r.rowsAfter
+			other.events = maps.Clone(other.events)
+			other.events["invitation "+m.invitations[0]+" 9"] = "member -"
+			if writes := resendWrites(r.rowsBefore, other); len(writes) != 1 {
+				rt.Fatalf("a member event written by a resend: writes = %v, want it reported", writes)
+			}
+			other = r.rowsAfter
+			other.feed = maps.Clone(other.feed)
+			other.feed[m.accounts[0].id+" 99"] = "household " + m.households[0]
+			if writes := resendWrites(r.rowsBefore, other); len(writes) != 1 {
+				rt.Fatalf("a household feed row written by a resend: writes = %v, want it reported", writes)
+			}
+		})(t, nil)
+	})
 
 	// INV-A13 with N = 2 (14 §4.3 "Simetri"; FR-FAM-001/AC-4, the part of
 	// 1.7): the log replayed on new accounts with actors 0 and 1 swapped.

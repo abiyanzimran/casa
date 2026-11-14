@@ -167,9 +167,54 @@ func checkResend(t *rapid.T, m *householdMachine) {
 	if r.again != r.first {
 		t.Fatalf("ADR-005: resend answered\n%s\nwant the first answer\n%s", r.again, r.first)
 	}
-	if r.rowsAfter != r.rowsBefore {
-		t.Fatalf("ADR-005: resend changed the rows from\n%s\nto\n%s", r.rowsBefore, r.rowsAfter)
+	if writes := resendWrites(r.rowsBefore, r.rowsAfter); len(writes) > 0 {
+		t.Fatalf("ADR-005: the resend wrote %s", strings.Join(writes, "; "))
 	}
+}
+
+// resendWrites lists what changed between before and after that a resend
+// may not write. The one exception is the lazy expiry: a token-free
+// household command writes the due expiry of the household's live
+// invitation before it reads its idempotency record (09.3 §9; plan 1.6
+// decision 12). That write is a system transition any access may trigger,
+// idempotent with the expiry job, not the command written again, which is
+// what ADR-005 forbids (lead ruling, Task 8 fix round). So a new
+// invitation.expired event by system, and the new feed rows of that
+// invitation, are allowed; any other added, changed or lost row is not.
+func resendWrites(before, after rowsSnapshot) []string {
+	var writes []string
+	if before.counts != after.counts {
+		writes = append(writes, "rows from "+before.counts+" to "+after.counts)
+	}
+	expired := map[string]bool{}
+	for key, event := range after.events {
+		was, existed := before.events[key]
+		switch {
+		case existed && was == event:
+		case !existed && event == "system invitation.expired" && strings.HasPrefix(key, "invitation "):
+			expired[strings.Fields(key)[1]] = true
+		default:
+			writes = append(writes, "event "+key+" "+event)
+		}
+	}
+	for key, row := range after.feed {
+		was, existed := before.feed[key]
+		if existed && was == row {
+			continue
+		}
+		if f := strings.Fields(row); existed || f[0] != "invitation" || !expired[f[1]] {
+			writes = append(writes, "feed row "+key+" "+row)
+		}
+	}
+	for _, rows := range [][2]map[string]string{{before.events, after.events}, {before.feed, after.feed}} {
+		for key := range rows[0] {
+			if _, ok := rows[1][key]; !ok {
+				writes = append(writes, "lost row "+key)
+			}
+		}
+	}
+	slices.Sort(writes)
+	return writes
 }
 
 // checkSyncEqualsRead: for every member, both device models caught up from
