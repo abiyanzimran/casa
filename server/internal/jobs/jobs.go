@@ -32,8 +32,10 @@ const (
 	// dies mid-job leaves it to be claimed again after it (plan 1.7
 	// decision 2).
 	lease = 5 * time.Minute
-	// handlerTimeout is under the lease, so a job never runs twice at once
-	// (plan 1.7 decision 2) [Usulan].
+	// handlerTimeout is under the lease, so a job runs twice at once only
+	// if its handler ignores its context past the timeout; even then the
+	// late outcome cannot touch the new claim (DeleteJob, FailJob match the
+	// attempt) (plan 1.7 decision 2) [Usulan].
 	handlerTimeout = 4 * time.Minute
 	// firstBackoff and maxBackoff bound the wait after a failed attempt:
 	// min(10 s × 2^(n−1), 1 h) after the nth (plan 1.7 decision 2) [Usulan].
@@ -50,11 +52,10 @@ const (
 	codePanic       = "panic"
 	codeTimeout     = "timeout"
 	codeUnknownKind = "unknown_kind"
+	// codeLease: the runner died during the last attempt, so its outcome is
+	// unknown and the job stops without running again (plan 1.7 fix round 1).
+	codeLease = "lease"
 )
-
-// errJobNotDeleted: the job that ran was not in its household to delete; it
-// runs again once its lease ends, and its handler is idempotent (09.3 §9).
-var errJobNotDeleted = errors.New("the job that ran was not deleted")
 
 // Job is a claimed job: its payload holds identifiers only (09.2 §5.1; SEC-44).
 type Job struct {
@@ -118,19 +119,27 @@ func NewRunner(c Config) *Runner {
 	return &Runner{c: c}
 }
 
-// RunDue claims and runs due jobs one at a time until none is due; ran counts them.
+// RunDue claims and runs due jobs one at a time until none is due; ran counts them,
+// including a job stopped without running because its last attempt died.
 // A job's failure is recorded on the job, not returned; err is a failure to
 // claim or to record. ponytail: one sequential runner, so a slow job delays
-// the others; the way up is several claiming goroutines, which SKIP LOCKED
-// already makes safe.
+// the others. Several claiming goroutines are safe (SKIP LOCKED) but would
+// not scale as is: database.Write is SERIALIZABLE, so concurrent claims
+// mostly end in 40001 retries; the way up is a READ COMMITTED claim
+// transaction, where SKIP LOCKED alone keeps claims apart.
 func (r *Runner) RunDue(ctx context.Context) (ran int, err error) {
 	for ctx.Err() == nil {
-		job, found, err := r.claim(ctx)
+		job, died, found, err := r.claim(ctx)
 		if err != nil || !found {
 			return ran, err
 		}
 		ran++
-		if err := r.run(ctx, job); err != nil {
+		if died {
+			err = r.fail(context.WithoutCancel(ctx), job, codeLease)
+		} else {
+			err = r.run(ctx, job)
+		}
+		if err != nil {
 			return ran, err
 		}
 	}
@@ -138,7 +147,9 @@ func (r *Runner) RunDue(ctx context.Context) (ran int, err error) {
 }
 
 // Run waits on LISTEN jobs for at most 1 s, then RunDue, until ctx ends; it
-// returns after the running job finishes.
+// returns after the running job finishes. It returns the error of a
+// database failure (claim, record, listen or wait) without retrying; the
+// caller decides what follows (plan 1.7 Task 2, casa serve).
 func (r *Runner) Run(ctx context.Context) error {
 	pooled, err := r.c.Claim.Acquire(ctx)
 	if err != nil {
@@ -168,12 +179,12 @@ func (r *Runner) Run(ctx context.Context) error {
 }
 
 // claim takes the oldest due job as job_runner and holds it for the lease,
-// counting the attempt (plan 1.7 decision 2).
-func (r *Runner) claim(ctx context.Context) (Job, bool, error) {
+// counting the attempt (plan 1.7 decision 2). died reports a job whose last
+// attempt died with its runner.
+func (r *Runner) claim(ctx context.Context) (job Job, died, found bool, err error) {
 	now := r.c.Now()
 	var row jobsdb.ClaimDueRow
-	err := database.Write(ctx, r.c.Claim, database.Scope{}, func(tx pgx.Tx) error {
-		var err error
+	err = database.Write(ctx, r.c.Claim, database.Scope{}, func(tx pgx.Tx) (err error) {
 		row, err = jobsdb.New(tx).ClaimDue(ctx, jobsdb.ClaimDueParams{
 			Now:         now,
 			LeaseUntil:  now.Add(lease),
@@ -182,12 +193,13 @@ func (r *Runner) claim(ctx context.Context) (Job, bool, error) {
 		return err
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Job{}, false, nil
+		return Job{}, false, false, nil
 	}
 	if err != nil {
-		return Job{}, false, fmt.Errorf("claim a due job: %w", err)
+		return Job{}, false, false, fmt.Errorf("claim a due job: %w", err)
 	}
-	return Job{ID: row.ID, HouseholdID: row.HouseholdID, Kind: row.Kind, Payload: row.Payload, Attempt: row.Attempts}, true, nil
+	job = Job{ID: row.ID, HouseholdID: row.HouseholdID, Kind: row.Kind, Payload: row.Payload, Attempt: row.Attempts}
+	return job, row.LastAttemptDied, true, nil
 }
 
 // run runs job and records its outcome. The job finishes and is recorded
@@ -226,13 +238,11 @@ func (r *Runner) handle(ctx context.Context, job Job) (code string) {
 }
 
 // delete removes a job that ran, as app_rw in its household (a system job
-// outside any; 09.2 §3 note of 14 November 2026).
+// outside any; 09.2 §3 note of 14 November 2026). A lease lost to another
+// runner deletes nothing and is no error: that runner owns the job now.
 func (r *Runner) delete(ctx context.Context, job Job) error {
 	err := database.Write(ctx, r.c.App, database.Scope{HouseholdID: job.HouseholdID}, func(tx pgx.Tx) error {
-		n, err := jobsdb.New(tx).DeleteJob(ctx, job.ID)
-		if err == nil && n != 1 {
-			err = errJobNotDeleted
-		}
+		_, err := jobsdb.New(tx).DeleteJob(ctx, jobsdb.DeleteJobParams{ID: job.ID, Attempt: job.Attempt})
 		return err
 	})
 	if err != nil {
@@ -243,21 +253,26 @@ func (r *Runner) delete(ctx context.Context, job Job) error {
 
 // fail records code and the retry's time as job_runner; after the last
 // attempt the job waits forever and one ERROR line flags the operator with
-// the kind, id and code only (09.3 §9; SEC-44).
+// the kind, id and code only (09.3 §9; SEC-44). A lease lost to another
+// runner records and logs nothing, as in delete.
 func (r *Runner) fail(ctx context.Context, job Job, code string) error {
 	stopped := job.Attempt >= MaxAttempts
+	var recorded int64
 	err := database.Write(ctx, r.c.Claim, database.Scope{}, func(tx pgx.Tx) error {
-		return jobsdb.New(tx).FailJob(ctx, jobsdb.FailJobParams{
+		var err error
+		recorded, err = jobsdb.New(tx).FailJob(ctx, jobsdb.FailJobParams{
 			ID:        job.ID,
+			Attempt:   job.Attempt,
 			LastError: pgtype.Text{String: code, Valid: true},
 			Stopped:   stopped,
 			RetryAt:   r.c.Now().Add(backoff(job.Attempt)),
 		})
+		return err
 	})
 	if err != nil {
 		return fmt.Errorf("record a failed job: %w", err)
 	}
-	if stopped {
+	if stopped && recorded == 1 {
 		r.c.Logger.LogAttrs(ctx, slog.LevelError, "job stopped",
 			slog.String("kind", job.Kind), slog.String("id", job.ID.String()), slog.String("code", code))
 	}

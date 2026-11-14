@@ -428,6 +428,112 @@ func TestRunner(t *testing.T) {
 		}
 	})
 
+	t.Run("a job whose 10th attempt died is stopped and logged", func(t *testing.T) {
+		// A runner that died during the last attempt left attempts 10 and a
+		// finite lease; once it ends, the job stops without running again
+		// and flags the operator (09.3 §9; plan 1.7 fix round 1).
+		h := start(t)
+		h.enqueue(t, h.dueJob())
+		id := h.onlyJobID(t)
+		_, err := h.admin.Exec(t.Context(), "UPDATE job SET locked_until = $2, attempts = 10 WHERE id = $1",
+			id, h.clock.Now().Add(-time.Second))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var logs bytes.Buffer
+		handled := false
+		r := h.newRunner(map[string]jobs.Handler{kind: func(context.Context, jobs.Job) error {
+			handled = true
+			return nil
+		}}, slog.New(slog.NewJSONHandler(&logs, nil)))
+		if ran := h.runDue(t, r); ran != 1 || handled {
+			t.Fatalf("RunDue %d, handler ran %t; want the job claimed once and its handler not run", ran, handled)
+		}
+		got, ok := h.row(t, id)
+		if !ok || got.Attempts != jobs.MaxAttempts || got.LastError.String != "lease" ||
+			got.LockedUntil.InfinityModifier != pgtype.Infinity {
+			t.Fatalf("job = %+v (exists %t), want attempts 10, last_error lease, locked_until infinity", got, ok)
+		}
+		var entry map[string]any
+		if err := json.Unmarshal(logs.Bytes(), &entry); err != nil || entry["msg"] != "job stopped" || entry["code"] != "lease" {
+			t.Errorf("log %q, want one job stopped line with code lease (%v)", logs.String(), err)
+		}
+		h.clock.advance(1000 * time.Hour)
+		if ran := h.runDue(t, r); ran != 0 {
+			t.Errorf("stopped job claimed again: RunDue %d", ran)
+		}
+	})
+
+	t.Run("a runner that lost its lease neither deletes nor fails the job", func(t *testing.T) {
+		// The handler overran its lease and another runner holds the job
+		// (attempt 2): the late outcome of attempt 1 must not touch it.
+		h := start(t)
+		h.enqueue(t, h.dueJob())
+		id := h.onlyJobID(t)
+		lease := h.clock.Now().Add(5 * time.Minute)
+		takeOver := func() {
+			_, err := h.admin.Exec(t.Context(), "UPDATE job SET attempts = attempts + 1, locked_until = $2 WHERE id = $1", id, lease)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		for _, outcome := range []error{nil, errHandler} {
+			r := h.newRunner(map[string]jobs.Handler{kind: func(context.Context, jobs.Job) error {
+				takeOver()
+				return outcome
+			}}, nil)
+			if _, err := h.admin.Exec(t.Context(), "UPDATE job SET locked_until = NULL WHERE id = $1", id); err != nil {
+				t.Fatal(err)
+			}
+			h.runDue(t, r)
+			got, ok := h.row(t, id)
+			if !ok || got.LastError.Valid || !got.LockedUntil.Time.Equal(lease) {
+				t.Errorf("handler outcome %v: job = %+v (exists %t), want it untouched under the new holder's lease", outcome, got, ok)
+			}
+		}
+	})
+
+	t.Run("an enqueued job notifies channel jobs at commit only", func(t *testing.T) {
+		// 09.3 §9: the runner is woken by LISTEN jobs after commit; a job
+		// that rolled back wakes nobody. Run's own LISTEN is proven only
+		// indirectly (Run also checks every second).
+		h := start(t)
+		listener, err := h.admin.Acquire(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer listener.Release()
+		if _, err := listener.Exec(t.Context(), "LISTEN jobs"); err != nil {
+			t.Fatal(err)
+		}
+		defer func() { _, _ = listener.Exec(context.Background(), "UNLISTEN jobs") }()
+		noNotification := func(when string) {
+			ctx, cancel := context.WithTimeout(t.Context(), 200*time.Millisecond)
+			defer cancel()
+			if n, err := listener.Conn().WaitForNotification(ctx); !errors.Is(err, context.DeadlineExceeded) {
+				t.Errorf("%s: notification %+v, err %v; want none", when, n, err)
+			}
+		}
+		j := h.dueJob()
+		err = database.Write(t.Context(), h.app, database.Scope{HouseholdID: j.HouseholdID}, func(tx pgx.Tx) error {
+			if err := jobs.Enqueue(t.Context(), tx, j); err != nil {
+				return err
+			}
+			return errors.New("rollback")
+		})
+		if err == nil {
+			t.Fatal("the transaction committed")
+		}
+		noNotification("after a rollback")
+		h.enqueue(t, j)
+		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+		defer cancel()
+		if n, err := listener.Conn().WaitForNotification(ctx); err != nil || n.Channel != "jobs" {
+			t.Fatalf("after a commit: notification %+v, err %v; want one on jobs", n, err)
+		}
+		noNotification("after the one notification")
+	})
+
 	t.Run("a lease that ran out is claimed again", func(t *testing.T) {
 		// A runner that died mid-job left its lease and its counted attempt
 		// (plan 1.7 decision 2).

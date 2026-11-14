@@ -14,39 +14,48 @@ import (
 
 const claimDue = `-- name: ClaimDue :one
 WITH due AS (
-	SELECT d.id FROM job d
-	 WHERE d.run_at <= $2 AND d.attempts < $3::int
-	   AND (d.locked_until IS NULL OR d.locked_until <= $2)
+	SELECT d.id, d.attempts >= $2::int AS last_attempt_died
+	  FROM job d
+	 WHERE d.run_at <= $3
+	   AND ((d.locked_until IS NULL AND d.attempts < $2::int) OR d.locked_until <= $3)
 	 ORDER BY d.run_at
 	 LIMIT 1
 	   FOR UPDATE SKIP LOCKED
 )
-UPDATE job SET locked_until = $1::timestamptz, attempts = job.attempts + 1
+UPDATE job
+   SET locked_until = $1::timestamptz,
+       attempts = CASE WHEN due.last_attempt_died THEN job.attempts ELSE job.attempts + 1 END
   FROM due
  WHERE job.id = due.id
-RETURNING job.id, job.household_id, job.kind, job.payload, job.attempts
+RETURNING job.id, job.household_id, job.kind, job.payload, job.attempts, due.last_attempt_died
 `
 
 type ClaimDueParams struct {
 	LeaseUntil  time.Time
-	Now         time.Time
 	MaxAttempts int32
+	Now         time.Time
 }
 
 type ClaimDueRow struct {
-	ID          pgtype.UUID
-	HouseholdID pgtype.UUID
-	Kind        string
-	Payload     []byte
-	Attempts    int32
+	ID              pgtype.UUID
+	HouseholdID     pgtype.UUID
+	Kind            string
+	Payload         []byte
+	Attempts        int32
+	LastAttemptDied bool
 }
 
 // Run by job_runner (09.2 §3 row "job (pengambilan)"; plan 1.7 decision 2):
 // the oldest due job no other runner holds, by job_due for a new job and
 // job_locked for a retry or a lease that ran out. The attempt counts when
-// claimed, so a runner that dies mid-job still uses one.
+// claimed, so a runner that dies mid-job still uses one. A job whose last
+// attempt died with its runner (attempts at the bound, a finite lease that
+// ran out) is claimed as last_attempt_died, without a new attempt, so the
+// runner stops it and flags the operator (09.3 §9; plan 1.7 fix round 1). A
+// stopped job (locked_until infinity) and a job at the bound with no lease
+// are never claimed (ruling P8).
 func (q *Queries) ClaimDue(ctx context.Context, arg ClaimDueParams) (ClaimDueRow, error) {
-	row := q.db.QueryRow(ctx, claimDue, arg.LeaseUntil, arg.Now, arg.MaxAttempts)
+	row := q.db.QueryRow(ctx, claimDue, arg.LeaseUntil, arg.MaxAttempts, arg.Now)
 	var i ClaimDueRow
 	err := row.Scan(
 		&i.ID,
@@ -54,29 +63,36 @@ func (q *Queries) ClaimDue(ctx context.Context, arg ClaimDueParams) (ClaimDueRow
 		&i.Kind,
 		&i.Payload,
 		&i.Attempts,
+		&i.LastAttemptDied,
 	)
 	return i, err
 }
 
 const deleteJob = `-- name: DeleteJob :execrows
-DELETE FROM job WHERE id = $1
+DELETE FROM job WHERE id = $1 AND attempts = $2::int
 `
 
+type DeleteJobParams struct {
+	ID      pgtype.UUID
+	Attempt int32
+}
+
 // Run by app_rw in the job's household scope once its handler succeeded
-// (09.2 §3 note of 14 November 2026).
-func (q *Queries) DeleteJob(ctx context.Context, id pgtype.UUID) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteJob, id)
+// (09.2 §3 note of 14 November 2026). attempts names the claim: 0 rows means
+// the lease was lost to another runner, which now holds the job.
+func (q *Queries) DeleteJob(ctx context.Context, arg DeleteJobParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteJob, arg.ID, arg.Attempt)
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected(), nil
 }
 
-const failJob = `-- name: FailJob :exec
+const failJob = `-- name: FailJob :execrows
 UPDATE job
    SET last_error = $1,
        locked_until = CASE WHEN $2::boolean THEN 'infinity'::timestamptz ELSE $3::timestamptz END
- WHERE id = $4
+ WHERE id = $4 AND attempts = $5::int
 `
 
 type FailJobParams struct {
@@ -84,19 +100,24 @@ type FailJobParams struct {
 	Stopped   bool
 	RetryAt   time.Time
 	ID        pgtype.UUID
+	Attempt   int32
 }
 
 // Run by job_runner: the retry waits through locked_until; a stopped job
 // waits forever and flags the operator (09.3 §9). last_error is a code only
-// (SEC-44).
-func (q *Queries) FailJob(ctx context.Context, arg FailJobParams) error {
-	_, err := q.db.Exec(ctx, failJob,
+// (SEC-44). attempts names the claim, as in DeleteJob.
+func (q *Queries) FailJob(ctx context.Context, arg FailJobParams) (int64, error) {
+	result, err := q.db.Exec(ctx, failJob,
 		arg.LastError,
 		arg.Stopped,
 		arg.RetryAt,
 		arg.ID,
+		arg.Attempt,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertJob = `-- name: InsertJob :exec
