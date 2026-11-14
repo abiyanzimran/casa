@@ -1541,6 +1541,26 @@ func TestSignUpByInvitation(t *testing.T) {
 		wantCodes(t, h.startInvitedFrom(t, address, tokens[4], "c@example.test"), connect.CodeResourceExhausted, rateLimited)
 	})
 
+	t.Run("SEC-12 a start refused by the invitation key takes back its address count", func(t *testing.T) {
+		// 10.1 §8.1 row "Pemakaian token": a refusal by the invitation's
+		// own key does not count on the address.
+		h := startHousehold(t)
+		full := h.invited(t, "a@example.test")
+		other := h.invited(t, "b@example.test")
+		for i := range 5 {
+			wantOK(t, h.startInvitedFrom(t, byte(31+i), full.token, fmt.Sprintf("f%d@example.test", i)))
+		}
+		const address byte = 30
+		never, _ := identity.NewToken()
+		want := h.tokenRejection(t)
+		for range 19 {
+			wantRejection(t, h.startInvitedFrom(t, address, never, "x@example.test"), want, "StartSignUp never issued")
+		}
+		wantCodes(t, h.startInvitedFrom(t, address, full.token, "y@example.test"), connect.CodeResourceExhausted, rateLimited)
+		wantOK(t, h.startInvitedFrom(t, address, other.token, "z@example.test")) // the 20th count
+		wantCodes(t, h.startInvitedFrom(t, address, other.token, "z@example.test"), connect.CodeResourceExhausted, rateLimited)
+	})
+
 	t.Run("SEC-30 an email that already has an account, in any case, opens no second account", func(t *testing.T) {
 		// StartSignUp answers it as a fresh email (the SEC-12 subtest
 		// above); CompleteSignUp refuses it with the one rejection, and

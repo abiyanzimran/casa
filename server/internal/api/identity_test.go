@@ -599,6 +599,43 @@ func TestSignUp(t *testing.T) {
 		_, err = h.completeSignUp(ios, link, password)
 		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
 	})
+
+	t.Run("SEC-12 a successful CompleteSignUp takes back only its own address count", func(t *testing.T) {
+		// 10.1 §8.1 row "Pemakaian token": a success withdraws its own
+		// count from the address key and clears nothing else. The start is
+		// a fixture from another peer.
+		h := startIdentity(t)
+		_, err := h.fixtureClient(t).StartSignUp(context.Background(), &casav1.StartSignUpRequest{
+			RequestContext: identityRC(ios), SetupToken: h.issue(t, "owner@example.test"), Email: "owner@example.test",
+		})
+		wantOK(t, err)
+		link := h.lastLink(t)
+		for range 19 {
+			_, err := h.completeSignUp(ios, strings.Repeat("B", 43), password)
+			wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
+		}
+		_, err = h.completeSignUp(ios, link, password)
+		wantOK(t, err)
+		_, err = h.completeSignUp(ios, strings.Repeat("B", 43), password)
+		wantErrorCode(t, err, connect.CodePermissionDenied, rejected) // the 20th count, not RATE_LIMITED
+		_, err = h.completeSignUp(ios, strings.Repeat("B", 43), password)
+		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+	})
+
+	t.Run("SEC-12 successful setup-token sign-up starts count on the address", func(t *testing.T) {
+		// 10.1 §8.1 row "Pemakaian token": on StartSignUp every request the
+		// address limiter allows counts, success too, from both sources.
+		h := startIdentity(t)
+		for i := range 20 {
+			email := fmt.Sprintf("owner%d@example.test", i)
+			wantOK(t, h.startSignUp(h.issue(t, email), email))
+		}
+		if got := len(h.mails()); got != 20 {
+			t.Fatalf("%d mails, want 20", got)
+		}
+		wantErrorCode(t, h.startSignUp(h.issue(t, "late@example.test"), "late@example.test"),
+			connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+	})
 }
 
 func TestSessions(t *testing.T) {

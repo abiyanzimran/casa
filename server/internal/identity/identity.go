@@ -64,8 +64,9 @@ const (
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
-// address; an invitation sign-up start by invitation; SignIn by email and by address; Reauthenticate by account and by
-// address; StartRecovery by email and by address.
+// address; an invitation sign-up start by invitation; SignIn by email and by
+// address; Reauthenticate by account and by address; StartRecovery by email
+// and by address.
 const (
 	tokenUseThreshold = 20
 	// invitationStartThreshold: StartSignUp per invitation token hash
