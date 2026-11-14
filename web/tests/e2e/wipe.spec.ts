@@ -1,7 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
+import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
+import { mockRpc } from './api-mock';
 
-/** Waits for the app to render, so its signal listener is installed, and for the worker. */
+/**
+ * Waits for the app to render past the session check (a signed-in session), so its signal
+ * listener is installed, and for the worker.
+ */
 async function openApp(page: Page): Promise<void> {
+	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
 	await page.goto('/');
 	await expect(page.locator('h1')).toBeVisible();
 	await page.evaluate(async () => {
@@ -32,7 +38,7 @@ async function afterWipe(page: Page) {
 	}
 }
 
-test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell caches in every open tab', async ({
+test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell caches in every open tab and shows LY-94 there', async ({
 	context
 }) => {
 	const a = await context.newPage();
@@ -55,8 +61,8 @@ test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell cach
 	});
 	expect((await storage(a)).databases).toContain('casa');
 
-	// The old documents are marked; the wipe ends with location.replace('/'), so a page without
-	// the mark is a new document with nothing of the old one in memory (SEC-164 (c)).
+	// The old documents are marked: a revoked session shows LY-94 in place, with memory reset and
+	// no reload (plan decision 6), so the mark stays. A sign-out reloads (the test below).
 	for (const page of [a, b]) {
 		await page.evaluate(() => {
 			Object.assign(window, { oldDocument: true });
@@ -69,10 +75,17 @@ test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell cach
 	});
 
 	for (const page of [a, b]) {
-		// Polled, because the page navigates in between.
-		await expect
-			.poll(() => afterWipe(page), { timeout: 10_000 })
-			.toEqual({ newDocument: true, casaDatabase: false, probeCache: false, shellCaches: 1 });
+		await expect(
+			page.getByText(
+				'Kamu sudah keluar di perangkat ini, dan data Casa di browser ini sudah dihapus.'
+			)
+		).toBeVisible({ timeout: 10_000 });
+		expect(await afterWipe(page)).toEqual({
+			newDocument: false,
+			casaDatabase: false,
+			probeCache: false,
+			shellCaches: 1
+		});
 	}
 });
 

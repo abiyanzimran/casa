@@ -40,12 +40,17 @@ export async function wipeLocalData(): Promise<void> {
 	if (failures.length > 0) throw new AggregateError(failures, 'local wipe incomplete');
 }
 
+/** The number of unsent commands; without a local database 0, and none is created. */
+export async function unsentCount(): Promise<number> {
+	return (await localDbExists()) ? localDb().outbox.count() : 0;
+}
+
 /**
  * Tells every tab, this one included, to wipe (SEC-173 (b)), with the number of unsent
- * commands that go with it for LY-94. Without a local database it counts 0 and creates none.
+ * commands that go with it for LY-94.
  */
 export async function broadcastWipe(kind: WipeKind): Promise<number> {
-	const unsentDropped = (await localDbExists()) ? await localDb().outbox.count() : 0;
+	const unsentDropped = await unsentCount();
 	postTabSignal({ kind, unsentDropped });
 	return unsentDropped;
 }

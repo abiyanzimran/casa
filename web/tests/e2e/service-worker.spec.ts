@@ -76,6 +76,10 @@ test('SEC-169 (b): after the first visit the app opens without a network', async
 	await page.reload();
 	await expect(page).toHaveTitle('Casa');
 	await expect(page.locator('h1')).toHaveCount(1);
+	// The session check fails offline, so the app opens without it (SEC-172 (b); 08 §7.6).
+	await expect(
+		page.getByText('Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.')
+	).toBeVisible();
 	await context.setOffline(false);
 });
 

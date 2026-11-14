@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { tick, type Snippet } from 'svelte';
+	import { on } from 'svelte/events';
 	import '#lib/design/tokens.css';
+	import Button from '#lib/components/Button.svelte';
+	import Screen from '#lib/components/Screen.svelte';
+	import SessionEnded from '#lib/components/SessionEnded.svelte';
+	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
-	import { onTabSignal } from '#lib/tab-signal.js';
+	import { checkSession, resetSessionState, session } from '#lib/session.svelte.js';
+	import { onTabSignal, type WipeKind } from '#lib/tab-signal.js';
 	import { wipeLocalData } from '#lib/wipe.js';
 
 	let { children }: { children: Snippet } = $props();
@@ -14,63 +20,113 @@
 	// SEC-172 (a): set first, so the screen's data leaves the DOM before the wipe starts.
 	let wiping = $state(false);
 
-	async function wipeAndRestart(): Promise<void> {
+	function logFailure(error: unknown): void {
+		console.error(error);
+	}
+
+	function check(userInitiated = false): void {
+		checkSession({ userInitiated }).catch(logFailure);
+	}
+
+	/**
+	 * Every tab's answer to a wipe signal, the sending tab's included (SEC-173 (b)). A revoked
+	 * session shows LY-94 in place with the unsent count (plan decision 6); a sign-out the person
+	 * asked for, or leaving the household, opens a fresh document at /, which empties memory and
+	 * replaces the history entry (SEC-164 (c)). Sign-out (Task 7) arrives here through the
+	 * sign_out signal.
+	 */
+	async function wipe(signal: { kind: WipeKind; unsentDropped: number }): Promise<void> {
 		wiping = true;
 		await tick();
 		try {
 			await wipeLocalData();
 		} catch (error) {
-			// The session check on the next open (1.9b) runs the wipe again.
-			console.error(error);
+			// The session check on the next open runs the wipe again.
+			logFailure(error);
 		}
-		// A fresh document empties memory and replaces the history entry (SEC-164 (c)).
-		location.replace('/');
+		if (signal.kind !== 'session_revoked') {
+			location.replace('/');
+			return;
+		}
+		resetSessionState();
+		session.state = { kind: 'ended', reason: 'revoked', unsentDropped: signal.unsentDropped };
+		wiping = false;
 	}
 
 	$effect(() => {
 		if (unsupported) return;
-		registerServiceWorker().catch((error: unknown) => {
-			console.error(error);
+		registerServiceWorker().catch(logFailure);
+		// SEC-172 (b): the session is checked before anything else shows.
+		check();
+		// SEC-164 (d): a page restored from the back-forward cache shows nothing until the
+		// session is checked again.
+		const stopRestore = on(window, 'pageshow', (event) => {
+			if (!event.persisted) return;
+			session.state = { kind: 'checking' };
+			check();
 		});
 		// ponytail: app_lock is handled with the app lock in step 6 (SEC-174).
-		return onTabSignal((signal) => {
-			if (signal.kind !== 'app_lock') void wipeAndRestart();
+		const stopSignals = onTabSignal((signal) => {
+			if (signal.kind !== 'app_lock') wipe(signal).catch(logFailure);
 		});
+		return () => {
+			stopRestore();
+			stopSignals();
+		};
 	});
 </script>
 
 {#if unsupported}
-	<main class="unsupported">
-		<h1 class="judul-layar">Casa</h1>
+	<Screen heading="Casa">
 		<!-- 08 §25.6 LY-97 -->
 		<p>
 			Browser ini belum bisa menjalankan Casa dengan aman. Perbarui browser ini, atau buka Casa di
 			browser lain yang lebih baru.
 		</p>
 		<p>Bila Casa terbuka di dalam aplikasi lain atau di jendela pribadi, buka di browser biasa.</p>
-	</main>
-{:else if !wiping}
+	</Screen>
+{:else if wiping || session.state.kind === 'checking'}
+	<!-- 08 §25.7: the session check shows the paper surface with the knot, no sentence, no spinner -->
+	<div class="pemeriksaan" aria-busy="true"><span class="simpul"></span></div>
+{:else if session.state.kind === 'unreachable'}
+	<Screen heading="Casa">
+		<p>{copy.home.unreachable}</p>
+		<div class="tombol">
+			<Button
+				variant="primary"
+				onclick={() => {
+					check(true);
+				}}>{copy.common.retry}</Button
+			>
+		</div>
+	</Screen>
+{:else if session.state.kind === 'ended'}
+	<SessionEnded reason={session.state.reason} unsentDropped={session.state.unsentDropped} />
+{:else}
 	{@render children()}
 {/if}
 
 <style>
-	.unsupported {
-		box-sizing: border-box;
-		max-width: var(--lebar-satu-kolom);
-		margin: 0 auto;
-		padding: var(--jarak-12) var(--margin);
-		font-family: var(--huruf);
-		font-size: var(--ukuran-isi);
-		line-height: 1.5;
-		color: var(--tinta);
+	.pemeriksaan {
+		display: grid;
+		place-items: center;
+		min-height: 100dvh;
+		background: var(--kertas);
 	}
-	h1 {
-		margin: 0 0 var(--jarak-4);
+	.simpul {
+		/* 08 §19.5: the knot in tinta-2, never aksen */
+		width: var(--jarak-16);
+		height: var(--jarak-16);
+		background: var(--tinta-2);
+		mask: url('/glyphs/simpul.svg') center / contain no-repeat;
 	}
-	p {
-		margin: 0;
+	@media (forced-colors: active) {
+		.simpul {
+			forced-color-adjust: none;
+			background: CanvasText;
+		}
 	}
-	p + p {
-		margin-top: var(--jarak-3);
+	.tombol {
+		margin-top: var(--jarak-6);
 	}
 </style>
