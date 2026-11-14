@@ -66,6 +66,20 @@ const serviceWorkerRegistration = [
 	{ selector: "MemberExpression[property.name='createPolicy']", message: sec167c }
 ];
 
+// 10.5 §5, note of 14 November 2026 (N1): SvelteKit writes a route's snapshot to sessionStorage,
+// in shared mode too, so no route or layout exports one.
+const n1 =
+	'10.5 §5 N1: routes and layouts never export snapshot; its contents would be kept in sessionStorage.';
+const noSnapshot = [
+	{
+		selector:
+			"ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name='snapshot']",
+		message: n1
+	},
+	{ selector: "ExportNamedDeclaration > FunctionDeclaration[id.name='snapshot']", message: n1 },
+	{ selector: "ExportSpecifier[exported.name='snapshot']", message: n1 }
+];
+
 export default defineConfig(
 	// src/lib/gen/ is generated from proto/ (make proto-generate) and never edited by hand (ES §2).
 	{ ignores: ['build/', '.svelte-kit/', 'playwright-report/', 'test-results/', 'src/lib/gen/'] },
@@ -108,5 +122,16 @@ export default defineConfig(
 		// SEC-167 (c): the one module allowed to register the service worker and make casa-sw.
 		files: ['src/lib/service-worker-registration.ts'],
 		rules: { 'no-restricted-syntax': ['error', ...sec167Syntax] }
+	},
+	{
+		files: ['src/routes/**'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				...sec167Syntax,
+				...serviceWorkerRegistration,
+				...noSnapshot
+			]
+		}
 	}
 );

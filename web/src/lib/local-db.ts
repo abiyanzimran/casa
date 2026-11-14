@@ -2,6 +2,7 @@
 // features: the Sync mirror (1.9b, step 2), form drafts (step 2), the photo cache (step 5),
 // the app lock verifier (step 6). Nothing here goes to localStorage or sessionStorage.
 import Dexie, { type EntityTable } from 'dexie';
+import type { WipeKind } from './tab-signal';
 
 /**
  * One queued write command (09.3 §1). The idempotency key is made when the command is
@@ -21,11 +22,12 @@ export interface OutboxEntry {
 	rejectedCode?: string;
 }
 
-/** Device facts kept across sessions; the union grows with its users. */
-export interface MetaRow {
-	key: 'persistence_granted';
-	value: boolean;
-}
+/**
+ * Device facts kept across sessions; the union grows with its users. wipe_pending keeps the
+ * kind of the wipe, so the next open knows whether an unfinished wipe was a revoked session.
+ */
+export type MetaRow =
+	{ key: 'persistence_granted'; value: boolean } | { key: 'wipe_pending'; value: WipeKind };
 
 const name = 'casa';
 
@@ -51,6 +53,11 @@ let wiped = false;
 export function localDb(): LocalDb {
 	if (wiped) throw new Error('local data was wiped; the page reloads');
 	return (instance ??= new LocalDb());
+}
+
+/** Whether this page deleted the local database, so localDb() refuses until a reload. */
+export function localDbWiped(): boolean {
+	return wiped;
 }
 
 /** Whether the local database exists, without creating it (SEC-171 (e)). */
@@ -81,4 +88,34 @@ export async function requestPersistence(db: LocalDb): Promise<boolean> {
 	const granted = storage.persist ? await storage.persist().catch(() => false) : false;
 	await db.meta.put({ key: 'persistence_granted', value: granted });
 	return granted;
+}
+
+/**
+ * Runs use on a short-lived connection of its own and closes it; without a local database
+ * returns undefined and creates none (SEC-165 (b), SEC-171 (e)). Its own connection, so a page
+ * that already wiped once (localDb() refuses) still reaches a database another tab brought back.
+ */
+export async function withExistingDb<T>(use: (db: LocalDb) => Promise<T>): Promise<T | undefined> {
+	if (!(await localDbExists())) return undefined;
+	const db = new LocalDb();
+	try {
+		return await use(db);
+	} finally {
+		db.close();
+	}
+}
+
+/**
+ * Marks the local database as being wiped, with the kind of wipe, before the wipe starts
+ * (SEC-172 (a)). The marker lives in the database it guards, never in localStorage (10.5 §5):
+ * a successful deletion removes it, a failed one leaves it for the next open.
+ */
+export async function markWipePending(kind: WipeKind): Promise<void> {
+	await withExistingDb((db) => db.meta.put({ key: 'wipe_pending', value: kind }));
+}
+
+/** The kind of a wipe that was started and did not finish (SEC-172 (a)); creates no database. */
+export async function wipePending(): Promise<WipeKind | undefined> {
+	const row = await withExistingDb((db) => db.meta.get('wipe_pending'));
+	return row?.key === 'wipe_pending' ? row.value : undefined;
 }

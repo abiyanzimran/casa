@@ -60,7 +60,7 @@ async function queueOne(): Promise<void> {
 
 test('SEC-172 (a): the wipe deletes the local database, every cache but the app shell, and the push subscription', async () => {
 	await queueOne();
-	await wipeLocalData();
+	await wipeLocalData('sign_out');
 	expect(await Dexie.exists('casa')).toBe(false);
 	expect(cacheStorage.delete.mock.calls).toEqual([['other']]);
 	expect(unsubscribe).toHaveBeenCalledTimes(1);
@@ -77,7 +77,7 @@ test('SEC-172 (a): a send that finishes after the wipe does not bring the databa
 	await vi.waitFor(() => {
 		expect(send).toHaveBeenCalled();
 	});
-	await wipeLocalData();
+	await wipeLocalData('sign_out');
 	answer({ kind: 'accepted' });
 	await Promise.allSettled([flushing]);
 	expect(await Dexie.exists('casa')).toBe(false);
@@ -86,7 +86,7 @@ test('SEC-172 (a): a send that finishes after the wipe does not bring the databa
 test('SEC-172 (a): every wipe step runs when one fails, and the failure is reported', async () => {
 	await queueOne();
 	cacheStorage.keys.mockRejectedValue(new Error('cache storage unavailable'));
-	await expect(wipeLocalData()).rejects.toBeInstanceOf(AggregateError);
+	await expect(wipeLocalData('sign_out')).rejects.toBeInstanceOf(AggregateError);
 	expect(await Dexie.exists('casa')).toBe(false);
 	expect(unsubscribe).toHaveBeenCalledTimes(1);
 });
@@ -107,7 +107,7 @@ test('SEC-172 (a): the push subscription step runs last, after the database and 
 		databaseAtPush = await Dexie.exists('casa');
 		return { unsubscribe };
 	});
-	const wiping = wipeLocalData();
+	const wiping = wipeLocalData('sign_out');
 	await vi.waitFor(() => {
 		expect(cacheStorage.delete).toHaveBeenCalled();
 	});
@@ -121,10 +121,10 @@ test('SEC-172 (a): the push subscription step runs last, after the database and 
 
 test('SEC-172 (a): without notification permission there is no push subscription to look up', async () => {
 	vi.stubGlobal('Notification', { permission: 'default' });
-	await wipeLocalData();
+	await wipeLocalData('sign_out');
 	expect(getSubscription).not.toHaveBeenCalled();
 	vi.stubGlobal('Notification', undefined);
-	await wipeLocalData();
+	await wipeLocalData('sign_out');
 	expect(getSubscription).not.toHaveBeenCalled();
 });
 
@@ -142,4 +142,59 @@ test('SEC-164 (c): broadcastWipe counts unsent commands and tells every tab', as
 test('SEC-172 (a): broadcastWipe without a local database creates none and reports 0', async () => {
 	expect(await broadcastWipe('sign_out')).toBe(0);
 	expect(await indexedDB.databases()).toEqual([]);
+});
+
+test('SEC-172 (a): a database deletion that fails leaves the wipe_pending marker for the next open', async () => {
+	await queueOne();
+	const { wipePending } = await import('./local-db');
+	expect(await wipePending()).toBeUndefined();
+	vi.spyOn(Dexie, 'delete').mockRejectedValueOnce(new Error('deletion failed'));
+	await expect(wipeLocalData('session_revoked')).rejects.toThrow('local wipe incomplete');
+	// The marker keeps the kind, so the next open knows a revoked wipe is unfinished (I2).
+	expect(await wipePending()).toBe('session_revoked');
+
+	// The next wipe (fresh modules: a new page) removes the database, marker included.
+	vi.resetModules();
+	await (await import('./wipe')).wipeLocalData('sign_out');
+	expect(await Dexie.exists('casa')).toBe(false);
+	expect(await (await import('./local-db')).wipePending()).toBeUndefined();
+});
+
+test('SEC-165 (b): the wipe marks nothing without a local database', async () => {
+	await wipeLocalData('sign_out');
+	expect(await Dexie.exists('casa')).toBe(false);
+});
+
+test('SEC-172 (a): broadcastWipe still tells every tab when the queue cannot be counted, as unknown (0)', async () => {
+	await queueOne();
+	const { LocalDb } = await import('./local-db');
+	// Dexie's shared Table prototype, so every connection's count fails (iOS connection loss).
+	const table = Object.getPrototypeOf(Object.getPrototypeOf(new LocalDb().outbox)) as {
+		count: () => Promise<number>;
+	};
+	vi.spyOn(table, 'count').mockRejectedValue(new Error('connection lost'));
+	const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+	const received: TabSignal[] = [];
+	stops.push(onTabSignal((signal) => received.push(signal)));
+	expect(await broadcastWipe('session_revoked')).toBe(0);
+	await vi.waitFor(() => {
+		expect(received).toEqual([{ kind: 'session_revoked', unsentDropped: 0 }]);
+	});
+	expect(logged).toHaveBeenCalled();
+});
+
+test('SEC-172 (a): the queue is counted after this page wiped once and another tab brought the database back', async () => {
+	await wipeLocalData('sign_out'); // localDb() now refuses in this page
+	const { LocalDb } = await import('./local-db');
+	const otherTab = new LocalDb();
+	await otherTab.outbox.add({
+		idempotencyKey: crypto.randomUUID(),
+		kind: 'test_command',
+		payload: new Uint8Array([1]),
+		protective: true,
+		createdAt: 0,
+		releaseAt: 0
+	});
+	otherTab.close();
+	expect(await broadcastWipe('session_revoked')).toBe(1);
 });

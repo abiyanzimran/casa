@@ -1,7 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
+import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
+import { mockRpc } from './api-mock';
 
-/** Waits for the app to render, so its signal listener is installed, and for the worker. */
+/**
+ * Waits for the app to render past the session check (a signed-in session), so its signal
+ * listener is installed, and for the worker.
+ */
 async function openApp(page: Page): Promise<void> {
+	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
 	await page.goto('/');
 	await expect(page.locator('h1')).toBeVisible();
 	await page.evaluate(async () => {
@@ -32,7 +38,7 @@ async function afterWipe(page: Page) {
 	}
 }
 
-test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell caches in every open tab', async ({
+test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell caches in every open tab and shows LY-94 there', async ({
 	context
 }) => {
 	const a = await context.newPage();
@@ -55,8 +61,8 @@ test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell cach
 	});
 	expect((await storage(a)).databases).toContain('casa');
 
-	// The old documents are marked; the wipe ends with location.replace('/'), so a page without
-	// the mark is a new document with nothing of the old one in memory (SEC-164 (c)).
+	// The old documents are marked: a revoked session shows LY-94 in place, with memory reset and
+	// no reload (plan decision 6), so the mark stays. A sign-out reloads (the test below).
 	for (const page of [a, b]) {
 		await page.evaluate(() => {
 			Object.assign(window, { oldDocument: true });
@@ -69,21 +75,26 @@ test('SEC-172 (a): a session_revoked signal empties IndexedDB and non-shell cach
 	});
 
 	for (const page of [a, b]) {
-		// Polled, because the page navigates in between.
-		await expect
-			.poll(() => afterWipe(page), { timeout: 10_000 })
-			.toEqual({ newDocument: true, casaDatabase: false, probeCache: false, shellCaches: 1 });
+		await expect(
+			page.getByText(
+				'Kamu sudah keluar di perangkat ini, dan data Casa di browser ini sudah dihapus.'
+			)
+		).toBeVisible({ timeout: 10_000 });
+		expect(await afterWipe(page)).toEqual({
+			newDocument: false,
+			casaDatabase: false,
+			probeCache: false,
+			shellCaches: 1
+		});
 	}
 });
 
-test('SEC-172 (a): every tab drops its screen before the wipe starts', async ({ context }) => {
-	const a = await context.newPage();
-	const b = await context.newPage();
-	await openApp(a);
-	await openApp(b);
-	// A raw connection that ignores versionchange holds the database deletion, so the wipe
-	// stops in the middle and what is on screen then can be seen.
-	await a.evaluate(
+/**
+ * Opens a raw connection that ignores versionchange: it holds the database deletion, so the
+ * wipe stops in the middle and what is on screen then can be seen.
+ */
+function holdDeletion(page: Page): Promise<void> {
+	return page.evaluate(
 		() =>
 			new Promise<void>((resolve, reject) => {
 				const request = indexedDB.open('casa');
@@ -96,6 +107,46 @@ test('SEC-172 (a): every tab drops its screen before the wipe starts', async ({ 
 				};
 			})
 	);
+}
+
+function releaseDeletion(page: Page): Promise<void> {
+	return page.evaluate(() => {
+		(window as unknown as { heldConnection: IDBDatabase }).heldConnection.close();
+	});
+}
+
+test('SEC-172 (a): a revoked session shows LY-94 only once the wipe has finished', async ({
+	context
+}) => {
+	const a = await context.newPage();
+	const b = await context.newPage();
+	await openApp(a);
+	await openApp(b);
+	await holdDeletion(a);
+	await a.evaluate(() => {
+		const channel = new BroadcastChannel('casa');
+		channel.postMessage({ kind: 'session_revoked', unsentDropped: 0 });
+		channel.close();
+	});
+	const revokedSentence = b.getByText(
+		'Kamu sudah keluar di perangkat ini, dan data Casa di browser ini sudah dihapus.'
+	);
+
+	await expect(b.locator('h1')).toHaveCount(0);
+	await expect(revokedSentence).toHaveCount(0);
+	expect((await storage(b)).databases).toContain('casa'); // the deletion is held
+
+	await releaseDeletion(a);
+	await expect(revokedSentence).toBeVisible({ timeout: 10_000 });
+	expect((await storage(b)).databases).not.toContain('casa');
+});
+
+test('SEC-172 (a): every tab drops its screen before the wipe starts', async ({ context }) => {
+	const a = await context.newPage();
+	const b = await context.newPage();
+	await openApp(a);
+	await openApp(b);
+	await holdDeletion(a);
 	await b.evaluate(() => {
 		Object.assign(window, { oldDocument: true });
 	});
@@ -108,9 +159,7 @@ test('SEC-172 (a): every tab drops its screen before the wipe starts', async ({ 
 	await expect(b.locator('h1')).toHaveCount(0);
 	expect(await b.evaluate(() => 'oldDocument' in window)).toBe(true); // the wipe has not ended
 
-	await a.evaluate(() => {
-		(window as unknown as { heldConnection: IDBDatabase }).heldConnection.close();
-	});
+	await releaseDeletion(a);
 	await expect
 		.poll(() => afterWipe(b), { timeout: 10_000 })
 		.toMatchObject({ newDocument: true, casaDatabase: false });
