@@ -40,12 +40,6 @@ func setupToken(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	}
 	// The same check casa serve applies, before the pool opens, so a wrong
 	// origin issues no token (09.4 §2 note of 14 November 2026).
-	if *origin != "" {
-		if err := checkOriginFlag(*origin); err != nil {
-			_, _ = fmt.Fprintf(stderr, "casa setup-token: -origin: %v\n", err)
-			return 2
-		}
-	}
 	pool, err := openAppPool(ctx)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "casa setup-token: %v\n", err)
@@ -57,6 +51,12 @@ func setupToken(ctx context.Context, args []string, stdout, stderr io.Writer) in
 		// Errors from pgx name the host and user at most, never the password.
 		_, _ = fmt.Fprintf(stderr, "casa setup-token: %v\n", err)
 		return 1
+	}
+	if *origin != "" {
+		if err := checkOriginFlag(*origin); err != nil {
+			_, _ = fmt.Fprintf(stderr, "casa setup-token: -origin: %v\n", err)
+			return 2
+		}
 	}
 	_, _ = fmt.Fprintf(stdout, "casa setup-token: %s\nexpires: %s\nrecord this issuance in the operations log (SEC-37)\n",
 		token, expiresAt.UTC().Format(time.RFC3339))
