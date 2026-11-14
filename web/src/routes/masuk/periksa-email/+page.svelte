@@ -43,6 +43,7 @@
 		heading={copy.checkEmail.title}
 		destination="Periksa email"
 		describedby="{id}-sent {id}-help"
+		back={resolve('/masuk/daftar')}
 	>
 		<p id="{id}-sent" class="kalimat-email">{copy.checkEmail.sent(email)}</p>
 		<p id="{id}-help">{copy.checkEmail.help}</p>

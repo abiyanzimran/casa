@@ -8,6 +8,8 @@ export const copy = {
 		// While a tapped re-check runs (QG-09 S3).
 		retrying: 'Mencoba…',
 		back: 'Kembali',
+		// A submit button while its request runs (QG-09 PR B S2).
+		working: 'Memproses…',
 		rateLimited: 'Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.'
 	},
 	// 08 §7.6 field.showPassword: the visible text, and the accessible name with the field's.
@@ -85,6 +87,10 @@ export const copy = {
 		password: 'Kata sandi',
 		rejected: 'Email atau kata sandi belum cocok. Periksa keduanya, lalu coba lagi.',
 		doNotSave: 'Jangan simpan kata sandi di browser perangkat ini.',
+		// string.max_len on email or password (SEC-12: no email rule); the sentences of
+		// signUp.emailInvalid and verify.tooLong, no new ones.
+		emailInvalid: 'Tulis email lengkap, misalnya nama@contoh.id.',
+		passwordTooLong: 'Kata sandi ini terlalu panjang. Pakai paling banyak 1.024 karakter.',
 		// 08 §7.6 signIn.links: the second link; "Saya diundang" comes with its screen (Task 11).
 		signUp: 'Belum punya akun? Buat akun'
 	},

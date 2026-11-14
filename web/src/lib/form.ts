@@ -1,5 +1,6 @@
 // What a form shows for a failed call (08 §7.6 rules for the whole table, §13.2): a sentence on
 // a field for a buf.validate violation the form names, otherwise one sentence above the button.
+import { tick } from 'svelte';
 import { errorCode, failureOf, fieldViolations } from './api';
 import { copy } from './copy';
 import { ErrorCode } from './gen/casa/v1/error_pb';
@@ -31,4 +32,13 @@ export function fieldErrors(
 		if (sentence) found[field] = sentence;
 	}
 	return Object.keys(found).length > 0 ? found : undefined;
+}
+
+/**
+ * After a failed submit with field errors, the first field marked invalid takes focus once the
+ * errors render, so its error is read (08 §25.5 "Formulir"; WCAG 4.1.3).
+ */
+export async function focusFirstInvalid(form: HTMLFormElement | undefined): Promise<void> {
+	await tick();
+	form?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
 }

@@ -17,7 +17,7 @@
 	import { api, ctx, errorCode } from '#lib/api.js';
 	import { copy } from '#lib/copy.js';
 	import { displayContext } from '#lib/device.js';
-	import { actionFailure, fieldErrors } from '#lib/form.js';
+	import { actionFailure, fieldErrors, focusFirstInvalid } from '#lib/form.js';
 	import { ErrorCode } from '#lib/gen/casa/v1/error_pb.js';
 	import { DeviceMode } from '#lib/gen/casa/v1/identity_pb.js';
 	import { afterSignIn, handleSessionError, nextScreen, session } from '#lib/session.svelte.js';
@@ -58,7 +58,8 @@
 	let password = $state('');
 	let passwordError: string | undefined = $state();
 	let failure: string | undefined = $state();
-	let rejectedBox: HTMLDivElement | undefined = $state();
+	let form: HTMLFormElement | undefined = $state();
+	let buttonBox: HTMLDivElement | undefined = $state();
 
 	async function complete(verificationToken: string): Promise<void> {
 		const mode = personal ? 'personal' : 'shared';
@@ -77,14 +78,16 @@
 				// One sentence for every reason (SEC-30); the token is of no further use.
 				rejected = true;
 				session.pendingToken = undefined;
-				// The form is gone; the sentence's "Masuk" button takes focus (08 §25.5).
+				// The field is gone; the sentence's "Masuk" button takes focus (08 §25.5).
 				await tick();
-				rejectedBox?.querySelector('button')?.focus();
+				buttonBox?.querySelector('button')?.focus();
 				return;
 			}
 			const fields = fieldErrors(error, passwordSentences);
-			if (fields) passwordError = fields.password;
-			else failure = actionFailure(error);
+			if (fields) {
+				passwordError = fields.password;
+				await focusFirstInvalid(form);
+			} else failure = actionFailure(error);
 			return;
 		}
 		// Used, so dropped before anything else can fail (PR B review M8).
@@ -95,32 +98,23 @@
 
 {#if !redirect}
 	<Screen heading={copy.verify.title} destination="Buat kata sandi">
-		{#if rejected}
-			<div bind:this={rejectedBox}>
-				<InlineMessage role="alert" text={copy.verify.rejected} />
-				<ButtonRow>
-					<Button
-						variant="primary"
-						onclick={() => {
-							goto(resolve('/masuk/akun')).catch(console.error);
-						}}>{copy.verify.signIn}</Button
-					>
-				</ButtonRow>
-			</div>
-		{:else if token || busy}
-			<form
-				novalidate
-				onsubmit={(event) => {
-					event.preventDefault();
-					if (busy || !token) return;
-					busy = true;
-					complete(token)
-						.catch(console.error)
-						.finally(() => {
-							busy = false;
-						});
-				}}
-			>
+		<!-- One form for both states, so the alert's container stays mounted and the rejected
+		     sentence set into it is announced (QG-09 PR B Must 1; InlineMessage, 08 §25.5). -->
+		<form
+			bind:this={form}
+			novalidate
+			onsubmit={(event) => {
+				event.preventDefault();
+				if (busy || rejected || !token) return;
+				busy = true;
+				complete(token)
+					.catch(console.error)
+					.finally(() => {
+						busy = false;
+					});
+			}}
+		>
+			{#if !rejected}
 				<TextField
 					label={copy.verify.password}
 					type="password"
@@ -129,11 +123,22 @@
 					error={passwordError}
 					bind:value={password}
 				/>
-				<InlineMessage role="alert" text={failure} />
+			{/if}
+			<InlineMessage role="alert" text={rejected ? copy.verify.rejected : failure} />
+			<div bind:this={buttonBox}>
 				<ButtonRow>
-					<Button variant="primary" type="submit" {busy}>{copy.verify.submit}</Button>
+					{#if rejected}
+						<Button
+							variant="primary"
+							onclick={() => {
+								goto(resolve('/masuk/akun')).catch(console.error);
+							}}>{copy.verify.signIn}</Button
+						>
+					{:else}
+						<Button variant="primary" type="submit" {busy}>{copy.verify.submit}</Button>
+					{/if}
 				</ButtonRow>
-			</form>
-		{/if}
+			</div>
+		</form>
 	</Screen>
 {/if}

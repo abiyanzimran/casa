@@ -184,9 +184,11 @@ test('SEC-12: a rejected sign-in shows one message whichever of email and passwo
 	await openSignIn(page, 'personal');
 	await signIn(page);
 	await expect(page.getByRole('alert')).toHaveText(rejected);
-	// 08 §7.6: only the password is emptied, and only after CREDENTIALS_REJECTED.
+	// 08 §7.6: only the password is emptied, and only after CREDENTIALS_REJECTED; it takes focus
+	// to be typed again (QG-09 PR B minor 9).
 	await expect(emailField(page)).toHaveValue(email);
 	await expect(passwordField(page)).toHaveValue('');
+	await expect(passwordField(page)).toBeFocused();
 	await expect(page).toHaveURL(/\/masuk\/akun$/);
 
 	await passwordField(page).fill(password);
@@ -253,6 +255,8 @@ test('08 §7.6: a sign-in field the server rejects by its shape is marked on tha
 	await openSignIn(page, 'personal');
 	await signIn(page);
 	await expect(emailField(page)).toHaveAttribute('aria-invalid', 'true');
+	// 08 §25.5 "Formulir": the first field marked invalid takes focus, so its error is read.
+	await expect(emailField(page)).toBeFocused();
 	await expect(emailField(page)).toHaveAccessibleDescription(
 		'Tulis email lengkap, misalnya nama@contoh.id.'
 	);
@@ -261,9 +265,56 @@ test('08 §7.6: a sign-in field the server rejects by its shape is marked on tha
 	await signInButton(page).click();
 	await expect(emailField(page)).not.toHaveAttribute('aria-invalid', 'true');
 	await expect(passwordField(page)).toHaveAttribute('aria-invalid', 'true');
+	await expect(passwordField(page)).toBeFocused();
 	await expect(passwordField(page)).toHaveAccessibleDescription(
 		'Kata sandi ini terlalu panjang. Pakai paling banyak 1.024 karakter.'
 	);
 	await expect(passwordField(page)).toHaveValue(password);
 	await expect(page.getByRole('alert')).toHaveText('');
+});
+
+test('08 §7.6 common.working: the submit button says Memproses… while signing in, and its label returns after an error', async ({
+	page
+}) => {
+	await server(page);
+	let answer: (() => void) | undefined;
+	const answered = new Promise<void>((resolve) => {
+		answer = resolve;
+	});
+	await mockRpc(page, IdentityService.method.signIn, async () => {
+		await answered;
+		return rpcError(Code.Unauthenticated, ErrorCode.CREDENTIALS_REJECTED);
+	});
+	await openSignIn(page, 'personal');
+	await signIn(page);
+	const working = page.getByRole('button', { name: 'Memproses…', exact: true });
+	await expect(working).toHaveAttribute('aria-busy', 'true');
+	await expect(signInButton(page)).toHaveCount(0);
+	answer?.();
+	await expect(page.getByRole('alert')).toHaveText(rejected);
+	await expect(signInButton(page)).not.toHaveAttribute('aria-busy');
+	await expect(working).toHaveCount(0);
+});
+
+test('08 §25.5: a shown password is hidden again when the form is sent and when the page is hidden', async ({
+	page
+}) => {
+	await server(page, rpcError(Code.Unauthenticated, ErrorCode.CREDENTIALS_REJECTED));
+	await openSignIn(page, 'personal');
+	const show = page.getByRole('button', { name: 'Tampilkan kata sandi', exact: true });
+	await emailField(page).fill(email);
+	await passwordField(page).fill(password);
+	await show.click();
+	await expect(passwordField(page)).toHaveAttribute('type', 'text');
+	await signInButton(page).click();
+	await expect(page.getByRole('alert')).toHaveText(rejected);
+	await expect(passwordField(page)).toHaveAttribute('type', 'password');
+
+	await show.click();
+	await expect(passwordField(page)).toHaveAttribute('type', 'text');
+	await page.evaluate(() => {
+		Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+		document.dispatchEvent(new Event('visibilitychange'));
+	});
+	await expect(passwordField(page)).toHaveAttribute('type', 'password');
 });

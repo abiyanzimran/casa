@@ -14,6 +14,7 @@
 	import TextField from '#lib/components/TextField.svelte';
 	import TextLink from '#lib/components/TextLink.svelte';
 	import { copy } from '#lib/copy.js';
+	import { focusFirstInvalid } from '#lib/form.js';
 	import { parsePastedLink } from '#lib/link-token.js';
 	import { entryRedirect, session } from '#lib/session.svelte.js';
 	import { heldSignUpToken, startSignUp, type SignUpToken } from '#lib/sign-up.js';
@@ -40,6 +41,7 @@
 	let anotherLink = $state(false);
 	let emailBox: HTMLDivElement | undefined = $state();
 	let pasteBox: HTMLDivElement | undefined = $state();
+	let form: HTMLFormElement | undefined = $state();
 
 	/**
 	 * A pasted link becomes the held token, or the not-Casa sentence under the field, with no
@@ -51,6 +53,9 @@
 		const link = parsePastedLink(pasted, location.origin);
 		if (link === 'not-casa') {
 			pasteError = copy.signUp.notCasa;
+			// Its field takes focus, so the sentence is read (08 §25.5 "Formulir").
+			await tick();
+			pasteBox?.querySelector('input')?.focus();
 			return;
 		}
 		session.pendingToken = { kind: link.kind, value: link.token };
@@ -86,6 +91,7 @@
 			emailError = failed.email;
 			failure = failed.alert;
 			if (failed.tokenRejected) await refused(token);
+			else if (emailError) await focusFirstInvalid(form);
 			return;
 		}
 		session.signUpEmail = email;
@@ -122,8 +128,15 @@
 {/snippet}
 
 {#if !redirect}
-	<Screen heading={copy.signUp.title} destination="Buat akun" describedby="{id}-lead">
-		<p id="{id}-lead">
+	<Screen
+		heading={copy.signUp.title}
+		destination="Buat akun"
+		describedby="{id}-lead"
+		back={resolve('/masuk')}
+	>
+		<!-- A status region from the start, so the sentence that confirms a taken link is
+		     announced (QG-09 PR B minor 8). -->
+		<p id="{id}-lead" role="status">
 			{held
 				? held.kind === 'setup'
 					? copy.signUp.withSetup
@@ -132,7 +145,7 @@
 		</p>
 		<!-- One form whose fields follow the held link, so its alert stays mounted and is
 		     announced when a refused invitation closes sign-up again (InlineMessage; 08 §25.5). -->
-		<form novalidate onsubmit={submit}>
+		<form bind:this={form} novalidate onsubmit={submit}>
 			{#if held}
 				<div bind:this={emailBox}>
 					<TextField
@@ -169,9 +182,8 @@
 				</ButtonRow>
 			</form>
 		{/if}
-		{#if !held}
-			<TextLink href={resolve('/masuk/akun')}>{copy.signUp.signIn}</TextLink>
-		{/if}
+		<!-- With a link held too: an existing account signs in (QG-09 PR B minor 7). -->
+		<TextLink href={resolve('/masuk/akun')}>{copy.signUp.signIn}</TextLink>
 	</Screen>
 {/if}
 

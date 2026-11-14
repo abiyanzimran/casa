@@ -165,3 +165,68 @@ for (const choice of [choiceButton.personal, choiceButton.shared]) {
 		});
 	});
 }
+
+const back = (page: Page) => page.getByRole('link', { name: 'Kembali', exact: true });
+
+/** The Kembali link is the first element in main, right before the h1 (08 §25.4). */
+async function expectBackFirst(page: Page): Promise<void> {
+	const first = await page.evaluate(() => {
+		const main = document.querySelector('main');
+		return [main?.firstElementChild?.textContent.trim(), main?.children[1].tagName];
+	});
+	expect(first).toEqual(['Kembali', 'H1']);
+}
+
+test('08 §25.4: LY-01 to LY-03 start with Kembali to the step before; LY-90 and LY-91 have none', async ({
+	page
+}) => {
+	await signedOut(page);
+	await page.goto('/');
+	await expect(page.locator('h1')).toHaveText(ly91.question);
+	await expect(back(page)).toHaveCount(0);
+	await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
+	await expectLy01(page);
+	await expectBackFirst(page);
+
+	await page.getByRole('button', { name: 'Sudah punya akun', exact: true }).click();
+	await expect(page).toHaveURL(/\/masuk\/akun$/);
+	await expectBackFirst(page);
+	await back(page).click();
+	await expectLy01(page);
+
+	await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
+	await expect(page).toHaveURL(/\/masuk\/daftar$/);
+	await expectBackFirst(page);
+	// A pasted invitation is held across Kembali; from LY-91 it goes on to LY-01, not Buat akun
+	// (PR B review M7).
+	await page
+		.getByLabel('Tempel tautan', { exact: true })
+		.fill(`${new URL(page.url()).origin}/invite#invitation-token`);
+	await page.getByRole('button', { name: 'Lanjut', exact: true }).click();
+	await back(page).click();
+	await expectLy01(page);
+	await back(page).click();
+	await expect(page).toHaveURL(/\/masuk\/mode$/);
+	await page.getByRole('button', { name: choiceButton.shared, exact: true }).click();
+	await expectLy01(page);
+	await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
+	await expect(
+		page.getByText('Kamu membuka undangan Casa. Buat akun dulu, lalu undangannya tampil.', {
+			exact: true
+		})
+	).toBeVisible();
+});
+
+test('08 §25.4: in a Safari tab, Kembali on LY-01 goes back to LY-90, which has none', async ({
+	page
+}) => {
+	await signedOut(page);
+	await safariTab(page);
+	await page.goto('/');
+	await expect(back(page)).toHaveCount(0);
+	await page.getByRole('button', { name: ly90.shared, exact: true }).click();
+	await expectLy01(page);
+	await back(page).click();
+	await expect(page).toHaveURL(/\/pasang$/);
+	await expect(page.locator('h1')).toHaveText(ly90.title);
+});

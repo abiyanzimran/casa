@@ -3,7 +3,9 @@
 	// 48 high, text at 1 rem so Safari on iOS does not zoom in on focus. The hint and the error
 	// sit under the field and describe it (aria-describedby); an error also sets aria-invalid
 	// (08 §7.6). A password field has a show button (08 §7.6 field.showPassword). Paste is
-	// never blocked (WCAG 3.3.8). autocomplete is the caller's, per SEC-175 (d).
+	// never blocked (WCAG 3.3.8). autocomplete is the caller's, per SEC-175 (d). A shown
+	// password is hidden again when its form is sent and when the page is hidden (08 §25.5).
+	import { on } from 'svelte/events';
 	import type { FullAutoFill } from 'svelte/elements';
 	import { copy } from '../copy';
 
@@ -25,6 +27,22 @@
 
 	const id = $props.id();
 	let shown = $state(false);
+	let input: HTMLInputElement;
+
+	$effect(() => {
+		if (type !== 'password') return;
+		const hide = () => {
+			shown = false;
+		};
+		const stopSubmit = input.form ? on(input.form, 'submit', hide) : undefined;
+		const stopHidden = on(document, 'visibilitychange', () => {
+			if (document.visibilityState === 'hidden') hide();
+		});
+		return () => {
+			stopSubmit?.();
+			stopHidden();
+		};
+	});
 
 	const describedby = $derived(
 		[hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
@@ -44,6 +62,7 @@
 			aria-describedby={describedby}
 			aria-invalid={error ? 'true' : undefined}
 			bind:value
+			bind:this={input}
 		/>
 		{#if type === 'password'}
 			<button

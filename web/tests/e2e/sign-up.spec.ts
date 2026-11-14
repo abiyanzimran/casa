@@ -137,6 +137,10 @@ test('SEC-175 (c): a setup link is read from the fragment and removed from the a
 }) => {
 	const { urls, starts } = await server(page);
 	await openSetupLink(page);
+	// With a link held, an existing account can still sign in (QG-09 PR B minor 7).
+	await expect(
+		page.getByRole('link', { name: 'Sudah punya akun? Masuk', exact: true })
+	).toBeVisible();
 	await emailField(page).fill(email);
 	await sendLink(page).click();
 	await expect(page).toHaveURL(/\/masuk\/periksa-email$/);
@@ -200,13 +204,21 @@ test('SEC-158: without a held link sign-up is closed, and a pasted link is check
 	await expect(pasteField(page)).toHaveAttribute('autocomplete', 'off');
 
 	const origin = new URL(page.url()).origin;
+	// The lead sentence is a status region from the start, so a taken link is announced
+	// (QG-09 PR B minor 8).
+	const lead = await page.getByRole('status').filter({ hasText: closed }).elementHandle();
 	for (const text of ['halo', 'https://evil.example/invite#t', `${origin}/undang#t`]) {
 		await paste(page, text);
 		await expect(pasteField(page)).toHaveAccessibleDescription(`${pasteHint} ${notCasa}`);
 		await expect(pasteField(page)).toHaveAttribute('aria-invalid', 'true');
+		await expect(pasteField(page)).toBeFocused(); // 08 §25.5 "Formulir"
 	}
 	await paste(page, `  ${origin}/signup#${token} `);
 	await expect(page.getByText(withSetup, { exact: true })).toBeVisible();
+	expect(await lead.evaluate((node) => [node.isConnected, node.textContent.trim()])).toEqual([
+		true,
+		withSetup
+	]);
 	await expect(pasteField(page)).toHaveCount(0);
 	await expect(emailField(page)).toHaveAccessibleDescription(emailHint);
 	await expect(page.getByText(passwordLater, { exact: true })).toBeVisible();
@@ -302,6 +314,7 @@ test('08 §7.6: an email the server rejects by its shape is marked on the email 
 	await emailField(page).fill('nama');
 	await sendLink(page).click();
 	await expect(emailField(page)).toHaveAttribute('aria-invalid', 'true');
+	await expect(emailField(page)).toBeFocused(); // 08 §25.5 "Formulir"
 	await expect(emailField(page)).toHaveAccessibleDescription(`${emailHint} ${emailInvalid}`);
 	await expect(page.getByRole('alert')).toHaveText('');
 
@@ -334,6 +347,14 @@ test('SEC-12: LY-03 says a link was sent without saying an account exists, resen
 	await expect(page).toHaveURL(/\/masuk\/daftar$/);
 	await expect(emailField(page)).toHaveValue(email);
 	await expect(page.getByText(withSetup, { exact: true })).toBeVisible();
+
+	// 08 §25.4: Kembali, before the h1, goes back to LY-02 Buat akun as well.
+	await sendLink(page).click();
+	await expect(page).toHaveURL(/\/masuk\/periksa-email$/);
+	await expect(page.locator('main > :first-child')).toHaveText('Kembali');
+	await page.getByRole('link', { name: 'Kembali', exact: true }).click();
+	await expect(page).toHaveURL(/\/masuk\/daftar$/);
+	await expect(emailField(page)).toHaveValue(email);
 });
 
 for (const choice of ['personal', 'shared'] as const) {
@@ -401,6 +422,7 @@ test('SEC-11: a too short or common password is reported on the password field f
 		await proceed(page).click();
 		await expect(passwordField(page)).toHaveAccessibleDescription(`${passwordHint} ${message}`);
 		await expect(passwordField(page)).toHaveAttribute('aria-invalid', 'true');
+		await expect(passwordField(page)).toBeFocused(); // 08 §25.5 "Formulir"
 		// A field error is never the alert above the button (08 §7.6), and the field keeps its text.
 		await expect(page.getByRole('alert')).toHaveText('');
 		await expect(passwordField(page)).toHaveValue(typed);
@@ -421,9 +443,14 @@ test('SEC-30: a rejected verification link shows one sentence and a way to sign 
 	await page.goto('/signup/verify#verification-token');
 	await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 	await passwordField(page).fill(password);
+	// The alert's container is on the page before the answer and stays, so the sentence set into
+	// it is announced (QG-09 PR B Must 1; WCAG 4.1.3).
+	const alert = await page.getByRole('alert').elementHandle();
 	await proceed(page).click();
 	await expect(page.getByRole('alert')).toHaveText(verifyRejected);
+	expect(await alert.evaluate((node) => node.isConnected)).toBe(true);
 	await expect(passwordField(page)).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Masuk', exact: true })).toBeFocused();
 	await page.getByRole('button', { name: 'Masuk', exact: true }).click();
 	await expect(page).toHaveURL(/\/masuk\/akun$/);
 });
