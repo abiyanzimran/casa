@@ -5,6 +5,10 @@
 # Test coverage report (uploaded by CI as an artifact, never committed)
 coverage.out
 
+# rapid fail files: a shrunk failure becomes a named example test instead
+# (plan 1.7 decision 16)
+server/**/testdata/rapid/
+
 # Downloaded tools (scripts/fetch-verified.sh, scripts/cpd.sh)
 .cache/
 
