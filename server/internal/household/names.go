@@ -35,6 +35,7 @@ func CleanName(s string, max int) (clean string, rule string) {
 			if !inEmojiSequence(runes, i) {
 				return "", ruleCharacters
 			}
+			visible++
 		case unicode.Is(unicode.Variation_Selector, r):
 			// SEC-155 (h): a selector is accepted only after a base it
 			// visibly changes, else "Ayu" and "Ayu"+U+FE0F would be two
