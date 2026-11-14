@@ -299,7 +299,7 @@ func uniqueViolation(err error) bool {
 // outcomeOf counts a rejected token as a failed attempt; any other error
 // (the server's own) is not the caller's attempt (10.1 §8.1).
 func outcomeOf(err error) Outcome {
-	if errors.Is(err, ErrTokenRejected) || errors.Is(err, ErrEmailMismatch) {
+	if errors.Is(err, ErrTokenRejected) {
 		return Failed
 	}
 	return NotTried
