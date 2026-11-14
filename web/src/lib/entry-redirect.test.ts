@@ -102,18 +102,18 @@ beforeEach(() => {
 	session.mode = undefined;
 });
 
-test.each(rows)(
-	'SEC-171 (b), SEC-165: $state in $context with mode $mode, $path goes to $expected',
-	({ state, context, mode, path, expected }) => {
+test('SEC-171 (b), SEC-165: every entry and sign-in path goes where its state, display context and device mode say', () => {
+	for (const { state, context, mode, path, expected } of rows) {
+		const row = `${state} in ${context} with mode ${mode}, ${path}`;
 		// navigator.standalone exists only in Safari on iPhone and iPad; false there is a tab.
 		vi.stubGlobal('navigator', context === 'safari-tab' ? { standalone: false } : {});
 		session.state =
 			state === 'signed-in' ? { kind: 'signed-in', memberships: [] } : { kind: state };
 		session.mode = mode === 'none' ? undefined : mode;
-		expect(entryRedirect(path)).toBe(expected);
+		expect(entryRedirect(path), row).toBe(expected);
 		// Where a redirect goes is a screen that shows, so no redirect loops.
 		const next = nextScreen();
-		if (next === '/') expect(state).toBe('signed-in');
-		else expect(entryRedirect(next)).toBeUndefined();
+		if (next === '/') expect(state, row).toBe('signed-in');
+		else expect(entryRedirect(next), row).toBeUndefined();
 	}
-);
+});
