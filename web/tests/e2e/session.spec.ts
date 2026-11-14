@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { ErrorCode } from '../../src/lib/gen/casa/v1/error_pb';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
+import { expectNavigationStateOnly } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -386,6 +387,25 @@ test('08 §25.4: a pressed button shrinks a little while held', async ({ page })
 	await page.mouse.move(0, 0);
 	await page.mouse.up();
 });
+
+for (const mode of ['shared', 'personal'] as const) {
+	test(`SEC-179: in ${mode} mode, sessionStorage holds only SvelteKit's navigation numbers and localStorage nothing`, async ({
+		page
+	}) => {
+		await failUnmocked(page);
+		if (mode === 'personal') await seedUnsent(page, 1);
+		await mockRpc(page, listMemberships, () =>
+			rpcError(Code.Unauthenticated, ErrorCode.SESSION_EXPIRED)
+		);
+		await page.goto('/');
+		await markDocument(page);
+		// "Masuk" opens a new document; SvelteKit writes its navigation state as the old one unloads.
+		await page.getByRole('button', { name: 'Masuk', exact: true }).click();
+		await expect.poll(() => isNewDocument(page)).toBe(true);
+		await expect(page.getByRole('button', { name: 'Masuk', exact: true })).toBeVisible();
+		expect(await expectNavigationStateOnly(page)).toContain('sveltekit:history-info');
+	});
+}
 
 test('SEC-164 (d): a page restored from the back-forward cache checks the session first', async ({
 	page
