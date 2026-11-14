@@ -22,8 +22,9 @@ type SignUpSource struct{ SetupToken, InvitationToken string }
 // email (SEC-158; lead ruling Q4 on the 1.4 plan). A setup token must be
 // unused, unexpired and bound to email, and the link goes to the email as
 // issued. An invitation token must pass invitationOpen, the household's
-// check shared with F02 (SEC-158 note (2)); the email is free (SEC-31).
-// A token that fails, an email that already has an account, or an
+// check shared with F02 (SEC-158 note (2)); the email is free (SEC-31),
+// and one that already has an account is answered like a fresh one. A token
+// that fails, a setup token whose email already has an account, or an
 // invitation link an account was already born from gets ErrTokenRejected and
 // no mail (SEC-30).
 func (s *Service) StartSignUp(ctx context.Context, client Client, source SignUpSource, email string,
@@ -76,9 +77,10 @@ func (s *Service) storeVerificationLink(ctx context.Context, source SignUpSource
 		if err := invitationOpen(ctx, invitationHash); err != nil {
 			return "", "", err
 		}
-		if err := s.noAccountFor(ctx, email); err != nil {
-			return "", "", err
-		}
+		// No email lookup here: a live invitation link must not tell
+		// whether an email has an account, by answer or by rate-limit
+		// count (SEC-12, SEC-30; 10.1 §8.1). CompleteSignUp refuses an
+		// email that has one, and writes nothing.
 		var n int64
 		err = database.Write(ctx, s.pool, database.Scope{TokenHash: invitationHash}, func(tx pgx.Tx) (err error) {
 			n, err = identitydb.New(tx).UpsertInvitationSignupVerification(ctx, identitydb.UpsertInvitationSignupVerificationParams{
@@ -204,7 +206,10 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		q := identitydb.New(tx)
 		err := q.InsertAccount(ctx, identitydb.InsertAccountParams{ID: account, Email: link.Email, CreatedAt: now, SignupVia: link.Source})
 		if uniqueViolation(err) {
-			return ErrTokenRejected // the email got an account meanwhile
+			// The email has an account: one made meanwhile, or, through an
+			// invitation, one StartSignUp did not look up. The transaction
+			// rolls back, so the sign-up row stays as it was.
+			return ErrTokenRejected
 		}
 		if err != nil {
 			return err

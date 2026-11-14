@@ -1455,6 +1455,42 @@ func TestSignUpByInvitation(t *testing.T) {
 		}
 	})
 
+	t.Run("SEC-12 an email that already has an account starts like a fresh one and opens no second account", func(t *testing.T) {
+		// SEC-12, SEC-30; 10.1 §8.1: a live invitation link must not tell
+		// whether an email has an account, neither by the answer nor by
+		// the rate limit's count (Task 8 review, lead ruling (a)).
+		// CompleteSignUp refuses it, and the refusal writes nothing.
+		h := startHousehold(t)
+		inv := h.invited(t, "a@example.test")
+		h.signUpMember(t, "taken@example.test")
+		want := h.tokenRejection(t)
+		accounts := h.count(t, "SELECT count(*) FROM account")
+		// More starts than the 20 failures the address may have: none
+		// counts as a failure, as for a fresh email.
+		for i := range 21 {
+			mails := len(h.mails())
+			if err := h.startInvited(inv.token, "Taken@Example.Test"); err != nil {
+				t.Fatalf("start %d with a registered email: %v, want the answer of a fresh email", i, err)
+			}
+			if got := h.mails()[mails:]; len(got) != 1 || got[0].To != "Taken@Example.Test" || got[0].Kind != identity.MessageVerification {
+				t.Fatalf("start %d: mails %+v, want the one verification mail", i, got)
+			}
+		}
+		wantOK(t, h.startInvited(inv.token, "fresh@example.test"))
+		wantOK(t, h.startInvited(inv.token, "taken@example.test"))
+		_, err := h.openLink(h.lastLink(t))
+		wantRejection(t, err, want, "CompleteSignUp for an email that already has an account")
+		if got := h.count(t, "SELECT count(*) FROM account"); got != accounts {
+			t.Fatalf("%d accounts made, want 0", got-accounts)
+		}
+		if n := h.count(t, "SELECT count(*) FROM signup_verification WHERE invitation_token_hash = $1 AND account_id IS NULL AND used_at IS NULL",
+			tokenHash(t, inv.token)); n != 1 {
+			t.Fatal("the refused completion wrote the sign-up row")
+		}
+		// The link was not used up: another email still opens the account.
+		h.signUpInvited(t, inv.token, "b@example.test")
+	})
+
 	t.Run("only an account actually born uses up the link", func(t *testing.T) {
 		h := startHousehold(t)
 		inv := h.invited(t, "a@example.test")
