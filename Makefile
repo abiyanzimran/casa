@@ -112,7 +112,7 @@ server-property-long:
 # QG-05 "biner lama di skema baru" (09.4 §4 row "Migrasi"; 09.2 §10: a
 # rollback runs the old binary on the expand-contract schema). The tests of
 # BASE_REF run against databases migrated by this branch's casa binary. The
-# base ref's catalog, architecture and ID-check tests are left out: they check
+# base ref's catalog, architecture, isolation and ID-check tests are left out: they check
 # its own old schema and imports, not the old code's behaviour. -count=1:
 # the test cache does not see the migrate binary, which the tests only exec.
 BASE_REF ?= refs/remotes/origin/main
@@ -128,7 +128,7 @@ server-test-old-binary:
 	trap 'git worktree remove --force .cache/base-tree' EXIT; \
 	cd .cache/base-tree/server && \
 	CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' CASA_TEST_MIGRATE_BINARY='$(CURDIR)/.cache/casa-head' \
-		go test -race -p 1 -count=1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
+		go test -race -p 1 -count=1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /internal/isolation -e /cmd/idcheck)
 
 # Writes the Go code of every module's queries.sql (server/sqlc.yaml): all
 # production SQL goes through sqlc, parameterized (ES §3, §4).
