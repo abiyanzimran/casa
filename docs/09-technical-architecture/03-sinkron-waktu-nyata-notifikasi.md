@@ -162,8 +162,10 @@ rpc Sync(SyncRequest) returns (SyncResponse)
   2. kembalikan, berhalaman (per jenis objek, urut pengenal, `limit` per halaman; ES §3), setiap **objek hidup** yang `can_read` oleh pembaca: keanggotaan, tempat uang, kategori, anggaran, kesepakatan, permintaan yang belum selesai, tagihan dan cicilan, status yang dibagikan kepadanya, percakapan terbuka dengan pesan terbaru (jumlah bawaan **[Asumsi]** 200), dan entri pada periode anggaran berjalan dan sebelumnya;
   3. sesudah halaman terakhir, `next_cursor` = posisi yang dicatat di langkah 1, sehingga perubahan selama potret dibangun tertarik lewat umpan biasa.
 
+  Catatan 14 November 2026 (FS-1 1.7, putusan `architect` Q1 (c)): "di satu transaksi" berlaku **per halaman**. Halaman tersebar di beberapa RPC dan server tidak menyimpan transaksi di antaranya, jadi setiap halaman adalah satu transaksi `REPEATABLE READ READ ONLY`; `last_pos` dicatat di transaksi halaman pertama (`P0`) dan dibawa, bersama tanda halaman, di kursor ber-MAC. Hasilnya tetap benar karena setiap perubahan yang commit sesudah `P0` punya baris umpan dengan `pos > P0`: objek yang lahir, berubah, atau tertutup di antara halaman sampai lewat umpan, dan `UPSERT` atau `PURGE` ganda idempoten.
+
   Riwayat yang lebih tua (entri periode lama, pesan lama, laporan) **tidak** masuk cache lewat `Sync`; ia dibaca berhalaman lewat RPC baca biasa saat layar memintanya, juga lewat jalur baca. Potret dan bacaan itu memakai proyeksi yang sama dengan layar, jadi tidak ada jalan data kedua (SEC-06).
-- **Pemangkasan.** Baris `reader_feed` yang lebih tua dari 90 hari dipangkas oleh pekerjaan harian. Kursor yang lebih tua dari batas pangkas mendapat `resync_required`. Klien lalu membuang cache (bukan antrean) dan memulai lagi dengan potret.
+- **Pemangkasan.** Baris `reader_feed` yang lebih tua dari 90 hari dipangkas oleh pekerjaan harian. Kursor yang lebih tua dari batas pangkas mendapat `resync_required`. Klien lalu membuang cache (bukan antrean) dan memulai lagi dengan potret. Catatan 14 November 2026 (FS-1 1.7, putusan `architect` Q1 (d)): kursor umpan `P` mendapat `resync_required` bila `P > last_pos` (basis data dipulihkan), bila baris yang dikembalikan bukan tepat `P + 1, P + 2, …` tanpa celah, atau bila halaman yang tidak penuh tidak berakhir di `last_pos`. Pemangkasan menurut umur hampir selalu hanya membuang awalan, tetapi pemeriksaan ini tidak bergantung pada urutan `created_at` (rancangan pemangkasan: berkas 02 §3, catatan tanggal itu).
 - **Kirim perintah** memakai RPC per perintah (`RecordExpense`, `RespondToRequest`, `SendMessage`, dan seterusnya). Masing-masing membawa `idempotency_key` dan, bila berlaku, `expected_version` dan `terms_version`. Jawabannya memuat hasil dan objek terbaru yang boleh dibaca.
 
 ```mermaid
@@ -307,6 +309,7 @@ Setiap penangan **idempoten** dan dapat dijalankan lebih dari sekali. Coba ulang
 | `reminder.request` | Pengingat ulang (dua per rantai, jendela 6 jam, plafon harian) | 06 §10; D-20 |
 | `reminder.bill` | Jatuh tempo tagihan berulang (N-32) | 07 §3.15; S3-1 (d) |
 | `request.expire` | Kedaluwarsa menurut waktu server | 06 §4.4, S-6 |
+| `household.expire_invitation` | `expires_at` undangan; satu job per undangan, diantrekan di transaksi F01 (catatan 14 November 2026 di bawah) | 06 §3.6 "Gugur karena waktu"; berkas 02 §5.1 catatan X3 |
 | `household.exit_closure` | Akhir masa tenggang keluar 7 hari: satu transaksi dengan penutupan buku pribadi | 07 INV-28; 06 §3.6 |
 | `lifecycle.delete_personal_book` | 90 hari sesudah F07 | SEC-94; 07 §8.2 |
 | `lifecycle.delete_empty_household` | 90 hari sesudah rumah tangga kosong | SEC-100 |
@@ -317,6 +320,12 @@ Setiap penangan **idempoten** dan dapat dijalankan lebih dari sekali. Coba ulang
 | `ops.backup_verify` | Harian | Berkas 04 §5 |
 
 Catatan 13 November 2026 (FS-1 1.4, putusan lead Q9): pekerjaan `identity.send_mail` (email verifikasi pendaftaran dan pemulihan, dengan coba ulang idempoten dan waktu tanggap permintaan pemulihan yang seragam) ditambahkan ke tabel ini di FS-1 1.7, bersama modul `jobs`. Sampai saat itu email verifikasi pendaftaran dikirim `identity` secara sinkron sesudah commit, sedangkan email pemulihan disimpan lalu dikirim sesudah respons, di dalam proses yang sama dan tanpa coba ulang (FS-1 1.4 PR B); keduanya ke direktori email palsu (`-mail-dir`) di mesin pengembang dan server uji; pengirim SES menyusul di langkah 7 (ADR-026).
+
+Catatan 14 November 2026 (FS-1 1.7, putusan `architect` Q1 (e) dan Q2):
+
+- **`household.expire_invitation`** (baris tabel di atas) memenuhi "job gugur berkala" putusan X3 dan syarat 10.1 §10 butir "Gugur karena waktu" (1)(b), dikukuhkan `security-privacy` di 10.1 §10 catatan 1.7 Q3: posisi baris gugur di umpan ditentukan jam, bukan tindakan siapa pun. Dua syarat: (1) `expires_at` tidak berubah sesudah F01 (penerbitan ulang tautan tidak memperpanjangnya); perubahan apa pun kelak memindahkan `run_at` job-nya di transaksi yang sama. (2) Penangan membedakan undangan yang sudah tertutup (job selesai, tanpa tulisan) dari undangan yang masih hidup tetapi belum lewat menurut compare-and-set (galat, dicoba ulang lewat jeda), dan pengambilan serta compare-and-set membaca satu sumber jam (`Now`), sehingga selisih jam tidak pernah menyelesaikan job tanpa gugur tertulis.
+- **`identity.send_mail` ditunda ke langkah 7**, bersama pengirim SES (ADR-026); kata "di FS-1 1.7" pada catatan 13 November 2026 di atas diganti "di langkah 7". Alasannya: pengirim berkas palsu tidak pernah gagal sementara, jadi coba ulang belum menambah apa pun; dan bentuk job email (token hanya disimpan sebagai hash, `payload` hanya pengenal, waktu tanggap pemulihan seragam menurut SEC-12) diputus bersama `security-privacy` di langkah 7, bersama pertanyaan email lain yang sudah ada di sana. Langkah 7 mendahului GR-2, jadi email nyata pertama sudah lewat job. Sampai itu perilaku FS-1 1.4 berlaku tanpa perubahan.
+- **`sync.prune_feed` dan `idempotency.prune`** dibangun di langkah 7 (hak dan kebijakan `job_runner` di berkas 02 §3, catatan tanggal ini); baris tertua baru berumur 90 hari sekitar 90 hari sesudah GR-2. `identity.prune_tokens` di langkah 6, bersama hak `DELETE` atas tabel `identity` yang dibawa `lifecycle`.
 
 ---
 

@@ -73,6 +73,19 @@ Satu biner Go, satu proses, dan satu basis data (ADR-014). Setiap modul adalah s
    | `internal/household/householddb` | tidak ada |
 
    **`household` dan `identity` tidak saling mengimpor.** Perintah yang menyentuh keduanya disusun lapisan API di dalam satu transaksi `command.Run` atau `command.RunForAccount`; `identity` menerima pemeriksaan undangan sebagai parameter fungsi, bukan sebagai impor. Ekspor baru `identity`: `RecordSecurityEvent`, `SignupVia`, `AccountEmail`, `TokenUseAttempt`, `NewToken`, `HashToken`, `SignupInvitation`; ekspor baru `command`: `RunForAccount`, `StoredForAccount` (§8: `scope_id = account_id`). Token undangan dibuat dan di-hash hanya oleh `identity.NewToken` dan `identity.HashToken`, dipanggil lapisan API: `household` hanya menerima hash, sehingga pembuat token tetap satu implementasi. Pembacaan email penerima lewat `identity.AccountEmail` oleh lapisan API (rencana 1.6 keputusan 16) adalah pengecualian sementara atas aturan 2: sejak `read` dibangun (1.7), pembacaan itu lewat `read`.
+10. Tepi FS-1 1.7 (catatan 14 November 2026, putusan `architect` Q1 (a); menambah butir 7 sampai 9):
+
+    | Paket | Tepi baru (paket `internal/` saja) |
+    |---|---|
+    | `internal/jobs` | `internal/database`, `internal/jobs/jobsdb` (seluruh daftarnya) |
+    | `internal/read` | `internal/database`, `internal/read/readdb` (seluruh daftarnya) |
+    | `internal/sync` | `internal/database`, `internal/read`, `internal/sync/syncdb` (seluruh daftarnya) |
+    | `internal/household` | `internal/jobs`, `internal/sync` |
+    | `internal/api` | `internal/read`, `internal/sync` |
+    | `cmd/casa` | `internal/jobs`, `internal/read`, `internal/sync` |
+    | `internal/jobs/jobsdb`, `internal/read/readdb`, `internal/sync/syncdb`, `internal/isolation` (uji saja) | tidak ada |
+
+    Arahnya `household → sync → read` dan `household → jobs`. `read` dan `jobs` tidak mengimpor modul domain mana pun, jadi tidak ada siklus. `sync` mengambil daftar anggota dan `can_read` dari `read`, tidak dari `household`. `sync.Changed` adalah satu-satunya penulis `reader_feed`: `household.RecordEvent` memanggilnya di transaksi yang sama, dan modul yang kelak mengubah proyeksi tanpa Peristiwa memanggilnya langsung (tepinya ditambahkan di sini bersama modul itu). Penangan job didaftarkan `cmd/casa` ke `jobs.Runner` sebagai fungsi, sehingga `jobs` tidak mengimpor modul yang job-nya ia jalankan. **Pengecualian sementara butir 9 berakhir:** `identity.AccountEmail` pindah menjadi `read.AccountEmail` dan ekspornya dihapus dari `identity`; aturan 2 kembali berlaku tanpa pengecualian.
 
 ```mermaid
 flowchart LR
@@ -87,6 +100,9 @@ flowchart LR
   H --> chat
   H --> files
   H --> sync
+  H --> read
+  household --> sync
+  household --> jobs
   request --> budget
   request --> ledger
   budget --> ledger
@@ -101,7 +117,7 @@ flowchart LR
   household --> lifecycle
   subgraph db[(PostgreSQL 18)]
   end
-  identity & household & request & ledger & budget & chat & files & sync & notify & jobs & lifecycle & ai --> db
+  identity & household & request & ledger & budget & chat & files & sync & notify & jobs & lifecycle & ai & read --> db
 ```
 
 ---
@@ -193,6 +209,20 @@ Tanpa setelan apa pun, setiap tabel di atas kosong dan tidak ada galat. Alur seb
 | `idempotency_record` | `scope_id = nullif(current_setting('app.household_id', true), '')::uuid OR scope_id = nullif(current_setting('app.account_id', true), '')::uuid` | `scope_id` adalah rumah tangga, atau akun untuk perintah tingkat akun (§8) |
 | `job` | `household_id = nullif(current_setting('app.household_id', true), '')::uuid OR (household_id IS NULL AND nullif(current_setting('app.household_id', true), '') IS NULL)` | Transaksi domain menulis job rumah tangganya sendiri; job sistem (`household_id` NULL, misalnya `ai.pool_build`, `ops.*`) hanya ditulis di luar konteks rumah tangga |
 | `job` (pengambilan) | Peran tersendiri `job_runner`: hanya `SELECT` dan `UPDATE (locked_until, attempts, last_error)` atas `job`, dengan kebijakan `USING (true)`; tanpa hak atas tabel lain | Pekerja mengambil job lintas rumah tangga dengan peran ini, lalu menjalankan isinya sebagai `app_rw` dengan `SET LOCAL app.household_id = job.household_id`. `payload` hanya berisi pengenal, jadi melihat semua baris `job` tidak membuka isi rumah tangga |
+
+Catatan 14 November 2026 (FS-1 1.7, putusan `architect` Q1 (b)) **[Usulan]**. Hak `app_rw` atas `job`: `SELECT, INSERT, DELETE`, tanpa `UPDATE`. Transaksi domain mengantrekan; pekerja menghapus job yang berhasil sebagai `app_rw` dengan `Scope{HouseholdID: job.household_id}` (job sistem: `Scope{}`). Coba ulang dan penghentian hanya lewat `locked_until`, `attempts`, dan `last_error`, jadi hak `job_runner` tidak berubah. Kebijakan baris `app_rw` di atas dipasang `FOR ALL TO app_rw` (`USING` dan `WITH CHECK`), dan kebijakan pengambilan `FOR ALL TO job_runner USING (true)`. **Keduanya wajib menyebut perannya:** kebijakan permisif digabung dengan OR, jadi kebijakan `USING (true)` tanpa `TO` membuat `app_rw` melihat job setiap rumah tangga. Gerbang katalog memeriksa kedua kebijakan beserta perannya. Indeks dan keunikan di §5.1, catatan tanggal itu.
+
+Catatan 14 November 2026 (FS-1 1.7, putusan `architect` Q1 (d); dibangun di langkah 7 bersama `sync.prune_feed` dan `idempotency.prune`) **[Usulan]**. Pemangkasan adalah job sistem yang penangannya memakai pool `job_runner`, bukan `app_rw`: ia lintas rumah tangga dan tidak membaca isi, sedangkan `app_rw` tidak punya bacaan lintas rumah tangga. Ini satu-satunya pengecualian atas "isi job dijalankan sebagai `app_rw`". Tambahan bagi `job_runner`, tanpa hak lain:
+
+| Tabel | Hak `job_runner` | Kebijakan `TO job_runner` |
+|---|---|---|
+| `reader_feed` | `SELECT (household_id, member_id, pos, created_at)`, `DELETE` | `FOR SELECT` dan `FOR DELETE`, keduanya `USING (created_at < now() - interval '90 days')` |
+| `idempotency_record` | `SELECT (scope_id, idempotency_key, created_at)`, `DELETE` | sama |
+
+- Kebijakan rumah tangga `reader_feed` (lapis 4, tanpa `missing_ok`) dipasang `TO app_rw` **sejak tabelnya dibuat di 1.7**. Tanpa `TO`, kebijakan itu juga dinilai bagi `job_runner` dan gagal karena `app.household_id` tidak dipasang. Kebijakan `idempotency_record` sudah memakai `missing_ok` dan bernilai salah bagi `job_runner`, jadi tidak perlu diubah.
+- Kebijakan adalah batas atas. Kueri membawa batasnya sendiri (`$cutoff` dari `Now`, paling baru 90 hari lalu), sehingga dapat diuji tanpa menunggu, dan baris yang lebih muda dari 90 hari tetap tidak dapat dihapus apa pun kuerinya. Kolom yang terbaca hanya kunci dan waktu; `object_kind`, `object_id`, `command`, `request_hash`, dan `response` tidak.
+- Berhalaman (ES §3): `DELETE … WHERE (kunci) IN (SELECT kunci … WHERE created_at < $cutoff ORDER BY created_at LIMIT 1000)`, satu transaksi per putaran, diulang sampai nol baris. Indeks `reader_feed (created_at)` dan `idempotency_record (created_at)` ditambahkan di migrasi itu.
+- Pemangkasan menurut umur seharusnya hanya membuang awalan umpan setiap pembaca, tetapi `created_at` = `now()` awal transaksi tidak dijamin searah dengan `pos`. Karena itu deteksi `resync_required` sejak 1.7 tidak bergantung pada urutan jam (berkas 03 §3, catatan tanggal itu): baris yang dikembalikan harus tepat `P + 1, P + 2, …`, dan halaman yang tidak penuh harus berakhir di `last_pos`.
 
 Catatan 13 November 2026 (FS-1 tugas 1.2): pada koneksi pool yang pernah menjalankan `SET LOCAL app.…`, setelan yang tidak dipasang di transaksi berikutnya terbaca `''`, bukan NULL. Setelan khusus lahir sebagai placeholder teks saat pertama kali di-`SET`, dan sesudah transaksinya selesai placeholder itu tetap ada dengan nilai kosong sampai koneksi ditutup. Dokumentasi resmi hanya menyatakan bahwa `current_setting(…, true)` mengembalikan NULL bila setelan tidak ada ([postgresql.org/docs/18/functions-admin.html](https://www.postgresql.org/docs/18/functions-admin.html), diakses 13 November 2026) **[Terverifikasi]**. Perilaku `''` sesudah `SET LOCAL` berasal dari laporan pgsql-bugs 17 Februari 2018 dengan contoh yang dapat diulang ([postgresql.org/message-id/CA+Q86ij0KDCB0G45G509-8q0DNR611gcKG-sSM83GA1EBL7boA@mail.gmail.com](https://www.postgresql.org/message-id/CA%2BQ86ij0KDCB0G45G509-8q0DNR611gcKG-sSM83GA1EBL7boA%40mail.gmail.com), diakses 13 November 2026) **[Terverifikasi]** sebagai bunyi sumber; dokumentasi resmi tidak menyebutnya, jadi uji 1.2 membuktikannya ulang di PostgreSQL 18 yang dipasang. Akibatnya `current_setting(…, true)::uuid` gagal di-cast dan `… IS NULL` tidak pernah benar. Karena itu **setiap kebijakan yang membaca setelan dengan `missing_ok` memakai `nullif(current_setting('app.…', true), '')`**, termasuk kebijakan `app.account_id` tabel global bila membacanya dengan `missing_ok`. Kebijakan lapis 4 sengaja tetap tanpa `missing_ok`: transaksi yang lupa `SET LOCAL` gagal dengan galat, tidak membaca kosong diam-diam. Uji 1.2, pada satu koneksi yang sama: transaksi tingkat akun sesudah transaksi rumah tangga membaca `idempotency_record` akunnya, dan job sistem hanya terbaca di luar konteks rumah tangga.
 
@@ -628,6 +658,18 @@ job (
   UNIQUE (kind, unique_key)
 )
 CREATE INDEX job_due ON job (run_at) WHERE locked_until IS NULL;
+-- Catatan 14 November 2026 (FS-1 1.7, putusan architect Q1 (b)); migrasi 1.7 menggantikan UNIQUE (kind, unique_key):
+--   CHECK (kind IN ('household.expire_invitation'))   -- diperluas per jenis, seperti object_event.object_kind
+--   CHECK (attempts >= 0)
+--   CREATE UNIQUE INDEX job_unique ON job (household_id, kind, unique_key) NULLS NOT DISTINCT
+--     WHERE unique_key IS NOT NULL;
+--     -- household_id memimpin (§3 lapis 2): job rumah tangga lain tidak pernah bertabrakan dengan, atau
+--     -- dilewati diam-diam oleh, ON CONFLICT DO NOTHING rumah tangga ini. NULLS NOT DISTINCT menjaga job
+--     -- sistem (household_id NULL) tetap unik; WHERE membebaskan job tanpa unique_key. Enqueue:
+--     -- INSERT … ON CONFLICT (household_id, kind, unique_key) WHERE unique_key IS NOT NULL DO NOTHING.
+--     -- NULLS [NOT] DISTINCT dan WHERE dalam satu CREATE UNIQUE INDEX: postgresql.org/docs/18/sql-createindex.html,
+--     -- diakses 14 November 2026 [Terverifikasi]
+--   CREATE INDEX job_locked ON job (locked_until) WHERE locked_until IS NOT NULL;  -- coba ulang dan sewa habis
 ```
 
 ### 5.2 Inti uang (dari 07 §1 sampai §2)
