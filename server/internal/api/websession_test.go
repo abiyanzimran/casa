@@ -962,11 +962,32 @@ func (h *identityHarness) webRead(t *testing.T, cookie string) (*http.Cookie, er
 	info, _ := connect.CallInfoForClientContext(ctx)
 	err := h.read(ctx, web, true)
 	if len(info.ResponseHeader().Values("Set-Cookie")) == 1 {
-		if cookie, _ := sessionCookie(t, info); cookie.Value == "" && cookie.MaxAge < 0 {
-			return nil, err // an ended session's expired cookie stores no value
+		// Only an answer that ends the session drops the expired cookie (a
+		// browser stores no value from it); any other answer keeps it, so the
+		// stale-value guards stay real.
+		if cookie, _ := sessionCookie(t, info); cookie.Value == "" && cookie.MaxAge < 0 && endsSession(t, err) {
+			return nil, err
 		}
 	}
 	return newCookie(t, info), err
+}
+
+// endsSession reports whether err is SESSION_REVOKED or SESSION_EXPIRED.
+func endsSession(t *testing.T, err error) bool {
+	t.Helper()
+	if err == nil {
+		return false
+	}
+	var connectErr *connect.Error
+	if !errors.As(err, &connectErr) {
+		return false
+	}
+	for _, code := range errorCodes(t, err) {
+		if code == casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED || code == casav1.ErrorCode_ERROR_CODE_SESSION_EXPIRED {
+			return true
+		}
+	}
+	return false
 }
 
 func TestCookieRotation(t *testing.T) {
