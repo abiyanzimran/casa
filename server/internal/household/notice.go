@@ -168,7 +168,7 @@ func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.U
 		// account stays held without an issued notice.
 		return Notice{}, false, errors.New("household: operator notice issue was not inserted")
 	}
-	n.EarlierAcknowledged = last.Acknowledged || last.EarlierAcknowledged // no row yet: both false
+	n.EarlierAcknowledged = last.Acknowledged // no row yet: both false
 	return n, true, nil
 }
 
