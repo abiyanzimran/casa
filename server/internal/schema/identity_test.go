@@ -13,15 +13,18 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/database"
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
+	"github.com/abiyanzimran/casa/server/internal/identity/identitydb"
 )
 
 // identityFixture is one account with a row in every account-owned identity
-// table, plus a setup token and its sign-up link, each with its own hash.
+// table, plus a setup token and its sign-up link, and a sign-up link of an
+// invitation token (00008_invitation_signup), each with its own hash.
 type identityFixture struct {
 	account, session                  pgtype.UUID
 	email                             string
 	sessionHash, refreshHash          []byte
 	recoveryHash, setupHash, linkHash []byte
+	invitationHash, invitationLink    []byte
 	// The web cookie's previous and discarded values (00004_web_session).
 	prevHash, discardedHash []byte
 }
@@ -45,7 +48,7 @@ var tokenTables = map[string][]string{
 	"refresh_token":       {"token_hash"},
 	"recovery_token":      {"token_hash"},
 	"setup_token":         {"token_hash"},
-	"signup_verification": {"token_hash", "setup_token_hash"},
+	"signup_verification": {"token_hash", "setup_token_hash", "invitation_token_hash"},
 }
 
 func randomBytes() []byte {
@@ -69,6 +72,7 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 		account: randomUUID(), session: randomUUID(), email: email,
 		sessionHash: randomBytes(), refreshHash: randomBytes(), recoveryHash: randomBytes(),
 		setupHash: randomBytes(), linkHash: randomBytes(), prevHash: randomBytes(), discardedHash: randomBytes(),
+		invitationHash: randomBytes(), invitationLink: randomBytes(),
 	}
 	now := time.Now()
 	err := database.Write(ctx, app, database.Scope{AccountID: f.account}, func(tx pgx.Tx) error {
@@ -110,6 +114,16 @@ func newIdentityFixture(t *testing.T, app *pgxpool.Pool, email string) identityF
 		}
 		_, err := tx.Exec(ctx, `INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
 		                        VALUES ($1, 'setup_token', $2, $3, $4, $4)`, f.linkHash, f.setupHash, email, now)
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// SEC-158 (a): the row of a sign-up through an invitation is written
+	// through the invitation token's hash (09.2 §3 note of 14 November 2026).
+	err = database.Write(ctx, app, database.Scope{TokenHash: f.invitationHash}, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `INSERT INTO signup_verification (token_hash, source, invitation_token_hash, email, created_at, expires_at)
+		                        VALUES ($1, 'invitation', $2, $3, $4, $4)`, f.invitationLink, f.invitationHash, "invitee."+email, now)
 		return err
 	})
 	if err != nil {
@@ -218,6 +232,7 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 			{a.refreshHash, "UPDATE refresh_token SET used_at = now() WHERE token_hash = $1"},
 			{a.recoveryHash, "UPDATE recovery_token SET used_at = now() WHERE token_hash = $1"},
 			{a.linkHash, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1"},
+			{a.invitationLink, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1"},
 		} {
 			err := database.Write(ctx, app, database.Scope{TokenHash: c.hash}, func(tx pgx.Tx) error {
 				_, err := tx.Exec(ctx, c.statement, c.hash)
@@ -227,20 +242,24 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 				t.Errorf("%s with only its token hash: err = %v, want 42501", c.statement, err)
 			}
 		}
-		// The positive half: the setup token's hash, the one the policy's
+		// The positive half: the source token's hash, the one the policy's
 		// WITH CHECK names, may write the row the link found.
-		err := database.Write(ctx, app, database.Scope{TokenHash: a.setupHash}, func(tx pgx.Tx) error {
-			tag, err := tx.Exec(ctx, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1", a.linkHash)
-			if err == nil && tag.RowsAffected() != 1 {
-				err = fmt.Errorf("%d rows updated, want 1", tag.RowsAffected())
+		for source, c := range map[string]struct{ sourceHash, link []byte }{
+			"setup token": {a.setupHash, a.linkHash}, "invitation token": {a.invitationHash, a.invitationLink},
+		} {
+			err := database.Write(ctx, app, database.Scope{TokenHash: c.sourceHash}, func(tx pgx.Tx) error {
+				tag, err := tx.Exec(ctx, "UPDATE signup_verification SET used_at = now() WHERE token_hash = $1", c.link)
+				if err == nil && tag.RowsAffected() != 1 {
+					err = fmt.Errorf("%d rows updated, want 1", tag.RowsAffected())
+				}
+				return err
+			})
+			if err != nil {
+				t.Errorf("signup_verification with its %s hash: %v", source, err)
 			}
-			return err
-		})
-		if err != nil {
-			t.Errorf("signup_verification with its setup token hash: %v", err)
 		}
 		// database.Write refuses an email, so the setting is set by hand.
-		err = pgx.BeginFunc(ctx, app, func(tx pgx.Tx) error {
+		err := pgx.BeginFunc(ctx, app, func(tx pgx.Tx) error {
 			if _, err := tx.Exec(ctx, "SELECT set_config('app.email', $1, true)", a.email); err != nil {
 				return err
 			}
@@ -296,14 +315,15 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 
 	t.Run("a token hash finds only its own row", func(t *testing.T) {
 		hashes := map[string][]byte{
-			"session.token_hash":                   a.sessionHash,
-			"session.prev_token_hash":              a.prevHash,
-			"session.discarded_token_hash":         a.discardedHash,
-			"refresh_token.token_hash":             a.refreshHash,
-			"recovery_token.token_hash":            a.recoveryHash,
-			"setup_token.token_hash":               a.setupHash,
-			"signup_verification.token_hash":       a.linkHash,
-			"signup_verification.setup_token_hash": a.setupHash,
+			"session.token_hash":                        a.sessionHash,
+			"session.prev_token_hash":                   a.prevHash,
+			"session.discarded_token_hash":              a.discardedHash,
+			"refresh_token.token_hash":                  a.refreshHash,
+			"recovery_token.token_hash":                 a.recoveryHash,
+			"setup_token.token_hash":                    a.setupHash,
+			"signup_verification.token_hash":            a.linkHash,
+			"signup_verification.setup_token_hash":      a.setupHash,
+			"signup_verification.invitation_token_hash": a.invitationHash,
 		}
 		for table, columns := range tokenTables {
 			for _, column := range columns {
@@ -361,6 +381,79 @@ func TestIdentityTablesAreAccountScoped(t *testing.T) {
 		}
 		if got := readColumn[pgtype.UUID](t, one, database.Scope{AccountID: b.account}, "idempotency_record", "scope_id"); len(got) != 0 {
 			t.Errorf("account B reads scope ids %v, want none", got)
+		}
+	})
+
+	t.Run("the invitation token hash of a sign-up never changes", func(t *testing.T) {
+		// 10.1 §5.1 note 1.6 item 4; 09.2 §3: app_rw has no UPDATE on
+		// invitation_token_hash, so even the row's own source hash, written
+		// back unchanged (which WITH CHECK would pass), is refused.
+		err := database.Write(ctx, app, database.Scope{TokenHash: a.invitationHash}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, "UPDATE signup_verification SET invitation_token_hash = invitation_token_hash WHERE invitation_token_hash = $1", a.invitationHash)
+			return err
+		})
+		if code := databasetest.PgErrorCode(err); code != "42501" {
+			t.Errorf("update of invitation_token_hash with its own hash: err = %v, want insufficient_privilege (42501)", err)
+		}
+	})
+
+	t.Run("a sign-up's account is set once", func(t *testing.T) {
+		// 10.1 §5.1 note 1.6 item 4: account_id, the second exception of
+		// rule 2, is set once when the account is born, by the query's
+		// account_id IS NULL; afterwards the account finds its row through
+		// account_id = A (09.2 §3) but cannot write it (rule 1).
+		admin := d.Pool(t, d.AdminRole)
+		source, link, email := randomBytes(), randomBytes(), "once@example.test"
+		born, other := randomUUID(), randomUUID()
+		now := time.Now()
+		err := database.Write(ctx, app, database.Scope{TokenHash: source}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, `INSERT INTO signup_verification (token_hash, source, invitation_token_hash, email, created_at, expires_at)
+			                        VALUES ($1, 'invitation', $2, $3, $4, $5)`, link, source, email, now, now.Add(time.Hour))
+			return err
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		use := func(account pgtype.UUID) int64 {
+			t.Helper()
+			var n int64
+			err := database.Write(ctx, app, database.Scope{AccountID: account, TokenHash: source}, func(tx pgx.Tx) (err error) {
+				n, err = identitydb.New(tx).UseSignupVerification(ctx, identitydb.UseSignupVerificationParams{
+					Now: now, AccountID: account, TokenHash: link, Email: email,
+				})
+				return err
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			return n
+		}
+		if n := use(born); n != 1 {
+			t.Fatalf("the first account: %d rows, want 1", n)
+		}
+		// Only account_id still guards the row.
+		if _, err := admin.Exec(ctx, "UPDATE signup_verification SET used_at = NULL WHERE token_hash = $1", link); err != nil {
+			t.Fatal(err)
+		}
+		if n := use(other); n != 0 {
+			t.Errorf("a second account: %d rows, want 0", n)
+		}
+		var owner pgtype.UUID
+		if err := admin.QueryRow(ctx, "SELECT account_id FROM signup_verification WHERE token_hash = $1", link).Scan(&owner); err != nil || owner != born {
+			t.Errorf("account_id = %v (err %v), want the first account %v", owner, err, born)
+		}
+		if got := readColumn[[]byte](t, app, database.Scope{AccountID: born}, "signup_verification", "invitation_token_hash"); len(got) != 1 || !slices.Equal(got[0], source) {
+			t.Errorf("the born account reads %d sign-up rows, want its own", len(got))
+		}
+		if got := readColumn[[]byte](t, app, database.Scope{AccountID: other}, "signup_verification", "token_hash"); len(got) != 0 {
+			t.Errorf("another account reads %d sign-up rows, want 0", len(got))
+		}
+		err = database.Write(ctx, app, database.Scope{AccountID: born}, func(tx pgx.Tx) error {
+			_, err := tx.Exec(ctx, "UPDATE signup_verification SET account_id = $1 WHERE account_id = $2", other, born)
+			return err
+		})
+		if code := databasetest.PgErrorCode(err); code != "42501" {
+			t.Errorf("the account moves its row with only its own scope: err = %v, want 42501", err)
 		}
 	})
 

@@ -73,10 +73,16 @@ message StartSignUpRequest {
   // No validation rule on purpose: an empty or malformed token gets the same
   // rejection as any other invalid token (SEC-30).
   string setup_token = 2 [debug_redact = true];
+  // The email to verify. With a setup token it must be the email the token
+  // is bound to (SEC-158 (b)); with an invitation token it is free (SEC-31).
   string email = 3 [(buf.validate.field).string = {
     email: true
     max_len: 254
   }];
+  // The token of an invitation link (SEC-158 (a); plan 1.6 decision 15).
+  // Exactly one of setup_token and invitation_token is set; anything else
+  // gets the one TOKEN_REJECTED. No validation rule, as setup_token above.
+  string invitation_token = 4 [debug_redact = true];
 }
 
 message StartSignUpResponse {}

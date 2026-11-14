@@ -362,13 +362,36 @@ func (s householdHandler) noLiveAcceptance(ctx context.Context, account pgtype.U
 	return nil
 }
 
-// invitationHash is the stored form of source's link token: nil, which finds
-// no invitation, for a malformed token or none. from_signup is answered the
-// same until sign-up through an invitation gives it its hash (plan 1.6
-// decision 15, Task 8).
-func invitationHash(source *casav1.InvitationSource) []byte {
+// InvitationOpen is household's invitation check for identity's sign-up,
+// with its rejection mapped to identity's, so a sign-up through an invalid
+// invitation gets the one TOKEN_REJECTED (SEC-30; SEC-158 note (2)).
+func InvitationOpen(h *household.Service) func(context.Context, []byte) error {
+	return func(ctx context.Context, tokenHash []byte) error {
+		err := h.InvitationOpen(ctx, tokenHash)
+		if errors.Is(err, household.ErrInvitationRejected) {
+			return identity.ErrTokenRejected
+		}
+		return err
+	}
+}
+
+// invitationHash is the token hash source names: the stored form of the
+// pasted link's token, or, for from_signup, the invitation token hash of the
+// sign-up the session's account was born from (FR-FAM-004/AC-14; plan 1.6
+// decision 15). The invitation is never taken from the request. nil, which
+// finds no invitation, for a malformed token, none, or an account made with
+// a setup token; the caller's token path then rejects it.
+func (s householdHandler) invitationHash(ctx context.Context, source *casav1.InvitationSource) ([]byte, error) {
+	if source.GetFromSignup() {
+		session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+		hash, err := s.id.SignupInvitation(ctx, session.AccountID)
+		if errors.Is(err, identity.ErrTokenRejected) {
+			return nil, nil
+		}
+		return hash, err
+	}
 	hash, _ := identity.HashToken(source.GetInvitationToken())
-	return hash
+	return hash, nil
 }
 
 // findInvitation is the one token path of PreviewInvitation and F02 (plan
@@ -409,7 +432,11 @@ func tokenOutcome(err error) identity.Outcome {
 // transaction. It never writes, not even a due invitation's expiry (plan
 // 1.6 decision 12).
 func (s householdHandler) PreviewInvitation(ctx context.Context, req *casav1.PreviewInvitationRequest) (*casav1.PreviewInvitationResponse, error) {
-	householdID, invitation, done, err := s.findInvitation(ctx, clientOf(ctx, req), invitationHash(req.GetSource()))
+	hash, err := s.invitationHash(ctx, req.GetSource())
+	if err != nil {
+		return nil, householdError(err)
+	}
+	householdID, invitation, done, err := s.findInvitation(ctx, clientOf(ctx, req), hash)
 	if err != nil {
 		return nil, householdError(err)
 	}
@@ -458,7 +485,10 @@ func (s householdHandler) AcceptInvitation(ctx context.Context, req *casav1.Acce
 	if err != nil {
 		return nil, householdError(err)
 	}
-	hash := invitationHash(req.GetSource())
+	hash, err := s.invitationHash(ctx, req.GetSource())
+	if err != nil {
+		return nil, householdError(err)
+	}
 	householdID, invitation, done, err := s.findInvitation(ctx, clientOf(ctx, req), hash)
 	if err != nil {
 		return nil, householdError(err)

@@ -203,12 +203,14 @@ type SetupToken struct {
 }
 
 type SignupVerification struct {
-	ID             pgtype.UUID
-	TokenHash      []byte
-	Source         string
-	SetupTokenHash []byte
-	Email          string
-	CreatedAt      time.Time
-	ExpiresAt      time.Time
-	UsedAt         pgtype.Timestamptz
+	ID                  pgtype.UUID
+	TokenHash           []byte
+	Source              string
+	SetupTokenHash      []byte
+	Email               string
+	CreatedAt           time.Time
+	ExpiresAt           time.Time
+	UsedAt              pgtype.Timestamptz
+	InvitationTokenHash []byte
+	AccountID           pgtype.UUID
 }

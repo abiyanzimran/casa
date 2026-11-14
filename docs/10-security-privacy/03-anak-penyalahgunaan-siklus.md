@@ -199,6 +199,7 @@ stateDiagram-v2
 | Chat | Tetap; dihapus per pesan oleh penulisnya | Percakapan ditutup, tetap terbaca bekas peserta yang tersisa | Isi dan foto pesan orang itu dibuang, penanda tetap | Dihapus bersama |
 | Akun (kredensial, sesi, setelan) | Selama akun ada | Akun tetap ada (ia dapat bergabung ke rumah tangga lain dan mengekspor) | Hapus akun: SEC-105 | — |
 | Akun tanpa rumah tangga yang tidak masuk 12 bulan | — | Dihapus sesudah pemberitahuan ke email 30 hari sebelumnya (tahap publik) | — | — |
+| Baris pendaftaran (`signup_verification`; berisi email yang diketik) | Belum melahirkan akun (`account_id` NULL): dihapus paling lambat 24 jam sesudah tautan verifikasinya kedaluwarsa (14 November 2026, **[Usulan]** `security-privacy`; tugas pembersihan terjadwal pertama, paling lambat sebelum GR-4) | Yang sudah melahirkan akun: tetap selama akun ada | Dihapus bersama akun, menurut `account_id` (SEC-105) | — |
 | Log server | 14 hari (SEC-44) | — | — | — |
 | Cadangan | Jendela pemulihan 30 hari; umur set cadangan paling lama 38 hari (SEC-43) | — | Penghapusan sampai ke cadangan dan salinannya paling lambat 38 hari (SEC-96) | Sama |
 | Token push | Sampai keluar akun atau sesi dicabut (SEC-58) | Dihapus pada F06 untuk rumah tangga itu | — | — |

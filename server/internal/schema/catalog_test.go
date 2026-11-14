@@ -50,11 +50,15 @@ var tables = map[string]tableRule{
 		updates: []string{"used_at", "account_id"},
 		policy:  policyText("(token_hash = "+settingTokenHash+")", "(token_hash = "+settingTokenHash+")"),
 		source:  "09.2 §3 \"Tabel global\", §5.1; SEC-158 (b); 09.4 §2; lead rulings Q2, Q3 on the 1.4 plan"},
+	// 00008_invitation_signup: the invitation source; email is replaced on
+	// a restart before an account is born, account_id is set once (10.1
+	// §5.1 note 1.6 item 4; security-privacy ruling on Task 8 of plan 1.6).
 	"signup_verification": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
-		updates: []string{"token_hash", "expires_at", "used_at"},
-		policy: policyText("((token_hash = "+settingTokenHash+") OR (setup_token_hash = "+settingTokenHash+"))",
-			"(setup_token_hash = "+settingTokenHash+")"),
-		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158; lead rulings Q2, Q4, Q8 on the 1.4 plan"},
+		updates: []string{"token_hash", "email", "expires_at", "used_at", "account_id"},
+		policy: policyText("((token_hash = "+settingTokenHash+") OR (setup_token_hash = "+settingTokenHash+
+			") OR (invitation_token_hash = "+settingTokenHash+") OR (account_id = "+settingAccount+"))",
+			"((setup_token_hash = "+settingTokenHash+") OR (invitation_token_hash = "+settingTokenHash+"))"),
+		source: "09.2 §3 \"Tabel global\", §5.1; SEC-158; lead rulings Q2, Q4, Q8 on the 1.4 plan; plan 1.6 decision 15; 10.1 §5.1 note 1.6 item 4"},
 	"security_event": {global: true, grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		policy: ownAccount,
 		source: "09.2 §3 \"Tabel global\"; SEC-16, SEC-39 (b): append-only; lead ruling Q3 on the 1.4 plan"},
@@ -308,15 +312,17 @@ func TestCatalog(t *testing.T) {
 
 	t.Run("app_rw never updates the owner of an identity row", func(t *testing.T) {
 		// 10.1 §5.1 rule 2: a lookup can find a row, but nothing can move a
-		// row to another owner; setup_token.account_id is filled once, when
-		// the token is used.
+		// row to another owner; setup_token.account_id and
+		// signup_verification.account_id are filled once, when the account
+		// is born (note 1.6 item 4), and a sign-up's source token hash never
+		// changes.
 		got := queryStrings(t, db, `
 			SELECT format('%s.%s', table_name, column_name)
 			  FROM information_schema.column_privileges
 			 WHERE grantee = 'app_rw' AND privilege_type = 'UPDATE' AND table_schema = 'public'
-			   AND column_name IN ('id', 'account_id', 'session_id', 'setup_token_hash', 'scope_id')
+			   AND column_name IN ('id', 'account_id', 'session_id', 'setup_token_hash', 'invitation_token_hash', 'scope_id')
 			 ORDER BY 1`)
-		if want := []string{"setup_token.account_id"}; !slices.Equal(got, want) {
+		if want := []string{"setup_token.account_id", "signup_verification.account_id"}; !slices.Equal(got, want) {
 			t.Errorf("app_rw may update the owner columns %v, want only %v", got, want)
 		}
 	})

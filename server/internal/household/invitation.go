@@ -167,6 +167,16 @@ func (s *Service) CreateInvitation(ctx context.Context, tx pgx.Tx, inviter Membe
 	})
 }
 
+// InvitationOpen is FindInvitation without its answer: nil for an open
+// invitation link before its expiry, else ErrInvitationRejected, the same
+// rejection set as F02 (plan 1.6 decisions 13, 15; SEC-158 note (2)). The
+// API layer hands it to identity's sign-up, since the two modules do not
+// import each other (09.2 §1 item 9).
+func (s *Service) InvitationOpen(ctx context.Context, tokenHash []byte) error {
+	_, _, err := s.FindInvitation(ctx, tokenHash)
+	return err
+}
+
 // inviterInvitation reads invitation for a command of inviter that expects
 // it in state and not past its expiry (06 S-4; plan 1.6 decision 11):
 // another household's invitation, or one inviter did not make, is

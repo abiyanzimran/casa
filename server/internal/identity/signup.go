@@ -7,40 +7,109 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/abiyanzimran/casa/server/internal/database"
 	"github.com/abiyanzimran/casa/server/internal/identity/identitydb"
 )
 
-// StartSignUp checks setupToken and the email it is bound to, and mails a
-// verification link to that email (SEC-158 (b); lead ruling Q4 on the 1.4
-// plan). A token that is missing, malformed, unknown, expired, used, bound to
-// another email, or whose email already has an account gets ErrTokenRejected
-// and no mail (SEC-30).
-func (s *Service) StartSignUp(ctx context.Context, client Client, setupToken, email string) error {
+// SignUpSource is the token a sign-up starts from: a setup token (SEC-158
+// (b)) or the token of an invitation link (SEC-158 (a)). Exactly one is set;
+// anything else gets ErrTokenRejected (plan 1.6 decision 15).
+type SignUpSource struct{ SetupToken, InvitationToken string }
+
+// StartSignUp checks source and email and mails a verification link to the
+// email (SEC-158; lead ruling Q4 on the 1.4 plan). A setup token must be
+// unused, unexpired and bound to email, and the link goes to the email as
+// issued. An invitation token must pass invitationOpen, the household's
+// check shared with F02 (SEC-158 note (2)); the email is free (SEC-31),
+// and one that already has an account is answered like a fresh one. A token
+// that fails, a setup token whose email already has an account, or an
+// invitation link an account was already born from gets ErrTokenRejected and
+// no mail (SEC-30).
+//
+// Rate limits (10.1 §8.1): every start the address limiter allows counts on
+// the address, success too; a server error, or a refusal by the invitation's
+// own key, takes that count back. Every start whose invitation passes
+// invitationOpen counts on the invitation token hash, registered and fresh
+// emails alike, before the row is written; past 5, ErrRateLimited, no row
+// and no mail.
+func (s *Service) StartSignUp(ctx context.Context, client Client, source SignUpSource, email string,
+	invitationOpen func(context.Context, []byte) error,
+) error {
 	allowed, done := s.tokenUse.attempt("", client.Address)
 	if !allowed {
 		return ErrRateLimited
 	}
-	boundEmail, setupHash, err := s.checkSetupToken(ctx, setupToken, email)
+	to, link, err := s.storeVerificationLink(ctx, source, email, invitationOpen)
 	if err != nil {
 		done(outcomeOf(err))
 		return err
 	}
-	done(Succeeded)
+	done(Failed) // every start counts on the address (10.1 §8.1)
+	// After commit only: a retried transaction must not mail twice.
+	return s.config.SendMail(ctx, Message{To: to, Kind: MessageVerification, Link: s.config.Origin + "/signup/verify#" + link})
+}
+
+// storeVerificationLink checks source and writes a new verification link in
+// its sign-up row, replacing the old link, through the source token's hash
+// (10.1 §5.1 rule 1). It returns the email to mail and the link.
+func (s *Service) storeVerificationLink(ctx context.Context, source SignUpSource, email string,
+	invitationOpen func(context.Context, []byte) error,
+) (to, link string, err error) {
 	link, linkHash := NewToken()
 	now := s.config.Now()
-	err = database.Write(ctx, s.pool, database.Scope{TokenHash: setupHash}, func(tx pgx.Tx) error {
-		return identitydb.New(tx).UpsertSignupVerification(ctx, identitydb.UpsertSignupVerificationParams{
-			TokenHash: linkHash, SetupTokenHash: setupHash, Email: boundEmail,
-			CreatedAt: now, ExpiresAt: now.Add(verificationLinkLifetime),
+	expiresAt := now.Add(verificationLinkLifetime)
+	switch {
+	case source.SetupToken != "" && source.InvitationToken == "":
+		var setupHash []byte
+		to, setupHash, err = s.checkSetupToken(ctx, source.SetupToken, email)
+		if err != nil {
+			return "", "", err
+		}
+		err = database.Write(ctx, s.pool, database.Scope{TokenHash: setupHash}, func(tx pgx.Tx) error {
+			return identitydb.New(tx).UpsertSignupVerification(ctx, identitydb.UpsertSignupVerificationParams{
+				TokenHash: linkHash, SetupTokenHash: setupHash, Email: to, CreatedAt: now, ExpiresAt: expiresAt,
+			})
 		})
-	})
-	if err != nil {
-		return fmt.Errorf("store the verification link: %w", err)
+		if err != nil {
+			return "", "", fmt.Errorf("store the verification link: %w", err)
+		}
+		return to, link, nil
+	case source.InvitationToken != "" && source.SetupToken == "":
+		invitationHash, ok := HashToken(source.InvitationToken)
+		if !ok {
+			return "", "", ErrTokenRejected
+		}
+		if err := invitationOpen(ctx, invitationHash); err != nil {
+			return "", "", err
+		}
+		// No email lookup here: a live invitation link must not tell
+		// whether an email has an account, by answer or by rate-limit
+		// count (SEC-12, SEC-30; 10.1 §8.1). CompleteSignUp refuses an
+		// email that has one, and writes nothing.
+		allowed, done := s.invitationStart.Attempt(string(invitationHash))
+		if !allowed {
+			return "", "", ErrRateLimited
+		}
+		var n int64
+		err = database.Write(ctx, s.pool, database.Scope{TokenHash: invitationHash}, func(tx pgx.Tx) (err error) {
+			n, err = identitydb.New(tx).UpsertInvitationSignupVerification(ctx, identitydb.UpsertInvitationSignupVerificationParams{
+				TokenHash: linkHash, InvitationTokenHash: invitationHash, Email: email, CreatedAt: now, ExpiresAt: expiresAt,
+			})
+			return err
+		})
+		if err != nil {
+			done(NotTried) // a server error is not the caller's start
+			return "", "", fmt.Errorf("store the verification link: %w", err)
+		}
+		done(Failed) // counted, also when an account was born (n = 0)
+		if n == 0 {
+			return "", "", ErrTokenRejected // an account was born from this link (SEC-158 note (1))
+		}
+		return email, link, nil
 	}
-	// After commit only: a retried transaction must not mail twice.
-	return s.config.SendMail(ctx, Message{To: boundEmail, Kind: MessageVerification, Link: s.config.Origin + "/signup/verify#" + link})
+	return "", "", ErrTokenRejected
 }
 
 // checkSetupToken returns the email setupToken is bound to, as issued, and
@@ -77,10 +146,14 @@ func (s *Service) checkSetupToken(ctx context.Context, setupToken, email string)
 }
 
 // CompleteSignUp opens the account, its credential and its first session in
-// one transaction when the emailed link is opened, and uses up the setup
-// token (SEC-158; FR-FAM-001 AC-10). The person sets their own password here
-// (SEC-26). A missing, unknown, expired or used link gets ErrTokenRejected.
-func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificationToken, password string) (Tokens, error) {
+// one transaction when the emailed link is opened, and uses up the link and,
+// for a setup token, the token (SEC-158; FR-FAM-001 AC-10). The person sets
+// their own password here (SEC-26). A missing, unknown, expired, used or
+// replaced link, or an invitation that no longer passes invitationOpen,
+// gets ErrTokenRejected.
+func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificationToken, password string,
+	invitationOpen func(context.Context, []byte) error,
+) (Tokens, error) {
 	if err := checkPasswordNotCommon(password); err != nil {
 		return Tokens{}, err
 	}
@@ -88,7 +161,7 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 	if !allowed {
 		return Tokens{}, ErrRateLimited
 	}
-	tokens, err := s.completeSignUp(ctx, client, verificationToken, password)
+	tokens, err := s.completeSignUp(ctx, client, verificationToken, password, invitationOpen)
 	if err != nil {
 		done(outcomeOf(err))
 		return Tokens{}, err
@@ -97,7 +170,9 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 	return tokens, nil
 }
 
-func (s *Service) completeSignUp(ctx context.Context, client Client, verificationToken, password string) (Tokens, error) {
+func (s *Service) completeSignUp(ctx context.Context, client Client, verificationToken, password string,
+	invitationOpen func(context.Context, []byte) error,
+) (Tokens, error) {
 	linkHash, ok := HashToken(verificationToken)
 	if !ok {
 		return Tokens{}, ErrTokenRejected
@@ -114,6 +189,22 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	if err != nil {
 		return Tokens{}, fmt.Errorf("read the verification link: %w", err)
 	}
+	// The row is written through its source token's hash (10.1 §5.1 rule 1).
+	sourceHash := link.SetupTokenHash
+	if link.Source == "invitation" {
+		// SEC-158 note (2): the invitation is checked again when the link
+		// is opened. The invitation can still be cancelled or expire in the
+		// window between this check and the account transaction, which
+		// includes the Argon2 hash and the wait for a hash slot; that is
+		// accepted: an account born there cannot create a household
+		// (FR-FAM-001/AC-10), from_signup checks the live token_hash, and
+		// joining needs the inviter's F04. SEC-158 note (2) asks for the
+		// same check as F02, not for atomicity with it.
+		if err := invitationOpen(ctx, link.InvitationTokenHash); err != nil {
+			return Tokens{}, err
+		}
+		sourceHash = link.InvitationTokenHash
+	}
 	// Hashed outside the transaction, which may run more than once.
 	credential, err := s.hasher.hash(ctx, password)
 	if err != nil {
@@ -121,23 +212,29 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	}
 	account := link.NewAccountID
 	var tokens Tokens
-	scope := database.Scope{AccountID: account, TokenHash: link.SetupTokenHash}
-	err = database.Write(ctx, s.pool, scope, func(tx pgx.Tx) error {
+	err = database.Write(ctx, s.pool, database.Scope{AccountID: account, TokenHash: sourceHash}, func(tx pgx.Tx) error {
 		now := s.config.Now()
 		q := identitydb.New(tx)
-		err := q.InsertAccount(ctx, identitydb.InsertAccountParams{ID: account, Email: link.Email, CreatedAt: now})
+		err := q.InsertAccount(ctx, identitydb.InsertAccountParams{ID: account, Email: link.Email, CreatedAt: now, SignupVia: link.Source})
 		if uniqueViolation(err) {
-			return ErrTokenRejected // the email got an account meanwhile
+			// The email has an account: one made meanwhile, or, through an
+			// invitation, one StartSignUp did not look up. The transaction
+			// rolls back, so the sign-up row stays as it was.
+			return ErrTokenRejected
 		}
 		if err != nil {
 			return err
 		}
-		used, err := q.UseSetupToken(ctx, identitydb.UseSetupTokenParams{Now: now, AccountID: account, TokenHash: link.SetupTokenHash})
-		if err != nil || used == 0 {
-			return errors.Join(err, rejectedIfNone(used))
+		if link.Source == "setup_token" {
+			used, err := q.UseSetupToken(ctx, identitydb.UseSetupTokenParams{Now: now, AccountID: account, TokenHash: sourceHash})
+			if err != nil || used == 0 {
+				return errors.Join(err, rejectedIfNone(used))
+			}
 		}
-		used, err = q.UseSignupVerification(ctx, identitydb.UseSignupVerificationParams{
-			Now: now, TokenHash: linkHash, SetupTokenHash: link.SetupTokenHash,
+		// The account's email is the row's while it still holds the link
+		// that was read (security-privacy ruling on Task 8 of plan 1.6).
+		used, err := q.UseSignupVerification(ctx, identitydb.UseSignupVerificationParams{
+			Now: now, AccountID: account, TokenHash: linkHash, Email: link.Email,
 		})
 		if err != nil || used == 0 {
 			return errors.Join(err, rejectedIfNone(used))
@@ -154,6 +251,22 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		return err
 	})
 	return tokens, err
+}
+
+// SignupInvitation is the invitation token hash of the sign-up account was
+// born from, for from_signup (FR-FAM-004/AC-14; plan 1.6 decision 15), read
+// through the account_id = A clause (09.2 §3); an account made with a setup
+// token has none: ErrTokenRejected.
+func (s *Service) SignupInvitation(ctx context.Context, account pgtype.UUID) ([]byte, error) {
+	var hash []byte
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		hash, err = identitydb.New(tx).GetSignupInvitation(ctx, account)
+		return err
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrTokenRejected
+	}
+	return hash, err
 }
 
 func rejectedIfNone(rows int64) error {

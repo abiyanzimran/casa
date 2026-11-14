@@ -21,8 +21,9 @@ import (
 // Errors a caller maps to a response; each stands for every reason behind it,
 // so a response never tells the reasons apart (SEC-30).
 var (
-	// ErrTokenRejected: a setup or verification token is missing,
-	// malformed, unknown, expired, used, or bound to another email.
+	// ErrTokenRejected: a setup, invitation or verification token is
+	// missing, malformed, unknown, expired, used, replaced, or bound to
+	// another email.
 	ErrTokenRejected = errors.New("token rejected")
 	// ErrRateLimited: too many failed attempts from the account or the
 	// network address (SEC-12).
@@ -63,10 +64,14 @@ const (
 )
 
 // Thresholds of 10.1 §8.1: every token use (StartSignUp, CompleteSignUp) by
-// address; SignIn by email and by address; Reauthenticate by account and by
-// address; StartRecovery by email and by address.
+// address; an invitation sign-up start by invitation; SignIn by email and by
+// address; Reauthenticate by account and by address; StartRecovery by email
+// and by address.
 const (
-	tokenUseThreshold        = 20
+	tokenUseThreshold = 20
+	// invitationStartThreshold: StartSignUp per invitation token hash
+	// (10.1 §8.1 row "Mulai pendaftaran per undangan").
+	invitationStartThreshold = 5
 	signInThreshold          = 20
 	reauthThreshold          = 20
 	recoveryEmailThreshold   = 5
@@ -153,9 +158,13 @@ type Service struct {
 	config   Config
 	hasher   *hasher
 	tokenUse rateLimit
-	signIn   rateLimit
-	reauth   rateLimit
-	recovery rateLimit
+	// invitationStart counts every invitation sign-up start that passes the
+	// invitation check, per invitation token hash; a success never clears
+	// it (10.1 §8.1).
+	invitationStart *Limiter
+	signIn          rateLimit
+	reauth          rateLimit
+	recovery        rateLimit
 	// background is the work started after a response: recovery mail
 	// until the identity.send_mail job of 1.7.
 	background sync.WaitGroup
@@ -215,6 +224,7 @@ func New(pool *pgxpool.Pool, config Config) *Service {
 		config:               config,
 		hasher:               newHasher(config.Password),
 		tokenUse:             newRateLimit(0, tokenUseThreshold, false, config.Now),
+		invitationStart:      NewLimiter(invitationStartThreshold, false, false, config.Now),
 		signIn:               newRateLimit(signInThreshold, signInThreshold, true, config.Now),
 		reauth:               newRateLimit(reauthThreshold, reauthThreshold, true, config.Now),
 		recovery:             newRateLimit(recoveryEmailThreshold, recoveryAddressThreshold, false, config.Now),

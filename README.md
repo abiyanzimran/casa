@@ -61,7 +61,7 @@ make check-contract   # buf format, buf lint, buf breaking against origin/main, 
 
 ## Queries
 
-All production SQL is in each module's `queries.sql` (today `server/internal/identity/queries.sql` and `server/internal/command/queries.sql`) and goes through sqlc; the generated Go (`server/internal/*/*db/`) is committed and never edited by hand. `server/sqlc.yaml` names every migration. After changing a query or a migration:
+All production SQL is in each module's `queries.sql` (today `server/internal/identity/queries.sql`, `server/internal/household/queries.sql` and `server/internal/command/queries.sql`) and goes through sqlc; the generated Go (`server/internal/*/*db/`) is committed and never edited by hand. `server/sqlc.yaml` names every migration. After changing a query or a migration:
 
 ```sh
 make sqlc-generate    # regenerate, then commit the result
@@ -76,7 +76,7 @@ cd server && go run ./cmd/casa serve -mail-dir /path/to/mail -listen 127.0.0.1:8
 
 `GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `serve` also needs the credential `operator-name`: it fills `{pengelola}` in the operator notice, and changing it issues a new notice version and holds every account until they read it again. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
 
-A setup token opens the first account of a household (closed sign-up, SEC-158 (b)). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
+A setup token opens the first account of a household (closed sign-up, SEC-158 (b)); everyone else joins through an invitation link (below). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
 
 ```sh
 casa setup-token -email person@example.com
@@ -86,5 +86,20 @@ It connects as `app_rw` with the connection string in the systemd credential `ap
 
 ## Identity
 
-Sign-up is closed: the person opens the emailed verification link and sets their own password. A native client then signs in with email and password and gets an access token (15 minutes, sent as `Authorization: Bearer`) and a refresh token that rotates on every use. `SignOut` revokes the session. `Reauthenticate` checks the password again and allows one `ChangePassword` within 5 minutes. `StartRecovery` mails a single-use recovery link (30 minutes); `CompleteRecovery` sets a new password with it and revokes every other session. Sign-in, re-authentication, recovery and token use are rate limited per account or email and per network address, in memory. Web sessions arrive with the cookie transport in FS-1 1.5.
+Sign-up is closed: the person opens the emailed verification link and sets their own password. A native client then signs in with email and password and gets an access token (15 minutes, sent as `Authorization: Bearer`) and a refresh token that rotates on every use. `SignOut` revokes the session. `Reauthenticate` checks the password again and allows one `ChangePassword` within 5 minutes. `StartRecovery` mails a single-use recovery link (30 minutes); `CompleteRecovery` sets a new password with it and revokes every other session. Sign-in, re-authentication, recovery and token use are rate limited per account or email and per network address, in memory; every `StartSignUp` counts on its address, and a sign-up through an invitation also counts on that invitation (5 starts). Web sessions arrive with the cookie transport in FS-1 1.5.
+
+## Household
+
+`HouseholdService` serves the household: the operator notice (`GetOperatorNotice`, `AcknowledgeOperatorNotice`), `CreateHousehold`, `ListMemberships`, and the invitation commands. Until an account has acknowledged the latest operator notice, its household write commands (except acknowledging the notice and withdrawing its own acceptance) and `IssueInvitationLink` answer `NOTICE_UNREAD`. The notice names the operator from the `operator-name` credential of `casa serve` (above). A request's `household_id` only selects a household; the server checks the caller's membership on every call.
+
+Onboarding, in order:
+
+1. The first person signs up with a setup token: `StartSignUp{setup_token}`, the emailed verification link, then `CompleteSignUp` with their own password.
+2. They read and acknowledge the operator notice, then `CreateHousehold` with the adult age statement.
+3. They invite the second adult: `CreateInvitation`, then `IssueInvitationLink`, and share the link. A new link replaces the old one; the invitation lapses after 7 days.
+4. The invitee signs up with the link's token: `StartSignUp{invitation_token}` with any email, the emailed verification link, then `CompleteSignUp`. An account made this way can join a household but never create one.
+5. The invitee acknowledges the operator notice, then `PreviewInvitation{from_signup}` and `AcceptInvitation{from_signup}`, without pasting the link again. An account that already exists pastes the link instead (`invitation_token`).
+6. The inviter sees the invitee's verified email in `GetOpenInvitation` and confirms with `ConfirmInvitee` (or refuses with `RejectInvitee`); only then is the invitee a member. A household holds two full adult members.
+
+Every invalid, used, replaced, cancelled or lapsed token gets the same `TOKEN_REJECTED` answer.
 

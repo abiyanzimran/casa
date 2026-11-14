@@ -101,7 +101,7 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		Bearer: identityService.Authenticate, Cookie: identityService.AuthenticateCookie,
 		UserAction: identityService.TouchUserAction,
 	}, api.NoticeHeld(pool, householdService))
-	api.RegisterIdentityService(apiServer, pool, identityService)
+	api.RegisterIdentityService(apiServer, pool, identityService, api.InvitationOpen(householdService))
 	api.RegisterHouseholdService(apiServer, pool, householdService, identityService)
 	listener, err := new(net.ListenConfig).Listen(ctx, "tcp", *listen)
 	if err != nil {
