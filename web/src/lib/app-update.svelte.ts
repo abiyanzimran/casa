@@ -55,7 +55,7 @@ export async function applyUpdate(
 	const waiting = registration.waiting;
 	// ponytail: a version still installing is found on the next tap, not awaited here.
 	if (!waiting) return 'none';
-	if (openForms()) {
+	if (openForms() && openForms.length > 5) {
 		upgrade.phase = 'deferred';
 		return 'deferred';
 	}
