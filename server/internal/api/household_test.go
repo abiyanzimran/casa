@@ -43,6 +43,7 @@ func startHousehold(t *testing.T) *householdHarness {
 		h.service = household.New(id.pool, id.clock.Now, testOperatorName, household.PublishedNotices)
 		api.RegisterHouseholdService(server, id.pool, h.service, id.service)
 		id.noticeHeld = api.NoticeHeld(id.pool, h.service)
+		id.invitationOpen = api.InvitationOpen(h.service)
 	})
 	h.households = casav1connect.NewHouseholdServiceClient(h.probe)
 	return h

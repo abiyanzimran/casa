@@ -267,18 +267,36 @@ func (q *Queries) GetSetupTokenForEmail(ctx context.Context, arg GetSetupTokenFo
 	return i, err
 }
 
+const getSignupInvitation = `-- name: GetSignupInvitation :one
+SELECT invitation_token_hash::bytea FROM signup_verification
+ WHERE account_id = $1 AND source = 'invitation'
+`
+
+// from_signup (FR-FAM-004/AC-14; plan 1.6 decision 15): the invitation token
+// hash of the sign-up the account was born from; none for a setup token.
+// Served by signup_verification_account.
+func (q *Queries) GetSignupInvitation(ctx context.Context, accountID pgtype.UUID) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getSignupInvitation, accountID)
+	var invitation_token_hash []byte
+	err := row.Scan(&invitation_token_hash)
+	return invitation_token_hash, err
+}
+
 const getSignupVerification = `-- name: GetSignupVerification :one
-SELECT setup_token_hash, email, expires_at, used_at, gen_random_uuid()::uuid AS new_account_id
+SELECT source, setup_token_hash, invitation_token_hash, email, expires_at, used_at,
+       gen_random_uuid()::uuid AS new_account_id
   FROM signup_verification
  WHERE token_hash = $1
 `
 
 type GetSignupVerificationRow struct {
-	SetupTokenHash []byte
-	Email          string
-	ExpiresAt      time.Time
-	UsedAt         pgtype.Timestamptz
-	NewAccountID   pgtype.UUID
+	Source              string
+	SetupTokenHash      []byte
+	InvitationTokenHash []byte
+	Email               string
+	ExpiresAt           time.Time
+	UsedAt              pgtype.Timestamptz
+	NewAccountID        pgtype.UUID
 }
 
 // The id of the account the link would open is drawn here (09.2 §4).
@@ -286,7 +304,9 @@ func (q *Queries) GetSignupVerification(ctx context.Context, tokenHash []byte) (
 	row := q.db.QueryRow(ctx, getSignupVerification, tokenHash)
 	var i GetSignupVerificationRow
 	err := row.Scan(
+		&i.Source,
 		&i.SetupTokenHash,
+		&i.InvitationTokenHash,
 		&i.Email,
 		&i.ExpiresAt,
 		&i.UsedAt,
@@ -340,17 +360,25 @@ func (q *Queries) HasOpenReauthGrant(ctx context.Context, arg HasOpenReauthGrant
 
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO account (id, email, created_at, signup_via)
-VALUES ($1, $2, $3, 'setup_token')
+VALUES ($1, $2, $3, $4)
 `
 
 type InsertAccountParams struct {
 	ID        pgtype.UUID
 	Email     string
 	CreatedAt time.Time
+	SignupVia string
 }
 
+// signup_via is the sign-up row's source (SEC-158: only setup_token may
+// create a household).
 func (q *Queries) InsertAccount(ctx context.Context, arg InsertAccountParams) error {
-	_, err := q.db.Exec(ctx, insertAccount, arg.ID, arg.Email, arg.CreatedAt)
+	_, err := q.db.Exec(ctx, insertAccount,
+		arg.ID,
+		arg.Email,
+		arg.CreatedAt,
+		arg.SignupVia,
+	)
 	return err
 }
 
@@ -757,6 +785,41 @@ func (q *Queries) UpdateCredential(ctx context.Context, arg UpdateCredentialPara
 	return result.RowsAffected(), nil
 }
 
+const upsertInvitationSignupVerification = `-- name: UpsertInvitationSignupVerification :execrows
+INSERT INTO signup_verification (token_hash, source, invitation_token_hash, email, created_at, expires_at)
+VALUES ($1, 'invitation', $2, $3, $4, $5)
+ON CONFLICT (invitation_token_hash) DO UPDATE
+   SET token_hash = excluded.token_hash, email = excluded.email, expires_at = excluded.expires_at
+ WHERE signup_verification.account_id IS NULL
+`
+
+type UpsertInvitationSignupVerificationParams struct {
+	TokenHash           []byte
+	InvitationTokenHash []byte
+	Email               string
+	CreatedAt           time.Time
+	ExpiresAt           time.Time
+}
+
+// SEC-158 note (1) of 14 November 2026: one row per invitation token hash. A
+// restart before an account is born replaces the link and its email (the
+// email is free, SEC-31); once an account is born from the row, nothing
+// changes and zero rows come back. Served by the unique index on
+// invitation_token_hash.
+func (q *Queries) UpsertInvitationSignupVerification(ctx context.Context, arg UpsertInvitationSignupVerificationParams) (int64, error) {
+	result, err := q.db.Exec(ctx, upsertInvitationSignupVerification,
+		arg.TokenHash,
+		arg.InvitationTokenHash,
+		arg.Email,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const upsertSignupVerification = `-- name: UpsertSignupVerification :exec
 INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
 VALUES ($1, 'setup_token', $2, $3, $4, $5)
@@ -772,6 +835,7 @@ type UpsertSignupVerificationParams struct {
 }
 
 // One link per setup token: a new request replaces the old link (09.2 §5.1).
+// The email is the one the token is bound to, so it never changes.
 func (q *Queries) UpsertSignupVerification(ctx context.Context, arg UpsertSignupVerificationParams) error {
 	_, err := q.db.Exec(ctx, upsertSignupVerification,
 		arg.TokenHash,
@@ -891,19 +955,29 @@ func (q *Queries) UseSetupToken(ctx context.Context, arg UseSetupTokenParams) (i
 }
 
 const useSignupVerification = `-- name: UseSignupVerification :execrows
-UPDATE signup_verification SET used_at = $1::timestamptz
- WHERE token_hash = $2 AND setup_token_hash = $3
+UPDATE signup_verification SET used_at = $1::timestamptz, account_id = $2
+ WHERE token_hash = $3 AND email = $4 AND account_id IS NULL
    AND used_at IS NULL AND expires_at > $1::timestamptz
 `
 
 type UseSignupVerificationParams struct {
-	Now            time.Time
-	TokenHash      []byte
-	SetupTokenHash []byte
+	Now       time.Time
+	AccountID pgtype.UUID
+	TokenHash []byte
+	Email     string
 }
 
+// The link opens one account: compare-and-set on the link that was read and
+// its email, and account_id is set once (10.1 §5.1 note 1.6 item 4;
+// security-privacy ruling on Task 8). A link replaced since it was read
+// changes nothing. Served by the unique index on token_hash.
 func (q *Queries) UseSignupVerification(ctx context.Context, arg UseSignupVerificationParams) (int64, error) {
-	result, err := q.db.Exec(ctx, useSignupVerification, arg.Now, arg.TokenHash, arg.SetupTokenHash)
+	result, err := q.db.Exec(ctx, useSignupVerification,
+		arg.Now,
+		arg.AccountID,
+		arg.TokenHash,
+		arg.Email,
+	)
 	if err != nil {
 		return 0, err
 	}

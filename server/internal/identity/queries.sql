@@ -15,19 +15,35 @@ SELECT id FROM account WHERE email = @email;
 
 -- name: UpsertSignupVerification :exec
 -- One link per setup token: a new request replaces the old link (09.2 §5.1).
+-- The email is the one the token is bound to, so it never changes.
 INSERT INTO signup_verification (token_hash, source, setup_token_hash, email, created_at, expires_at)
 VALUES (@token_hash, 'setup_token', @setup_token_hash, @email, @created_at, @expires_at)
 ON CONFLICT (setup_token_hash) DO UPDATE SET token_hash = excluded.token_hash, expires_at = excluded.expires_at;
 
+-- name: UpsertInvitationSignupVerification :execrows
+-- SEC-158 note (1) of 14 November 2026: one row per invitation token hash. A
+-- restart before an account is born replaces the link and its email (the
+-- email is free, SEC-31); once an account is born from the row, nothing
+-- changes and zero rows come back. Served by the unique index on
+-- invitation_token_hash.
+INSERT INTO signup_verification (token_hash, source, invitation_token_hash, email, created_at, expires_at)
+VALUES (@token_hash, 'invitation', @invitation_token_hash, @email, @created_at, @expires_at)
+ON CONFLICT (invitation_token_hash) DO UPDATE
+   SET token_hash = excluded.token_hash, email = excluded.email, expires_at = excluded.expires_at
+ WHERE signup_verification.account_id IS NULL;
+
 -- name: GetSignupVerification :one
 -- The id of the account the link would open is drawn here (09.2 §4).
-SELECT setup_token_hash, email, expires_at, used_at, gen_random_uuid()::uuid AS new_account_id
+SELECT source, setup_token_hash, invitation_token_hash, email, expires_at, used_at,
+       gen_random_uuid()::uuid AS new_account_id
   FROM signup_verification
  WHERE token_hash = @token_hash;
 
 -- name: InsertAccount :exec
+-- signup_via is the sign-up row's source (SEC-158: only setup_token may
+-- create a household).
 INSERT INTO account (id, email, created_at, signup_via)
-VALUES (@id, @email, @created_at, 'setup_token');
+VALUES (@id, @email, @created_at, @signup_via);
 
 -- name: UseSetupToken :execrows
 -- SEC-158: the token ends with the account it opened.
@@ -35,9 +51,20 @@ UPDATE setup_token SET used_at = @now::timestamptz, account_id = @account_id
  WHERE token_hash = @token_hash AND used_at IS NULL AND expires_at > @now::timestamptz;
 
 -- name: UseSignupVerification :execrows
-UPDATE signup_verification SET used_at = @now::timestamptz
- WHERE token_hash = @token_hash AND setup_token_hash = @setup_token_hash
+-- The link opens one account: compare-and-set on the link that was read and
+-- its email, and account_id is set once (10.1 §5.1 note 1.6 item 4;
+-- security-privacy ruling on Task 8). A link replaced since it was read
+-- changes nothing. Served by the unique index on token_hash.
+UPDATE signup_verification SET used_at = @now::timestamptz, account_id = @account_id
+ WHERE token_hash = @token_hash AND email = @email AND account_id IS NULL
    AND used_at IS NULL AND expires_at > @now::timestamptz;
+
+-- name: GetSignupInvitation :one
+-- from_signup (FR-FAM-004/AC-14; plan 1.6 decision 15): the invitation token
+-- hash of the sign-up the account was born from; none for a setup token.
+-- Served by signup_verification_account.
+SELECT invitation_token_hash::bytea FROM signup_verification
+ WHERE account_id = @account_id AND source = 'invitation';
 
 -- name: InsertCredential :exec
 INSERT INTO credential (account_id, salt, hash, time_cost, memory_kib, parallelism, updated_at)

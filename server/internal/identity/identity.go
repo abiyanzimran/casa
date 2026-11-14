@@ -21,8 +21,9 @@ import (
 // Errors a caller maps to a response; each stands for every reason behind it,
 // so a response never tells the reasons apart (SEC-30).
 var (
-	// ErrTokenRejected: a setup or verification token is missing,
-	// malformed, unknown, expired, used, or bound to another email.
+	// ErrTokenRejected: a setup, invitation or verification token is
+	// missing, malformed, unknown, expired, used, replaced, or bound to
+	// another email.
 	ErrTokenRejected = errors.New("token rejected")
 	// ErrRateLimited: too many failed attempts from the account or the
 	// network address (SEC-12).

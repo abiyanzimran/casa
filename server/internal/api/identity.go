@@ -21,18 +21,24 @@ import (
 )
 
 // RegisterIdentityService serves casa.v1.IdentityService with s; its write
-// commands run on pool through command.Run.
-func RegisterIdentityService(server *connect.Server, pool *pgxpool.Pool, s *identity.Service) {
-	casav1connect.RegisterIdentityServiceHandler(server, identityHandler{pool: pool, s: s})
+// commands run on pool through command.Run. invitationOpen is sign-up's
+// invitation check (InvitationOpen), passed in because identity and
+// household do not import each other (09.2 §1 item 9).
+func RegisterIdentityService(server *connect.Server, pool *pgxpool.Pool, s *identity.Service,
+	invitationOpen func(context.Context, []byte) error,
+) {
+	casav1connect.RegisterIdentityServiceHandler(server, identityHandler{pool: pool, s: s, invitationOpen: invitationOpen})
 }
 
 type identityHandler struct {
-	pool *pgxpool.Pool
-	s    *identity.Service
+	pool           *pgxpool.Pool
+	s              *identity.Service
+	invitationOpen func(context.Context, []byte) error
 }
 
 func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignUpRequest) (*casav1.StartSignUpResponse, error) {
-	if err := h.s.StartSignUp(ctx, clientOf(ctx, req), req.GetSetupToken(), req.GetEmail()); err != nil {
+	source := identity.SignUpSource{SetupToken: req.GetSetupToken(), InvitationToken: req.GetInvitationToken()}
+	if err := h.s.StartSignUp(ctx, clientOf(ctx, req), source, req.GetEmail(), h.invitationOpen); err != nil {
 		return nil, identityError(err)
 	}
 	return &casav1.StartSignUpResponse{}, nil
@@ -40,7 +46,7 @@ func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignU
 
 func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.CompleteSignUpRequest) (*casav1.CompleteSignUpResponse, error) {
 	client := clientOf(ctx, req)
-	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetPassword())
+	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetPassword(), h.invitationOpen)
 	if err != nil {
 		return nil, identityError(err)
 	}

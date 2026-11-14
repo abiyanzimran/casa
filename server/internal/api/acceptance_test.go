@@ -112,6 +112,27 @@ func wantRejection(t *testing.T, err error, want rejection, what string) {
 	}
 }
 
+// deadInvitationTokens are link tokens of four invitations that no longer
+// accept them, each in its own household.
+type deadInvitationTokens struct{ cancelled, expired, replaced, accepted string }
+
+// deadInvitations makes the four dead invitations of SEC-30's rejection
+// set: cancelled, past its expiry, its link replaced, and accepted.
+func (h *householdHarness) deadInvitations(t *testing.T) deadInvitationTokens {
+	t.Helper()
+	cancelled := h.invited(t, "c1@example.test")
+	wantOK(t, h.cancelInvitation(cancelled.inviter, cancelled.household, cancelled.id))
+	due := h.invited(t, "c2@example.test")
+	if _, err := h.admin.Exec(t.Context(), "UPDATE invitation SET expires_at = $2 WHERE id = $1", due.id, h.clock.Now()); err != nil {
+		t.Fatal(err)
+	}
+	replaced := h.invited(t, "c3@example.test")
+	h.mustIssueLink(t, replaced.inviter, replaced.household, replaced.id)
+	used := h.invited(t, "c4@example.test")
+	h.mustAccept(t, h.signUpMember(t, "d@example.test"), used.token)
+	return deadInvitationTokens{cancelled: cancelled.token, expired: due.token, replaced: replaced.token, accepted: used.token}
+}
+
 func tokenHash(t *testing.T, token string) []byte {
 	t.Helper()
 	sum := sha256.Sum256(decodeToken(t, token))
@@ -125,22 +146,13 @@ func TestAcceptInvitation(t *testing.T) {
 	t.Run("SEC-30 every invalid invitation gets the one token rejection", func(t *testing.T) {
 		h := startHousehold(t)
 		b := h.signUpMember(t, "b@example.test")
-		cancelled := h.invited(t, "c1@example.test")
-		wantOK(t, h.cancelInvitation(cancelled.inviter, cancelled.household, cancelled.id))
-		due := h.invited(t, "c2@example.test")
-		if _, err := h.admin.Exec(t.Context(), "UPDATE invitation SET expires_at = $2 WHERE id = $1", due.id, h.clock.Now()); err != nil {
-			t.Fatal(err)
-		}
-		replaced := h.invited(t, "c3@example.test")
-		h.mustIssueLink(t, replaced.inviter, replaced.household, replaced.id)
-		used := h.invited(t, "c4@example.test")
-		h.mustAccept(t, h.signUpMember(t, "d@example.test"), used.token)
+		dead := h.deadInvitations(t)
 		never, _ := identity.NewToken()
 		want := h.tokenRejection(t)
 		before := h.fingerprint(t)
 		for _, c := range []struct{ name, token string }{
-			{"empty", ""}, {"malformed", "abc"}, {"never issued", never}, {"cancelled", cancelled.token},
-			{"expired", due.token}, {"replaced", replaced.token}, {"accepted", used.token},
+			{"empty", ""}, {"malformed", "abc"}, {"never issued", never}, {"cancelled", dead.cancelled},
+			{"expired", dead.expired}, {"replaced", dead.replaced}, {"accepted", dead.accepted},
 		} {
 			_, err := h.preview(b, c.token)
 			wantRejection(t, err, want, "PreviewInvitation "+c.name)

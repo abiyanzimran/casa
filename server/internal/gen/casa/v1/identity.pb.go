@@ -127,10 +127,16 @@ type StartSignUpRequest struct {
 	RequestContext *RequestContext        `protobuf:"bytes,1,opt,name=request_context,json=requestContext,proto3" json:"request_context,omitempty"`
 	// No validation rule on purpose: an empty or malformed token gets the same
 	// rejection as any other invalid token (SEC-30).
-	SetupToken    string `protobuf:"bytes,2,opt,name=setup_token,json=setupToken,proto3" json:"setup_token,omitempty"`
-	Email         string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SetupToken string `protobuf:"bytes,2,opt,name=setup_token,json=setupToken,proto3" json:"setup_token,omitempty"`
+	// The email to verify. With a setup token it must be the email the token
+	// is bound to (SEC-158 (b)); with an invitation token it is free (SEC-31).
+	Email string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	// The token of an invitation link (SEC-158 (a); plan 1.6 decision 15).
+	// Exactly one of setup_token and invitation_token is set; anything else
+	// gets the one TOKEN_REJECTED. No validation rule, as setup_token above.
+	InvitationToken string `protobuf:"bytes,4,opt,name=invitation_token,json=invitationToken,proto3" json:"invitation_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *StartSignUpRequest) Reset() {
@@ -180,6 +186,13 @@ func (x *StartSignUpRequest) GetSetupToken() string {
 func (x *StartSignUpRequest) GetEmail() string {
 	if x != nil {
 		return x.Email
+	}
+	return ""
+}
+
+func (x *StartSignUpRequest) GetInvitationToken() string {
+	if x != nil {
+		return x.InvitationToken
 	}
 	return ""
 }
@@ -1094,13 +1107,14 @@ var File_casa_v1_identity_proto protoreflect.FileDescriptor
 
 const file_casa_v1_identity_proto_rawDesc = "" +
 	"\n" +
-	"\x16casa/v1/identity.proto\x12\acasa.v1\x1a\x1bbuf/validate/validate.proto\x1a\x15casa/v1/command.proto\x1a\x15casa/v1/request.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x01\n" +
+	"\x16casa/v1/identity.proto\x12\acasa.v1\x1a\x1bbuf/validate/validate.proto\x1a\x15casa/v1/command.proto\x1a\x15casa/v1/request.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd6\x01\n" +
 	"\x12StartSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12$\n" +
 	"\vsetup_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\n" +
 	"setupToken\x12 \n" +
 	"\x05email\x18\x03 \x01(\tB\n" +
-	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\"\x15\n" +
+	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\x12.\n" +
+	"\x10invitation_token\x18\x04 \x01(\tB\x03\x80\x01\x01R\x0finvitationToken\"\x15\n" +
 	"\x13StartSignUpResponse\"\xae\x03\n" +
 	"\x15CompleteSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x122\n" +

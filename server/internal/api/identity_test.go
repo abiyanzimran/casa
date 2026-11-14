@@ -81,6 +81,9 @@ type identityHarness struct {
 	// noticeHeld is the server's NOTICE_UNREAD check, set by a register
 	// function before the server serves; nil holds nothing.
 	noticeHeld func(context.Context, pgtype.UUID) (bool, error)
+	// invitationOpen is sign-up's invitation check, set by a register
+	// function before the server serves; nil finds no invitation.
+	invitationOpen func(context.Context, []byte) error
 }
 
 // failMail makes every later mail fail with err.
@@ -123,7 +126,12 @@ func startIdentity(t *testing.T, register ...func(*connect.Server, *identityHarn
 		}
 		return h.noticeHeld(ctx, account)
 	})
-	api.RegisterIdentityService(server, h.pool, service)
+	api.RegisterIdentityService(server, h.pool, service, func(ctx context.Context, tokenHash []byte) error {
+		if h.invitationOpen == nil {
+			return identity.ErrTokenRejected
+		}
+		return h.invitationOpen(ctx, tokenHash)
+	})
 	for _, r := range register {
 		r(server, h)
 	}
