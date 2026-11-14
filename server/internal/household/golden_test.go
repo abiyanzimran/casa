@@ -2,10 +2,12 @@ package household_test
 
 import (
 	"bytes"
+	"cmp"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -49,15 +51,53 @@ func handPicked() map[string]func(max int) string {
 	}
 }
 
-// The random pool: ASCII, combining marks, emoji, ZWJ, Unicode spaces.
+// The full random pool (mode 3): ASCII, combining marks, emoji, ZWJ, Unicode
+// spaces and a variation selector. Most strings from it are refused with
+// name.characters; they pin the server-only rule.
 var goldenPool = []rune{
 	'a', 'B', 'z', 'Q', '0', '9', '-', '.', ' ',
 	'\u0301', '\u0323', // combining marks
 	'\U0001F468', '\U0001F469', '\U0001F600', '\u2764', // emoji
-	'\u200d',                               // ZWJ
-	'\u3000', '\u00a0', '\u2003', '\ufe0f', // Unicode spaces, selector
+	'\u200d',                     // ZWJ
+	'\u3000', '\u00a0', '\u2003', // Unicode spaces
+	'\ufe0f', // variation selector
 }
 
+// goldenUnit is a piece of a valid-only string and the visible characters
+// CleanName counts for it: a combining mark is not counted, a ZWJ sequence
+// counts per base emoji (names.go).
+type goldenUnit struct {
+	text    string
+	visible int
+}
+
+var goldenValidUnits = []goldenUnit{
+	{"a", 1}, {"B", 1}, {"z", 1}, {"\u00e9", 1}, {"7", 1}, {"-", 1}, {" ", 1},
+	{"\U0001F600", 1}, {"\u2764", 1},
+	{"a\u0301", 1}, {"x\u0323", 1}, // a base with a combining mark
+	{"\U0001F468\u200d\U0001F469", 2}, {"\U0001F468\u200d\U0001F469\u200d\U0001F467", 3},
+}
+
+// validString builds a string of exactly target visible characters from
+// valid units only; a space is never first or last (CleanName trims it).
+func validString(rng *rand.Rand, target int) string {
+	var b strings.Builder
+	for vis := 0; vis < target; {
+		u := goldenValidUnits[rng.IntN(len(goldenValidUnits))]
+		if vis+u.visible > target || (u.text == " " && (vis == 0 || vis == target-1)) {
+			u = goldenUnit{"a", 1}
+		}
+		b.WriteString(u.text)
+		vis += u.visible
+	}
+	return b.String()
+}
+
+// goldenCases are the hand-picked cases, then 200 random strings from
+// rand.New(rand.NewPCG(1, 7)). Per string a mode is drawn: modes 0 and 1 are
+// valid-only strings within 3 visible characters of the limit, mode 2 valid-only
+// 30 to 70, mode 3 the full pool (length 0 to 70). Without the valid modes
+// refusals would hide the length rule (ES §2 (c)).
 func goldenCases() []goldenCase {
 	var cases []goldenCase
 	for _, max := range goldenMaxes {
@@ -66,32 +106,26 @@ func goldenCases() []goldenCase {
 		}
 	}
 	// Map order is random; sort for byte-determinism.
-	sortCases(cases)
+	slices.SortFunc(cases, func(a, b goldenCase) int {
+		return cmp.Or(cmp.Compare(b.max, a.max), cmp.Compare(a.input, b.input))
+	})
 	rng := rand.New(rand.NewPCG(1, 7)) //nolint:gosec // G404: a fixed seed makes the vectors reproducible; not a secret
 	for range 200 {
-		n := rng.IntN(71)
-		rs := make([]rune, n)
-		for i := range rs {
-			rs[i] = goldenPool[rng.IntN(len(goldenPool))]
+		max := goldenMaxes[rng.IntN(len(goldenMaxes))]
+		switch mode := rng.IntN(4); mode {
+		case 0, 1:
+			cases = append(cases, goldenCase{validString(rng, max-3+rng.IntN(7)), max})
+		case 2:
+			cases = append(cases, goldenCase{validString(rng, 30+rng.IntN(41)), max})
+		default:
+			rs := make([]rune, rng.IntN(71))
+			for i := range rs {
+				rs[i] = goldenPool[rng.IntN(len(goldenPool))]
+			}
+			cases = append(cases, goldenCase{string(rs), max})
 		}
-		cases = append(cases, goldenCase{string(rs), goldenMaxes[rng.IntN(len(goldenMaxes))]})
 	}
 	return cases
-}
-
-func sortCases(c []goldenCase) {
-	for i := 1; i < len(c); i++ {
-		for j := i; j > 0 && less(c[j], c[j-1]); j-- {
-			c[j], c[j-1] = c[j-1], c[j]
-		}
-	}
-}
-
-func less(a, b goldenCase) bool {
-	if a.max != b.max {
-		return a.max > b.max
-	}
-	return a.input < b.input
 }
 
 // jsonString escapes every rune outside printable ASCII as \uXXXX so the file
@@ -169,6 +203,21 @@ func TestGoldenNameLength(t *testing.T) {
 				line := fmt.Sprintf(`{"input":%s,"max":%d,"rule":%s}`, jsonString(f(max)), max, jsonString(rule))
 				if !bytes.Contains(got, []byte(line)) {
 					t.Errorf("missing case %q for max %d", name, max)
+				}
+			}
+		}
+	})
+
+	t.Run("fixed rules hold for both limits", func(t *testing.T) {
+		for _, max := range goldenMaxes {
+			for _, c := range []struct{ name, in, rule string }{
+				{"exactly max", strings.Repeat("a", max), ""},
+				{"max plus one", strings.Repeat("a", max+1), "name.visible_length"},
+				{"zero width space", "\u200b", "name.characters"},
+				{"family sequence", "\U0001F468\u200d\U0001F469\u200d\U0001F467", ""},
+			} {
+				if _, rule := household.CleanName(c.in, max); rule != c.rule {
+					t.Errorf("%s, max %d: rule %q, want %q", c.name, max, rule, c.rule)
 				}
 			}
 		}
