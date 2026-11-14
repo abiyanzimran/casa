@@ -8,6 +8,7 @@ package api_test
 // 2 adds the ledger's builders and the INV checkers to the same machine.
 
 import (
+	"cmp"
 	"errors"
 	"flag"
 	"fmt"
@@ -99,10 +100,12 @@ func startPropertyHarness(t *testing.T) *propertyHarness {
 // table but object_event and reader_feed, and every row of those two by key
 // (events: "kind id seq" to "actor_kind rule"; feed: "member pos" to
 // "object_kind object_id"), so that the rows a resend added can be told
-// apart (checkResend).
+// apart (checkResend); and the invitations whose expires_at is not after
+// the clock.
 type rowsSnapshot struct {
 	counts       string
 	events, feed map[string]string
+	due          map[string]bool
 }
 
 func (h *propertyHarness) rows(t *rapid.T) rowsSnapshot {
@@ -112,7 +115,7 @@ func (h *propertyHarness) rows(t *rapid.T) rowsSnapshot {
 			counts = append(counts, fmt.Sprintf("'%s=' || (SELECT count(*) FROM %s)", table, pgx.Identifier{table}.Sanitize()))
 		}
 	}
-	r := rowsSnapshot{events: map[string]string{}, feed: map[string]string{}}
+	r := rowsSnapshot{events: map[string]string{}, feed: map[string]string{}, due: map[string]bool{}}
 	if err := h.admin.QueryRow(t.Context(), "SELECT "+strings.Join(counts, " || ' ' || ")).Scan(&r.counts); err != nil {
 		t.Fatal(err)
 	}
@@ -128,6 +131,14 @@ func (h *propertyHarness) rows(t *rapid.T) rowsSnapshot {
 		if _, err := pgx.ForEachRow(rows, []any{&key, &value}, func() error { (*into)[key] = value; return nil }); err != nil {
 			t.Fatal(err)
 		}
+	}
+	due, err := h.admin.Query(t.Context(), "SELECT id::text FROM invitation WHERE expires_at <= $1", h.clock.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var id string
+	if _, err := pgx.ForEachRow(due, []any{&id}, func() error { r.due[id] = true; return nil }); err != nil {
+		t.Fatal(err)
 	}
 	return r
 }
@@ -249,6 +260,9 @@ func (h *propertyHarness) newMachine(t *rapid.T, n int, order []int) *householdM
 		seenEvents: map[string]string{}, seenMemberships: map[string]string{},
 	}
 	for i := range n {
+		// A minute apart, so sign-up order is a difference INV-A13's swap
+		// tests, not only the random ids.
+		h.clock.advance(time.Minute)
 		a := h.signUpAccount(t, fmt.Sprintf("person%d@example.test", i))
 		m.names.add(a.email, fmt.Sprintf("account#%d", order[i]))
 		m.names.add(a.id, fmt.Sprintf("account#%d", order[i]))
@@ -382,38 +396,49 @@ func (m *householdMachine) learn(t *rapid.T, s step, res proto.Message) {
 // resent, replayed and checked; they only make the states the household
 // rules govern, two full adults above all (INV-A13), common in a short
 // history.
-func (m *householdMachine) warmStart(t *rapid.T) {
-	depth := rapid.IntRange(0, 3).Draw(t, "warm start")
+//
+// check runs after every step, as after a step of Repeat, so the second
+// adult's F04 at depth 3 reaches the inviter's device through its feed.
+func (m *householdMachine) warmStart(t *rapid.T, check invariantCheck) {
+	m.start(t, rapid.IntRange(0, 3).Draw(t, "warm start"), check)
+}
+
+// start runs the first depth steps of warmStart.
+func (m *householdMachine) start(t *rapid.T, depth int, check invariantCheck) {
 	if depth == 0 {
 		return
 	}
-	m.mustRun(t, 0, casav1connect.HouseholdServiceCreateHouseholdProcedure, &casav1.CreateHouseholdRequest{
+	m.mustRun(t, check, 0, casav1connect.HouseholdServiceCreateHouseholdProcedure, &casav1.CreateHouseholdRequest{
 		RequestContext: commandRC(), Name: "Rumah Kita", TimeZone: "Asia/Jakarta", DisplayName: "Ayu", AgeDeclarationVersion: 1,
 	})
 	if depth == 1 {
 		return
 	}
 	household := m.households[len(m.households)-1]
-	m.mustRun(t, 0, casav1connect.HouseholdServiceCreateInvitationProcedure, &casav1.CreateInvitationRequest{
+	m.mustRun(t, check, 0, casav1connect.HouseholdServiceCreateInvitationProcedure, &casav1.CreateInvitationRequest{
 		RequestContext: commandRC(), HouseholdId: household,
 	})
 	invitation := m.invitations[len(m.invitations)-1]
-	m.mustRun(t, 1, casav1connect.HouseholdServiceAcceptInvitationProcedure, &casav1.AcceptInvitationRequest{
+	m.mustRun(t, check, 1, casav1connect.HouseholdServiceAcceptInvitationProcedure, &casav1.AcceptInvitationRequest{
 		RequestContext: commandRC(), DisplayName: "Budi", AgeDeclarationVersion: 1,
 		Source: &casav1.InvitationSource{Source: &casav1.InvitationSource_InvitationToken{InvitationToken: m.tokens[len(m.tokens)-1]}},
 	})
 	if depth == 2 {
 		return
 	}
-	m.mustRun(t, 0, casav1connect.HouseholdServiceConfirmInviteeProcedure, &casav1.ConfirmInviteeRequest{
+	m.mustRun(t, check, 0, casav1connect.HouseholdServiceConfirmInviteeProcedure, &casav1.ConfirmInviteeRequest{
 		RequestContext: commandRC(), HouseholdId: household, InvitationId: invitation,
 	})
 }
 
-// mustRun runs a scripted command step that must succeed.
-func (m *householdMachine) mustRun(t *rapid.T, actor int, procedure string, request proto.Message) {
+// mustRun runs a scripted command step that must succeed, then check
+// (nil: none).
+func (m *householdMachine) mustRun(t *rapid.T, check invariantCheck, actor int, procedure string, request proto.Message) {
 	if s := m.run(t, step{actor: actor, procedure: procedure, request: request}); !s.ok {
 		t.Fatalf("scripted %s: %s", procedure, s.answer)
+	}
+	if check != nil {
+		check(t, m)
 	}
 }
 
@@ -488,10 +513,11 @@ func (m *householdMachine) runDueJobs(t *rapid.T) {
 	m.steps = append(m.steps, step{runJobs: true})
 }
 
-// memberships are the (account index, household id) pairs of every
-// membership, read as admin.
+// memberships are the (account id, household id) pairs of every
+// membership, read as admin, ordered by account index, then by the
+// household's index in m.households.
 func (m *householdMachine) memberships(t *rapid.T) [][2]string {
-	rows, err := m.h.admin.Query(t.Context(), "SELECT account_id::text, household_id::text FROM membership ORDER BY joined_at, member_id")
+	rows, err := m.h.admin.Query(t.Context(), "SELECT account_id::text, household_id::text FROM membership")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -502,6 +528,14 @@ func (m *householdMachine) memberships(t *rapid.T) [][2]string {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// In machine terms, never by a database order: member ids are random,
+	// so an order that falls back on them would make one drawn index name
+	// another account from run to run, and a fixed seed would not fix the
+	// history (ES §6).
+	slices.SortFunc(pairs, func(a, b [2]string) int {
+		return cmp.Or(cmp.Compare(m.accountIndex(a[0]), m.accountIndex(b[0])),
+			cmp.Compare(slices.Index(m.households, a[1]), slices.Index(m.households, b[1])))
+	})
 	return pairs
 }
 
@@ -517,14 +551,18 @@ func (m *householdMachine) syncAction(t *rapid.T) {
 	if len(pairs) == 0 {
 		t.Skip("no member yet")
 	}
-	p := rapid.SampledFrom(pairs).Draw(t, "member")
-	a := m.accounts[m.accountIndex(p[0])]
-	feed := a.feeds[p[1]]
+	p := pairs[rapid.IntRange(0, len(pairs)-1).Draw(t, "member")]
+	m.syncMember(t, m.accounts[m.accountIndex(p[0])], p[1], rapid.SampledFrom([]uint32{0, 1, 2}).Draw(t, "limit"))
+}
+
+// syncMember pulls a's feed of household with page size limit.
+func (m *householdMachine) syncMember(t *rapid.T, a *account, household string, limit uint32) {
+	feed := a.feeds[household]
 	if feed == nil {
 		feed = &syncModel{objects: map[string]*casav1.Change{}}
-		a.feeds[p[1]] = feed
+		a.feeds[household] = feed
 	}
-	m.catchUp(t, a, p[1], feed, rapid.SampledFrom([]uint32{0, 1, 2}).Draw(t, "limit"))
+	m.catchUp(t, a, household, feed, limit)
 }
 
 // catchUp syncs feed from its cursor until has_more is false.
@@ -546,7 +584,6 @@ func (m *householdMachine) catchUp(t *rapid.T, a *account, household string, fee
 	t.Fatalf("still has_more after %d pages", maxPages)
 }
 
-// pick draws one of known or the unknown id.
 // pick draws mostly the newest of known, which is the live one, sometimes
 // an older one, and rarely the unknown id.
 func pick(t *rapid.T, label string, known []string) string {
@@ -621,9 +658,12 @@ func (m *householdMachine) invitationCommand(t *rapid.T) (actor int, household, 
 	return m.actorIn(t, household), household, invitation
 }
 
-// commandBuilders has one builder per write command of the contract: every
-// method with the casa.v1.command option (14 §4.3 "Pembangkit perintah").
-// Values are drawn mostly valid, with the refusals of each command in reach.
+// commandBuilders has one builder per write command of HouseholdService:
+// every method of it with the casa.v1.command option (14 §4.3 "Pembangkit
+// perintah"; ruling P11: SignOut and ChangePassword do not touch household
+// state). Step 2 widens the enumeration to every service of the contract,
+// with an explicit list of the commands left out and why. Values are drawn
+// mostly valid, with the refusals of each command in reach.
 var commandBuilders = map[string]func(m *householdMachine, t *rapid.T) (actor int, request proto.Message){
 	casav1connect.HouseholdServiceCreateHouseholdProcedure: func(m *householdMachine, t *rapid.T) (int, proto.Message) {
 		return m.anyActor(t), &casav1.CreateHouseholdRequest{
@@ -658,6 +698,13 @@ var commandBuilders = map[string]func(m *householdMachine, t *rapid.T) (actor in
 		source := &casav1.InvitationSource{Source: &casav1.InvitationSource_InvitationToken{
 			InvitationToken: pick(t, "token", m.tokens),
 		}}
+		// from_signup: every machine account signed up with a setup token,
+		// so this is the refusal path only (TOKEN_REJECTED, SEC-30).
+		// ponytail: the success path needs sign-up through an invitation in
+		// the machine; a known gap, proved by TestAcceptInvitation.
+		if rarely(t, "from sign-up") {
+			source = &casav1.InvitationSource{Source: &casav1.InvitationSource_FromSignup{FromSignup: true}}
+		}
 		return m.outsider(t), &casav1.AcceptInvitationRequest{
 			RequestContext: commandRC(), Source: source,
 			DisplayName:           rapid.SampledFrom([]string{"Budi", "Citra"}).Draw(t, "display name"),
@@ -860,7 +907,7 @@ func TestHouseholdProperties(t *testing.T) {
 			h := startPropertyHarness(t)
 			rapid.Check(t, func(rt *rapid.T) {
 				m := h.newMachine(rt, rapid.IntRange(2, 5).Draw(rt, "accounts"), identity5)
-				m.warmStart(rt)
+				m.warmStart(rt, p.check)
 				rt.Repeat(m.actions(p.check))
 			})
 		})
@@ -875,10 +922,8 @@ func TestHouseholdProperties(t *testing.T) {
 		h := startPropertyHarness(t)
 		rapid.MakeFuzz(func(rt *rapid.T) {
 			m := h.newMachine(rt, 2, identity5)
-			m.mustRun(rt, 0, casav1connect.HouseholdServiceCreateHouseholdProcedure, &casav1.CreateHouseholdRequest{
-				RequestContext: commandRC(), Name: "Rumah Kita", TimeZone: "Asia/Jakarta", DisplayName: "Ayu", AgeDeclarationVersion: 1,
-			})
-			m.mustRun(rt, 0, casav1connect.HouseholdServiceCreateInvitationProcedure, &casav1.CreateInvitationRequest{
+			m.start(rt, 1, nil)
+			m.mustRun(rt, nil, 0, casav1connect.HouseholdServiceCreateInvitationProcedure, &casav1.CreateInvitationRequest{
 				RequestContext: commandRC(), HouseholdId: m.households[0],
 			})
 			invite := m.steps[len(m.steps)-1]
@@ -907,13 +952,28 @@ func TestHouseholdProperties(t *testing.T) {
 		})(t, nil)
 	})
 
+	// The named example of the fan-out (plan 1.7 review focus 4; 09.2 §6
+	// step 6): the inviter's device holds the household before F04, so the
+	// new member reaches it only through its feed, every run.
+	t.Run("F04 reaches the inviter's device through its feed", func(t *testing.T) {
+		h := startPropertyHarness(t)
+		rapid.MakeFuzz(func(rt *rapid.T) {
+			m := h.newMachine(rt, 2, identity5)
+			m.start(rt, 2, nil)
+			m.syncMember(rt, m.accounts[0], m.households[0], 0)
+			m.mustRun(rt, checkSyncEqualsRead, 0, casav1connect.HouseholdServiceConfirmInviteeProcedure, &casav1.ConfirmInviteeRequest{
+				RequestContext: commandRC(), HouseholdId: m.households[0], InvitationId: m.invitations[0],
+			})
+		})(t, nil)
+	})
+
 	// INV-A13 with N = 2 (14 §4.3 "Simetri"; FR-FAM-001/AC-4, the part of
 	// 1.7): the log replayed on new accounts with actors 0 and 1 swapped.
 	t.Run("INV-A13 swapping the two full adults over a random sequence swaps every answer and view", func(t *testing.T) {
 		h := startPropertyHarness(t)
 		rapid.Check(t, func(rt *rapid.T) {
 			m := h.newMachine(rt, rapid.IntRange(2, 5).Draw(rt, "accounts"), identity5)
-			m.warmStart(rt)
+			m.warmStart(rt, nil)
 			rt.Repeat(m.actions(nil))
 			views := m.views(rt)
 			swap := []int{1, 0, 2, 3, 4}

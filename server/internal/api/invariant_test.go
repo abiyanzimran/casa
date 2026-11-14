@@ -179,8 +179,12 @@ func checkResend(t *rapid.T, m *householdMachine) {
 // decision 12). That write is a system transition any access may trigger,
 // idempotent with the expiry job, not the command written again, which is
 // what ADR-005 forbids (lead ruling, Task 8 fix round). So a new
-// invitation.expired event by system, and the new feed rows of that
-// invitation, are allowed; any other added, changed or lost row is not.
+// invitation.expired event by system of an invitation whose expires_at is
+// not after the clock, and the new feed rows of that invitation, are
+// allowed; any other added, changed or lost row is not. Tables other than
+// object_event and reader_feed are compared by row count only, so an
+// update in place there (the invitation's own state, for one) is not seen
+// here; INV-A01 checks the invitation against its events.
 func resendWrites(before, after rowsSnapshot) []string {
 	var writes []string
 	if before.counts != after.counts {
@@ -191,7 +195,7 @@ func resendWrites(before, after rowsSnapshot) []string {
 		was, existed := before.events[key]
 		switch {
 		case existed && was == event:
-		case !existed && event == "system invitation.expired" && strings.HasPrefix(key, "invitation "):
+		case !existed && event == "system invitation.expired" && strings.HasPrefix(key, "invitation ") && after.due[strings.Fields(key)[1]]:
 			expired[strings.Fields(key)[1]] = true
 		default:
 			writes = append(writes, "event "+key+" "+event)
@@ -226,8 +230,12 @@ func resendWrites(before, after rowsSnapshot) []string {
 //
 // The one allowed difference is X3's: an invitation whose expiry job is due
 // but has not run yet stays in the model until the job writes the expiry
-// and its feed rows (plan 1.7 decision 1; 10.1 §10 note 1.7 Q3). A job
-// that ran and wrote no feed row is caught, because the job is gone.
+// and its feed rows (plan 1.7 decision 1; 10.1 §10 note 1.7 Q3; lead
+// ruling, Task 8). A job that ran and wrote no feed row is caught, because
+// the job is gone. The tolerance also masks, while it lasts, a missing
+// PURGE of an invitation closed otherwise (F03, F05) whose job is still
+// due: the device may hold it until the job runs and deletes itself, and
+// a closing without feed rows shows only from then on, as ruled.
 func checkSyncEqualsRead(t *rapid.T, m *householdMachine) {
 	due := m.adminStrings(t, "SELECT unique_key FROM job WHERE kind = $1 AND run_at <= $2",
 		household.ExpireInvitationKind, m.h.clock.Now())
@@ -243,7 +251,11 @@ func checkSyncEqualsRead(t *rapid.T, m *householdMachine) {
 		}
 		snapshot := &syncModel{objects: map[string]*casav1.Change{}}
 		m.catchUp(t, a, hh, snapshot, 0)
-		for device, model := range map[string]*syncModel{"lagging": lagging, "synced": a.synced[hh]} {
+		for _, d := range []struct {
+			name  string
+			model *syncModel
+		}{{"lagging", lagging}, {"synced", a.synced[hh]}} {
+			device, model := d.name, d.model
 			m.catchUp(t, a, hh, model, 0)
 			got := changeLines(model, due)
 			if want := changeLines(snapshot, nil); !slices.Equal(got, want) {
