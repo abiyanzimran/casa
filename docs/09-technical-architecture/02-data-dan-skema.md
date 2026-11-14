@@ -648,6 +648,14 @@ reader_feed (                             -- ADR-017: umpan per pembaca
 )
 reader_feed_counter (household_id uuid, member_id uuid, last_pos bigint NOT NULL,
                      PRIMARY KEY (household_id, member_id))
+-- Catatan 14 November 2026 (FS-1 1.7 PR B, tinjauan akhir; catatan rancangan untuk langkah 6) [Usulan]:
+-- kedua tabel punya FK ke membership tanpa ON DELETE (00010_reader_feed.sql), dan app_rw tidak boleh
+-- menghapus baris umpan. Maka setiap penghapusan keanggotaan kelak (keluar, F06, penghapusan menurut
+-- ADR-007) HARUS lebih dulu menghapus baris reader_feed dan reader_feed_counter anggota itu, di
+-- transaksi yang sama, dengan hak DELETE atas kedua tabel yang BELUM dimiliki lifecycle_rw. Hak itu
+-- (dan kebijakan RLS-nya) ditambahkan migrasi langkah 6 bersama tugas keanggotaan; rencana langkah 6
+-- memuatnya sebagai tugas, dengan uji bahwa penghapusan keanggotaan tidak gagal karena FK dan tidak
+-- meninggalkan baris umpan yatim.
 
 job (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
