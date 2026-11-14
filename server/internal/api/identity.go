@@ -210,9 +210,6 @@ func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.Compl
 // Set-Cookie at all, a stale cookie included (SEC-171 (b) (2) note Q2-4;
 // ADR-030 item 11). A cookie that cannot be set is an internal error.
 func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) (*casav1.SessionTokens, error) {
-	if client.WithoutSession {
-		return nil, nil
-	}
 	if client.Kind == "web" {
 		return nil, setSessionCookie(ctx, tokens.Cookie)
 	}
