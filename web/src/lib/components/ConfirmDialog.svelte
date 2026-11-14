@@ -24,7 +24,7 @@
 		children: Snippet;
 	} = $props();
 
-	const titleId = $props.id();
+	const id = $props.id();
 	let dialog: HTMLDialogElement;
 
 	$effect(() => {
@@ -46,9 +46,14 @@
 	}
 </script>
 
-<dialog bind:this={dialog} aria-labelledby={titleId} onclose={returnFocus}>
-	<h2 id={titleId} class="judul-bagian">{title}</h2>
-	{@render children()}
+<dialog
+	bind:this={dialog}
+	aria-labelledby="{id}-title"
+	aria-describedby="{id}-body"
+	onclose={returnFocus}
+>
+	<h2 id="{id}-title" class="judul-bagian">{title}</h2>
+	<div id="{id}-body">{@render children()}</div>
 	<div class="tombol">
 		{#if cancelLabel}
 			<Button variant="outlined" onclick={close}>{cancelLabel}</Button>
@@ -77,7 +82,7 @@
 	h2 {
 		margin: 0 0 var(--jarak-4);
 	}
-	dialog > :global(p) {
+	dialog :global(p) {
 		margin: 0;
 	}
 	.tombol {

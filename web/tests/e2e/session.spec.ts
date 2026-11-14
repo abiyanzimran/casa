@@ -197,6 +197,16 @@ test('SEC-161 (d): a session_expired answer shows LY-94 and keeps the local data
 	await expect(otherAccount).toBeFocused();
 	await expect(page.getByText(expired)).toBeVisible();
 	expect(await hasCasaDatabase(page)).toBe(true);
+	// Esc closes it the same way (08 §25.5).
+	await otherAccount.click();
+	await expect(dialog).toBeVisible();
+	await expect(dialog).toHaveAccessibleDescription(
+		'Data Casa di perangkat ini akan dihapus, termasuk 1 catatan yang belum terkirim.'
+	);
+	await page.keyboard.press('Escape');
+	await expect(dialog).toBeHidden();
+	await expect(otherAccount).toBeFocused();
+	expect(await hasCasaDatabase(page)).toBe(true);
 
 	await markDocument(page);
 	await otherAccount.click();
@@ -259,4 +269,65 @@ test('SEC-164 (d): a page restored from the back-forward cache checks the sessio
 
 	restoreCheck.resolve(undefined);
 	await expect(page.locator('h1')).toBeVisible();
+});
+
+/** What every tab of this profile receives when one tab gets a session_revoked answer. */
+function revokedSignal(page: Page, unsentDropped: number): Promise<void> {
+	return page.evaluate((unsentDropped) => {
+		const channel = new BroadcastChannel('casa');
+		channel.postMessage({ kind: 'session_revoked', unsentDropped });
+		channel.close();
+	}, unsentDropped);
+}
+
+test('ADR-024 item 6: LY-94 after a revoked session stays, with its unsent count, whatever comes later', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	await seedUnsent(page, 1);
+	let answered = 0;
+	const calls = await mockRpc(page, listMemberships, () =>
+		++answered === 1 ? rpcError(Code.Unavailable) : signedIn
+	);
+	await page.goto('/');
+	await expect(page.getByText(unreachable)).toBeVisible(); // the re-check listener is armed
+
+	await revokedSignal(page, 1);
+	await expect(page.getByText(revoked)).toBeVisible();
+	await expect(page.getByText(dropped1)).toBeVisible();
+
+	await page.evaluate(() => {
+		document.dispatchEvent(new Event('visibilitychange'));
+		window.dispatchEvent(new Event('online'));
+		window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+	});
+	await revokedSignal(page, 0); // a second answer, counted after the first wipe
+	await expect(page.getByText(revoked)).toBeVisible();
+	await expect(page.getByText(dropped1)).toBeVisible();
+	expect(calls).toHaveLength(1);
+});
+
+test('SEC-172 (a): when the wipe fails, LY-94 never says the data was deleted and the page reloads', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	// Every cache deletion fails, so the wipe cannot finish.
+	await page.addInitScript(() => {
+		CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
+	});
+	let answered = 0;
+	await mockRpc(page, listMemberships, () =>
+		++answered === 1 ? signedIn : rpcError(Code.Unauthenticated)
+	);
+	await page.goto('/');
+	await expect(page.locator('h1')).toBeVisible();
+	await page.evaluate(async () => {
+		await (await caches.open('casa-probe')).put('/probe', new Response('x'));
+	});
+	await markDocument(page);
+
+	await revokedSignal(page, 0);
+	await expect.poll(() => isNewDocument(page)).toBe(true);
+	await expect(page.locator('h1')).toBeVisible();
+	await expect(page.getByText(revoked)).toHaveCount(0);
 });

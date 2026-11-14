@@ -8,7 +8,7 @@
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
-	import { checkSession, resetSessionState, session } from '#lib/session.svelte.js';
+	import { checkSession, session, showEnded } from '#lib/session.svelte.js';
 	import { onTabSignal, type WipeKind } from '#lib/tab-signal.js';
 	import { wipeLocalData } from '#lib/wipe.js';
 
@@ -30,26 +30,28 @@
 
 	/**
 	 * Every tab's answer to a wipe signal, the sending tab's included (SEC-173 (b)). A revoked
-	 * session shows LY-94 in place with the unsent count (plan decision 6); a sign-out the person
-	 * asked for, or leaving the household, opens a fresh document at /, which empties memory and
-	 * replaces the history entry (SEC-164 (c)). Sign-out (Task 7) arrives here through the
-	 * sign_out signal.
+	 * session shows LY-94 in place with the unsent count once the wipe is done (plan decision 6);
+	 * a sign-out the person asked for, or leaving the household, opens a fresh document at /,
+	 * which empties memory and replaces the history entry (SEC-164 (c)). Sign-out (Task 7)
+	 * arrives here through the sign_out signal.
 	 */
 	async function wipe(signal: { kind: WipeKind; unsentDropped: number }): Promise<void> {
 		wiping = true;
 		await tick();
+		let wiped = true;
 		try {
 			await wipeLocalData();
 		} catch (error) {
-			// The session check on the next open runs the wipe again.
+			wiped = false;
 			logFailure(error);
 		}
-		if (signal.kind !== 'session_revoked') {
+		// LY-94 says the data is deleted, so a failed wipe never shows it: the fresh document's
+		// session check runs the wipe again (SEC-172 (a)).
+		if (signal.kind !== 'session_revoked' || !wiped) {
 			location.replace('/');
 			return;
 		}
-		resetSessionState();
-		session.state = { kind: 'ended', reason: 'revoked', unsentDropped: signal.unsentDropped };
+		showEnded('revoked', signal.unsentDropped);
 		wiping = false;
 	}
 
@@ -61,7 +63,9 @@
 		// SEC-164 (d): a page restored from the back-forward cache shows nothing until the
 		// session is checked again.
 		const stopRestore = on(window, 'pageshow', (event) => {
-			if (!event.persisted) return;
+			// Only a screen that depends on the session; LY-94 stays as it is.
+			const kind = session.state.kind;
+			if (!event.persisted || (kind !== 'signed-in' && kind !== 'unreachable')) return;
 			session.state = { kind: 'checking' };
 			check();
 		});

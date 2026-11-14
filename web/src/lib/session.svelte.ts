@@ -50,17 +50,40 @@ export function resetSessionState(): void {
 }
 
 /**
+ * Sets a state other than LY-94. An ended session is final for this document: only a fresh
+ * document leaves LY-94, so a late check, a restore, or a re-check never hides it or its unsent
+ * line (08 §25.6; ADR-024 item 6).
+ */
+function settle(next: Exclude<SessionState, { kind: 'ended' }>): void {
+	if (session.state.kind !== 'ended') session.state = next;
+}
+
+/**
+ * Shows LY-94 with memory reset first (plan decision 6). A revoked ending, whose wipe has
+ * happened, outranks a later expired one, and a second revoked answer never lowers the unsent
+ * count the first wipe dropped.
+ */
+export function showEnded(reason: SessionEndReason, unsentDropped: number): void {
+	const current = session.state;
+	if (current.kind === 'ended' && current.reason === 'revoked') {
+		if (reason !== 'revoked') return;
+		unsentDropped = Math.max(unsentDropped, current.unsentDropped);
+	}
+	resetSessionState();
+	session.state = { kind: 'ended', reason, unsentDropped };
+}
+
+/**
  * Ends the session. A revoked one is wiped in every tab, this one included, and each tab shows
- * LY-94 with the unsent count (SEC-172 (a)); an expired one keeps the local data (SEC-161 (d),
- * SEC-172 (d)).
+ * LY-94 with the unsent count once its wipe is done (SEC-172 (a)); an expired one keeps the
+ * local data (SEC-161 (d), SEC-172 (d)).
  */
 export async function endSession(reason: SessionEndReason): Promise<void> {
 	if (reason === 'revoked') {
 		await broadcastWipe('session_revoked');
 		return;
 	}
-	resetSessionState();
-	session.state = { kind: 'ended', reason, unsentDropped: 0 };
+	showEnded(reason, 0);
 }
 
 /**
@@ -80,8 +103,9 @@ export async function handleSessionError(error: unknown): Promise<boolean> {
 		}
 		default:
 			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)).
+			if (session.state.kind === 'ended') break;
 			resetSessionState();
-			session.state = { kind: 'signed-out' };
+			settle({ kind: 'signed-out' });
 	}
 	return true;
 }
@@ -97,7 +121,11 @@ function recheckWhenBack(): void {
 		if (document.visibilityState !== 'visible') return;
 		listening.abort();
 		recheckArmed = false;
-		void checkSession();
+		// Only the unreachable state is waiting for this; LY-94 or a signed-in screen is not.
+		if (session.state.kind !== 'unreachable') return;
+		checkSession().catch((error: unknown) => {
+			console.error(error);
+		});
 	};
 	window.addEventListener('online', recheck, { signal: listening.signal });
 	document.addEventListener('visibilitychange', recheck, { signal: listening.signal });
@@ -119,11 +147,17 @@ export async function checkSession({
 			{ timeoutMs }
 		);
 		session.mode ??= await reopenedMode();
-		session.state = { kind: 'signed-in', memberships };
+		settle({ kind: 'signed-in', memberships });
 	} catch (error) {
-		if (await handleSessionError(error)) return;
-		if (failureOf(error) !== 'offline') console.error(error);
-		session.state = { kind: 'unreachable' };
+		try {
+			if (await handleSessionError(error)) return;
+			if (failureOf(error) !== 'offline') console.error(error);
+		} catch (handlingError) {
+			// Acting on the session error failed (a revoked wipe could not count the queue): stay
+			// unreachable and check again, never on the check surface for good.
+			console.error(handlingError);
+		}
+		settle({ kind: 'unreachable' });
 		recheckWhenBack();
 	}
 }

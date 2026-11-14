@@ -100,7 +100,7 @@ test('SEC-165: on open, a session_expired answer without a local database is the
 	expect(await localDbModule.localDbExists()).toBe(false); // SEC-165 (b): nothing created
 });
 
-test('SEC-161 (b): Unauthenticated without a detail means signed out, without a wipe', async () => {
+test('SEC-161 (c) (5): Unauthenticated without a detail means signed out, without a wipe', async () => {
 	await personalBrowser();
 	const { handleSessionError, session } = sessionModule;
 	session.state = { kind: 'signed-in', memberships: [] };
