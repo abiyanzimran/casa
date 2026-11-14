@@ -96,7 +96,11 @@ func (s *Service) CompleteRecovery(ctx context.Context, client Client, recoveryT
 	}
 	tokens, err := s.completeRecovery(ctx, client, recoveryToken, newPassword)
 	if err != nil {
-		done(outcomeOf(err))
+		if client.WithoutSession {
+			done(NotTried)
+		} else {
+			done(outcomeOf(err))
+		}
 		return Tokens{}, err
 	}
 	done(Succeeded)
