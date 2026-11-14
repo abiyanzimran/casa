@@ -13,7 +13,6 @@
 	import { updateNow, updateRow } from '#lib/app-update.svelte.js';
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
-	import { registerServiceWorker } from '#lib/service-worker-registration.js';
 	import {
 		carryRevokedWipe,
 		carryUnsentDropped,
@@ -127,7 +126,8 @@
 
 	$effect(() => {
 		if (unsupported) return;
-		registerServiceWorker().catch(logFailure);
+		// The service worker is registered in personal mode only, by afterSignIn and the
+		// session check (SEC-165 (b)).
 		// From a revoked wipe that failed and reloaded. Read untracked, so a later goto with state
 		// does not run this effect again (a second session check, a gap in the listeners).
 		const { wipeRetried, unsentDropped = 0 } = untrack(() => page.state);

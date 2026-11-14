@@ -53,3 +53,22 @@ test('SEC-172 (a): deleting the local database removes it, and this page cannot 
 	expect(() => db.localDb()).toThrow();
 	expect(await indexedDB.databases()).toEqual([]);
 });
+
+test('SEC-165 (b): a database another tab deletes after the existence check is not made again', async () => {
+	// Another tab deletes the database between the existence check and the open (plan
+	// decision 5 would then read this browser as personal mode).
+	vi.spyOn(Dexie, 'exists').mockResolvedValue(true);
+	expect(await db.withExistingDb((existing) => existing.table('meta').count())).toBeUndefined();
+	expect(await db.wipePending()).toBeUndefined();
+	await db.markWipePending('session_revoked');
+	vi.restoreAllMocks();
+	expect(await indexedDB.databases()).toEqual([]);
+});
+
+test('SEC-172 (a): an existing database is read and written on its own connection', async () => {
+	await db.localDb().meta.put({ key: 'persistence_granted', value: true });
+	db.localDb().close();
+	await db.markWipePending('sign_out');
+	expect(await db.wipePending()).toBe('sign_out');
+	expect(await db.withExistingDb((existing) => existing.table('outbox').count())).toBe(0);
+});

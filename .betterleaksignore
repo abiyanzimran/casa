@@ -35,3 +35,10 @@ ff9f33fcd3b575ec1ce3b1560b195e3688538729:server/internal/api/identity_test.go:ge
 
 # The re-authentication purpose name "change_password" is not a secret.
 a2d6bfb09711ffdfc359f9cd9c74c9dd774cdf8a:server/internal/identity/reauth.go:generic-password:18
+
+# Web PR B: the label 'Kata sandi' (the word "password" in the sign-in and sign-up field copy)
+# and the fake test passphrase of the sign-in and sign-up e2e tests are not secrets.
+11b828eff6e7541d72a0bdaf54ccb0402a4c4f06:web/src/lib/copy.ts:generic-password:136
+6377a7d3952605e303139aef9f948c78a654267a:web/src/lib/copy.ts:generic-password:82
+6377a7d3952605e303139aef9f948c78a654267a:web/tests/e2e/sign-in.spec.ts:generic-password:21
+11b828eff6e7541d72a0bdaf54ccb0402a4c4f06:web/tests/e2e/sign-up.spec.ts:generic-password:45

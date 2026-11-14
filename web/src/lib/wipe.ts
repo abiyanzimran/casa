@@ -51,7 +51,7 @@ export async function wipeLocalData(kind: WipeKind): Promise<void> {
  */
 export async function unsentCount(): Promise<number> {
 	try {
-		return (await withExistingDb((db) => db.outbox.count())) ?? 0;
+		return (await withExistingDb((db) => db.table('outbox').count())) ?? 0;
 	} catch (error) {
 		console.error(error);
 		return 0;

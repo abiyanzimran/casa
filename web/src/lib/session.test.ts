@@ -79,6 +79,22 @@ test('SEC-161 (d): a session_expired answer in personal mode ends the session an
 	expect(await localDbModule.localDb().outbox.count()).toBe(1);
 });
 
+test('SEC-175 (c): no session on open keeps the link token this tab was opened with', async () => {
+	const { handleSessionError, session } = sessionModule;
+	session.pendingToken = { kind: 'setup', value: 'x' };
+	session.setupLinkDropped = true;
+	session.mode = 'personal';
+
+	expect(await handleSessionError(failed(Code.Unauthenticated))).toBe(true);
+	expect(session.state).toEqual({ kind: 'signed-out' });
+	// The rest of memory is emptied as before; the link is what the signed-out screens are for.
+	expect(session.mode).toBeUndefined();
+	expect([session.pendingToken, session.setupLinkDropped]).toEqual([
+		{ kind: 'setup', value: 'x' },
+		true
+	]);
+});
+
 test('SEC-161 (d): on open, a session_expired answer with a local database counts as personal mode', async () => {
 	await personalBrowser();
 	const { handleSessionError, session } = sessionModule;
@@ -127,7 +143,7 @@ test('ADR-030 item 10: any other failure is not a session error and leaves the s
 /** The session check's answer, and what an unreachable state needs from the page. */
 async function answerSessionCheck(
 	...answers: (Error | 'signed-in')[]
-): Promise<{ reload: () => void }> {
+): Promise<{ reload: () => void; replace: (url: string) => void }> {
 	const { api } = await import('./api');
 	const spy = vi.spyOn(api.household, 'listMemberships');
 	for (const answer of answers) {
@@ -136,7 +152,7 @@ async function answerSessionCheck(
 	}
 	vi.stubGlobal('window', { addEventListener: vi.fn() });
 	vi.stubGlobal('document', { addEventListener: vi.fn() });
-	const location = { reload: vi.fn() };
+	const location = { reload: vi.fn(), replace: vi.fn() };
 	vi.stubGlobal('location', location);
 	vi.stubGlobal('caches', { keys: () => Promise.resolve([]) });
 	return location;
@@ -160,13 +176,18 @@ test('SEC-172 (a): a revoked wipe left pending, answered without a detail (after
 	expect(await localDbModule.localDbExists()).toBe(false);
 });
 
-test('SEC-161 (c) (5): a sign-out wipe left pending, answered without a detail, is signed out', async () => {
+test('SEC-172 (a): a sign-out wipe left pending is finished, then Casa opens on a fresh page with no check on the wiped one', async () => {
+	// A sign-in on the wiped page would open a session the page cannot keep: localDb() refuses
+	// after a wipe, so afterSignIn would throw once the server had opened it.
 	await wipeLeftPending('sign_out');
-	await answerSessionCheck(failed(Code.Unauthenticated));
+	const { replace } = await answerSessionCheck(failed(Code.Unauthenticated));
+	const { api } = await import('./api');
 	const { checkSession, session } = sessionModule;
 	await checkSession();
-	expect(session.state).toEqual({ kind: 'signed-out' });
 	expect(await localDbModule.localDbExists()).toBe(false);
+	expect(replace).toHaveBeenCalledExactlyOnceWith('/');
+	expect(api.household.listMemberships).not.toHaveBeenCalled();
+	expect(session.state).toEqual({ kind: 'checking' });
 });
 
 test('SEC-172 (a): a page reloaded after a failed revoked wipe treats an answer without a detail as revoked', async () => {

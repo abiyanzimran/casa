@@ -1,7 +1,7 @@
 // The local IndexedDB database (10.5 §5; SEC-170; ADR-024 item 7). Stores arrive with their
 // features: the Sync mirror (1.9b, step 2), form drafts (step 2), the photo cache (step 5),
 // the app lock verifier (step 6). Nothing here goes to localStorage or sessionStorage.
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable, type Table } from 'dexie';
 import type { WipeKind } from './tab-signal';
 
 /**
@@ -90,14 +90,34 @@ export async function requestPersistence(db: LocalDb): Promise<boolean> {
 	return granted;
 }
 
+/** The stores withExistingDb hands over, read from the database as it exists. */
+export interface ExistingDb {
+	table(name: 'outbox'): Table<OutboxEntry, string>;
+	table(name: 'meta'): Table<MetaRow, string>;
+}
+
 /**
  * Runs use on a short-lived connection of its own and closes it; without a local database
  * returns undefined and creates none (SEC-165 (b), SEC-171 (e)). Its own connection, so a page
  * that already wiped once (localDb() refuses) still reaches a database another tab brought back.
+ * Opened without a declared version, so Dexie refuses a missing database in the same step that
+ * opens an existing one: a database another tab deletes meanwhile is never made again empty,
+ * which plan decision 5 would read as personal mode.
+ * ponytail: Dexie answers a missing database by aborting the upgrade and then calling
+ * deleteDatabase, so a probe can delete a database another tab creates in that same instant
+ * (a first personal sign-in racing a check in a second tab); upgrade path: probe with
+ * indexedDB.databases() first, where every pilot browser has it.
  */
-export async function withExistingDb<T>(use: (db: LocalDb) => Promise<T>): Promise<T | undefined> {
-	if (!(await localDbExists())) return undefined;
-	const db = new LocalDb();
+export async function withExistingDb<T>(
+	use: (db: ExistingDb) => Promise<T>
+): Promise<T | undefined> {
+	const db = new Dexie(name);
+	try {
+		await db.open();
+	} catch (error) {
+		if (error instanceof Dexie.NoSuchDatabaseError) return undefined;
+		throw error;
+	}
 	try {
 		return await use(db);
 	} finally {
@@ -111,11 +131,11 @@ export async function withExistingDb<T>(use: (db: LocalDb) => Promise<T>): Promi
  * a successful deletion removes it, a failed one leaves it for the next open.
  */
 export async function markWipePending(kind: WipeKind): Promise<void> {
-	await withExistingDb((db) => db.meta.put({ key: 'wipe_pending', value: kind }));
+	await withExistingDb((db) => db.table('meta').put({ key: 'wipe_pending', value: kind }));
 }
 
 /** The kind of a wipe that was started and did not finish (SEC-172 (a)); creates no database. */
 export async function wipePending(): Promise<WipeKind | undefined> {
-	const row = await withExistingDb((db) => db.meta.get('wipe_pending'));
+	const row = await withExistingDb((db) => db.table('meta').get('wipe_pending'));
 	return row?.key === 'wipe_pending' ? row.value : undefined;
 }

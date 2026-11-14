@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { ErrorCode } from '../../src/lib/gen/casa/v1/error_pb';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
-import { expectNavigationStateOnly } from './support';
+import { expectNavigationStateOnly, seedUnsent } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -24,49 +24,6 @@ const signedIn = { memberships: [] };
 
 /** The paper surface of the session check (08 §25.7): no sentence, no spinner. */
 const checking = (page: Page) => page.locator('[data-session-check]');
-
-/**
- * A personal-mode browser with count unsent commands: the local database as the app's Dexie
- * schema version 1 makes it (IndexedDB version 10), seeded from a page where no app code runs.
- */
-async function seedUnsent(page: Page, count: number): Promise<void> {
-	await page.goto('/manifest.webmanifest');
-	await page.evaluate(
-		(count) =>
-			new Promise<void>((resolve, reject) => {
-				const open = indexedDB.open('casa', 10);
-				open.onupgradeneeded = () => {
-					open.result.createObjectStore('outbox', { keyPath: 'idempotencyKey' });
-					open.result.createObjectStore('meta', { keyPath: 'key' });
-				};
-				open.onerror = () => {
-					reject(open.error ?? new Error('open failed'));
-				};
-				open.onsuccess = () => {
-					const db = open.result;
-					const transaction = db.transaction('outbox', 'readwrite');
-					for (let i = 0; i < count; i++) {
-						transaction.objectStore('outbox').add({
-							idempotencyKey: crypto.randomUUID(),
-							kind: 'test_command',
-							payload: new Uint8Array([1]),
-							protective: false,
-							createdAt: 0,
-							releaseAt: 0
-						});
-					}
-					transaction.oncomplete = () => {
-						db.close();
-						resolve();
-					};
-					transaction.onerror = () => {
-						reject(transaction.error ?? new Error('seed failed'));
-					};
-				};
-			}),
-		count
-	);
-}
 
 function hasCasaDatabase(page: Page): Promise<boolean> {
 	return page.evaluate(async () =>
@@ -308,7 +265,8 @@ test('SEC-161 (d): a session_expired answer shows LY-94 and keeps the local data
 	await otherAccount.click();
 	await dialog.getByRole('button', { name: 'Hapus dan masuk' }).click();
 	await expect.poll(() => isNewDocument(page)).toBe(true);
-	expect(new URL(page.url()).pathname).toBe('/');
+	// A fresh document at "/", which sends a person without a session on to sign-in (LY-91).
+	await expect(page).toHaveURL(/\/masuk\/mode$/);
 	expect(await hasCasaDatabase(page)).toBe(false);
 });
 

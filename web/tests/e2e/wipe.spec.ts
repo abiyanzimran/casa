@@ -1,13 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
-import { mockRpc } from './api-mock';
+import { personalBrowser } from './support';
 
 /**
- * Waits for the app to render past the session check (a signed-in session), so its signal
- * listener is installed, and for the worker.
+ * Waits for the app to render past the session check (a signed-in session in personal mode),
+ * so its signal listener is installed, and for the worker.
  */
 async function openApp(page: Page): Promise<void> {
-	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
+	await personalBrowser(page);
 	await page.goto('/');
 	await expect(page.locator('h1')).toBeVisible();
 	await page.evaluate(async () => {

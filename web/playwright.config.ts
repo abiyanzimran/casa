@@ -14,7 +14,9 @@ export default defineConfig({
 	forbidOnly: true,
 	retries: 0,
 	reporter: [['list'], ['html', { open: 'never' }]],
-	use: { baseURL },
+	// A failure keeps its trace, so a hang seen only in CI can be read afterwards (a WebKit
+	// page.goto timeout left nothing to read in web PR A).
+	use: { baseURL, trace: 'retain-on-failure' },
 	projects: [
 		{ name: 'chromium', use: { ...devices['Desktop Chrome'] } },
 		{ name: 'webkit', use: { ...devices['Desktop Safari'] } }

@@ -4,9 +4,18 @@
 import { Code, ConnectError } from '@connectrpc/connect';
 import { noteUpgradeRequired } from './app-update.svelte';
 import { api, ctx, errorCode, failureOf } from './api';
+import { displayContext } from './device';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
-import { localDbExists, localDbWiped, wipePending } from './local-db';
+import {
+	localDb,
+	localDbExists,
+	localDbWiped,
+	requestPersistence,
+	wipePending,
+	type LocalDb
+} from './local-db';
+import { registerServiceWorker } from './service-worker-registration';
 import { broadcastWipe, unsentCount, wipeLocalData } from './wipe';
 
 export type DeviceMode = 'personal' | 'shared';
@@ -33,11 +42,46 @@ interface Session {
 	mode?: DeviceMode;
 	/** A link token taken from the address bar, held in this tab's memory only (SEC-175 (c)). */
 	pendingToken?: { kind: 'setup' | 'invitation' | 'verification'; value: string };
+	/** The email a sign-up was started with, for LY-03 and "Ganti email" (08 §7.6); memory only. */
+	signUpEmail?: string;
+	/** This tab was opened from a setup link in a Safari tab, its token dropped (ly90.fromSetup). */
+	setupLinkDropped?: boolean;
 	/** LY-04 was ticked in this session (plan decision 9). */
 	ageDeclared: boolean;
 }
 
 export const session: Session = $state({ state: { kind: 'checking' }, ageDeclared: false });
+
+/** The entry screens before a session (08 §25.6). */
+export type EntryScreen = '/pasang' | '/masuk/mode' | '/masuk';
+
+/** The screens after the entry screens, before a session: LY-02 Masuk, LY-02 Buat akun, LY-03 (08 §7.6). */
+export type SignInScreen = '/masuk/akun' | '/masuk/daftar' | '/masuk/periksa-email';
+
+/**
+ * The screen the app opens at (08 §25.6 flow): LY-90 in a Safari tab on iPhone or iPad until the
+ * shared way is chosen (SEC-171 (b)); LY-91 until a device mode is chosen (SEC-165); then LY-01.
+ * A member's screen is "/".
+ */
+export function nextScreen(): EntryScreen | '/' {
+	if (session.state.kind === 'signed-in') return '/'; // ponytail: Task 8 adds LY-04, LY-05, LY-06
+	if (displayContext() === 'ios-safari-tab' && session.mode !== 'shared') return '/pasang';
+	return session.mode ? '/masuk' : '/masuk/mode';
+}
+
+/**
+ * Where an entry screen sends the person instead of showing, so no step is skipped by its
+ * address: LY-90 only in a Safari tab, LY-91 never there (SEC-171 (b) (1)), LY-01 and LY-02
+ * only with a mode chosen (SEC-165). An earlier step stays reachable, so Back can change the
+ * choice. Once signed in, every one of them sends the person on to "/".
+ */
+export function entryRedirect(path: EntryScreen | SignInScreen): EntryScreen | '/' | undefined {
+	const tab = displayContext() === 'ios-safari-tab';
+	const shows =
+		session.state.kind === 'signed-out' &&
+		(path === '/pasang' ? tab : path === '/masuk/mode' ? !tab : nextScreen() === '/masuk');
+	return shows ? undefined : nextScreen();
+}
 
 /** The session check waits this long before the app opens without it (SEC-172 (b)). */
 const sessionCheckLimitMs = 3000;
@@ -50,11 +94,44 @@ async function reopenedMode(): Promise<DeviceMode> {
 	return (await localDbExists()) ? 'personal' : 'shared';
 }
 
+/**
+ * What personal mode keeps on the device (SEC-171 (a); ADR-030 item 9): the service worker,
+ * and the browser's answer to persistent storage in the local database. Shared mode never
+ * calls this (SEC-165 (b)). Neither step holds up the screen; a failure is logged (ES §1).
+ */
+export function enablePersonalMode(db: LocalDb): void {
+	registerServiceWorker().catch(logFailure);
+	requestPersistence(db).catch(logFailure);
+}
+
+function logFailure(error: unknown): void {
+	console.error(error);
+}
+
+/**
+ * After SignIn opened a session in mode (SEC-165 (a)): personal mode keeps what it keeps on
+ * the device, shared mode nothing (SEC-165 (b)); then the session is checked as the tap's
+ * result, which brings the member's screen (SEC-165 (g)).
+ */
+export async function afterSignIn(mode: DeviceMode): Promise<void> {
+	session.mode = mode;
+	if (mode === 'personal') {
+		// Created before the session check looks for a pending wipe: that look opens without a
+		// version and deletes what it finds missing, which must not race the creation.
+		const db = localDb();
+		await db.open().catch(logFailure);
+		enablePersonalMode(db);
+	}
+	await checkSession({ userInitiated: true });
+}
+
 /** Empties the memory of the session before LY-94 or the sign-in screen renders (decision 6). */
 export function resetSessionState(): void {
 	session.state = { kind: 'checking' };
 	session.mode = undefined;
 	session.pendingToken = undefined;
+	session.signUpEmail = undefined;
+	session.setupLinkDropped = undefined;
 	session.ageDeclared = false;
 }
 
@@ -160,15 +237,20 @@ export async function handleSessionError(error: unknown): Promise<boolean> {
 			await endSession(mode === 'shared' ? 'shared-ended' : 'expired');
 			break;
 		}
-		default:
+		default: {
 			if (session.state.kind === 'ended') break;
 			if (revokedWipeCarried) {
 				await endSession('revoked');
 				break;
 			}
-			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)).
+			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)). The
+			// link this tab was opened with stays in memory: the signed-out screens use it, and the
+			// session check on open always answers this way before them (SEC-175 (c)).
+			const { pendingToken, setupLinkDropped } = session;
 			resetSessionState();
+			Object.assign(session, { pendingToken, setupLinkDropped });
 			settle({ kind: 'signed-out' });
+		}
 	}
 	return true;
 }
@@ -197,14 +279,19 @@ function recheckWhenBack(): void {
 /**
  * Finishes a wipe a failure left pending (the marker in IndexedDB, 10.5 §5) before the session
  * check, so before any screen or queue send, counting its unsent commands first (SEC-172 (a);
- * ADR-024 item 6). A failure is thrown and shows the 'storage' unreachable state.
+ * ADR-024 item 6). A failure is thrown and shows the 'storage' unreachable state. Returns true
+ * when the page is being replaced: after any wipe but a revoked one (whose LY-94 this page
+ * shows), Casa opens on a fresh page, so no sign-in runs on a page whose localDb() refuses.
  */
-async function finishPendingWipe(): Promise<void> {
+async function finishPendingWipe(): Promise<boolean> {
 	const kind = await wipePending();
-	if (!kind) return;
+	if (!kind) return false;
 	carryUnsentDropped(await unsentCount());
 	if (kind === 'session_revoked') revokedWipeCarried = true;
 	await wipeLocalData(kind);
+	if (kind === 'session_revoked') return false;
+	location.replace('/');
+	return true;
 }
 
 /**
@@ -218,7 +305,7 @@ export async function checkSession({
 	timeoutMs = sessionCheckLimitMs
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
-		await finishPendingWipe();
+		if (await finishPendingWipe()) return;
 	} catch (error) {
 		console.error(error);
 		showUnreachable('storage');
@@ -236,7 +323,12 @@ export async function checkSession({
 			location.reload();
 			return;
 		}
-		session.mode ??= await reopenedMode();
+		if (!session.mode) {
+			// Reopened with a session: a personal-mode browser re-registers its service worker
+			// (an update check) and asks for persistence again for LY-95 (SEC-171 (a)).
+			session.mode = await reopenedMode();
+			if (session.mode === 'personal') enablePersonalMode(localDb());
+		}
 		settle({ kind: 'signed-in', memberships });
 	} catch (error) {
 		try {

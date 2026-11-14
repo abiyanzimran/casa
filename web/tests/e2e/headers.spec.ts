@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { collectViolations, serviceWorkerReady, violations } from './support';
+import { collectViolations, personalBrowser, serviceWorkerReady, violations } from './support';
 
 // Every test here runs on the embedded bundle served by cmd/webpreview with the production
 // headers (plan 1.5 decision 6), so it sees the CSP the casa binary sends (SEC-166).
@@ -40,6 +40,7 @@ async function serveIndexWith(page: Page, marker: string, markup: string): Promi
 
 test('SEC-166: the app loads under the production CSP without a violation', async ({ page }) => {
 	await collectViolations(page);
+	await personalBrowser(page); // the service worker registers in personal mode only
 	const response = await page.goto('/');
 	const csp = response?.headers()['content-security-policy'] ?? '';
 	const policy = directives(csp);
@@ -122,6 +123,7 @@ test('SEC-160 (d): the app requests nothing from another host', async ({
 	const urls: string[] = [];
 	// The context also sees the service worker's own requests (Chromium).
 	context.on('request', (request) => urls.push(request.url()));
+	await personalBrowser(page); // the service worker registers in personal mode only
 	await page.goto('/');
 	await serviceWorkerReady(page);
 	expect(urls).toContain(`${app}/service-worker.js`);
