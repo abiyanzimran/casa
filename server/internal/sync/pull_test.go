@@ -416,6 +416,24 @@ func TestPull(t *testing.T) {
 		}
 	})
 
+	// Plan 1.7 decision 14: the page holds 1 to 500 changes; Pull refuses
+	// any other limit itself, so the contract's lte: 500 is not its only
+	// guard (lead ruling on the Task 5 review).
+	t.Run("a page limit outside 1 to 500 is refused", func(t *testing.T) {
+		x := newHarness(t)
+		r := reader(x.create(t))
+		snapshot := x.pull(t, r, "", 500)
+		for _, limit := range []int{-1, 0, 501, 1 << 40} {
+			for _, cursor := range []string{"", snapshot.Next} {
+				if _, err := x.sync.Pull(t.Context(), r, cursor, limit); err == nil ||
+					errors.Is(err, read.ErrNotFound) || errors.Is(err, sync.ErrCursorRejected) {
+					t.Errorf("limit %d, cursor %q: err %v, want the limit refused", limit, cursor, err)
+				}
+			}
+		}
+		x.pull(t, r, snapshot.Next, 500)
+	})
+
 	t.Run("a reader no longer a member is not found and a cursor of another member is rejected", func(t *testing.T) {
 		x := newHarness(t)
 		a := x.create(t)

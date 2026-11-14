@@ -22,6 +22,7 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/household"
 	"github.com/abiyanzimran/casa/server/internal/identity"
 	"github.com/abiyanzimran/casa/server/internal/read"
+	"github.com/abiyanzimran/casa/server/internal/sync"
 )
 
 // The visible-character limits of FAM.md FR-FAM-001, note of 14 November
@@ -569,8 +570,11 @@ func householdErrorOrNil(err error) error {
 // internal and its text never reaches the client (09.2 §3 layer 3).
 func householdError(err error) error {
 	switch {
-	case errors.Is(err, household.ErrNotFound), errors.Is(err, read.ErrNotFound):
-		return connect.NewError(connect.CodeNotFound, "not found") // no detail (SEC-05)
+	case errors.Is(err, household.ErrNotFound), errors.Is(err, read.ErrNotFound), errors.Is(err, sync.ErrCursorRejected):
+		// One answer, no detail: a cursor not made for the caller says no
+		// more than a household that does not exist (SEC-05; plan 1.7
+		// decision 9).
+		return connect.NewError(connect.CodeNotFound, "not found")
 	case errors.Is(err, household.ErrInvitationPending):
 		return errorWithDetail(connect.CodeFailedPrecondition, "invitation pending",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_INVITATION_PENDING})

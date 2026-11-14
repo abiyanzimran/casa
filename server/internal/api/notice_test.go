@@ -440,6 +440,7 @@ var noticeFreeReads = []string{
 	casav1connect.HouseholdServiceGetOperatorNoticeProcedure,
 	casav1connect.HouseholdServicePreviewInvitationProcedure,
 	casav1connect.HouseholdServiceGetOpenInvitationProcedure,
+	casav1connect.SyncServiceSyncProcedure, // plan 1.7 decision 12
 }
 
 // methodOf is the contract's method of procedure.

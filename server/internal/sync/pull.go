@@ -50,9 +50,12 @@ func New(pool *pgxpool.Pool, r *read.Service, key CursorKey) *Service {
 	return &Service{pool: pool, read: r, key: key}
 }
 
+// maxLimit is the largest page [Usulan] (plan 1.7 decision 14).
+const maxLimit = 500
+
 // errBadLimit: the API sets the page size (plan 1.7 decision 14), so a
-// limit below one is a programming error.
-var errBadLimit = errors.New("sync page limit below one")
+// limit outside 1 to maxLimit is a programming error.
+var errBadLimit = errors.New("sync page limit outside 1 to 500")
 
 // Pull is one Sync page for r (09.3 §3; plan 1.7 decisions 9 to 11), in one
 // REPEATABLE READ READ ONLY transaction (database.Read; ADR-017 item 7, note
@@ -60,7 +63,7 @@ var errBadLimit = errors.New("sync page limit below one")
 // ErrCursorRejected for a cursor not made for r. An empty cursor starts the
 // snapshot.
 func (s *Service) Pull(ctx context.Context, r read.Reader, cursor string, limit int) (Page, error) {
-	if limit < 1 {
+	if limit < 1 || limit > maxLimit {
 		return Page{}, errBadLimit
 	}
 	var c *Cursor
@@ -124,7 +127,7 @@ func (s *Service) feed(ctx context.Context, tx pgx.Tx, r read.Reader, p, last in
 		return Page{ResyncRequired: true}, nil
 	}
 	rows, err := syncdb.New(tx).FeedAfter(ctx, syncdb.FeedAfterParams{
-		HouseholdID: r.HouseholdID, MemberID: r.MemberID, After: p, Lim: int32(limit + 1), //nolint:gosec // the API caps limit at 500 (plan 1.7 decision 14)
+		HouseholdID: r.HouseholdID, MemberID: r.MemberID, After: p, Lim: int32(limit + 1), //nolint:gosec // Pull refuses a limit above maxLimit
 	})
 	if err != nil {
 		return Page{}, err

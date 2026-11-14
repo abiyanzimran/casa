@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package casa.v1;
+
+import "buf/validate/validate.proto";
+import "casa/v1/household.proto";
+import "casa/v1/request.proto";
+
+// SyncService carries each member's per-reader feed to the device (09.3 §3;
+// ADR-017; 09.2 §1 row sync).
+service SyncService {
+  // The reader's feed or initial snapshot (09.3 §3; ADR-017, ADR-018). A
+  // read: no CommandOptions, never held by NOTICE_UNREAD. An empty cursor
+  // starts the snapshot; each answer's next_cursor continues it, then the
+  // feed. NotFound for a household the caller is not a member of and for any
+  // cursor the server did not give this member; a client that gets NotFound
+  // with a cursor drops the cursor and tries once with an empty one, and
+  // NotFound again means the household is not readable (plan 1.7 decision
+  // 9).
+  rpc Sync(SyncRequest) returns (SyncResponse);
+}
+
+// SyncPurpose is why the client syncs (ADR-018 items 2, 4). Required from
+// the start, so reading it later breaks no client; the server reads it from
+// FS-1 step 5 (INV-A33).
+enum SyncPurpose {
+  SYNC_PURPOSE_UNSPECIFIED = 0;
+  SYNC_PURPOSE_FOREGROUND = 1;
+  SYNC_PURPOSE_BACKGROUND = 2;
+}
+
+message SyncRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+  // A selector, checked against the caller's memberships (SEC-38 (a)).
+  string household_id = 2 [(buf.validate.field).string.uuid = true];
+  // Empty, or the next_cursor of the previous answer; opaque to the client.
+  string cursor = 3 [(buf.validate.field).string.max_len = 256];
+  SyncPurpose purpose = 4 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  // Changes per page; 0 means 100, at most 500 [Usulan] (plan 1.7 decision
+  // 14).
+  uint32 limit = 5 [(buf.validate.field).uint32.lte = 500];
+}
+
+// ChangeKind is what the device does with an object (09.3 §3): UPSERT holds
+// it, PURGE drops it from the cache.
+enum ChangeKind {
+  CHANGE_KIND_UNSPECIFIED = 0;
+  CHANGE_KIND_UPSERT = 1;
+  CHANGE_KIND_PURGE = 2;
+}
+
+// ObjectKind is the kind of a synced object (plan 1.7 decision 7).
+enum ObjectKind {
+  OBJECT_KIND_UNSPECIFIED = 0;
+  OBJECT_KIND_HOUSEHOLD = 1;
+  OBJECT_KIND_MEMBER = 2;
+  OBJECT_KIND_INVITATION = 3;
+}
+
+// Change is one object for the device's cache.
+message Change {
+  ChangeKind kind = 1;
+  ObjectKind object_kind = 2;
+  string object_id = 3;
+  // Empty on PURGE.
+  oneof object {
+    Household household = 4;
+    Member member = 5;
+    Invitation invitation = 6;
+  }
+}
+
+message SyncResponse {
+  repeated Change changes = 1;
+  // The cursor of the next request; empty with resync_required.
+  string next_cursor = 2;
+  // More changes wait: sync again with next_cursor now.
+  bool has_more = 3;
+  // The feed cannot continue the cursor: drop the cache, never the outbox,
+  // and start again with an empty cursor (ADR-017 item 6; 09.3 §3).
+  bool resync_required = 4;
+  // The caller has an operator notice version it has not acknowledged: show
+  // LY-05 with the text from GetOperatorNotice (SEC-34; FR-FAM-019).
+  bool operator_notice_unacknowledged = 5;
+}
