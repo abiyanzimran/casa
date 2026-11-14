@@ -195,6 +195,23 @@ Butir kolom server 14 §3.3 langkah 1 yang belum dibangun 1.2 sampai 1.7:
 
 Tidak di kolom itu dan dipindah ke langkah 7: `identity.send_mail` (09.3 §9 catatan 14 November 2026). `traceability/scope.txt` diperbarui lead di akhir langkah 1.
 
+## Putusan pra-eksekusi (14 November 2026, lead)
+
+Hasil pemindaian pra-eksekusi. Putusan ini mengungguli teks tugas yang disebut.
+
+- **P1 (Tugas 2, 3, 6; "uji 1.6 tidak disunting").** Harness `server/internal/api/household_test.go` (dan harness API lain yang memanggil fungsi `Register…Service`) boleh disunting **hanya pada pemasangan** (argumen baru, runner, `read`, `sync`, `Sync`). Asersi, nama, dan isi uji 1.6 tidak berubah. Klaim "diff kosong" diganti: `git diff main -- server/internal/api/*_test.go` hanya menyentuh fungsi harness.
+- **P2 (Tugas 2 langkah 3).** `expire` tetap satu-satunya penulis gugur, tetapi mengembalikan keadaan yang dibacanya, sehingga job membedakan "sudah tertutup dalam keadaan lain" (selesai) dari "masih hidup tetapi belum jatuh tempo" (`ErrNotYetDue`).
+- **P3 (Tugas 2, uji "a live invitation the clock finds not yet due is retried").** Uji menurunkan `run_at` lewat fixture admin di `_test.go` sebelum `RunDue`, lalu menegaskan job dicoba ulang dan undangan tetap `open`.
+- **P4 (Tugas 4, uji F04).** `Confirm` tidak diubah urutannya. Peristiwa undangan dari F04 sampai ke umpan anggota yang ada saat Peristiwa ditulis (pengundang); anggota baru menerima baris rumah tangga dan anggota. Uji menegaskan persis itu.
+- **P5 (keputusan 7, X7; Tugas 4, 5).** Aturan baca satu implementasi: `read.canRead` lahir di Tugas 4, dan `Readers` (fan-out) serta proyeksi Tugas 5 memanggilnya. `read` boleh punya kueri keanggotaan sendiri di `readdb` untuk jalur baca; `household.MemberIn` tetap pemeriksaan sisi perintah (SEC-151). Keduanya dicatat sebagai dua lapis, bukan dua implementasi satu aturan.
+- **P6 (Tugas 8, Makefile).** Tidak ada flag `-rapid.*` di Makefile. Uji properti membaca `RAPID_CHECKS` dan `RAPID_SEED` sendiri (di `TestMain` paket ujinya, lewat `flag.Set` sebelum `m.Run`), dengan bawaan seed tetap dan 20 putaran bila variabel kosong. Job CI mingguan mengisi variabel itu.
+- **P7 (Tugas 7).** Peran dicatat per paket kueri dan uji menjalankan kueri dengan peran itu. Kueri `job_runner` (`ClaimDue`, `FailJob`, dan sejenisnya) dijalankan sebagai `job_runner` dan masuk daftar pengecualian berdasar sumber (job sistem lintas rumah tangga menurut desain, 09.2 §3 catatan Q1 (b)).
+- **P8 (Tugas 10, bukti merah "`attempts < 10` dibuang").** Diganti uji dengan fixture admin `attempts = 10` dan `locked_until` kosong: job tidak diklaim. Baris bukti merah memakai uji itu.
+- **P9 (keputusan 9; Tugas 5, 6).** Kursor didekode dengan `base64.RawURLEncoding.Strict()`, sehingga perubahan satu karakter tidak pernah menghasilkan byte yang sama.
+- **P10 (Tugas 7 langkah 4).** Tidak menyalin `setScope`. Kueri dijalankan lewat `database.Write` (atau fungsi ekspor `database` yang sudah ada) pada pool peran yang dicatat; digest dibaca pool admin sebelum dan sesudah rollback paksa.
+- **P11 (Tugas 8).** Uji "every write command has a builder" dibatasi ke `HouseholdService` dan dinamai begitu; `SignOut` dan `ChangePassword` tidak menyentuh keadaan rumah tangga.
+- **P12 (Tugas 9).** Karakter tak terlihat dan spasi ditulis sebagai escape Go (` `, `​`, `﻿`, `‮`, `️`), tidak sebagai literal.
+
 ## Berkas yang mungkin bentrok
 
 - **`web/src/lib/gen/` dibangkitkan ulang:** `casa/v1/sync_pb.ts` baru; `household_pb.ts` berubah.

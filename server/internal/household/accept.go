@@ -143,8 +143,8 @@ func (s *Service) FindAcceptance(ctx context.Context, account pgtype.UUID) (Acce
 	if err != nil {
 		return Acceptance{}, err
 	}
-	expired, err := s.expire(ctx, row.HouseholdID, account, row.ID)
-	return Acceptance{HouseholdID: row.HouseholdID, InvitationID: row.ID, Live: !expired}, err
+	state, err := s.expire(ctx, row.HouseholdID, account, row.ID)
+	return Acceptance{HouseholdID: row.HouseholdID, InvitationID: row.ID, Live: state != "expired"}, err
 }
 
 // Withdraw is F05 withdraw_acceptance by account (06 §3.6) in tx, whose

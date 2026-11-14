@@ -67,13 +67,19 @@ func validEmail(email string) bool {
 // openAppPool connects as app_rw with the connection string from its
 // credential (09.4 §1; SEC-42).
 func openAppPool(ctx context.Context) (*pgxpool.Pool, error) {
-	s, err := connString(appDatabaseURL, true)
+	return openPool(ctx, appDatabaseURL, "the database")
+}
+
+// openPool opens a pool with the connection string in credential; what
+// names the database in its error.
+func openPool(ctx context.Context, credential, what string) (*pgxpool.Pool, error) {
+	s, err := connString(credential, true)
 	if err != nil {
 		return nil, err
 	}
 	pool, err := pgxpool.New(ctx, s)
 	if err != nil {
-		return nil, fmt.Errorf("open the database: %w", err)
+		return nil, fmt.Errorf("open %s: %w", what, err)
 	}
 	return pool, nil
 }

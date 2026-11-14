@@ -11,7 +11,11 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/database"
 	"github.com/abiyanzimran/casa/server/internal/household/householddb"
+	"github.com/abiyanzimran/casa/server/internal/jobs"
 )
+
+// ExpireInvitationKind is the job of plan 1.7 decision 1.
+const ExpireInvitationKind = "household.expire_invitation"
 
 // invitationLifetime is SEC-28's 7 days [Asumsi], counted from F01 and never
 // extended by a new link (10.1 SEC-28 note Q7 (b)).
@@ -43,6 +47,10 @@ var (
 	// ErrHouseholdFull: the household has two full adult members (06 §3.6
 	// F01; FR-FAM-003/AC-5).
 	ErrHouseholdFull = errors.New("household full")
+	// ErrNotYetDue: the invitation is live but the compare-and-set finds it
+	// not yet due; the job is retried, never done (09.3 §9 note of 14
+	// November 2026 (2)).
+	ErrNotYetDue = errors.New("invitation not yet due")
 )
 
 // Invitation is a made invitation: its id and the end of its validity.
@@ -71,36 +79,55 @@ func (s *Service) ExpireDueInvitation(ctx context.Context, inviter Member) error
 	return err
 }
 
+// ExpireInvitationJob writes the expiry of the invitation in j.Payload in
+// j's household when it is live and due (06 §3.6 "Gugur karena waktu"; X3);
+// a closed invitation is done without a write; a live one not yet due is
+// ErrNotYetDue (09.3 §9 note of 14 November 2026 (2); plan 1.7 decision 1).
+// A payload that is not an invitation id is an error, so the job stops after
+// its retries and flags the operator.
+func (s *Service) ExpireInvitationJob(ctx context.Context, j jobs.Job) error {
+	if len(j.Payload) != 16 {
+		return errors.New("expire invitation job: payload is not an invitation id")
+	}
+	state, err := s.expire(ctx, j.HouseholdID, pgtype.UUID{}, pgtype.UUID{Bytes: [16]byte(j.Payload), Valid: true})
+	if err == nil && live(state) {
+		return ErrNotYetDue
+	}
+	return err
+}
+
 // expire is the one expiry writer (plan 1.6 decision 12; 09.2 §5.1 note X3).
 // In its own database.Write it reads the version, state and expires_at, then
 // compare-and-sets an open or accepted invitation with now ≥ expires_at to
 // expired: actor system, rule invitation.expired, closed_at and the event's
 // time = expires_at, so the household never reads when it was written (10.1
-// §10 note X3 (1)(a)). expired is true when the row is (now) expired, false
-// when it is live or closed otherwise; a lost compare-and-set writes
-// nothing and reports the row as read, not expired. Under SERIALIZABLE a
-// concurrent write is a serialization failure instead, and the retry reads
-// the row again.
-func (s *Service) expire(ctx context.Context, household, account, invitation pgtype.UUID) (expired bool, err error) {
+// §10 note X3 (1)(a)). state is "expired" when the row is (now) expired, else
+// the state it read: live when not yet due, closed otherwise (plan 1.7 ruling
+// P2). A lost compare-and-set writes nothing and reports the row as read.
+// Under SERIALIZABLE a concurrent write is a serialization failure instead,
+// and the retry reads the row again.
+func (s *Service) expire(ctx context.Context, household, account, invitation pgtype.UUID) (state string, err error) {
 	err = database.Write(ctx, s.pool, database.Scope{HouseholdID: household, AccountID: account}, func(tx pgx.Tx) error {
 		row, err := householddb.New(tx).Invitation(ctx, invitation)
 		if err != nil {
 			return err
 		}
+		state = row.State
 		if !live(row.State) || s.now().Before(row.ExpiresAt) {
-			expired = row.State == "expired"
 			return nil
 		}
 		err = s.transition(ctx, tx, household, invitation, row, "expired", row.ExpiresAt, Event{
 			ActorKind: "system", Rule: expireRule, Command: expireCommand,
 		})
-		expired = err == nil
+		if err == nil {
+			state = "expired"
+		}
 		if errors.Is(err, ErrStateChanged) {
 			return nil
 		}
 		return err
 	})
-	return expired, err
+	return state, err
 }
 
 // live is a state in which an invitation is not yet closed (06 §3.6:
@@ -158,6 +185,14 @@ func (s *Service) CreateInvitation(ctx context.Context, tx pgx.Tx, inviter Membe
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "invitation_live" {
 			return Invitation{}, ErrInvitationPending
 		}
+		return Invitation{}, err
+	}
+	// The expiry is a job at expires_at, enqueued with the invitation (plan
+	// 1.7 decision 1; 09.3 §9 note of 14 November 2026).
+	if err := jobs.Enqueue(ctx, tx, jobs.NewJob{
+		HouseholdID: inviter.HouseholdID, Kind: ExpireInvitationKind, RunAt: inv.ExpiresAt,
+		UniqueKey: inv.ID.String(), Payload: inv.ID.Bytes[:],
+	}); err != nil {
 		return Invitation{}, err
 	}
 	return inv, RecordEvent(ctx, tx, Event{
