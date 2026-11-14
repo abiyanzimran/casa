@@ -23,7 +23,7 @@ const listMemberships = HouseholdService.method.listMemberships;
 const signedIn = { memberships: [] };
 
 /** The paper surface of the session check (08 §25.7): no sentence, no spinner. */
-const checking = (page: Page) => page.locator('[aria-busy="true"]');
+const checking = (page: Page) => page.locator('[data-session-check]');
 
 /**
  * A personal-mode browser with count unsent commands: the local database as the app's Dexie
@@ -155,7 +155,7 @@ test('SEC-172 (b): the app waits at most 3 seconds for the session check, then c
 
 	// The 3 s cap is measured from the request to the surface leaving, read every frame, so a
 	// slow runner gets time to look without the cap growing (fix wave A M5).
-	await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, {
+	await page.waitForFunction(() => !document.querySelector('[data-session-check]'), null, {
 		polling: 'raf',
 		timeout: 10_000
 	});

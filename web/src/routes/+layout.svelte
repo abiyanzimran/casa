@@ -176,7 +176,7 @@
 	/>
 	{#if wiping || session.state.kind === 'checking'}
 		<!-- 08 §25.7: the session check shows the paper surface with the knot, no sentence, no spinner -->
-		<div class="pemeriksaan" aria-busy="true"><span class="simpul"></span></div>
+		<div class="pemeriksaan" data-session-check aria-busy="true"><span class="simpul"></span></div>
 	{:else if session.state.kind === 'unreachable'}
 		<Screen heading="Casa" describedby={sentence}>
 			<p id={sentence}>{unreachableText[session.state.cause]}</p>

@@ -8,7 +8,7 @@ test('SEC-175: app shell has the Casa title and one h1', async ({ page }) => {
 	await failUnmocked(page);
 	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
 	await page.goto('/');
-	await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+	await expect(page.locator('[data-session-check]')).toHaveCount(0);
 	await expect(page).toHaveTitle('Casa');
 	await expect(page.locator('h1')).toHaveCount(1);
 });
