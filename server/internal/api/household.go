@@ -241,6 +241,7 @@ func (s householdHandler) GetOperatorNotice(ctx context.Context, _ *casav1.GetOp
 // with no household data (SEC-32). Empty without one; it never writes.
 func (s householdHandler) GetOwnAcceptance(ctx context.Context, _ *casav1.GetOwnAcceptanceRequest) (*casav1.GetOwnAcceptanceResponse, error) {
 	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	_, _ = s.h.FindAcceptance(ctx, session.AccountID)
 	a, found, err := s.r.OwnAcceptance(ctx, session.AccountID)
 	if err != nil {
 		return nil, householdError(err)
