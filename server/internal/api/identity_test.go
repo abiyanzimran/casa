@@ -6,9 +6,12 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
+	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
@@ -84,6 +87,8 @@ type identityHarness struct {
 	// invitationOpen is sign-up's invitation check, set by a register
 	// function before the server serves; nil finds no invitation.
 	invitationOpen func(context.Context, []byte) error
+	// fixturePeers counts the peers fixtureClient has handed out.
+	fixturePeers uint16
 }
 
 // failMail makes every later mail fail with err.
@@ -256,17 +261,54 @@ func (h *identityHarness) lastLink(t *testing.T) string {
 	return token
 }
 
-// signUp runs the whole closed sign-up for email and returns the session.
+// signUp runs the whole closed sign-up for email, as a fixture from a peer
+// of its own (fixtureClient), and returns the session.
 func (h *identityHarness) signUp(t *testing.T, email, password string) *casav1.SessionTokens {
 	t.Helper()
-	if err := h.startSignUp(h.issue(t, email), email); err != nil {
+	return h.fixtureSignUp(t, &casav1.StartSignUpRequest{SetupToken: h.issue(t, email), Email: email}, password)
+}
+
+// fixtureSignUp sends start from a fixture peer (fixtureClient), opens the
+// emailed link with password from the same peer, and returns the session.
+func (h *identityHarness) fixtureSignUp(t *testing.T, start *casav1.StartSignUpRequest, password string) *casav1.SessionTokens {
+	t.Helper()
+	client := h.fixtureClient(t)
+	start.RequestContext = identityRC(ios)
+	if _, err := client.StartSignUp(context.Background(), start); err != nil {
 		t.Fatal(err)
 	}
-	tokens, err := h.completeSignUp(ios, h.lastLink(t), password)
+	res, err := client.CompleteSignUp(context.Background(), &casav1.CompleteSignUpRequest{
+		RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return tokens
+	return res.GetTokens()
+}
+
+// clientFrom is an identity client whose connections come from the
+// loopback address ip, a rate-limit peer of its own (10.1 §8.1); Linux
+// answers on all of 127.0.0.0/8.
+func (h *identityHarness) clientFrom(t *testing.T, ip net.IP) casav1connect.IdentityServiceClient {
+	t.Helper()
+	dialer := &net.Dialer{LocalAddr: &net.TCPAddr{IP: ip}}
+	transport := &http.Transport{DialContext: dialer.DialContext}
+	t.Cleanup(transport.CloseIdleConnections)
+	return casav1connect.NewIdentityServiceClient(connect.NewClient(connecthttp.NewTransport(&http.Client{Transport: transport}, h.url)))
+}
+
+// fixtureClient is clientFrom a loopback address (127.1.x.y) that no other
+// call of the test uses. Every StartSignUp counts on its address (10.1
+// §8.1, fix wave C of plan 1.6), so a fixture sign-up from the address the
+// test exercises would spend that address's count before the assertion.
+func (h *identityHarness) fixtureClient(t *testing.T) casav1connect.IdentityServiceClient {
+	t.Helper()
+	h.mu.Lock()
+	h.fixturePeers++
+	ip := net.IPv4(127, 1, 0, 0) // the 16-byte form: x.y are its last two bytes
+	binary.BigEndian.PutUint16(ip[14:], h.fixturePeers)
+	h.mu.Unlock()
+	return h.clientFrom(t, ip)
 }
 
 func (h *identityHarness) count(t *testing.T, query string, args ...any) int {
@@ -541,15 +583,20 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("SEC-12 failed token uses are limited per address", func(t *testing.T) {
-		// 10.1 §8.1: CompleteSignUp shares the token-use limit.
+		// 10.1 §8.1: CompleteSignUp shares the token-use limit. The start
+		// is a fixture from another peer: every StartSignUp counts on its
+		// address (fix wave C of plan 1.6).
 		h := startIdentity(t)
-		wantOK(t, h.startSignUp(h.issue(t, "owner@example.test"), "owner@example.test"))
+		_, err := h.fixtureClient(t).StartSignUp(context.Background(), &casav1.StartSignUpRequest{
+			RequestContext: identityRC(ios), SetupToken: h.issue(t, "owner@example.test"), Email: "owner@example.test",
+		})
+		wantOK(t, err)
 		link := h.lastLink(t)
 		for range 20 {
 			_, err := h.completeSignUp(ios, strings.Repeat("B", 43), password)
 			wantErrorCode(t, err, connect.CodePermissionDenied, rejected)
 		}
-		_, err := h.completeSignUp(ios, link, password)
+		_, err = h.completeSignUp(ios, link, password)
 		wantErrorCode(t, err, connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
 	})
 }
@@ -1155,7 +1202,7 @@ func TestRecovery(t *testing.T) {
 	})
 	t.Run("SEC-12 failed token uses are limited per address", func(t *testing.T) {
 		h := startIdentity(t)
-		h.signUp(t, email, password) // one successful token use; it is withdrawn, not counted
+		h.signUp(t, email, password) // a fixture from another peer (fixtureClient)
 		_, err := h.startRecovery(email)
 		wantOK(t, err)
 		link := h.lastLink(t)

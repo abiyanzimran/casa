@@ -27,6 +27,13 @@ type SignUpSource struct{ SetupToken, InvitationToken string }
 // that fails, a setup token whose email already has an account, or an
 // invitation link an account was already born from gets ErrTokenRejected and
 // no mail (SEC-30).
+//
+// Rate limits (10.1 §8.1): every start the address limiter allows counts on
+// the address, success too; a server error, or a refusal by the invitation's
+// own key, takes that count back. Every start whose invitation passes
+// invitationOpen counts on the invitation token hash, registered and fresh
+// emails alike, before the row is written; past 5, ErrRateLimited, no row
+// and no mail.
 func (s *Service) StartSignUp(ctx context.Context, client Client, source SignUpSource, email string,
 	invitationOpen func(context.Context, []byte) error,
 ) error {
@@ -39,7 +46,7 @@ func (s *Service) StartSignUp(ctx context.Context, client Client, source SignUpS
 		done(outcomeOf(err))
 		return err
 	}
-	done(Succeeded)
+	done(Failed) // every start counts on the address (10.1 §8.1)
 	// After commit only: a retried transaction must not mail twice.
 	return s.config.SendMail(ctx, Message{To: to, Kind: MessageVerification, Link: s.config.Origin + "/signup/verify#" + link})
 }
@@ -81,6 +88,10 @@ func (s *Service) storeVerificationLink(ctx context.Context, source SignUpSource
 		// whether an email has an account, by answer or by rate-limit
 		// count (SEC-12, SEC-30; 10.1 §8.1). CompleteSignUp refuses an
 		// email that has one, and writes nothing.
+		allowed, done := s.invitationStart.Attempt(string(invitationHash))
+		if !allowed {
+			return "", "", ErrRateLimited
+		}
 		var n int64
 		err = database.Write(ctx, s.pool, database.Scope{TokenHash: invitationHash}, func(tx pgx.Tx) (err error) {
 			n, err = identitydb.New(tx).UpsertInvitationSignupVerification(ctx, identitydb.UpsertInvitationSignupVerificationParams{
@@ -89,8 +100,10 @@ func (s *Service) storeVerificationLink(ctx context.Context, source SignUpSource
 			return err
 		})
 		if err != nil {
+			done(NotTried) // a server error is not the caller's start
 			return "", "", fmt.Errorf("store the verification link: %w", err)
 		}
+		done(Failed) // counted, also when an account was born (n = 0)
 		if n == 0 {
 			return "", "", ErrTokenRejected // an account was born from this link (SEC-158 note (1))
 		}
@@ -118,26 +131,18 @@ func (s *Service) checkSetupToken(ctx context.Context, setupToken, email string)
 	if err != nil {
 		return "", nil, fmt.Errorf("read the setup token: %w", err)
 	}
-	if err := s.noAccountFor(ctx, row.Email); err != nil {
-		return "", nil, err
-	}
-	return row.Email, setupHash, nil
-}
-
-// noAccountFor is ErrTokenRejected when email already has an account. 10.1
-// §5.1 rule 3: the email lookup is a read of its own.
-func (s *Service) noAccountFor(ctx context.Context, email string) error {
-	err := database.Read(ctx, s.pool, database.Scope{Email: email}, func(tx pgx.Tx) error {
-		_, err := identitydb.New(tx).GetAccountIDByEmail(ctx, email)
+	// 10.1 §5.1 rule 3: the email lookup is a read of its own.
+	err = database.Read(ctx, s.pool, database.Scope{Email: row.Email}, func(tx pgx.Tx) error {
+		_, err := identitydb.New(tx).GetAccountIDByEmail(ctx, row.Email)
 		return err
 	})
 	switch {
 	case err == nil:
-		return ErrTokenRejected
+		return "", nil, ErrTokenRejected // the email already has an account
 	case !errors.Is(err, pgx.ErrNoRows):
-		return fmt.Errorf("look up the email: %w", err)
+		return "", nil, fmt.Errorf("look up the email: %w", err)
 	}
-	return nil
+	return row.Email, setupHash, nil
 }
 
 // CompleteSignUp opens the account, its credential and its first session in
@@ -188,7 +193,13 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	sourceHash := link.SetupTokenHash
 	if link.Source == "invitation" {
 		// SEC-158 note (2): the invitation is checked again when the link
-		// is opened.
+		// is opened. The invitation can still be cancelled or expire in the
+		// window between this check and the account transaction, which
+		// includes the Argon2 hash and the wait for a hash slot; that is
+		// accepted: an account born there cannot create a household
+		// (FR-FAM-001/AC-10), from_signup checks the live token_hash, and
+		// joining needs the inviter's F04. SEC-158 note (2) asks for the
+		// same check as F02, not for atomicity with it.
 		if err := invitationOpen(ctx, link.InvitationTokenHash); err != nil {
 			return Tokens{}, err
 		}

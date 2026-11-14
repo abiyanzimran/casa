@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"slices"
 	"strings"
 	"sync"
@@ -1242,6 +1243,29 @@ func (h *householdHarness) startInvited(token, email string) error {
 	return h.startSignUpWith("", token, email)
 }
 
+// startInvitedFrom starts a sign-up through the invitation token from the
+// loopback address 127.0.0.n (clientFrom).
+func (h *householdHarness) startInvitedFrom(t *testing.T, n byte, token, email string) error {
+	t.Helper()
+	_, err := h.clientFrom(t, net.IPv4(127, 0, 0, n)).StartSignUp(context.Background(), &casav1.StartSignUpRequest{
+		RequestContext: identityRC(ios), InvitationToken: token, Email: email,
+	})
+	return err
+}
+
+// invitationSignupRow is the invitation token's sign-up row as "token_hash
+// email expires_at account_id used_at".
+func (h *householdHarness) invitationSignupRow(t *testing.T, token string) string {
+	t.Helper()
+	var row string
+	if err := h.admin.QueryRow(t.Context(), `
+		SELECT concat_ws(' ', encode(token_hash, 'hex'), email, expires_at, coalesce(account_id::text, '-'), coalesce(used_at::text, '-'))
+		  FROM signup_verification WHERE invitation_token_hash = $1`, tokenHash(t, token)).Scan(&row); err != nil {
+		t.Fatal(err)
+	}
+	return row
+}
+
 // accountOf is the id, as text, of the account with email; "" for none.
 func (h *householdHarness) accountOf(t *testing.T, email string) string {
 	t.Helper()
@@ -1260,12 +1284,11 @@ func (h *householdHarness) openLink(link string) (*casav1.SessionTokens, error) 
 }
 
 // signUpInvited signs up email through the invitation token, opens the
-// emailed link and acknowledges the operator notice.
+// emailed link and acknowledges the operator notice, as a fixture from a
+// peer of its own (fixtureClient).
 func (h *householdHarness) signUpInvited(t *testing.T, token, email string) member {
 	t.Helper()
-	wantOK(t, h.startInvited(token, email))
-	tokens, err := h.openLink(h.lastLink(t))
-	wantOK(t, err)
+	tokens := h.fixtureSignUp(t, &casav1.StartSignUpRequest{InvitationToken: token, Email: email}, "a long enough passphrase")
 	m := member{token: tokens.GetAccessToken(), account: h.accountOf(t, email)}
 	h.ack(t, m)
 	return m
@@ -1302,7 +1325,11 @@ func (h *householdHarness) signupEmail(t *testing.T, token string) string {
 // and its note of 14 November 2026; plan 1.6 decision 15; FAM.md
 // FR-FAM-004 note "Melanjutkan sesudah mendaftar lewat undangan").
 func TestSignUpByInvitation(t *testing.T) {
-	t.Run("FR-FAM-001/AC-9 sign-up with an invalid invitation gets the one rejection", func(t *testing.T) {
+	// FR-FAM-001/AC-9, the invitation-token half: no token, an invalid
+	// invitation, or both tokens, get the one rejection, and repeated
+	// failures hit the rate limit. The setup-token half is 1.4's TestSignUp
+	// ("FR-FAM-001/AC-9 …" subtests).
+	t.Run("sign-up with an invalid invitation gets the one rejection", func(t *testing.T) {
 		h := startHousehold(t)
 		dead := h.deadInvitations(t)
 		valid := h.invited(t, "c5@example.test")
@@ -1455,29 +1482,75 @@ func TestSignUpByInvitation(t *testing.T) {
 		}
 	})
 
-	t.Run("SEC-12 an email that already has an account starts like a fresh one and opens no second account", func(t *testing.T) {
-		// SEC-12, SEC-30; 10.1 §8.1: a live invitation link must not tell
-		// whether an email has an account, neither by the answer nor by
-		// the rate limit's count (Task 8 review, lead ruling (a)).
-		// CompleteSignUp refuses it, and the refusal writes nothing.
+	t.Run("SEC-12 invitation sign-up starts are limited per invitation, registered and fresh alike", func(t *testing.T) {
+		// 10.1 §8.1 row "Mulai pendaftaran per undangan": every start that
+		// passes the invitation check counts on the invitation's key, 5,
+		// whatever the address, and a registered email counts and is
+		// answered as a fresh one (no oracle).
+		h := startHousehold(t)
+		registered := []string{"r1@example.test", "r2@example.test", "r3@example.test", "r4@example.test", "r5@example.test", "r6@example.test"}
+		mixed := h.invited(t, registered[0])
+		allRegistered := h.invited(t, registered[1])
+		allFresh := h.invited(t, registered[2])
+		other := h.invited(t, registered[3])
+		h.signUpMember(t, registered[4])
+		h.signUpMember(t, registered[5])
+		address := byte(10)
+		for name, c := range map[string]struct {
+			token  string
+			emails []string
+		}{
+			"alternating": {mixed.token, []string{registered[4], "f1@example.test", registered[5], "f2@example.test", registered[0], "f3@example.test"}},
+			"registered":  {allRegistered.token, registered},
+			"fresh":       {allFresh.token, []string{"g1@example.test", "g2@example.test", "g3@example.test", "g4@example.test", "g5@example.test", "g6@example.test"}},
+		} {
+			for i, email := range c.emails[:5] {
+				address++
+				mails := len(h.mails())
+				if err := h.startInvitedFrom(t, address, c.token, email); err != nil {
+					t.Fatalf("%s: start %d: %v, want OK", name, i+1, err)
+				}
+				if got := h.mails()[mails:]; len(got) != 1 || got[0].To != email {
+					t.Fatalf("%s: start %d: mails %+v, want one to %s", name, i+1, got, email)
+				}
+			}
+			row := h.invitationSignupRow(t, c.token)
+			mails := len(h.mails())
+			address++
+			wantCodes(t, h.startInvitedFrom(t, address, c.token, c.emails[5]), connect.CodeResourceExhausted, rateLimited)
+			if len(h.mails()) != mails || h.invitationSignupRow(t, c.token) != row {
+				t.Fatalf("%s: the refused sixth start mailed or wrote the sign-up row", name)
+			}
+		}
+		address++
+		wantOK(t, h.startInvitedFrom(t, address, other.token, "o@example.test"))
+	})
+
+	t.Run("SEC-12 successful sign-up starts count on the address", func(t *testing.T) {
+		// 10.1 §8.1 row "Pemakaian token": on StartSignUp every request the
+		// address limiter allows counts, success too.
+		h := startHousehold(t)
+		var tokens []string
+		for i := range 5 {
+			tokens = append(tokens, h.invited(t, fmt.Sprintf("a%d@example.test", i)).token)
+		}
+		const address byte = 20
+		for i := range 20 {
+			wantOK(t, h.startInvitedFrom(t, address, tokens[i/5], fmt.Sprintf("b%d@example.test", i)))
+		}
+		wantCodes(t, h.startInvitedFrom(t, address, tokens[4], "c@example.test"), connect.CodeResourceExhausted, rateLimited)
+	})
+
+	t.Run("SEC-30 an email that already has an account, in any case, opens no second account", func(t *testing.T) {
+		// StartSignUp answers it as a fresh email (the SEC-12 subtest
+		// above); CompleteSignUp refuses it with the one rejection, and
+		// the refusal writes nothing (Task 8 review, lead ruling (a)).
 		h := startHousehold(t)
 		inv := h.invited(t, "a@example.test")
 		h.signUpMember(t, "taken@example.test")
 		want := h.tokenRejection(t)
 		accounts := h.count(t, "SELECT count(*) FROM account")
-		// More starts than the 20 failures the address may have: none
-		// counts as a failure, as for a fresh email.
-		for i := range 21 {
-			mails := len(h.mails())
-			if err := h.startInvited(inv.token, "Taken@Example.Test"); err != nil {
-				t.Fatalf("start %d with a registered email: %v, want the answer of a fresh email", i, err)
-			}
-			if got := h.mails()[mails:]; len(got) != 1 || got[0].To != "Taken@Example.Test" || got[0].Kind != identity.MessageVerification {
-				t.Fatalf("start %d: mails %+v, want the one verification mail", i, got)
-			}
-		}
-		wantOK(t, h.startInvited(inv.token, "fresh@example.test"))
-		wantOK(t, h.startInvited(inv.token, "taken@example.test"))
+		wantOK(t, h.startInvited(inv.token, "Taken@Example.Test"))
 		_, err := h.openLink(h.lastLink(t))
 		wantRejection(t, err, want, "CompleteSignUp for an email that already has an account")
 		if got := h.count(t, "SELECT count(*) FROM account"); got != accounts {
@@ -1526,7 +1599,12 @@ func TestSignUpByInvitation(t *testing.T) {
 		wantOK(t, err)
 	})
 
-	t.Run("FR-FAM-001/AC-10 an account made through an invitation joins and cannot create", func(t *testing.T) {
+	// FR-FAM-001/AC-10, the invitation clause: an account made through an
+	// invitation cannot create a household and only joins the inviter's.
+	// The setup-token clauses are 1.4's TestSignUp ("FR-FAM-001/AC-10 …")
+	// and TestCreateHousehold; the runbook clause (no command sets or shows
+	// a password) is cmd/casa's setup-token tests and the runbook review.
+	t.Run("an account made through an invitation joins and cannot create", func(t *testing.T) {
 		h := startHousehold(t)
 		inv := h.invited(t, "a@example.test")
 		b := h.signUpInvited(t, inv.token, "b@example.test")
