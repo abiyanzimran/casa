@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -26,7 +25,7 @@ import (
 // no write. For a known email the link is stored and mailed after the
 // response, and a failure there is logged, never returned.
 func (s *Service) StartRecovery(ctx context.Context, client Client, email string) error {
-	email = strings.ToLower(strings.TrimSpace(email))
+	email = normalizeEmail(email)
 	emailKey := sha256.Sum256([]byte(email)) // no email in memory (10.1 §8.1)
 	allowed, done := s.recovery.attempt(string(emailKey[:]), client.Address)
 	if !allowed {
@@ -143,13 +142,19 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 			return err
 		}
 		var session pgtype.UUID
-		if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
+		var detail pgtype.Text
+		if client.WithoutSession {
+			// SEC-171 (b) (2) note Q2-3; ADR-030 item 11: every session is
+			// already revoked above; with none opened, the event names the
+			// browser itself (the summary only, SEC-161 (e)).
+			detail = pgtype.Text{String: summarizeUserAgent(client.UserAgent), Valid: true}
+		} else if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
 			return err
 		}
 		// SEC-24: the owner reads when, and from which device, through the
-		// new session.
+		// new session, or through the event's detail when there is none.
 		return q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
-			AccountID: account, SessionID: session, Kind: "recovery", OccurredAt: now,
+			AccountID: account, SessionID: session, Kind: "recovery", Detail: detail, OccurredAt: now,
 		})
 	})
 	return tokens, err

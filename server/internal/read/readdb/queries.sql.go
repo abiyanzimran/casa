@@ -236,6 +236,27 @@ func (q *Queries) MembershipsOfAccount(ctx context.Context, accountID pgtype.UUI
 	return items, nil
 }
 
+const ownAcceptanceView = `-- name: OwnAcceptanceView :one
+SELECT invitee_display_name, expires_at FROM invitation
+ WHERE invitee_account_id = $1 AND state = 'accepted'
+`
+
+type OwnAcceptanceViewRow struct {
+	InviteeDisplayName pgtype.Text
+	ExpiresAt          time.Time
+}
+
+// The caller's own accepted invitation as GetOwnAcceptance shows it (09.3 §1
+// note of 14 November 2026), in a lookup transaction (Scope{AccountID}; the
+// invitee clause of 09.2 §3): only the display name and the expiry. Served
+// by invitation_invitee, which also makes it one row at most.
+func (q *Queries) OwnAcceptanceView(ctx context.Context, accountID pgtype.UUID) (OwnAcceptanceViewRow, error) {
+	row := q.db.QueryRow(ctx, ownAcceptanceView, accountID)
+	var i OwnAcceptanceViewRow
+	err := row.Scan(&i.InviteeDisplayName, &i.ExpiresAt)
+	return i, err
+}
+
 const readerMember = `-- name: ReaderMember :one
 SELECT member_id FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND account_id = $1

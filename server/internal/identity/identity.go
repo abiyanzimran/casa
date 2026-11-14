@@ -25,6 +25,10 @@ var (
 	// missing, malformed, unknown, expired, used, replaced, or bound to
 	// another email.
 	ErrTokenRejected = errors.New("token rejected")
+	// ErrEmailMismatch: the verification link is valid, but the email typed
+	// again is not the one it was sent to (10.4 SEC-158 note "halaman
+	// verifikasi" item 2). Reached only by the holder of a live link.
+	ErrEmailMismatch = errors.New("identity: the typed email is not the link's")
 	// ErrRateLimited: too many failed attempts from the account or the
 	// network address (SEC-12).
 	ErrRateLimited = errors.New("rate limited")
@@ -130,6 +134,12 @@ type Client struct {
 	// DeviceMode is "personal" or "shared" for web and "" for native, whose
 	// session is stored as personal (plan 1.5 decision 9; SEC-165).
 	DeviceMode string
+	// WithoutSession is a web client finishing a sign-up or recovery that
+	// opens no session of its own, e.g. a verification page in another tab
+	// or app: no session row, no sign_in event, no token (SEC-171 (b) (2)
+	// note of 14 November 2026, Q2; ADR-030 item 11). Like DeviceMode, it is
+	// a property of the request, checked at the boundary.
+	WithoutSession bool
 	// UserAgent is read only by summarizeUserAgent and never stored or
 	// logged (SEC-161 (e)).
 	UserAgent string

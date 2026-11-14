@@ -57,16 +57,24 @@ func setSessionCookie(ctx context.Context, c identity.Cookie) error {
 	return nil
 }
 
+// expireSessionCookie expires the session cookie: an empty value, Max-Age=0
+// and the attributes of setSessionCookie (10.5 SEC-161 note of 15 November
+// 2026, condition (1)). The one implementation of the expired cookie: a web
+// sign-out and the answer for an ended session both use it. Without the
+// call's response headers it fails closed, as setSessionCookie does.
+func expireSessionCookie(ctx context.Context) error {
+	// An empty value and a negative Max-Age: net/http writes Max-Age=0.
+	return setSessionCookie(ctx, identity.Cookie{MaxAge: -time.Second})
+}
+
 // clearSessionCookie answers a web sign-out (SEC-164 (b); plan 1.5
 // decision 14): Clear-Site-Data "cookies", "storage" (no "cache") and the
-// session cookie expired, Max-Age=0 with the attributes of decision 7. Set,
-// not Add, replaces a value the boundary rotated on this request, so the
-// answer never hands out a new value for the session it revokes (SEC-161
-// (c)). Without the call's response headers it fails closed, as
-// setSessionCookie does.
+// session cookie expired. Set, not Add, replaces a value the boundary
+// rotated on this request, so the answer never hands out a new value for the
+// session it revokes (SEC-161 (c)). Without the call's response headers it
+// fails closed, as setSessionCookie does.
 func clearSessionCookie(ctx context.Context) error {
-	// An empty value and a negative Max-Age: net/http writes Max-Age=0.
-	if err := setSessionCookie(ctx, identity.Cookie{MaxAge: -time.Second}); err != nil {
+	if err := expireSessionCookie(ctx); err != nil {
 		return err
 	}
 	info, _ := connect.CallInfoForServerContext(ctx)

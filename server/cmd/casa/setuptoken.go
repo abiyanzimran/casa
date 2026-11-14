@@ -19,7 +19,7 @@ import (
 // string of role app_rw.
 const appDatabaseURL = "app-database-url"
 
-const setupTokenUsage = "usage: casa setup-token -email address\n" //nolint:gosec // G101: a usage line, no credential
+const setupTokenUsage = "usage: casa setup-token -email address [-origin https://host]\n" //nolint:gosec // G101: a usage line, no credential
 
 // setupToken issues one setup token for one named person, bound to their
 // email (SEC-158 (b); 09.4 §2). The operator runs it over SSH and records the
@@ -29,6 +29,7 @@ func setupToken(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	flags := flag.NewFlagSet("setup-token", flag.ContinueOnError)
 	flags.SetOutput(io.Discard) // setupTokenUsage is printed instead
 	email := flags.String("email", "", "")
+	origin := flags.String("origin", "", "")
 	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || *email == "" {
 		_, _ = fmt.Fprint(stderr, setupTokenUsage)
 		return 2
@@ -36,6 +37,14 @@ func setupToken(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	if !validEmail(*email) {
 		_, _ = fmt.Fprint(stderr, "casa setup-token: -email is not an email address\n")
 		return 2
+	}
+	// The same check casa serve applies, before the pool opens, so a wrong
+	// origin issues no token (09.4 §2 note of 14 November 2026).
+	if *origin != "" {
+		if err := checkOriginFlag(*origin); err != nil {
+			_, _ = fmt.Fprintf(stderr, "casa setup-token: -origin: %v\n", err)
+			return 2
+		}
 	}
 	pool, err := openAppPool(ctx)
 	if err != nil {
@@ -51,6 +60,10 @@ func setupToken(ctx context.Context, args []string, stdout, stderr io.Writer) in
 	}
 	_, _ = fmt.Fprintf(stdout, "casa setup-token: %s\nexpires: %s\nrecord this issuance in the operations log (SEC-37)\n",
 		token, expiresAt.UTC().Format(time.RFC3339))
+	if *origin != "" {
+		// SEC-175 (c): the token travels in the fragment, which no server sees.
+		_, _ = fmt.Fprintf(stdout, "link: %s/signup#%s\n", *origin, token)
+	}
 	return 0
 }
 

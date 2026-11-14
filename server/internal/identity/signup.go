@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -150,8 +151,11 @@ func (s *Service) checkSetupToken(ctx context.Context, setupToken, email string)
 // for a setup token, the token (SEC-158; FR-FAM-001 AC-10). The person sets
 // their own password here (SEC-26). A missing, unknown, expired, used or
 // replaced link, or an invitation that no longer passes invitationOpen,
-// gets ErrTokenRejected.
-func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificationToken, password string,
+// gets ErrTokenRejected. A live link opened with another email than the one
+// it was sent to gets ErrEmailMismatch, before the hash, writing nothing and
+// leaving the link usable (10.4 SEC-158 note "halaman verifikasi" items 2
+// and 7).
+func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificationToken, email, password string,
 	invitationOpen func(context.Context, []byte) error,
 ) (Tokens, error) {
 	if err := checkPasswordNotCommon(password); err != nil {
@@ -161,7 +165,7 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 	if !allowed {
 		return Tokens{}, ErrRateLimited
 	}
-	tokens, err := s.completeSignUp(ctx, client, verificationToken, password, invitationOpen)
+	tokens, err := s.completeSignUp(ctx, client, verificationToken, email, password, invitationOpen)
 	if err != nil {
 		done(outcomeOf(err))
 		return Tokens{}, err
@@ -170,7 +174,7 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 	return tokens, nil
 }
 
-func (s *Service) completeSignUp(ctx context.Context, client Client, verificationToken, password string,
+func (s *Service) completeSignUp(ctx context.Context, client Client, verificationToken, email, password string,
 	invitationOpen func(context.Context, []byte) error,
 ) (Tokens, error) {
 	linkHash, ok := HashToken(verificationToken)
@@ -204,6 +208,14 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 			return Tokens{}, err
 		}
 		sourceHash = link.InvitationTokenHash
+	}
+	// 10.4 SEC-158 note "halaman verifikasi" item 2: a forwarded link must
+	// not make an account for someone else. The row's email passed the
+	// contract's email rule when it was stored, so it is ASCII and ToLower
+	// equals the citext comparison. After every read-side check that gives
+	// ErrTokenRejected, so that error never depends on the typed email.
+	if normalizeEmail(email) != normalizeEmail(link.Email) {
+		return Tokens{}, ErrEmailMismatch
 	}
 	// Hashed outside the transaction, which may run more than once.
 	credential, err := s.hasher.hash(ctx, password)
@@ -247,6 +259,9 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		if err != nil {
 			return err
 		}
+		if client.WithoutSession { // SEC-171 (b) (2) note Q2; ADR-030 item 11
+			return nil
+		}
 		tokens, _, err = openSession(ctx, tx, account, client, now)
 		return err
 	})
@@ -284,8 +299,14 @@ func uniqueViolation(err error) bool {
 // outcomeOf counts a rejected token as a failed attempt; any other error
 // (the server's own) is not the caller's attempt (10.1 §8.1).
 func outcomeOf(err error) Outcome {
-	if errors.Is(err, ErrTokenRejected) {
+	if errors.Is(err, ErrTokenRejected) || errors.Is(err, ErrEmailMismatch) {
 		return Failed
 	}
 	return NotTried
+}
+
+// normalizeEmail is the one way an email is compared: trimmed and
+// lower-cased, as SignIn looks it up (10.1 §5.1 rule 5).
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }

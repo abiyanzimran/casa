@@ -28,7 +28,7 @@ func TestEndedSession(t *testing.T) {
 			t.Run(c.name, func(t *testing.T) {
 				now := time.Now()
 				s, pool, verification := startedSignUp(t, &now)
-				tokens, err := s.CompleteSignUp(t.Context(), testClient, verification, password, noInvitation)
+				tokens, err := s.CompleteSignUp(t.Context(), testClient, verification, "owner@example.test", password, noInvitation)
 				if err != nil {
 					t.Fatal(err)
 				}

@@ -46,7 +46,7 @@ func (h identityHandler) StartSignUp(ctx context.Context, req *casav1.StartSignU
 
 func (h identityHandler) CompleteSignUp(ctx context.Context, req *casav1.CompleteSignUpRequest) (*casav1.CompleteSignUpResponse, error) {
 	client := clientOf(ctx, req)
-	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetPassword(), h.invitationOpen)
+	tokens, err := h.s.CompleteSignUp(ctx, client, req.GetVerificationToken(), req.GetEmail(), req.GetPassword(), h.invitationOpen)
 	if err != nil {
 		return nil, identityError(err)
 	}
@@ -76,6 +76,25 @@ func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.Refresh
 		return nil, identityError(err)
 	}
 	return &casav1.RefreshSessionResponse{Tokens: sessionTokens(tokens)}, nil
+}
+
+// GetSession answers the caller's account and the session's device mode.
+// It needs no query: the boundary already authenticated the session (ADR-030
+// item 10 note of 14 November 2026; SEC-170 (a)). Not a command, so never
+// held and keyless; the boundary's touch and rotation are all it writes.
+func (h identityHandler) GetSession(ctx context.Context, _ *casav1.GetSessionRequest) (*casav1.GetSessionResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	return &casav1.GetSessionResponse{AccountId: uuidString(session.AccountID), DeviceMode: deviceModeOf(session.DeviceMode)}, nil
+}
+
+// deviceModeOf maps session.device_mode back to the contract's mode.
+func deviceModeOf(mode string) casav1.DeviceMode {
+	for m, name := range deviceModes {
+		if name == mode {
+			return m
+		}
+	}
+	return casav1.DeviceMode_DEVICE_MODE_UNSPECIFIED
 }
 
 func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest) (*casav1.SignOutResponse, error) {
@@ -187,8 +206,13 @@ func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.Compl
 
 // openedSession hands a new session to its client: a web session only as the
 // cookie, with tokens left unset in the response (SEC-161 (b)); a native one
-// as tokens. A cookie that cannot be set is an internal error.
+// as tokens. A completion without a session answers with neither and sets no
+// Set-Cookie at all, a stale cookie included (SEC-171 (b) (2) note Q2-4;
+// ADR-030 item 11). A cookie that cannot be set is an internal error.
 func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) (*casav1.SessionTokens, error) {
+	if client.WithoutSession {
+		return nil, nil
+	}
 	if client.Kind == "web" {
 		return nil, setSessionCookie(ctx, tokens.Cookie)
 	}
@@ -210,7 +234,7 @@ var deviceModes = map[casav1.DeviceMode]string{
 }
 
 // clientOf builds the caller from request_context and, when the request has
-// one, device_mode, both already checked at the boundary (plan 1.5 decision
+// one, device_mode and without_session, all already checked at the boundary (plan 1.5 decision
 // 9), the connection's peer address (10.1 §8.1: TLS ends in the binary, so
 // the peer is the client), and the User-Agent, which identity only
 // summarizes (SEC-161 (e)).
@@ -221,6 +245,9 @@ func clientOf(ctx context.Context, req interface {
 	client := identity.Client{Kind: clientKindOf(rc), Version: rc.GetClientVersion()}
 	if withMode, ok := req.(interface{ GetDeviceMode() casav1.DeviceMode }); ok {
 		client.DeviceMode = deviceModes[withMode.GetDeviceMode()]
+	}
+	if without, ok := req.(interface{ GetWithoutSession() bool }); ok {
+		client.WithoutSession = without.GetWithoutSession()
 	}
 	if info, ok := connect.CallInfoForServerContext(ctx); ok {
 		client.Address = info.PeerAddr
@@ -246,6 +273,10 @@ func identityError(err error) error {
 	case errors.Is(err, identity.ErrRateLimited):
 		return errorWithDetail(connect.CodeResourceExhausted, "rate limited",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RATE_LIMITED})
+	case errors.Is(err, identity.ErrEmailMismatch):
+		// 10.4 SEC-158 note "halaman verifikasi" item 2; ADR-013 note 1.6.
+		return errorWithDetail(connect.CodeFailedPrecondition, "email mismatch",
+			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_EMAIL_MISMATCH})
 	case errors.Is(err, identity.ErrPasswordTooCommon):
 		return passwordTooCommon((&casav1.CompleteSignUpRequest{}).ProtoReflect().Descriptor().Fields().ByName("password"))
 	case errors.Is(err, identity.ErrCredentialsRejected):

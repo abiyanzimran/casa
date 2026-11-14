@@ -228,12 +228,27 @@ func (s householdHandler) GetOperatorNotice(ctx context.Context, _ *casav1.GetOp
 	}
 	res := &casav1.GetOperatorNoticeResponse{
 		Variant: n.Variant, Version: uint32(n.Version), Title: n.Title, //nolint:gosec // G115: a version is positive (latestNotice)
-		Acknowledged: n.Acknowledged, TextSha256: n.TextSHA256,
+		Acknowledged: n.Acknowledged, TextSha256: n.TextSHA256, EarlierVersionAcknowledged: n.EarlierAcknowledged,
 	}
 	for _, p := range n.Paragraphs {
 		res.Paragraphs = append(res.Paragraphs, &casav1.NoticeParagraph{Text: p.Text, Feature: p.Feature})
 	}
 	return res, nil
+}
+
+// GetOwnAcceptance is an online read (09.3 §1 note of 14 November 2026): the
+// caller's own acceptance, found from its account and never from the request,
+// with no household data (SEC-32). Empty without one; it never writes.
+func (s householdHandler) GetOwnAcceptance(ctx context.Context, _ *casav1.GetOwnAcceptanceRequest) (*casav1.GetOwnAcceptanceResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	a, found, err := s.r.OwnAcceptance(ctx, session.AccountID)
+	if err != nil {
+		return nil, householdError(err)
+	}
+	if !found {
+		return &casav1.GetOwnAcceptanceResponse{}, nil
+	}
+	return &casav1.GetOwnAcceptanceResponse{DisplayName: a.DisplayName, ExpiresAt: timestamppb.New(a.ExpiresAt)}, nil
 }
 
 // AcknowledgeOperatorNotice is an account-level command, notice_exempt

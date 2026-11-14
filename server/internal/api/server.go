@@ -50,7 +50,9 @@ var requestContextName = (&casav1.RequestContext{}).ProtoReflect().Descriptor().
 //     session cookie by sessions.Cookie (SEC-161 (a)), before the request is
 //     received, else CodeUnauthenticated; a cookie value rotated by the
 //     authentication is set on the response here, so it is sent even when
-//     the handler fails; the handler reads the session with SessionFrom;
+//     the handler fails, and the cookie of an expired or revoked session is
+//     expired here (never an unknown one); the handler reads the session
+//     with SessionFrom;
 //  4. request_context is present and its client_kind and client_version are
 //     valid (protovalidate), else CodeInvalidArgument;
 //  5. a web client's request passes the check of step 2 too, so a web RPC
@@ -224,6 +226,18 @@ func (b boundary) session(ctx context.Context, header *connect.Header, cookie st
 		return session, nil
 	case withCookie:
 		session, err := b.sessions.Cookie(ctx, cookie)
+		if errors.Is(err, identity.ErrSessionExpired) || errors.Is(err, identity.ErrSessionRevoked) {
+			// ADR-030 item 5; 10.5 SEC-161 note of 15 November 2026
+			// conditions (1) to (4); SEC-172 (d). Residual risk accepted
+			// (Q3): a late answer may expire a newer cookie of the same
+			// browser, costing one more sign-in, no leak.
+			// ponytail: a shared session that ends between this check and
+			// checkClient's UserAction touch is answered SESSION_EXPIRED
+			// without the expired cookie; the browser's next request gets it.
+			if cookieErr := expireSessionCookie(ctx); cookieErr != nil {
+				return identity.Session{}, identityError(cookieErr)
+			}
+		}
 		if err != nil {
 			return identity.Session{}, identityError(err)
 		}

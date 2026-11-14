@@ -50,7 +50,7 @@ func startedSignUp(t *testing.T, now *time.Time) (s *Service, pool *pgxpool.Pool
 func signedUp(t *testing.T, now *time.Time, password string) (*Service, *pgxpool.Pool) {
 	t.Helper()
 	s, pool, verification := startedSignUp(t, now)
-	if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password, noInvitation); err != nil {
+	if _, err := s.CompleteSignUp(t.Context(), testClient, verification, "owner@example.test", password, noInvitation); err != nil {
 		t.Fatal(err)
 	}
 	return s, pool
@@ -162,13 +162,13 @@ func TestHashSlots(t *testing.T) {
 		s, _, verification := startedSignUp(t, &now)
 		s.hasher.slotWait = 20 * time.Millisecond
 		release := s.hasher.hold()
-		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password, noInvitation); !errors.Is(err, ErrRateLimited) {
+		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, "owner@example.test", password, noInvitation); !errors.Is(err, ErrRateLimited) {
 			t.Fatalf("with no slot: err = %v, want ErrRateLimited", err)
 		}
 		release()
 		// The same link still opens the account: neither it nor the setup
 		// token was used up, and no account was made.
-		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, password, noInvitation); err != nil {
+		if _, err := s.CompleteSignUp(t.Context(), testClient, verification, "owner@example.test", password, noInvitation); err != nil {
 			t.Fatalf("the same link after release: %v", err)
 		}
 	})

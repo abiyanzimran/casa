@@ -295,7 +295,7 @@ func (h *propertyHarness) signUpAccount(t *rapid.T, email string) *account {
 	mails := h.mails()
 	_, link, _ := strings.Cut(mails[len(mails)-1].Link, "#")
 	res, err := a.identity.CompleteSignUp(t.Context(), &casav1.CompleteSignUpRequest{
-		RequestContext: identityRC(ios), VerificationToken: link, Password: passphrase,
+		RequestContext: identityRC(ios), VerificationToken: link, Email: email, Password: passphrase,
 	})
 	if err != nil {
 		t.Fatal(err)

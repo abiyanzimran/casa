@@ -42,3 +42,7 @@ a2d6bfb09711ffdfc359f9cd9c74c9dd774cdf8a:server/internal/identity/reauth.go:gene
 6377a7d3952605e303139aef9f948c78a654267a:web/src/lib/copy.ts:generic-password:82
 6377a7d3952605e303139aef9f948c78a654267a:web/tests/e2e/sign-in.spec.ts:generic-password:21
 11b828eff6e7541d72a0bdaf54ccb0402a4c4f06:web/tests/e2e/sign-up.spec.ts:generic-password:45
+
+# 1.7d: the fake test passphrase of the web-session and sign-up tests (test data only).
+eb7c77b016eb83e5970ca768c51f74d2a7cc78e0:server/internal/api/websession_test.go:generic-password:1591
+9175856a0b3603fd20717d4a6d8bd0f282f442df:server/internal/api/identity_test.go:generic-password:1374

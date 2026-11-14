@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -137,7 +138,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(safariIPhone)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: email, Password: password,
 		})
 		wantOK(t, err)
 		wantNativeTokens(t, info, signedUp.GetTokens())
@@ -228,7 +229,7 @@ func TestWebSessionOpening(t *testing.T) {
 				},
 				"CompleteSignUp": func() error {
 					_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-						RequestContext: identityRC(c.kind), VerificationToken: token, Password: password, DeviceMode: c.mode,
+						RequestContext: identityRC(c.kind), VerificationToken: token, Email: email, Password: password, DeviceMode: c.mode,
 					})
 					return err
 				},
@@ -256,7 +257,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(safariIPhone)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Password: password, DeviceMode: personal,
+			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Email: email, Password: password, DeviceMode: personal,
 		})
 		wantOK(t, err)
 		cookie, line := sessionCookie(t, info)
@@ -307,7 +308,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, info := webCall(userAgent)
 		signedUp, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Password: password, DeviceMode: personal,
+			RequestContext: identityRC(web), VerificationToken: h.lastLink(t), Email: email, Password: password, DeviceMode: personal,
 		})
 		wantOK(t, err)
 		keep(info, signedUp)
@@ -367,7 +368,7 @@ func TestWebSessionOpening(t *testing.T) {
 		wantOK(t, h.startSignUp(h.issue(t, email), email))
 		ctx, _ := webCall(safariIPhone)
 		_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Password: password,
+			RequestContext: identityRC(ios), VerificationToken: h.lastLink(t), Email: email, Password: password,
 		})
 		wantOK(t, err)
 		ctx, info := webCall(safariIPhone)
@@ -481,21 +482,142 @@ func TestCookieSession(t *testing.T) {
 
 	// wantSiteCleared checks a web sign-out's answer (SEC-164 (b); plan 1.5
 	// decision 14): Clear-Site-Data exactly "cookies", "storage" (no
-	// "cache"), and one Set-Cookie that expires the session cookie with the
-	// attributes of decision 7, never a new value.
+	// "cache"), and the expired session cookie.
 	wantSiteCleared := func(t *testing.T, info *connect.CallInfo) {
 		t.Helper()
 		if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 1 || got[0] != `"cookies", "storage"` {
 			t.Fatalf("Clear-Site-Data %q, want exactly %q", got, `"cookies", "storage"`)
 		}
-		cookie, line := sessionCookie(t, info)
-		if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
-			!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
-			strings.Contains(strings.ToLower(line), "domain") {
-			t.Fatalf("Set-Cookie %q: want %s= expired (Max-Age=0), Secure, HttpOnly, SameSite=Strict, Path=/ and no Domain",
-				cookieShape(line), sessionCookieName)
-		}
+		wantCookieExpired(t, info)
 	}
+
+	t.Run("SEC-161 a revoked or expired session's cookie is expired with the same attributes, without touching site data", func(t *testing.T) {
+		// 10.5 SEC-161 note of 15 November 2026 conditions (1), (3) and (4);
+		// ADR-030 item 5; SEC-172 (d): local data stays.
+		check := func(t *testing.T, h *identityHarness, cookie string, code casav1.ErrorCode) {
+			t.Helper()
+			ctx := sameOrigin(cookie)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			wantErrorCode(t, h.read(ctx, web, true), connect.CodeUnauthenticated, code)
+			wantCookieExpired(t, info)
+			if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 0 {
+				t.Fatalf("Clear-Site-Data %q, want none", got)
+			}
+			if got := info.ResponseHeader().Values("Cache-Control"); len(got) != 1 || got[0] != "no-store" {
+				t.Fatalf("Cache-Control %q, want exactly no-store", got)
+			}
+		}
+		t.Run("signed out", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			cookie := h.webSignIn(t, email, password, personal)
+			wantOK(t, h.webSignOut(sameOrigin(cookie)))
+			check(t, h, cookie, revoked)
+		})
+		t.Run("30 idle days", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			cookie := h.webSignIn(t, email, password, personal)
+			h.clock.advance(30 * day)
+			check(t, h, cookie, expired)
+		})
+		t.Run("a previous value reused after its window", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			a := h.webSignIn(t, email, password, personal)
+			h.clock.advance(15 * time.Minute)
+			b, err := h.webRead(t, a)
+			wantOK(t, err)
+			h.clock.advance(time.Second)
+			_, err = h.webRead(t, b.Value) // confirms b
+			wantOK(t, err)
+			h.clock.advance(61 * time.Second)
+			check(t, h, a, revoked)
+		})
+	})
+
+	t.Run("an unknown, malformed or native token keeps the uniform answer and sets no cookie", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		c := a
+		for range 2 { // two rotations: a is no longer any value of the row
+			h.clock.advance(15 * time.Minute)
+			next, err := h.webRead(t, c)
+			wantOK(t, err)
+			c = next.Value
+			h.clock.advance(time.Second)
+			_, err = h.webRead(t, c)
+			wantOK(t, err)
+		}
+		for name, value := range map[string]string{
+			"unknown": tokenOf(t), "malformed": "not base64!", "two rotations old": a, "native access token": tokens.GetAccessToken(),
+		} {
+			ctx := sameOrigin(value)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			err := h.read(ctx, web, true)
+			wantCode(t, err, connect.CodeUnauthenticated)
+			if got := errorCodes(t, err); len(got) != 0 {
+				t.Errorf("%s: error codes %v, want no detail", name, got)
+			}
+			if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+				t.Errorf("%s: %d Set-Cookie headers, want none", name, n)
+			}
+			if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 0 {
+				t.Errorf("%s: Clear-Site-Data %q, want none", name, got)
+			}
+		}
+	})
+
+	t.Run("a stale cookie of one browser never ends the session of another", func(t *testing.T) {
+		// 10.5 SEC-161 note of 15 November 2026, its "Uji" (also condition (2)).
+		for _, c := range []string{"signed out", "30 idle days"} {
+			t.Run(c, func(t *testing.T) {
+				h := startIdentity(t)
+				h.signUp(t, email, password)
+				a := h.webSignIn(t, email, password, personal)
+				b := h.webSignIn(t, email, password, personal)
+				code := revoked
+				if c == "signed out" {
+					wantOK(t, h.webSignOut(sameOrigin(a)))
+				} else {
+					code = expired
+					for range 30 { // B is used daily; A idles out
+						h.clock.advance(day)
+						next, err := h.webRead(t, b)
+						wantOK(t, err)
+						if next != nil {
+							b = next.Value
+						}
+					}
+				}
+				ctx := sameOrigin(a)
+				info, _ := connect.CallInfoForClientContext(ctx)
+				wantErrorCode(t, h.read(ctx, web, true), connect.CodeUnauthenticated, code)
+				wantCookieExpired(t, info)
+				if _, err := h.webRead(t, b); err != nil {
+					t.Fatalf("browser B after A's answer: %v; want OK", err)
+				}
+				hash := sha256.Sum256(decodeToken(t, b))
+				if n := h.count(t, "SELECT count(*) FROM session WHERE token_hash = $1 AND revoked_at IS NULL", hash[:]); n != 1 {
+					t.Fatal("B's session was revoked; want it live")
+				}
+			})
+		}
+	})
+
+	t.Run("a native request of an ended session gets no cookie", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.client.SignOut(bearer(tokens.GetAccessToken()), &casav1.SignOutRequest{RequestContext: commandRC()})
+		wantOK(t, err)
+		ctx := bearer(tokens.GetAccessToken())
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantErrorCode(t, h.read(ctx, ios, true), connect.CodeUnauthenticated, revoked)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+			t.Fatalf("%d Set-Cookie headers, want none", n)
+		}
+	})
 
 	t.Run("a web sign-out clears the cookie and the site data", func(t *testing.T) {
 		h := startIdentity(t)
@@ -802,9 +924,25 @@ func TestCookieSession(t *testing.T) {
 	})
 }
 
+// wantCookieExpired checks that the response carries one Set-Cookie that
+// expires the session cookie with the attributes of decision 7, never a
+// new value (SEC-161 (b), (c)).
+func wantCookieExpired(t *testing.T, info *connect.CallInfo) {
+	t.Helper()
+	cookie, line := sessionCookie(t, info)
+	if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
+		!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
+		strings.Contains(strings.ToLower(line), "domain") {
+		t.Fatalf("Set-Cookie %q: want %s= expired (Max-Age=0), Secure, HttpOnly, SameSite=Strict, Path=/ and no Domain",
+			cookieShape(line), sessionCookieName)
+	}
+}
+
 // newCookie returns the session cookie a response set, checked for the
 // attributes every session cookie has, or nil for none; more than one fails
-// the test (a response sets at most one session cookie).
+// the test (a response sets at most one session cookie). An expired cookie
+// fails the host-cookie check: a test that expects an ended session reads
+// through webRead, which drops it.
 func newCookie(t *testing.T, info *connect.CallInfo) *http.Cookie {
 	t.Helper()
 	if len(info.ResponseHeader().Values("Set-Cookie")) == 0 {
@@ -823,7 +961,33 @@ func (h *identityHarness) webRead(t *testing.T, cookie string) (*http.Cookie, er
 	ctx := sameOrigin(cookie)
 	info, _ := connect.CallInfoForClientContext(ctx)
 	err := h.read(ctx, web, true)
+	if len(info.ResponseHeader().Values("Set-Cookie")) == 1 {
+		// Only an answer that ends the session drops the expired cookie (a
+		// browser stores no value from it); any other answer keeps it, so the
+		// stale-value guards stay real.
+		if cookie, _ := sessionCookie(t, info); cookie.Value == "" && cookie.MaxAge < 0 && endsSession(t, err) {
+			return nil, err
+		}
+	}
 	return newCookie(t, info), err
+}
+
+// endsSession reports whether err is SESSION_REVOKED or SESSION_EXPIRED.
+func endsSession(t *testing.T, err error) bool {
+	t.Helper()
+	if err == nil {
+		return false
+	}
+	var connectErr *connect.Error
+	if !errors.As(err, &connectErr) {
+		return false
+	}
+	for _, code := range errorCodes(t, err) {
+		if code == casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED || code == casav1.ErrorCode_ERROR_CODE_SESSION_EXPIRED {
+			return true
+		}
+	}
+	return false
 }
 
 func TestCookieRotation(t *testing.T) {
@@ -1278,4 +1442,254 @@ func tokenOf(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return base64.RawURLEncoding.EncodeToString(raw[:])
+}
+
+// TestWithoutSession covers without_session on CompleteSignUp and
+// CompleteRecovery (ADR-030 item 11; SEC-171 (b) (2) note of 14 November
+// 2026, Q2-1 to Q2-5).
+func TestWithoutSession(t *testing.T) {
+	password, next := strings.Repeat("no session ", 3), strings.Repeat("no session next ", 2) // built, so no secret scanner sees a literal
+	const email = "owner@example.test"
+	rejected := casav1.ErrorCode_ERROR_CODE_TOKEN_REJECTED
+
+	completeSignUp := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, link string, mode casav1.DeviceMode, without bool) error {
+		_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(kind), VerificationToken: link, Email: h.lastEmail(), Password: password, DeviceMode: mode, WithoutSession: without,
+		})
+		return err
+	}
+	completeRecovery := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, link string, mode casav1.DeviceMode, without bool) error {
+		_, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
+			RequestContext: identityRC(kind), RecoveryToken: link, NewPassword: next, DeviceMode: mode, WithoutSession: without,
+		})
+		return err
+	}
+
+	t.Run("SEC-171 (b) (2) a web sign-up completed without a session sets no cookie, returns no tokens and opens no session", func(t *testing.T) {
+		h := startIdentity(t)
+		wantOK(t, h.startSignUp(h.issue(t, email), email))
+		link := h.lastLink(t)
+		ctx, info := webCall(safariIPhone)
+		res, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(web), VerificationToken: link, Email: email, Password: password, WithoutSession: true,
+		})
+		wantOK(t, err)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || res.GetTokens() != nil {
+			t.Fatalf("%d Set-Cookie headers, tokens %t; want none", n, res.GetTokens() != nil)
+		}
+		if n := h.count(t, "SELECT count(*) FROM session"); n != 0 {
+			t.Fatalf("%d sessions, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'sign_in'"); n != 0 {
+			t.Fatalf("%d sign_in events, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM account WHERE email = $1", email); n != 1 {
+			t.Fatalf("%d accounts, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM credential"); n != 1 {
+			t.Fatalf("%d credentials, want 1", n)
+		}
+		ctx, _ = webCall(safariIPhone)
+		wantErrorCode(t, completeSignUp(h, ctx, web, link, 0, true), connect.CodePermissionDenied, rejected)
+		_, err = h.signIn(email, password)
+		wantOK(t, err)
+	})
+
+	t.Run("SEC-171 (b) (2) a web recovery without a session revokes every session and records recovery without a session", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password) // a native session
+		cookie := h.webSignIn(t, email, password, personal)
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		ctx, info := webCall(safariIPhone)
+		res, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
+			RequestContext: identityRC(web), RecoveryToken: h.lastLink(t), NewPassword: next, WithoutSession: true,
+		})
+		wantOK(t, err)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || res.GetTokens() != nil {
+			t.Fatalf("%d Set-Cookie headers, tokens %t; want none", n, res.GetTokens() != nil)
+		}
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NULL"); n != 0 {
+			t.Fatalf("%d live sessions, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'recovery' AND session_id IS NULL AND detail = $1", "Safari · iOS"); n != 1 {
+			t.Fatalf("%d recovery events without a session and with the browser summary, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'recovery'"); n != 1 {
+			t.Fatalf("%d recovery events, want exactly 1", n)
+		}
+		wantErrorCode(t, h.read(sameOrigin(cookie), web, true), connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED)
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+
+	t.Run("the flag from a native client, or with a device mode, is an invalid argument", func(t *testing.T) {
+		h := startIdentity(t)
+		token := strings.Repeat("A", 43)
+		type call func(*identityHarness, context.Context, casav1.ClientKind, string, casav1.DeviceMode, bool) error
+		for name, complete := range map[string]call{"CompleteSignUp": completeSignUp, "CompleteRecovery": completeRecovery} {
+			for _, c := range []struct {
+				kind    casav1.ClientKind
+				without bool
+				mode    casav1.DeviceMode
+				invalid bool
+			}{
+				{ios, true, 0, true}, {web, true, personal, true}, {web, false, 0, true},
+				{ios, false, 0, false}, {web, false, personal, false}, {web, true, 0, false},
+			} {
+				ctx, _ := webCall(safariIPhone)
+				err := complete(h, ctx, c.kind, token, c.mode, c.without)
+				if !c.invalid {
+					wantErrorCode(t, err, connect.CodePermissionDenied, rejected) // valid shape: the unknown link is rejected
+					continue
+				}
+				wantCode(t, err, connect.CodeInvalidArgument)
+				if got := ruleIDs(t, err); !slices.Equal(got, []string{"device_mode.web"}) {
+					t.Errorf("%s %+v: rules %v, want [device_mode.web]", name, c, got)
+				}
+			}
+		}
+	})
+
+	t.Run("a rejected link gets the same TOKEN_REJECTED with and without the flag", func(t *testing.T) {
+		// SEC-30: code, message and details are equal.
+		h := startIdentity(t)
+		token := strings.Repeat("B", 43)
+		ctx, _ := webCall(safariIPhone)
+		withSignUp := rejectionOf(t, completeSignUp(h, ctx, web, token, 0, true))
+		withRecovery := rejectionOf(t, completeRecovery(h, ctx, web, token, 0, true))
+		for name, without := range map[string]rejection{
+			"CompleteSignUp":   rejectionOf(t, completeSignUp(h, ctx, web, token, personal, false)),
+			"CompleteRecovery": rejectionOf(t, completeRecovery(h, ctx, web, token, personal, false)),
+		} {
+			with := withSignUp
+			if name == "CompleteRecovery" {
+				with = withRecovery
+			}
+			if !with.equal(without) || with.code != connect.CodePermissionDenied {
+				t.Errorf("%s: rejection with the flag %+v differs from without %+v", name, with, without)
+			}
+		}
+	})
+
+	t.Run("the token-use limiter counts the same with and without the flag", func(t *testing.T) {
+		// 10.1 §8.1: 20 failed token uses per address, the 21st is limited.
+		h := startIdentity(t)
+		token := strings.Repeat("C", 43)
+		// Q2-5: both requests, with and without the flag, share the limiter.
+		complete := func(i int, without bool) error {
+			ctx, _ := webCall(safariIPhone)
+			mode := personal
+			if without {
+				mode = 0
+			}
+			if i%2 == 0 {
+				return completeSignUp(h, ctx, web, token, mode, without)
+			}
+			return completeRecovery(h, ctx, web, token, mode, without)
+		}
+		for i := range 20 {
+			wantErrorCode(t, complete(i, i%4 < 2), connect.CodePermissionDenied, rejected)
+		}
+		for i := range 2 {
+			for _, without := range []bool{true, false} {
+				wantErrorCode(t, complete(i, without), connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+			}
+		}
+	})
+
+	t.Run("a without-session completion leaves a stale cookie untouched", func(t *testing.T) {
+		// Q2-4: a request carrying the cookie of a revoked session gets no
+		// Set-Cookie at all.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		stale := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.webSignOut(sameOrigin(stale)))
+		wantOK(t, h.startSignUp(h.issue(t, "second@example.test"), "second@example.test"))
+		ctx := sameOrigin(stale)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantOK(t, completeSignUp(h, ctx, web, h.lastLink(t), 0, true))
+		if got := info.ResponseHeader().Values("Set-Cookie"); len(got) != 0 {
+			t.Fatalf("%d Set-Cookie headers, want none", len(got))
+		}
+	})
+}
+
+func TestGetSession(t *testing.T) {
+	const email, password = "owner@example.test", "a long enough passphrase"
+	getSession := func(h *householdHarness, ctx context.Context, kind casav1.ClientKind) (*casav1.GetSessionResponse, error) {
+		return h.client.GetSession(ctx, &casav1.GetSessionRequest{RequestContext: identityRC(kind)})
+	}
+
+	t.Run("GetSession answers the caller's account and the session's mode", func(t *testing.T) {
+		h := startHousehold(t)
+		m := h.signUpUnread(t, email)
+		for name, c := range map[string]struct {
+			ctx  context.Context
+			kind casav1.ClientKind
+			want casav1.DeviceMode
+		}{
+			"web personal": {sameOrigin(h.webSignIn(t, email, password, personal)), web, personal},
+			"web shared":   {sameOrigin(h.webSignIn(t, email, password, shared)), web, shared},
+			"native":       {bearer(m.token), ios, personal},
+		} {
+			got, err := getSession(h, c.ctx, c.kind)
+			wantOK(t, err)
+			if got.GetAccountId() != m.account || got.GetDeviceMode() != c.want {
+				t.Errorf("%s: %v, want account %s mode %v", name, got, m.account, c.want)
+			}
+		}
+	})
+
+	t.Run("GetSession without a session answers like any authenticated RPC", func(t *testing.T) {
+		h := startHousehold(t)
+		h.signUpUnread(t, email)
+		_, err := getSession(h, context.Background(), web)
+		wantCode(t, err, connect.CodeUnauthenticated)
+		if codes := errorCodes(t, err); len(codes) != 0 {
+			t.Fatalf("error codes = %v, want no detail", codes)
+		}
+		cookie := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.webSignOut(sameOrigin(cookie)))
+		ctx := sameOrigin(cookie)
+		_, err = getSession(h, ctx, web)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantCookieExpired(t, info)
+	})
+
+	t.Run("GetSession is never held and writes nothing but the boundary's touch", func(t *testing.T) {
+		h := startHousehold(t)
+		m := h.signUpUnread(t, email)
+		cookie := h.webSignIn(t, email, password, personal)
+		if !h.held(t, m) {
+			t.Fatal("want the account held")
+		}
+		counts := func() string {
+			var out []string
+			rows, err := h.admin.Query(t.Context(), "SELECT relname FROM pg_class WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace ORDER BY 1")
+			if err != nil {
+				t.Fatal(err)
+			}
+			var tables []string
+			for rows.Next() {
+				var name string
+				if err := rows.Scan(&name); err != nil {
+					t.Fatal(err)
+				}
+				tables = append(tables, name)
+			}
+			rows.Close()
+			for _, name := range tables {
+				out = append(out, name+"="+strconv.Itoa(h.count(t, `SELECT count(*) FROM "`+name+`"`)))
+			}
+			return strings.Join(out, " ")
+		}
+		before := counts()
+		_, err := getSession(h, sameOrigin(cookie), web)
+		wantOK(t, err)
+		if after := counts(); after != before {
+			t.Fatalf("row counts changed:\n%s\n%s", before, after)
+		}
+	})
 }

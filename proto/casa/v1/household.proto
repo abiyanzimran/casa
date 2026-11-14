@@ -118,6 +118,13 @@ service HouseholdService {
   // none or it is past its expiry. Never writes; an online read, never held
   // by NOTICE_UNREAD (plan 1.6 decision 16).
   rpc GetOpenInvitation(GetOpenInvitationRequest) returns (GetOpenInvitationResponse);
+
+  // Returns the caller's own acceptance, found from the caller's account, never
+  // from the request (plan 1.6 decision 14): the display name it gave and its
+  // expiry, no household data (SEC-32). Empty when there is none or it is past
+  // its expiry; it never writes, so an expiry is never recorded here. An online
+  // read, never held by NOTICE_UNREAD (09.3 §1 note of 14 November 2026).
+  rpc GetOwnAcceptance(GetOwnAcceptanceRequest) returns (GetOwnAcceptanceResponse);
 }
 
 message CreateHouseholdRequest {
@@ -200,6 +207,9 @@ message GetOperatorNoticeResponse {
   // (10.1 §11 note of 14 November 2026 (a)); the acknowledgement sends it
   // back.
   bytes text_sha256 = 6;
+  // True when the account acknowledged an issue before the current one, A→B→A
+  // included (09.3 §1 note of 14 November 2026); a read only.
+  bool earlier_version_acknowledged = 7;
 }
 
 message AcknowledgeOperatorNoticeRequest {
@@ -327,6 +337,16 @@ message RejectInviteeRequest {
 }
 
 message RejectInviteeResponse {}
+
+message GetOwnAcceptanceRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+// Empty when the caller has no live acceptance.
+message GetOwnAcceptanceResponse {
+  string display_name = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
 
 message GetOpenInvitationRequest {
   RequestContext request_context = 1 [(buf.validate.field).required = true];

@@ -60,6 +60,9 @@ type Notice struct {
 	Paragraphs   []NoticeParagraph
 	TextSHA256   []byte
 	Acknowledged bool
+	// EarlierAcknowledged is true when the account acknowledged an issue
+	// before this one, A→B→A included (09.3 §1 note of 14 November 2026).
+	EarlierAcknowledged bool
 }
 
 // noticeHash is SHA-256 over the length-prefixed variant, version (decimal),
@@ -138,7 +141,8 @@ func (s *Service) latestNotice(variant string) (Notice, error) {
 // this call inserted, so the caller writes the security trail line in the
 // same tx, once per issue; a concurrent first sight fails serialization and
 // retries (09.3 §1 "Mekanisme"; 10.1 note before §11.3; SEC-34).
-// Acknowledged is the last issue's.
+// Acknowledged is the last issue's; EarlierAcknowledged covers the issues
+// before it.
 func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.UUID) (n Notice, issued bool, err error) {
 	if n, err = s.latestNotice(pilotNoticeVariant); err != nil {
 		return Notice{}, false, err
@@ -147,7 +151,7 @@ func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.U
 	last, err := q.LastNoticeIssue(ctx, account)
 	switch {
 	case err == nil && last.Variant == n.Variant && last.Version == n.Version && bytes.Equal(last.TextSha256, n.TextSHA256):
-		n.Acknowledged = last.Acknowledged
+		n.Acknowledged, n.EarlierAcknowledged = last.Acknowledged, last.EarlierAcknowledged
 		return n, false, nil
 	case err != nil && !errors.Is(err, pgx.ErrNoRows):
 		return Notice{}, false, err
@@ -164,6 +168,7 @@ func (s *Service) CurrentNotice(ctx context.Context, tx pgx.Tx, account pgtype.U
 		// account stays held without an issued notice.
 		return Notice{}, false, errors.New("household: operator notice issue was not inserted")
 	}
+	n.EarlierAcknowledged = last.Acknowledged || last.EarlierAcknowledged // no row yet: both false
 	return n, true, nil
 }
 

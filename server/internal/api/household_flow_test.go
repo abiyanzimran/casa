@@ -73,7 +73,7 @@ func (b *browser) signUp(h *householdHarness, password string) {
 	b.t.Helper()
 	b.do("CompleteSignUp", func(ctx context.Context) error {
 		_, err := b.identity.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
-			RequestContext: webRC(false), VerificationToken: h.lastLink(b.t), Password: password, DeviceMode: personal,
+			RequestContext: webRC(false), VerificationToken: h.lastLink(b.t), Email: h.lastEmail(), Password: password, DeviceMode: personal,
 		})
 		return err
 	})

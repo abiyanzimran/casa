@@ -85,6 +85,10 @@ const (
 	// command made it one (pilot server rule; 09.2 §5.1 note on decision 20;
 	// ADR-013 note 1.6).
 	ErrorCode_ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER ErrorCode = 17
+	// The verification link is valid but the email typed again is not the
+	// one it was sent to; nothing was written and the link stays usable (10.4
+	// SEC-158 note "halaman verifikasi" item 2; ADR-013 note 1.6).
+	ErrorCode_ERROR_CODE_EMAIL_MISMATCH ErrorCode = 18
 )
 
 // Enum value maps for ErrorCode.
@@ -108,6 +112,7 @@ var (
 		15: "ERROR_CODE_INVITATION_PENDING",
 		16: "ERROR_CODE_HOUSEHOLD_FULL",
 		17: "ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER",
+		18: "ERROR_CODE_EMAIL_MISMATCH",
 	}
 	ErrorCode_value = map[string]int32{
 		"ERROR_CODE_UNSPECIFIED":                    0,
@@ -128,6 +133,7 @@ var (
 		"ERROR_CODE_INVITATION_PENDING":             15,
 		"ERROR_CODE_HOUSEHOLD_FULL":                 16,
 		"ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER":       17,
+		"ERROR_CODE_EMAIL_MISMATCH":                 18,
 	}
 )
 
@@ -211,7 +217,7 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\n" +
 	"\x13casa/v1/error.proto\x12\acasa.v1\"5\n" +
 	"\vErrorDetail\x12&\n" +
-	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\xf1\x04\n" +
+	"\x04code\x18\x01 \x01(\x0e2\x12.casa.v1.ErrorCodeR\x04code*\x90\x05\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ERROR_CODE_CLIENT_UPGRADE_REQUIRED\x10\x01\x12\x1e\n" +
@@ -231,7 +237,8 @@ const file_casa_v1_error_proto_rawDesc = "" +
 	"\x18ERROR_CODE_STATE_CHANGED\x10\x0e\x12!\n" +
 	"\x1dERROR_CODE_INVITATION_PENDING\x10\x0f\x12\x1d\n" +
 	"\x19ERROR_CODE_HOUSEHOLD_FULL\x10\x10\x12'\n" +
-	"#ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER\x10\x11B\x97\x01\n" +
+	"#ERROR_CODE_ALREADY_HOUSEHOLD_MEMBER\x10\x11\x12\x1d\n" +
+	"\x19ERROR_CODE_EMAIL_MISMATCH\x10\x12B\x97\x01\n" +
 	"\vcom.casa.v1B\n" +
 	"ErrorProtoP\x01Z?github.com/abiyanzimran/casa/server/internal/gen/casa/v1;casav1\xa2\x02\x03CXX\xaa\x02\aCasa.V1\xca\x02\aCasa\\V1\xe2\x02\x13Casa\\V1\\GPBMetadata\xea\x02\bCasa::V1b\x06proto3"
 

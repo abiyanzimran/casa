@@ -156,6 +156,33 @@ func TestRead(t *testing.T) {
 		}
 	})
 
+	// 09.3 §1 note of 14 November 2026: found from the account alone, live
+	// only before its expiry, and a read writes nothing.
+	t.Run("an own acceptance is read by the invitee's account, and not past its expiry", func(t *testing.T) {
+		h := start(t)
+		household := h.household(t, "Rumah Kita")
+		inviter := h.member(t, household, h.newID(t), "Ayu", now)
+		invitee := h.newID(t)
+		h.exec(t, `INSERT INTO invitation (household_id, inviter, state, invitee_account_id, invitee_display_name, created_at, expires_at)
+			VALUES ($1, $2, 'accepted', $3, 'Citra', $4, $5)`, household, inviter, invitee, now, now.Add(time.Hour))
+
+		got, found, err := h.read.OwnAcceptance(t.Context(), invitee)
+		if err != nil || !found || got.DisplayName != "Citra" || !got.ExpiresAt.Equal(now.Add(time.Hour)) {
+			t.Fatalf("OwnAcceptance = %+v %v %v, want Citra until %v", got, found, err, now.Add(time.Hour))
+		}
+		if got, found, err := h.read.OwnAcceptance(t.Context(), h.newID(t)); err != nil || found || got != (read.OwnAcceptance{}) {
+			t.Fatalf("another account reads %+v %v %v, want none", got, found, err)
+		}
+		h.exec(t, "UPDATE invitation SET expires_at = $1 WHERE invitee_account_id = $2", now, invitee)
+		if got, found, err := h.read.OwnAcceptance(t.Context(), invitee); err != nil || found || got != (read.OwnAcceptance{}) {
+			t.Fatalf("past its expiry reads %+v %v %v, want none", got, found, err)
+		}
+		var state string
+		if err := h.admin.QueryRow(t.Context(), "SELECT state FROM invitation WHERE invitee_account_id = $1", invitee).Scan(&state); err != nil || state != "accepted" {
+			t.Fatalf("state %q %v, want accepted", state, err)
+		}
+	})
+
 	// SEC-151, SEC-05: the membership is checked again in the read
 	// transaction; none is the answer for a household that does not exist.
 	t.Run("a reader without membership in the household is not found", func(t *testing.T) {
