@@ -25,6 +25,39 @@ func (q *Queries) AccountEmail(ctx context.Context, id pgtype.UUID) (string, err
 	return email, err
 }
 
+const householdMemberIDs = `-- name: HouseholdMemberIDs :many
+SELECT member_id FROM membership
+ WHERE household_id = $1
+ ORDER BY member_id
+ LIMIT 21
+`
+
+// The household's members by id, in the command's transaction: the readers
+// and the member objects of the fan-out (plan 1.7 decisions 7, 8). By id, so
+// every command bumps the readers' counters in one order. Served by an
+// index leading with household_id (membership_pkey or the (household_id,
+// account_id) key). At most 20 [Usulan] (plan 1.6 "Batasan global"); a 21st
+// row is an error, never a reader left out (ES §3).
+func (q *Queries) HouseholdMemberIDs(ctx context.Context, householdID pgtype.UUID) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, householdMemberIDs, householdID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var member_id pgtype.UUID
+		if err := rows.Scan(&member_id); err != nil {
+			return nil, err
+		}
+		items = append(items, member_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const householdMembers = `-- name: HouseholdMembers :many
 SELECT h.name AS household_name, m.member_id, m.display_name
   FROM household h

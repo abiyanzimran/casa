@@ -211,6 +211,9 @@ func (f *membershipFixture) reset(t *testing.T, state string, after bool) (invit
 		args []any
 	}{
 		{"DELETE FROM object_event WHERE household_id = $1 AND NOT (object_kind = 'household' AND seq = 0)", []any{f.household}},
+		// The feed rows name members (00010_reader_feed), so they go first.
+		{"DELETE FROM reader_feed WHERE household_id = $1", []any{f.household}},
+		{"DELETE FROM reader_feed_counter WHERE household_id = $1", []any{f.household}},
 		{`DELETE FROM approval_authority WHERE household_id = $1 AND member_id IN
 			(SELECT member_id FROM membership WHERE household_id = $1 AND account_id <> ALL($2::uuid[]))`, []any{f.household, f.kept}},
 		{"DELETE FROM membership WHERE household_id = $1 AND account_id <> ALL($2::uuid[])", []any{f.household, f.kept}},

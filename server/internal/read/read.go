@@ -17,6 +17,62 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/read/readdb"
 )
 
+// ObjectKind is a kind of object the feed carries (09.3 §3; plan 1.7
+// decision 7): reader_feed.object_kind.
+type ObjectKind string
+
+// The kinds of 1.7 (plan 1.6 Q12).
+const (
+	KindHousehold  ObjectKind = "household"
+	KindMember     ObjectKind = "member"
+	KindInvitation ObjectKind = "invitation"
+)
+
+// ObjectRef names one object of a household.
+type ObjectRef struct {
+	Kind ObjectKind
+	ID   pgtype.UUID
+}
+
+// maxMembers bounds the member queries [Usulan] (plan 1.6 "Batasan global").
+const maxMembers = 20
+
+// errTooManyMembers: more members than the bounded query lists, so a reader
+// would be left out (ES §3).
+var errTooManyMembers = errors.New("more household members than the read path lists")
+
+// canRead is the one read rule (plan 1.7 decision 7, ruling P5): whether a
+// member of the household reads an object of kind. Today every member reads
+// the household, its members and its live invitation (06 §3.1; plan 1.6
+// decision 16); step 2 widens it here, per kind.
+func canRead(kind ObjectKind) bool {
+	switch kind {
+	case KindHousehold, KindMember, KindInvitation:
+		return true
+	}
+	return false
+}
+
+// Members are household's member ids in tx, by id: the member objects that
+// change with a household event (plan 1.7 decision 8; 09.2 §5.1).
+func Members(ctx context.Context, tx pgx.Tx, household pgtype.UUID) ([]pgtype.UUID, error) {
+	members, err := readdb.New(tx).HouseholdMemberIDs(ctx, household)
+	if err == nil && len(members) > maxMembers {
+		return nil, errTooManyMembers
+	}
+	return members, err
+}
+
+// Readers are the members who can read an object of kind in household after
+// the change, in tx, by id: today every member, for every kind (plan 1.7
+// decision 7; 09.3 §3 "Fan-out saat menulis").
+func Readers(ctx context.Context, tx pgx.Tx, household pgtype.UUID, kind ObjectKind) ([]pgtype.UUID, error) {
+	if !canRead(kind) {
+		return nil, nil
+	}
+	return Members(ctx, tx, household)
+}
+
 // ErrNotFound: not a membership of the account, whether the household
 // exists or not; one answer for all (SEC-05; FR-FAM-020/AC-1, AC-4).
 var ErrNotFound = errors.New("not found")

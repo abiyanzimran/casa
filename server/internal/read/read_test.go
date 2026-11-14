@@ -1,13 +1,17 @@
 package read_test
 
 import (
+	"bytes"
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/abiyanzimran/casa/server/internal/database"
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 	"github.com/abiyanzimran/casa/server/internal/read"
 )
@@ -15,14 +19,15 @@ import (
 var now = time.Date(2026, 11, 14, 9, 0, 0, 0, time.UTC)
 
 type harness struct {
-	admin *pgxpool.Pool
-	read  *read.Service
+	admin, app *pgxpool.Pool
+	read       *read.Service
 }
 
 func start(t *testing.T) *harness {
 	t.Helper()
 	d := databasetest.Migrated(t)
-	return &harness{admin: d.Pool(t, d.AdminRole), read: read.New(d.Pool(t, "app_rw"), func() time.Time { return now })}
+	app := d.Pool(t, "app_rw")
+	return &harness{admin: d.Pool(t, d.AdminRole), app: app, read: read.New(app, func() time.Time { return now })}
 }
 
 func (h *harness) exec(t *testing.T, sql string, args ...any) {
@@ -171,6 +176,33 @@ func TestRead(t *testing.T) {
 			if !errors.Is(err, read.ErrNotFound) || found || inv != (read.OpenInvitation{}) {
 				t.Fatalf("%s: OpenInvitation = %+v %v %v, want ErrNotFound", name, inv, found, err)
 			}
+		}
+	})
+
+	// ES §3: the member query is bounded, and a household past the bound
+	// fails the fan-out instead of leaving a reader out of the feed.
+	t.Run("readers are every member, by id, and never a list cut at the bound", func(t *testing.T) {
+		h := start(t)
+		household := h.household(t, "Rumah Kita")
+		readers := func() ([]pgtype.UUID, error) {
+			var got []pgtype.UUID
+			err := database.Write(t.Context(), h.app, database.Scope{HouseholdID: household}, func(tx pgx.Tx) (err error) {
+				got, err = read.Readers(t.Context(), tx, household, read.KindInvitation)
+				return err
+			})
+			return got, err
+		}
+		var want []pgtype.UUID
+		for range 20 {
+			want = append(want, h.member(t, household, h.newID(t), "M", now))
+		}
+		slices.SortFunc(want, func(a, b pgtype.UUID) int { return bytes.Compare(a.Bytes[:], b.Bytes[:]) })
+		if got, err := readers(); err != nil || !slices.Equal(got, want) {
+			t.Fatalf("Readers of 20 members = %v, %v; want every member by id", got, err)
+		}
+		h.member(t, household, h.newID(t), "M", now)
+		if got, err := readers(); err == nil {
+			t.Fatalf("Readers of 21 members = %v, want an error", got)
 		}
 	})
 }

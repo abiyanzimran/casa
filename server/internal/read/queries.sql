@@ -42,3 +42,15 @@ SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name 
 -- 10.1 §5.1 note 1.6 item 3: only the email, by the primary key, for the
 -- inviter's F04 screen (SEC-31).
 SELECT email FROM account WHERE id = @id;
+
+-- name: HouseholdMemberIDs :many
+-- The household's members by id, in the command's transaction: the readers
+-- and the member objects of the fan-out (plan 1.7 decisions 7, 8). By id, so
+-- every command bumps the readers' counters in one order. Served by an
+-- index leading with household_id (membership_pkey or the (household_id,
+-- account_id) key). At most 20 [Usulan] (plan 1.6 "Batasan global"); a 21st
+-- row is an error, never a reader left out (ES §3).
+SELECT member_id FROM membership
+ WHERE household_id = @household_id
+ ORDER BY member_id
+ LIMIT 21;

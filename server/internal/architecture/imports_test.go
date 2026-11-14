@@ -29,7 +29,7 @@ var allowedImports = map[string][]string{
 	"internal/database/databasetest":     {"internal/schema"},
 	"internal/gen/casa/v1":               {},
 	"internal/gen/casa/v1/casav1connect": {"internal/gen/casa/v1"},
-	"internal/household":                 {"internal/database", "internal/household/householddb", "internal/jobs"},
+	"internal/household":                 {"internal/database", "internal/household/householddb", "internal/jobs", "internal/read", "internal/sync"},
 	"internal/household/householddb":     {},
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
@@ -38,6 +38,8 @@ var allowedImports = map[string][]string{
 	"internal/read":                      {"internal/database", "internal/read/readdb"},
 	"internal/read/readdb":               {},
 	"internal/schema":                    {},
+	"internal/sync":                      {"internal/database", "internal/read", "internal/sync/syncdb"},
+	"internal/sync/syncdb":               {},
 	// Only cmd/casa and cmd/webpreview embed the bundle; internal/api takes it
 	// as an fs.FS (FS-1 1.5 plan, Task 1).
 	"internal/webbundle": {},

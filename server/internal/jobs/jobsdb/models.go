@@ -141,6 +141,22 @@ type OperatorNoticeAck struct {
 	AcknowledgedAt pgtype.Timestamptz
 }
 
+type ReaderFeed struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+	Pos         int64
+	ObjectKind  string
+	ObjectID    pgtype.UUID
+	Change      string
+	CreatedAt   time.Time
+}
+
+type ReaderFeedCounter struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+	LastPos     int64
+}
+
 type ReauthGrant struct {
 	ID         pgtype.UUID
 	SessionID  pgtype.UUID
