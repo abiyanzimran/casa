@@ -174,7 +174,7 @@ Satu kebijakan `FOR ALL` per tabel. `A` = `nullif(current_setting('app.account_i
 | `refresh_token`, `recovery_token` | `account_id = A OR token_hash = T` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)` |
 | `reauth_grant` | `account_id = A` | `account_id = A` | `SELECT, INSERT, UPDATE (used_at)`; `cookie_hash` (sejak migrasi `00004_web_session`, FS-1 tugas 1.5) hanya ditulis saat `INSERT`, tanpa `UPDATE` |
 | `setup_token` | `token_hash = T` | `token_hash = T` | `SELECT, INSERT, UPDATE (used_at, account_id)` |
-| `signup_verification` | `token_hash = T OR setup_token_hash = T` | `setup_token_hash = T` | `SELECT, INSERT, UPDATE (token_hash, expires_at, used_at)` |
+| `signup_verification` | `token_hash = T OR setup_token_hash = T OR invitation_token_hash = T OR account_id = A` (dua klausa terakhir sejak migrasi `00008_invitation_signup`, FS-1 tugas 1.6; `account_id = A` hanya menemukan, tidak pernah menulis) | `setup_token_hash = T OR invitation_token_hash = T` | `SELECT, INSERT, UPDATE (token_hash, email, expires_at, used_at, account_id)`; `email` hanya diubah pada baris `source = 'invitation'` yang `WHERE account_id IS NULL` (pendaftaran yang diulang sebelum akun lahir mengganti email-nya), `account_id` diisi sekali |
 | `security_event` | `account_id = A` | `account_id = A` | `SELECT, INSERT` (tambah-saja; ADR-016 butir 5) |
 | `idempotency_record` | teks di tabel berikut, tanpa perubahan | sama | `SELECT, INSERT` |
 
