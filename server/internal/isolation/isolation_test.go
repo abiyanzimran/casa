@@ -973,7 +973,7 @@ func walk(v reflect.Value, visit func(any)) {
 
 func isValueX(v any) bool {
 	// Every X time of the fixture is written at minute 11, second 11; no Y,
-	// fixed or fresh time falls there (xMark below).
+	// fixed or fresh time falls there (fixture.sql writes them at :11:11).
 	if t, ok := v.(time.Time); ok && t.Minute() == 11 && t.Second() == 11 {
 		return true
 	}
