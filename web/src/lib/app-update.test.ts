@@ -11,7 +11,7 @@ beforeEach(async () => {
 });
 
 /** A browser whose registration has `waiting` (or not); controllerchange fires on demand. */
-function browser(waiting: boolean) {
+function browser(waiting: boolean, registered = true, controlled = true) {
 	const worker = { postMessage: vi.fn() };
 	const registration = {
 		update: vi.fn(() => Promise.resolve()),
@@ -21,7 +21,8 @@ function browser(waiting: boolean) {
 	const reload = vi.fn();
 	vi.stubGlobal('navigator', {
 		serviceWorker: {
-			getRegistration: () => Promise.resolve(registration),
+			controller: controlled ? {} : null,
+			getRegistration: () => Promise.resolve(registered ? registration : undefined),
 			addEventListener: (_type: string, listener: () => void) => {
 				changed = listener;
 			}
@@ -97,4 +98,36 @@ test('SEC-169 (d): the session check answered CLIENT_UPGRADE_REQUIRED sets upgra
 	const session = await import('./session.svelte');
 	await session.checkSession();
 	expect(updateModule.upgrade.required).toBe(true);
+});
+
+test('08 §25.7: Perbarui with no registration reloads, unless a form is open', async () => {
+	const b = browser(false, false);
+	await updateModule.updateNow();
+	expect(b.reload).toHaveBeenCalledTimes(1);
+	const close = updateModule.openForm();
+	await updateModule.updateNow();
+	expect(b.reload).toHaveBeenCalledTimes(1);
+	close();
+	await vi.waitFor(() => {
+		expect(b.reload).toHaveBeenCalledTimes(2);
+	});
+});
+
+test('SEC-169 (c): a page no worker controls reloads without waiting for controllerchange', async () => {
+	const b = browser(true, true, false);
+	expect(await updateModule.applyUpdate(() => false)).toBe('reloaded');
+	expect(b.worker.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
+	expect(b.reload).toHaveBeenCalledTimes(1);
+});
+
+test('08 §25.7: a second tap while an update runs does nothing', async () => {
+	const b = browser(true);
+	const first = updateModule.updateNow();
+	await updateModule.updateNow();
+	await vi.waitFor(() => {
+		expect(b.worker.postMessage).toHaveBeenCalledTimes(1);
+	});
+	b.fireControllerChange();
+	await first;
+	expect(b.registration.update).toHaveBeenCalledTimes(1);
 });

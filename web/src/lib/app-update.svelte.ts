@@ -28,7 +28,7 @@ export function openForm(): () => void {
 		openCount--;
 		if (openCount === 0 && deferred) {
 			deferred = false;
-			applyUpdate(hasOpenForms).catch((error: unknown) => {
+			updateNow().catch((error: unknown) => {
 				console.error(error);
 			});
 		}
@@ -62,7 +62,27 @@ export async function applyUpdate(
 		);
 	});
 	waiting.postMessage({ type: 'SKIP_WAITING' });
-	await controlled;
+	// A page no worker controls gets no controllerchange; it reloads at once.
+	if (navigator.serviceWorker.controller) await controlled;
 	location.reload();
 	return 'reloaded';
+}
+
+let inFlight = false;
+
+/**
+ * What "Perbarui" does (08 §25.7): applies a waiting version, and with none (shared mode has no
+ * service worker, or the new one is still installing) reloads, which loads from the network.
+ * With a form open either waits until the last one closes. One run at a time.
+ */
+export async function updateNow(): Promise<void> {
+	if (inFlight) return;
+	inFlight = true;
+	try {
+		if ((await applyUpdate(hasOpenForms)) !== 'none') return;
+		if (hasOpenForms()) deferred = true;
+		else location.reload();
+	} finally {
+		inFlight = false;
+	}
 }

@@ -9,7 +9,7 @@
 	import StatusRow from '#lib/components/StatusRow.svelte';
 	import Screen from '#lib/components/Screen.svelte';
 	import SessionEnded from '#lib/components/SessionEnded.svelte';
-	import { applyUpdate, hasOpenForms, upgrade } from '#lib/app-update.svelte.js';
+	import { updateNow, upgrade } from '#lib/app-update.svelte.js';
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
@@ -154,7 +154,7 @@
 			action={{
 				label: copy.update.button,
 				onclick: () => {
-					applyUpdate(hasOpenForms).catch(logFailure);
+					updateNow().catch(logFailure);
 				}
 			}}
 		/>
