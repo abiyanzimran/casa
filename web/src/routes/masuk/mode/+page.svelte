@@ -15,9 +15,12 @@
 		if (redirect) goto(resolve(redirect), { replaceState: true }).catch(console.error);
 	});
 
+	// A verification link opened before a mode was chosen goes back to its page (08 §7.6
+	// "Halaman verifikasi"); otherwise LY-01.
 	function choose(mode: DeviceMode): void {
 		session.mode = mode;
-		goto(resolve('/masuk')).catch(console.error);
+		const back = session.pendingToken?.kind === 'verification';
+		goto(resolve(back ? '/signup/verify' : '/masuk')).catch(console.error);
 	}
 </script>
 

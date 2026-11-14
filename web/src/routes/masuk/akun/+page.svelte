@@ -8,10 +8,13 @@
 	import { resolve } from '$app/paths';
 	import Button from '#lib/components/Button.svelte';
 	import ButtonRow from '#lib/components/ButtonRow.svelte';
+	import InlineMessage from '#lib/components/InlineMessage.svelte';
 	import Screen from '#lib/components/Screen.svelte';
 	import TextField from '#lib/components/TextField.svelte';
-	import { api, ctx, errorCode, failureOf } from '#lib/api.js';
+	import TextLink from '#lib/components/TextLink.svelte';
+	import { api, ctx, errorCode } from '#lib/api.js';
 	import { copy } from '#lib/copy.js';
+	import { actionFailure, fieldErrors } from '#lib/form.js';
 	import { ErrorCode } from '#lib/gen/casa/v1/error_pb.js';
 	import { DeviceMode } from '#lib/gen/casa/v1/identity_pb.js';
 	import { afterSignIn, entryRedirect, handleSessionError, session } from '#lib/session.svelte.js';
@@ -28,11 +31,22 @@
 	let email = $state('');
 	let password = $state('');
 	let failure: string | undefined = $state();
+	let emailError: string | undefined = $state();
+	let passwordError: string | undefined = $state();
 	let busy = $state(false);
+
+	// buf.validate on SignInRequest names only lengths (SEC-12: no email rule); worded with the
+	// sentences of 08 §7.6 for the same rules on sign-up.
+	const fieldSentences = {
+		email: { 'string.max_len': copy.signUp.emailInvalid },
+		password: { 'string.max_len': copy.verify.tooLong }
+	};
 
 	async function signIn(): Promise<void> {
 		const mode = personal ? 'personal' : 'shared';
 		failure = undefined; // so the same sentence again is announced again
+		emailError = undefined;
+		passwordError = undefined;
 		try {
 			await api.identity.signIn({
 				requestContext: ctx(true),
@@ -43,16 +57,15 @@
 		} catch (error) {
 			if (await handleSessionError(error)) return;
 			// The sentence for a failed SignIn (08 §7.6, §13.2); only the unexpected is logged.
-			const code = errorCode(error);
-			if (code === ErrorCode.CREDENTIALS_REJECTED) {
+			if (errorCode(error) === ErrorCode.CREDENTIALS_REJECTED) {
 				failure = copy.signIn.rejected;
 				password = '';
-			} else if (code === ErrorCode.RATE_LIMITED) failure = copy.common.rateLimited;
-			else if (failureOf(error) === 'offline') failure = copy.serverAction.offline;
-			else {
-				failure = copy.serverAction.server;
-				console.error(error);
+				return;
 			}
+			const fields = fieldErrors(error, fieldSentences);
+			emailError = fields?.email;
+			passwordError = fields?.password;
+			if (!fields) failure = actionFailure(error);
 			return;
 		}
 		await afterSignIn(mode);
@@ -78,6 +91,7 @@
 				label={copy.signIn.email}
 				type="email"
 				autocomplete={personal ? 'username' : 'off'}
+				error={emailError}
 				bind:value={email}
 			/>
 			<TextField
@@ -85,21 +99,15 @@
 				type="password"
 				autocomplete={personal ? 'current-password' : 'off'}
 				hint={personal ? undefined : copy.signIn.doNotSave}
+				error={passwordError}
 				bind:value={password}
 			/>
-			<div role="alert">
-				{#if failure}<p class="galat">{failure}</p>{/if}
-			</div>
+			<InlineMessage role="alert" text={failure} />
 			<ButtonRow>
 				<Button variant="primary" type="submit" {busy}>{copy.signIn.title}</Button>
 			</ButtonRow>
 		</form>
+		<!-- 08 §7.6 signIn.links; "Saya diundang" comes with /masuk/undangan (Task 11) -->
+		<TextLink href={resolve('/masuk/daftar')}>{copy.signIn.signUp}</TextLink>
 	</Screen>
 {/if}
-
-<style>
-	.galat {
-		margin: var(--jarak-4) 0 0;
-		color: var(--galat);
-	}
-</style>

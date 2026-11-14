@@ -16,7 +16,7 @@
 		error
 	}: {
 		label: string;
-		type: 'email' | 'password' | 'text';
+		type: 'email' | 'password' | 'text' | 'url';
 		autocomplete: FullAutoFill;
 		value?: string;
 		hint?: string;

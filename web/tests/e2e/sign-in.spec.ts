@@ -247,3 +247,30 @@ test('08 §25.5: the password field shows its text on request and never blocks p
 		expect(blocked).toBe(false);
 	}
 });
+
+test('08 §7.6: a sign-in field the server rejects by its shape is marked on that field', async ({
+	page
+}) => {
+	// buf.validate on SignInRequest: email and password max_len (Task 5 review, minor 4).
+	await server(
+		page,
+		rpcError(Code.InvalidArgument, undefined, [{ field: 'email', ruleId: 'string.max_len' }]),
+		rpcError(Code.InvalidArgument, undefined, [{ field: 'password', ruleId: 'string.max_len' }])
+	);
+	await openSignIn(page, 'personal');
+	await signIn(page);
+	await expect(emailField(page)).toHaveAttribute('aria-invalid', 'true');
+	await expect(emailField(page)).toHaveAccessibleDescription(
+		'Tulis email lengkap, misalnya nama@contoh.id.'
+	);
+	await expect(page.getByRole('alert')).toHaveText('');
+
+	await signInButton(page).click();
+	await expect(emailField(page)).not.toHaveAttribute('aria-invalid', 'true');
+	await expect(passwordField(page)).toHaveAttribute('aria-invalid', 'true');
+	await expect(passwordField(page)).toHaveAccessibleDescription(
+		'Kata sandi ini terlalu panjang. Pakai paling banyak 1.024 karakter.'
+	);
+	await expect(passwordField(page)).toHaveValue(password);
+	await expect(page.getByRole('alert')).toHaveText('');
+});

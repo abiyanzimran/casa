@@ -15,17 +15,18 @@
 	$effect(() => {
 		if (redirect) goto(resolve(redirect), { replaceState: true }).catch(console.error);
 	});
-
-	// ponytail: Task 6 adds /masuk/daftar, which "Buat akun" opens; resolve() accepts only routes
-	// that exist, so that tap is wired there.
-	const notYetBuilt = () => undefined;
 </script>
 
 {#if !redirect}
 	<Screen heading={copy.ly01.title} destination="Selamat datang" describedby="{id}-line">
 		<p id="{id}-line">{copy.ly01.line}</p>
 		<ButtonRow>
-			<Button variant="primary" onclick={notYetBuilt}>{copy.ly01.signUp}</Button>
+			<Button
+				variant="primary"
+				onclick={() => {
+					goto(resolve('/masuk/daftar')).catch(console.error);
+				}}>{copy.ly01.signUp}</Button
+			>
 			<Button
 				variant="outlined"
 				onclick={() => {

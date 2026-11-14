@@ -11,6 +11,8 @@
 
 	const redirect = $derived(entryRedirect('/pasang'));
 	const id = $props.id();
+	// Opened from a setup link (/signup), whose token was dropped unsent (08 §7.6 ly90.fromSetup).
+	const fromSetup = session.setupLinkDropped === true;
 
 	$effect(() => {
 		if (redirect) goto(resolve(redirect), { replaceState: true }).catch(console.error);
@@ -23,11 +25,16 @@
 </script>
 
 {#if !redirect}
-	<Screen heading={copy.ly90.title} destination="Pasang" describedby="{id}-first {id}-reason">
+	<Screen
+		heading={copy.ly90.title}
+		destination="Pasang"
+		describedby="{id}-first {id}-reason{fromSetup ? ` ${id}-setup` : ''}"
+	>
 		{#snippet lead()}
 			<p id="{id}-first">{copy.ly90.firstLine}</p>
 		{/snippet}
 		<p id="{id}-reason">{copy.ly90.reason}</p>
+		{#if fromSetup}<p id="{id}-setup">{copy.ly90.fromSetup}</p>{/if}
 		<ol>
 			{#each copy.ly90.steps as step (step)}
 				<li>{step}</li>

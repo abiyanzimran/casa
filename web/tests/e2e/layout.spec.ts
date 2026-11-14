@@ -1,6 +1,7 @@
 import { Code } from '@connectrpc/connect';
 import { expect, test, type Page } from '@playwright/test';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
+import { IdentityService } from '../../src/lib/gen/casa/v1/identity_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
@@ -35,6 +36,34 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 			await page.goto('/masuk/mode');
 			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
 			await page.getByRole('button', { name: 'Sudah punya akun', exact: true }).click();
+		}
+	},
+	{
+		// LY-02 Buat akun without a held link: closed, with the paste field.
+		path: '/masuk/daftar',
+		setup: async (page) => {
+			await page.goto('/masuk/mode');
+			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
+		}
+	},
+	{
+		// LY-02 Buat akun with a setup link held, then LY-03 after StartSignUp.
+		path: '/masuk/periksa-email',
+		setup: async (page) => {
+			await mockRpc(page, IdentityService.method.startSignUp, () => ({}));
+			await page.goto(`/signup#${'A'.repeat(43)}`);
+			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
+			await page.getByLabel('Email', { exact: true }).fill(`${'n'.repeat(60)}@contoh.id`);
+			await page.getByRole('button', { name: 'Kirim tautan', exact: true }).click();
+		}
+	},
+	{
+		path: '/signup/verify',
+		setup: async (page) => {
+			await page.goto('/signup/verify#verification-token');
+			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
 		}
 	}
 ];

@@ -79,6 +79,22 @@ test('SEC-161 (d): a session_expired answer in personal mode ends the session an
 	expect(await localDbModule.localDb().outbox.count()).toBe(1);
 });
 
+test('SEC-175 (c): no session on open keeps the link token this tab was opened with', async () => {
+	const { handleSessionError, session } = sessionModule;
+	session.pendingToken = { kind: 'setup', value: 'x' };
+	session.setupLinkDropped = true;
+	session.mode = 'personal';
+
+	expect(await handleSessionError(failed(Code.Unauthenticated))).toBe(true);
+	expect(session.state).toEqual({ kind: 'signed-out' });
+	// The rest of memory is emptied as before; the link is what the signed-out screens are for.
+	expect(session.mode).toBeUndefined();
+	expect([session.pendingToken, session.setupLinkDropped]).toEqual([
+		{ kind: 'setup', value: 'x' },
+		true
+	]);
+});
+
 test('SEC-161 (d): on open, a session_expired answer with a local database counts as personal mode', async () => {
 	await personalBrowser();
 	const { handleSessionError, session } = sessionModule;

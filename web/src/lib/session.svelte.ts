@@ -42,6 +42,10 @@ interface Session {
 	mode?: DeviceMode;
 	/** A link token taken from the address bar, held in this tab's memory only (SEC-175 (c)). */
 	pendingToken?: { kind: 'setup' | 'invitation' | 'verification'; value: string };
+	/** The email a sign-up was started with, for LY-03 and "Ganti email" (08 §7.6); memory only. */
+	signUpEmail?: string;
+	/** This tab was opened from a setup link in a Safari tab, its token dropped (ly90.fromSetup). */
+	setupLinkDropped?: boolean;
 	/** LY-04 was ticked in this session (plan decision 9). */
 	ageDeclared: boolean;
 }
@@ -51,8 +55,8 @@ export const session: Session = $state({ state: { kind: 'checking' }, ageDeclare
 /** The entry screens before a session (08 §25.6). */
 export type EntryScreen = '/pasang' | '/masuk/mode' | '/masuk';
 
-/** The screens after the entry screens, before a session: LY-02 Masuk (08 §7.6). */
-export type SignInScreen = '/masuk/akun';
+/** The screens after the entry screens, before a session: LY-02 Masuk, LY-02 Buat akun, LY-03 (08 §7.6). */
+export type SignInScreen = '/masuk/akun' | '/masuk/daftar' | '/masuk/periksa-email';
 
 /**
  * The screen the app opens at (08 §25.6 flow): LY-90 in a Safari tab on iPhone or iPad until the
@@ -126,6 +130,8 @@ export function resetSessionState(): void {
 	session.state = { kind: 'checking' };
 	session.mode = undefined;
 	session.pendingToken = undefined;
+	session.signUpEmail = undefined;
+	session.setupLinkDropped = undefined;
 	session.ageDeclared = false;
 }
 
@@ -231,15 +237,20 @@ export async function handleSessionError(error: unknown): Promise<boolean> {
 			await endSession(mode === 'shared' ? 'shared-ended' : 'expired');
 			break;
 		}
-		default:
+		default: {
 			if (session.state.kind === 'ended') break;
 			if (revokedWipeCarried) {
 				await endSession('revoked');
 				break;
 			}
-			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)).
+			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)). The
+			// link this tab was opened with stays in memory: the signed-out screens use it, and the
+			// session check on open always answers this way before them (SEC-175 (c)).
+			const { pendingToken, setupLinkDropped } = session;
 			resetSessionState();
+			Object.assign(session, { pendingToken, setupLinkDropped });
 			settle({ kind: 'signed-out' });
+		}
 	}
 	return true;
 }

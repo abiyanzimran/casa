@@ -106,3 +106,10 @@ export async function personalBrowser(page: Page): Promise<void> {
 	await seedUnsent(page, 0);
 	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
 }
+
+/** Safari on iPhone or iPad in a tab: navigator.standalone exists and is false (08 §25.6). */
+export async function safariTab(page: Page): Promise<void> {
+	await page.addInitScript(() => {
+		Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false });
+	});
+}
