@@ -32,7 +32,8 @@ ALTER POLICY token ON signup_verification
 	    OR setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
 	    OR invitation_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
 	    OR account_id = nullif(current_setting('app.account_id', true), '')::uuid)
-	WITH CHECK (setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
+	WITH CHECK (token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
+	         OR setup_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex')
 	         OR invitation_token_hash = decode(nullif(current_setting('app.token_hash', true), ''), 'hex'));
 GRANT UPDATE (email, account_id) ON signup_verification TO app_rw;
 
