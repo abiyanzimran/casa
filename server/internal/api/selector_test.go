@@ -121,13 +121,31 @@ func TestHouseholdSelector(t *testing.T) {
 		b := h.signUpMember(t, "b@example.test")
 		y := h.mustCreate(t, b)
 		yInvitation := h.mustInvite(t, b, y.GetHouseholdId()).GetInvitationId()
+		z, _ := h.acceptedBy(t, "z@example.test", "w@example.test")
+		// Both other households' invitations are due, one open and one
+		// accepted: a request that skipped the selector check would reach
+		// the expiry writer of the token-free paths (plan 1.6 decision 12)
+		// in a household the caller does not belong to.
+		h.clock.advance(invitationLifetime + time.Hour)
+		h.signInAgain(t, &a, "a@example.test")
+		others := []struct{ household, invitation string }{{y.GetHouseholdId(), yInvitation}, {z.household, z.id}}
 		before := h.fingerprint(t)
 		for _, c := range selectorCases {
-			other := c.call(h, a, y.GetHouseholdId(), yInvitation)
-			missing := c.call(h, a, uuid4(), yInvitation)
-			wantHiddenNotFound(t, other)
-			if !rejectionOf(t, other).equal(rejectionOf(t, missing)) {
-				t.Errorf("%s: another household %v, a missing one %v", c.name, other, missing)
+			for _, o := range others {
+				rows := map[string]string{y.GetHouseholdId(): h.householdRows(t, y.GetHouseholdId()), z.household: h.householdRows(t, z.household)}
+				other := c.call(h, a, o.household, o.invitation)
+				missing := c.call(h, a, uuid4(), o.invitation)
+				wantHiddenNotFound(t, other)
+				if !rejectionOf(t, other).equal(rejectionOf(t, missing)) {
+					t.Errorf("%s: another household %v, a missing one %v", c.name, other, missing)
+				}
+				// No expiry written (state, closed_at, version) and no
+				// new event in either other household.
+				for household, want := range rows {
+					if got := h.householdRows(t, household); got != want {
+						t.Fatalf("%s with selector %s changed household %s:\n%s\nwant\n%s", c.name, o.household, household, got, want)
+					}
+				}
 			}
 		}
 		if h.fingerprint(t) != before {
