@@ -790,7 +790,6 @@ INSERT INTO signup_verification (token_hash, source, invitation_token_hash, emai
 VALUES ($1, 'invitation', $2, $3, $4, $5)
 ON CONFLICT (invitation_token_hash) DO UPDATE
    SET token_hash = excluded.token_hash, email = excluded.email, expires_at = excluded.expires_at
- WHERE signup_verification.account_id IS NULL
 `
 
 type UpsertInvitationSignupVerificationParams struct {

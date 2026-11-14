@@ -29,8 +29,7 @@ ON CONFLICT (setup_token_hash) DO UPDATE SET token_hash = excluded.token_hash, e
 INSERT INTO signup_verification (token_hash, source, invitation_token_hash, email, created_at, expires_at)
 VALUES (@token_hash, 'invitation', @invitation_token_hash, @email, @created_at, @expires_at)
 ON CONFLICT (invitation_token_hash) DO UPDATE
-   SET token_hash = excluded.token_hash, email = excluded.email, expires_at = excluded.expires_at
- WHERE signup_verification.account_id IS NULL;
+   SET token_hash = excluded.token_hash, email = excluded.email, expires_at = excluded.expires_at;
 
 -- name: GetSignupVerification :one
 -- The id of the account the link would open is drawn here (09.2 §4).
