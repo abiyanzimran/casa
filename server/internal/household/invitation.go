@@ -116,7 +116,7 @@ func (s *Service) expire(ctx context.Context, household, account, invitation pgt
 		if !live(row.State) || s.now().Before(row.ExpiresAt) {
 			return nil
 		}
-		err = s.transition(ctx, tx, household, invitation, row, "expired", row.ExpiresAt, Event{
+		err = s.transition(ctx, tx, household, invitation, row, "expired", s.now(), Event{
 			ActorKind: "system", Rule: expireRule, Command: expireCommand,
 		})
 		if err == nil {
