@@ -1,9 +1,12 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import pkg from './package.json' with { type: 'json' };
 
 // SvelteKit 3 takes its options here; svelte.config.js is no longer read.
 export default defineConfig({
+	// The client build version every request carries (ADR-030 item 9; SEC-169 (d)).
+	define: { __CASA_VERSION__: JSON.stringify(pkg.version) },
 	plugins: [
 		sveltekit({
 			compilerOptions: {
