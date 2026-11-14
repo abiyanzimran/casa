@@ -103,7 +103,7 @@ func checkMemberships(t *rapid.T, m *householdMachine) {
 	// inviter, and no system transition leads to confirmed.
 	if bad := m.adminStrings(t, `
 		SELECT format('membership %s %s', m.household_id, m.member_id) FROM membership m
-		 WHERE m.member_id <> (SELECT actor FROM object_event c
+		 WHERE m.member_id IS DISTINCT FROM (SELECT actor FROM object_event c
 		                        WHERE c.household_id = m.household_id AND c.object_kind = 'household' AND c.seq = 0)
 		   AND NOT EXISTS (
 		       SELECT FROM invitation i JOIN object_event e

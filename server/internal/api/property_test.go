@@ -920,6 +920,7 @@ func TestHouseholdProperties(t *testing.T) {
 	// and nothing else; a write of any other kind is still a failure.
 	t.Run("a resend after the invitation's expiry is due writes only the expiry and returns its first answer", func(t *testing.T) {
 		h := startPropertyHarness(t)
+		// Examples must not draw: a draw turns the example into a skip.
 		rapid.MakeFuzz(func(rt *rapid.T) {
 			m := h.newMachine(rt, 2, identity5)
 			m.start(rt, 1, nil)
@@ -957,6 +958,7 @@ func TestHouseholdProperties(t *testing.T) {
 	// new member reaches it only through its feed, every run.
 	t.Run("F04 reaches the inviter's device through its feed", func(t *testing.T) {
 		h := startPropertyHarness(t)
+		// Examples must not draw: a draw turns the example into a skip.
 		rapid.MakeFuzz(func(rt *rapid.T) {
 			m := h.newMachine(rt, 2, identity5)
 			m.start(rt, 2, nil)

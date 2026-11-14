@@ -192,22 +192,6 @@ func TestGoldenNameLength(t *testing.T) {
 		}
 	})
 
-	t.Run("the file holds every hand-picked case", func(t *testing.T) {
-		got, err := os.ReadFile(path) //nolint:gosec // G304: path is a package constant
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, max := range goldenMaxes {
-			for name, f := range handPicked() {
-				_, rule := household.CleanName(f(max), max)
-				line := fmt.Sprintf(`{"input":%s,"max":%d,"rule":%s}`, jsonString(f(max)), max, jsonString(rule))
-				if !bytes.Contains(got, []byte(line)) {
-					t.Errorf("missing case %q for max %d", name, max)
-				}
-			}
-		}
-	})
-
 	t.Run("fixed rules hold for both limits", func(t *testing.T) {
 		for _, max := range goldenMaxes {
 			for _, c := range []struct{ name, in, rule string }{

@@ -94,9 +94,6 @@ var otherValuesX = []any{
 	hash(0x34), // idempotency request hash
 	hash(0x35), // idempotency response
 	"invitee-x@example.test", "Rumah X", "Rumah X2", "Pemilik X", "Tamu X",
-	xTime("2026-11-13T12:11:11Z"), xTime("2026-11-14T10:11:11Z"), xTime("2026-11-14T11:11:11Z"),
-	xTime("2026-11-14T12:11:11Z"), xTime("2026-11-14T13:11:11Z"), xTime("2026-11-15T12:11:11Z"),
-	xTime("2026-11-21T12:11:11Z"), xTime("2027-02-12T12:11:11Z"),
 }
 
 // now is the fixture's clock: every token and invitation of the fixture is
@@ -159,8 +156,8 @@ var isolationValues = map[string]isolationValue{
 	"presented":             pair(sessionTokenX, sessionTokenY),
 	"unique_key":            pair(text(invitationX.String()), text(invitationY.String())),
 
-	// A new member's account is one no membership holds, so Y's own call
-	// joins it.
+	// Y's value is an id no membership holds; membership.account_id has no
+	// foreign key (identity mapping, 07 §8.2), so Y's own call inserts.
 	"householddb.InsertMembership.account_id": pair(accountX, inviteeY),
 	"householddb.JoinMembership.account_id":   pair(accountX, inviteeY),
 	// The invitee of X2's accepted invitation.
@@ -184,7 +181,7 @@ var isolationValues = map[string]isolationValue{
 	"identitydb.TouchSession.id":            pair(sessionX, sessionY),
 	"identitydb.RevokeSession.id":           pair(sessionX, sessionY),
 	"identitydb.RotateAccessToken.id":       pair(sessionX, sessionY),
-	// The session kept is not Y's only one, so Y's own call revokes it.
+	// keep is an id no session has, so Y's own call revokes Y's one session.
 	"identitydb.RevokeSessions.keep": pair(sessionX, uuid("20000000-0000-4000-8000-000000000032")),
 	"jobsdb.DeleteJob.id":            pair(jobX, jobY),
 	"jobsdb.FailJob.id":              pair(jobX, jobY),
@@ -418,6 +415,32 @@ type outcome struct {
 	scalars []any  // every boolean and integer in the result, in order
 	leaked  []any  // X values in the result
 	digest  string // of every row X owns, after the query
+}
+
+// isValueX treats every :11:11 time as X's, so no Y or fixed time may fall there.
+func TestNoYOrFixedTimeIsAnXMark(t *testing.T) {
+	for name, v := range isolationValues {
+		for _, c := range []any{v.fixed, v.y} {
+			if at, ok := c.(time.Time); ok && at.Minute() == 11 && at.Second() == 11 {
+				t.Errorf("%s: %v falls on :11:11, the X mark", name, at)
+			}
+		}
+	}
+}
+
+func TestXTimesAreRecognised(t *testing.T) {
+	for _, at := range []string{"2026-11-13T12:11:11Z", "2027-02-12T12:11:11Z", "2026-11-14T13:11:11Z"} {
+		parsed, err := time.Parse(time.RFC3339, at)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !isValueX(parsed) {
+			t.Errorf("%s is an X time and must be recognised", at)
+		}
+	}
+	if isValueX(now) {
+		t.Error("the fixture clock is not an X time")
+	}
 }
 
 func TestEveryQueryIsIsolated(t *testing.T) {
@@ -949,6 +972,11 @@ func walk(v reflect.Value, visit func(any)) {
 }
 
 func isValueX(v any) bool {
+	// Every X time of the fixture is written at minute 11, second 11; no Y,
+	// fixed or fresh time falls there (xMark below).
+	if t, ok := v.(time.Time); ok && t.Minute() == 11 && t.Second() == 11 {
+		return true
+	}
 	for _, x := range valuesX() {
 		if equalValue(v, x) {
 			return true
@@ -1034,14 +1062,6 @@ func uuid(s string) pgtype.UUID {
 		panic(err)
 	}
 	return id
-}
-
-func xTime(s string) time.Time {
-	at, err := time.Parse(time.RFC3339, s)
-	if err != nil {
-		panic(err)
-	}
-	return at
 }
 
 func hash(b byte) []byte { return bytes.Repeat([]byte{b}, 32) }
