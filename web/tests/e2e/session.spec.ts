@@ -86,6 +86,47 @@ async function isNewDocument(page: Page): Promise<boolean | null> {
 	}
 }
 
+/** The wipe_pending row a wipe writes before it deletes anything (SEC-172 (a)). */
+function seedWipePending(page: Page): Promise<void> {
+	return page.evaluate(
+		() =>
+			new Promise<void>((resolve, reject) => {
+				const open = indexedDB.open('casa', 10);
+				open.onerror = () => {
+					reject(open.error ?? new Error('open failed'));
+				};
+				open.onsuccess = () => {
+					const transaction = open.result.transaction('meta', 'readwrite');
+					transaction.objectStore('meta').put({ key: 'wipe_pending', value: true });
+					transaction.oncomplete = () => {
+						open.result.close();
+						resolve();
+					};
+				};
+			})
+	);
+}
+
+/** A cache the wipe must delete, so a failing cache deletion makes the wipe fail. */
+function seedProbeCache(page: Page): Promise<void> {
+	return page.evaluate(async () => {
+		await (await caches.open('casa-probe')).put('/probe', new Response('x'));
+	});
+}
+
+/** Counts the wipes that reached the cache step (each calls caches.keys() once). */
+async function countCacheWipes(page: Page): Promise<() => Promise<number>> {
+	await page.addInitScript(() => {
+		const keys = caches.keys.bind(caches);
+		Object.assign(window, { cacheWipes: 0 });
+		caches.keys = () => {
+			(window as unknown as { cacheWipes: number }).cacheWipes++;
+			return keys();
+		};
+	});
+	return () => page.evaluate(() => (window as unknown as { cacheWipes: number }).cacheWipes);
+}
+
 test('SEC-172 (b): the app waits at most 3 seconds for the session check, then checks again when back online', async ({
 	page,
 	context
@@ -284,6 +325,7 @@ test('ADR-024 item 6: LY-94 after a revoked session stays, with its unsent count
 	page
 }) => {
 	await failUnmocked(page);
+	const cacheWipes = await countCacheWipes(page);
 	await seedUnsent(page, 1);
 	let answered = 0;
 	const calls = await mockRpc(page, listMemberships, () =>
@@ -302,6 +344,9 @@ test('ADR-024 item 6: LY-94 after a revoked session stays, with its unsent count
 		window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
 	});
 	await revokedSignal(page, 0); // a second answer, counted after the first wipe
+	// The second wipe hides LY-94 from its start to its end, so LY-94 seen again after the
+	// second wipe's cache step is the state that wipe left.
+	await expect.poll(cacheWipes).toBe(2);
 	await expect(page.getByText(revoked)).toBeVisible();
 	await expect(page.getByText(dropped1)).toBeVisible();
 	expect(calls).toHaveLength(1);
@@ -321,9 +366,7 @@ test('SEC-172 (a): a wipe that keeps failing reloads once, then shows the unreac
 	);
 	await page.goto('/');
 	await expect(page.locator('h1')).toBeVisible();
-	await page.evaluate(async () => {
-		await (await caches.open('casa-probe')).put('/probe', new Response('x'));
-	});
+	await seedProbeCache(page);
 	await markDocument(page);
 	let documentLoads = 0;
 	page.on('load', () => {
@@ -339,35 +382,90 @@ test('SEC-172 (a): a wipe that keeps failing reloads once, then shows the unreac
 	expect(new URL(page.url()).pathname).toBe('/');
 });
 
-test('SEC-172 (a): a wipe left pending runs on open, before the session check and any screen', async ({
+test('SEC-172 (a): a wipe left pending runs on open, before the session check and any screen; a valid session then starts on a fresh page', async ({
 	page
 }) => {
 	await failUnmocked(page);
 	await seedUnsent(page, 1);
-	await page.evaluate(
-		() =>
-			new Promise<void>((resolve, reject) => {
-				const open = indexedDB.open('casa', 10);
-				open.onerror = () => {
-					reject(open.error ?? new Error('open failed'));
-				};
-				open.onsuccess = () => {
-					const transaction = open.result.transaction('meta', 'readwrite');
-					transaction.objectStore('meta').put({ key: 'wipe_pending', value: true });
-					transaction.oncomplete = () => {
-						open.result.close();
-						resolve();
-					};
-				};
-			})
-	);
+	await seedWipePending(page);
 	const databaseAtCheck: boolean[] = [];
 	await mockRpc(page, listMemberships, async () => {
 		databaseAtCheck.push(await hasCasaDatabase(page));
 		return signedIn;
 	});
+	let documentLoads = 0;
+	page.on('load', () => {
+		documentLoads++;
+	});
 	await page.goto('/');
+	// The page that wiped reloads once, so local data starts clean (no marker the second time).
+	await expect.poll(() => documentLoads).toBe(2);
 	await expect(page.locator('h1')).toBeVisible();
-	expect(databaseAtCheck).toEqual([false]);
+	expect(databaseAtCheck).toEqual([false, false]);
 	expect(await hasCasaDatabase(page)).toBe(false);
+});
+
+test('ADR-024 item 6: a wipe left pending counts its unsent records for LY-94', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	await seedUnsent(page, 1);
+	await seedWipePending(page);
+	await mockRpc(page, listMemberships, () =>
+		rpcError(Code.Unauthenticated, ErrorCode.SESSION_REVOKED)
+	);
+	await page.goto('/');
+	await expect(page.getByText(revoked)).toBeVisible();
+	await expect(page.getByText(dropped1)).toBeVisible();
+	expect(await hasCasaDatabase(page)).toBe(false);
+});
+
+test('ADR-024 item 6: after a failed cache deletion and its reload, LY-94 keeps the unsent count', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	// Cache deletion fails in the first document only; the reloaded one wipes normally.
+	await page.addInitScript(() => {
+		const navigation = performance.getEntriesByType('navigation')[0] as
+			PerformanceNavigationTiming | undefined;
+		if (navigation?.type === 'reload') return;
+		CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
+	});
+	await seedUnsent(page, 1);
+	await seedProbeCache(page);
+	await mockRpc(page, listMemberships, () =>
+		rpcError(Code.Unauthenticated, ErrorCode.SESSION_REVOKED)
+	);
+	let documentLoads = 0;
+	page.on('load', () => {
+		documentLoads++;
+	});
+	await page.goto('/');
+	await expect(page.getByText(revoked)).toBeVisible();
+	await expect(page.getByText(dropped1)).toBeVisible();
+	expect(documentLoads).toBe(2); // the first document's wipe failed and reloaded once
+});
+
+test('SEC-172 (a): a later revoked wipe that fails keeps the truthful LY-94 already shown', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	await seedUnsent(page, 1);
+	await mockRpc(page, listMemberships, () =>
+		rpcError(Code.Unauthenticated, ErrorCode.SESSION_REVOKED)
+	);
+	await page.goto('/');
+	await expect(page.getByText(dropped1)).toBeVisible();
+	await markDocument(page);
+	await seedProbeCache(page);
+	await page.evaluate(() => {
+		CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
+	});
+	const failedWipe = page.waitForEvent('console', (message) => message.type() === 'error');
+
+	await revokedSignal(page, 0);
+	await failedWipe;
+	await expect(page.getByText(revoked)).toBeVisible();
+	await expect(page.getByText(dropped1)).toBeVisible();
+	expect(await isNewDocument(page)).toBe(false);
 });

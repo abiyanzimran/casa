@@ -11,7 +11,13 @@
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
-	import { checkSession, session, showEnded, showUnreachable } from '#lib/session.svelte.js';
+	import {
+		carryUnsentDropped,
+		checkSession,
+		session,
+		showEnded,
+		showUnreachable
+	} from '#lib/session.svelte.js';
 	import { onTabSignal, type WipeKind } from '#lib/tab-signal.js';
 	import { wipeLocalData } from '#lib/wipe.js';
 
@@ -52,8 +58,13 @@
 			location.replace('/');
 			return;
 		}
-		if (wiped) showEnded('revoked', signal.unsentDropped);
-		else if (!(await retryWipeOnce())) return; // the old screen stays hidden until the reload
+		const unsentDropped = carryUnsentDropped(signal.unsentDropped);
+		const current = session.state;
+		if (wiped) showEnded('revoked', unsentDropped);
+		else if (current.kind === 'ended' && current.reason === 'revoked') {
+			// An earlier wipe of this tab finished and LY-94 says so truthfully; a later one that
+			// fails has nothing left to say, so LY-94 stays (the failure is logged above).
+		} else if (!(await retryWipeOnce(unsentDropped))) return; // hidden until the reload
 		wiping = false;
 	}
 
@@ -65,15 +76,16 @@
 	 * failure in this tab shows the unreachable state with its retry instead of reloading in a
 	 * loop. Returns whether it showed that state rather than reloading.
 	 */
-	async function retryWipeOnce(): Promise<boolean> {
+	async function retryWipeOnce(unsentDropped: number): Promise<boolean> {
 		if (page.state.wipeRetried) {
 			showUnreachable();
 			return true;
 		}
+		// The unsent count goes along, so the reloaded page's LY-94 still shows it (ADR-024 item 6).
 		await goto(resolve('/'), {
 			replace: true,
 			shallow: true,
-			state: { wipeRetried: true },
+			state: { wipeRetried: true, unsentDropped },
 			persistState: true
 		});
 		location.reload();
@@ -83,6 +95,7 @@
 	$effect(() => {
 		if (unsupported) return;
 		registerServiceWorker().catch(logFailure);
+		carryUnsentDropped(page.state.unsentDropped ?? 0); // from a wipe that failed and reloaded
 		// SEC-172 (b): the session is checked before anything else shows.
 		check();
 		// SEC-164 (d): a page restored from the back-forward cache shows nothing until the

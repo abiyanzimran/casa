@@ -27,9 +27,10 @@ async function unsubscribePush(): Promise<void> {
 
 /**
  * Marks the wipe as pending, deletes the local database and every cache but the app shell,
- * then this browser's push subscription. The push step runs last, once the others have settled, so a push step that
- * hangs never leaves data behind (SEC-164 (c), SEC-172 (a)). Every step runs even when another
- * fails; failures are then thrown together (ES §1: nothing fails silently).
+ * then this browser's push subscription. The push step runs last, once the others have
+ * settled, so a push step that hangs never leaves data behind (SEC-164 (c), SEC-172 (a)).
+ * Every step runs even when another fails; failures are then thrown together (ES §1: nothing
+ * fails silently).
  */
 export async function wipeLocalData(): Promise<void> {
 	// SEC-172 (a): marked first, so a deletion that fails is finished on the next open.

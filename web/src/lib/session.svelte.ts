@@ -5,7 +5,7 @@ import { api, ctx, errorCode, failureOf } from './api';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
 import { localDbExists, wipePending } from './local-db';
-import { broadcastWipe, wipeLocalData } from './wipe';
+import { broadcastWipe, unsentCount, wipeLocalData } from './wipe';
 
 export type DeviceMode = 'personal' | 'shared';
 
@@ -58,10 +58,23 @@ function settle(next: Exclude<SessionState, { kind: 'ended' }>): void {
 	if (session.state.kind !== 'ended') session.state = next;
 }
 
+/** Unsent commands a wipe of this tab dropped before LY-94 could say so (ADR-024 item 6). */
+let unsentDroppedCarried = 0;
+
+/**
+ * Keeps the number of unsent commands a wipe drops until LY-94 shows it: a wipe left pending,
+ * or one that failed and reloads, would otherwise leave nothing to count (ADR-024 item 6;
+ * SEC-171 (c)). Returns the largest count carried so far.
+ */
+export function carryUnsentDropped(count: number): number {
+	unsentDroppedCarried = Math.max(unsentDroppedCarried, count);
+	return unsentDroppedCarried;
+}
+
 /**
  * Shows LY-94 with memory reset first (plan decision 6). A revoked ending, whose wipe has
- * happened, outranks a later expired one, and a second revoked answer never lowers the unsent
- * count the first wipe dropped.
+ * happened, outranks a later expired one, and its unsent count never drops below what an
+ * earlier wipe of this tab dropped.
  */
 export function showEnded(reason: SessionEndReason, unsentDropped: number): void {
 	const current = session.state;
@@ -69,6 +82,7 @@ export function showEnded(reason: SessionEndReason, unsentDropped: number): void
 		if (reason !== 'revoked') return;
 		unsentDropped = Math.max(unsentDropped, current.unsentDropped);
 	}
+	if (reason === 'revoked') unsentDropped = carryUnsentDropped(unsentDropped);
 	resetSessionState();
 	session.state = { kind: 'ended', reason, unsentDropped };
 }
@@ -142,6 +156,18 @@ function recheckWhenBack(): void {
 }
 
 /**
+ * Finishes a wipe a failure left pending (the marker in IndexedDB, 10.5 §5) before the session
+ * check, so before any screen or queue send, counting its unsent commands first (SEC-172 (a);
+ * ADR-024 item 6). Says whether it wiped; a failure is thrown and counts as unreachable.
+ */
+async function finishPendingWipe(): Promise<boolean> {
+	if (!(await wipePending())) return false;
+	carryUnsentDropped(await unsentCount());
+	await wipeLocalData();
+	return true;
+}
+
+/**
  * The session check on open (SEC-172 (b); plan decision 4): ListMemberships, waited for at
  * most 3 seconds. A session error ends the session; anything else opens the app as
  * unreachable and checks again once back. user_initiated is false unless a tap caused it
@@ -152,13 +178,17 @@ export async function checkSession({
 	timeoutMs = sessionCheckLimitMs
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
-		// SEC-172 (a): a wipe a failure left pending (marker in IndexedDB, 10.5 §5) finishes before
-		// the session check, so before any screen or queue send. A failure counts as unreachable.
-		if (await wipePending()) await wipeLocalData();
+		const wipedOnOpen = await finishPendingWipe();
 		const { memberships } = await api.household.listMemberships(
 			{ requestContext: ctx(userInitiated) },
 			{ timeoutMs }
 		);
+		if (wipedOnOpen) {
+			// The wipe leaves this page's local database closed for good (deleteLocalDb), so a
+			// valid session starts on a fresh page, which has no marker any more.
+			location.reload();
+			return;
+		}
 		session.mode ??= await reopenedMode();
 		settle({ kind: 'signed-in', memberships });
 	} catch (error) {
