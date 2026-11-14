@@ -127,12 +127,6 @@ INSERT INTO operator_notice_ack (account_id, issue_seq, variant, version, text_s
 	('10000000-0000-4000-8000-000000000011', 1, 'couple', 1, decode(repeat('30', 32), 'hex'), '2026-11-14 11:11:11+00'),
 	('20000000-0000-4000-8000-000000000011', 1, 'couple', 1, decode(repeat('30', 32), 'hex'), '2026-11-14 12:00:00+00');
 
-INSERT INTO job (id, household_id, kind, run_at, unique_key, payload) VALUES
-	('10000000-0000-4000-8000-000000000091', '10000000-0000-4000-8000-000000000001', 'household.expire_invitation',
-	 '2026-11-14 10:11:11+00', '10000000-0000-4000-8000-000000000071', decode('10000000000040008000000000000071', 'hex')),
-	('20000000-0000-4000-8000-000000000091', '20000000-0000-4000-8000-000000000001', 'household.expire_invitation',
-	 '2026-11-14 11:00:00+00', '20000000-0000-4000-8000-000000000071', decode('20000000000040008000000000000071', 'hex'));
-
 INSERT INTO reader_feed (household_id, member_id, pos, object_kind, object_id, change) VALUES
 	('10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000021', 1, 'household',
 	 '10000000-0000-4000-8000-000000000001', 'upsert'),
