@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, type Snippet } from 'svelte';
+	import { tick, untrack, type Snippet } from 'svelte';
 	import { on } from 'svelte/events';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -14,6 +14,7 @@
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
 	import {
+		carryRevokedWipe,
 		carryUnsentDropped,
 		checkSession,
 		session,
@@ -51,7 +52,7 @@
 		await tick();
 		let wiped = true;
 		try {
-			await wipeLocalData();
+			await wipeLocalData(signal.kind);
 		} catch (error) {
 			wiped = false;
 			logFailure(error);
@@ -97,7 +98,10 @@
 	$effect(() => {
 		if (unsupported) return;
 		registerServiceWorker().catch(logFailure);
-		carryUnsentDropped(page.state.unsentDropped ?? 0); // from a wipe that failed and reloaded
+		// From a revoked wipe that failed and reloaded. Read untracked, so a later goto with state
+		// does not run this effect again (a second session check, a gap in the listeners).
+		const { wipeRetried, unsentDropped = 0 } = untrack(() => page.state);
+		if (wipeRetried) carryRevokedWipe(unsentDropped);
 		// SEC-172 (b): the session is checked before anything else shows.
 		check();
 		// SEC-164 (d): a page restored from the back-forward cache shows nothing until the

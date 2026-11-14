@@ -123,3 +123,84 @@ test('ADR-030 item 10: any other failure is not a session error and leaves the s
 	}
 	expect(session.state).toEqual({ kind: 'signed-in', memberships: [] });
 });
+
+/** The session check's answer, and what an unreachable state needs from the page. */
+async function answerSessionCheck(
+	...answers: (Error | 'signed-in')[]
+): Promise<{ reload: () => void }> {
+	const { api } = await import('./api');
+	const spy = vi.spyOn(api.household, 'listMemberships');
+	for (const answer of answers) {
+		if (answer === 'signed-in') spy.mockResolvedValueOnce({ memberships: [] } as never);
+		else spy.mockRejectedValueOnce(answer);
+	}
+	vi.stubGlobal('window', { addEventListener: vi.fn() });
+	vi.stubGlobal('document', { addEventListener: vi.fn() });
+	const location = { reload: vi.fn() };
+	vi.stubGlobal('location', location);
+	vi.stubGlobal('caches', { keys: () => Promise.resolve([]) });
+	return location;
+}
+
+/** A wipe started for kind that did not finish: its marker in the local database. */
+async function wipeLeftPending(kind: 'session_revoked' | 'sign_out'): Promise<void> {
+	await personalBrowser();
+	await localDbModule.localDb().meta.put({ key: 'wipe_pending', value: kind });
+}
+
+test('SEC-172 (a): a revoked wipe left pending, answered without a detail (after 1.7d), still ends as revoked with its unsent count', async () => {
+	await wipeLeftPending('session_revoked');
+	await answerSessionCheck(failed(Code.Unauthenticated));
+	const signal = nextSignal();
+	const { checkSession, carryUnsentDropped, session } = sessionModule;
+	await checkSession();
+	expect(await signal).toEqual({ kind: 'session_revoked', unsentDropped: 0 });
+	expect(carryUnsentDropped(0)).toBe(1); // counted before the wipe, for LY-94
+	expect(session.state.kind).not.toBe('signed-out');
+	expect(await localDbModule.localDbExists()).toBe(false);
+});
+
+test('SEC-161 (c) (5): a sign-out wipe left pending, answered without a detail, is signed out', async () => {
+	await wipeLeftPending('sign_out');
+	await answerSessionCheck(failed(Code.Unauthenticated));
+	const { checkSession, session } = sessionModule;
+	await checkSession();
+	expect(session.state).toEqual({ kind: 'signed-out' });
+	expect(await localDbModule.localDbExists()).toBe(false);
+});
+
+test('SEC-172 (a): a page reloaded after a failed revoked wipe treats an answer without a detail as revoked', async () => {
+	await answerSessionCheck(failed(Code.Unauthenticated));
+	const signal = nextSignal();
+	const { checkSession, carryRevokedWipe } = sessionModule;
+	carryRevokedWipe(2); // from page.state after the one reload
+	await checkSession();
+	expect(await signal).toEqual({ kind: 'session_revoked', unsentDropped: 0 });
+	expect(sessionModule.carryUnsentDropped(0)).toBe(2);
+});
+
+test('SEC-172 (a): a pending wipe still runs when its queue cannot be counted', async () => {
+	await wipeLeftPending('session_revoked');
+	await answerSessionCheck(failed(Code.Unauthenticated, ErrorCode.SESSION_REVOKED));
+	// Dexie's shared Table prototype, so every connection's count fails (iOS connection loss).
+	const table = Object.getPrototypeOf(
+		Object.getPrototypeOf(new localDbModule.LocalDb().outbox)
+	) as { count: () => Promise<number> };
+	vi.spyOn(table, 'count').mockRejectedValue(new Error('connection lost'));
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	const signal = nextSignal();
+	await sessionModule.checkSession();
+	expect(await signal).toEqual({ kind: 'session_revoked', unsentDropped: 0 });
+	expect(await localDbModule.localDbExists()).toBe(false);
+});
+
+test('SEC-172 (a): after a pending wipe and an unreachable check, a valid session starts on a fresh page', async () => {
+	await wipeLeftPending('session_revoked');
+	const { reload } = await answerSessionCheck(failed(Code.Unavailable), 'signed-in');
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	const { checkSession, session } = sessionModule;
+	await checkSession();
+	expect(session.state.kind).toBe('unreachable');
+	await checkSession();
+	expect(reload).toHaveBeenCalledTimes(1);
+});

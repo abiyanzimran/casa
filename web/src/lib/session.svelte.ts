@@ -5,7 +5,7 @@ import { noteUpgradeRequired } from './app-update.svelte';
 import { api, ctx, errorCode, failureOf } from './api';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
-import { localDbExists, wipePending } from './local-db';
+import { localDbExists, localDbWiped, wipePending } from './local-db';
 import { broadcastWipe, unsentCount, wipeLocalData } from './wipe';
 
 export type DeviceMode = 'personal' | 'shared';
@@ -73,6 +73,21 @@ export function carryUnsentDropped(count: number): number {
 }
 
 /**
+ * A revoked wipe this page carries: one left pending (its marker says session_revoked), or one
+ * that failed and reloaded (page.state.wipeRetried). The server expires the cookie with its
+ * session_revoked answer (1.7d), so the next answer is Unauthenticated without a detail; on
+ * this page that still means revoked, so LY-94 keeps its unsent count (SEC-172 (a);
+ * ADR-024 item 6).
+ */
+let revokedWipeCarried = false;
+
+/** Called with page.state after the one reload of a failed revoked wipe (+layout.svelte). */
+export function carryRevokedWipe(unsentDropped: number): void {
+	revokedWipeCarried = true;
+	carryUnsentDropped(unsentDropped);
+}
+
+/**
  * Shows LY-94 with memory reset first (plan decision 6). A revoked ending, whose wipe has
  * happened, outranks a later expired one, and its unsent count never drops below what an
  * earlier wipe of this tab dropped.
@@ -128,8 +143,12 @@ export async function handleSessionError(error: unknown): Promise<boolean> {
 			break;
 		}
 		default:
-			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)).
 			if (session.state.kind === 'ended') break;
+			if (revokedWipeCarried) {
+				await endSession('revoked');
+				break;
+			}
+			// Unauthenticated without a detail: no session, nothing to wipe (SEC-161 (c) (5)).
 			resetSessionState();
 			settle({ kind: 'signed-out' });
 	}
@@ -160,13 +179,14 @@ function recheckWhenBack(): void {
 /**
  * Finishes a wipe a failure left pending (the marker in IndexedDB, 10.5 §5) before the session
  * check, so before any screen or queue send, counting its unsent commands first (SEC-172 (a);
- * ADR-024 item 6). Says whether it wiped; a failure is thrown and counts as unreachable.
+ * ADR-024 item 6). A failure is thrown and counts as unreachable.
  */
-async function finishPendingWipe(): Promise<boolean> {
-	if (!(await wipePending())) return false;
+async function finishPendingWipe(): Promise<void> {
+	const kind = await wipePending();
+	if (!kind) return;
 	carryUnsentDropped(await unsentCount());
-	await wipeLocalData();
-	return true;
+	if (kind === 'session_revoked') revokedWipeCarried = true;
+	await wipeLocalData(kind);
 }
 
 /**
@@ -180,14 +200,15 @@ export async function checkSession({
 	timeoutMs = sessionCheckLimitMs
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
-		const wipedOnOpen = await finishPendingWipe();
+		await finishPendingWipe();
 		const { memberships } = await api.household.listMemberships(
 			{ requestContext: ctx(userInitiated) },
 			{ timeoutMs }
 		);
-		if (wipedOnOpen) {
-			// The wipe leaves this page's local database closed for good (deleteLocalDb), so a
-			// valid session starts on a fresh page, which has no marker any more.
+		if (localDbWiped()) {
+			// A wipe on this page, on open or before an unreachable check, leaves its local
+			// database closed for good (deleteLocalDb), so a valid session starts on a fresh page,
+			// which has no marker any more.
 			location.reload();
 			return;
 		}
