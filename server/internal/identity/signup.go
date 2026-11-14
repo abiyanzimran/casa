@@ -200,9 +200,6 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		// (FR-FAM-001/AC-10), from_signup checks the live token_hash, and
 		// joining needs the inviter's F04. SEC-158 note (2) asks for the
 		// same check as F02, not for atomicity with it.
-		if err := invitationOpen(ctx, link.InvitationTokenHash); err != nil {
-			return Tokens{}, err
-		}
 		sourceHash = link.InvitationTokenHash
 	}
 	// Hashed outside the transaction, which may run more than once.
