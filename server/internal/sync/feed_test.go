@@ -324,6 +324,18 @@ func TestReaderFeed(t *testing.T) {
 		}))
 		full := x.create(t)
 		x.addMember(t, full.HouseholdID)
+		// F04 refused after its fan-out: Confirm writes the invitation's
+		// event, and so its feed rows, before it finds the invitee a member
+		// elsewhere (ErrInviteeUnavailable; 09.2 §5.1 note on decision 20),
+		// so only the command's own transaction keeps those rows out.
+		late := x.create(t)
+		lateInv := x.invite(t, late)
+		invitee := x.accept(t, late, lateInv.ID)
+		elsewhere := x.create(t)
+		_, err := x.admin.Exec(t.Context(), `
+			INSERT INTO membership (household_id, account_id, display_name, role, permission_set, joined_at)
+			VALUES ($1, $2, 'Budi', 'household_owner', 'two_equal_adults', $3)`, elsewhere.HouseholdID, invitee, x.now)
+		x.must(t, err)
 		before := x.feedCount(t)
 		for _, c := range []struct {
 			name string
@@ -338,6 +350,10 @@ func TestReaderFeed(t *testing.T) {
 			{"STATE_CHANGED", a, func(tx pgx.Tx) error {
 				return x.h.CancelInvitation(t.Context(), tx, a, inv.ID, newID())
 			}, household.ErrStateChanged},
+			{"F04 invitee a member elsewhere", late, func(tx pgx.Tx) error {
+				_, err := x.h.Confirm(t.Context(), tx, late, lateInv.ID, newID())
+				return err
+			}, household.ErrInviteeUnavailable},
 		} {
 			if err := x.write(t, c.m.HouseholdID, c.m.AccountID, c.run); !errors.Is(err, c.want) {
 				t.Fatalf("%s: err = %v, want %v", c.name, err, c.want)

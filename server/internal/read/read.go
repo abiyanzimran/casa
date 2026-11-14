@@ -41,6 +41,11 @@ const maxMembers = 20
 // would be left out (ES §3).
 var errTooManyMembers = errors.New("more household members than the read path lists")
 
+// errNoMembers: a household always has a member (06 §3.1), so none means a
+// household other than the transaction's, which row-level security hides;
+// the fan-out fails instead of writing nothing.
+var errNoMembers = errors.New("no members of the household in this transaction")
+
 // canRead is the one read rule (plan 1.7 decision 7, ruling P5): whether a
 // member of the household reads an object of kind. Today every member reads
 // the household, its members and its live invitation (06 §3.1; plan 1.6
@@ -54,13 +59,19 @@ func canRead(kind ObjectKind) bool {
 }
 
 // Members are household's member ids in tx, by id: the member objects that
-// change with a household event (plan 1.7 decision 8; 09.2 §5.1).
+// change with a household event (plan 1.7 decision 8; 09.2 §5.1). None is
+// errNoMembers, more than maxMembers errTooManyMembers.
 func Members(ctx context.Context, tx pgx.Tx, household pgtype.UUID) ([]pgtype.UUID, error) {
 	members, err := readdb.New(tx).HouseholdMemberIDs(ctx, household)
-	if err == nil && len(members) > maxMembers {
+	switch {
+	case err != nil:
+		return nil, err
+	case len(members) == 0:
+		return nil, errNoMembers
+	case len(members) > maxMembers:
 		return nil, errTooManyMembers
 	}
-	return members, err
+	return members, nil
 }
 
 // Readers are the members who can read an object of kind in household after

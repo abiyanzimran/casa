@@ -29,8 +29,8 @@ CREATE TABLE reader_feed_counter (
 	FOREIGN KEY (household_id, member_id) REFERENCES membership
 );
 
--- Layer 4 of 09.2 §3, without missing_ok. The feed's policy names app_rw
--- from the start: without TO it would also be evaluated for job_runner's
+-- Layer 4 of 09.2 §3, without missing_ok. Both policies name app_rw from
+-- the start (the counter's by lead ruling on Task 4 review): without TO it would also be evaluated for job_runner's
 -- pruning (step 7) and fail, since job_runner never sets app.household_id
 -- (09.2 §3 note of 14 November 2026, Q1 (d)). The feed is append-only for
 -- app_rw; the counter only moves last_pos. job_runner and lifecycle_rw get
@@ -44,7 +44,7 @@ GRANT SELECT, INSERT ON reader_feed TO app_rw;
 
 ALTER TABLE reader_feed_counter ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reader_feed_counter FORCE ROW LEVEL SECURITY;
-CREATE POLICY household ON reader_feed_counter
+CREATE POLICY household ON reader_feed_counter FOR ALL TO app_rw
 	USING (household_id = current_setting('app.household_id')::uuid)
 	WITH CHECK (household_id = current_setting('app.household_id')::uuid);
 GRANT SELECT, INSERT, UPDATE (last_pos) ON reader_feed_counter TO app_rw;

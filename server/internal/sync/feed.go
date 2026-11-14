@@ -51,7 +51,9 @@ func Changed(ctx context.Context, tx pgx.Tx, household pgtype.UUID, kind read.Ob
 		}
 	}
 	// One order of counter rows for every command, so two commands wait on
-	// each other instead of deadlocking.
+	// each other instead of deadlocking. ponytail: untested; if the order
+	// broke, the cost is a deadlock found after deadlock_timeout and retried
+	// by database.Write (40P01), never a wrong position.
 	readers := slices.SortedFunc(maps.Keys(perReader), func(a, b pgtype.UUID) int { return bytes.Compare(a.Bytes[:], b.Bytes[:]) })
 
 	q := syncdb.New(tx)

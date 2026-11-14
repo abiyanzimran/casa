@@ -123,10 +123,13 @@ var tables = map[string]tableRule{
 	"reader_feed": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
 		policies: []string{rolePolicyText("app_rw", "(household_id = "+strictHousehold+")", "(household_id = "+strictHousehold+")")},
 		source:   "09.2 §3 note of 14 November 2026 (Q1 (d)), §5.1; ADR-017 item 3; plan 1.7 Task 4"},
-	// The counter moves only forward, by the fan-out (plan 1.7 decision 8).
+	// The counter moves only forward, by the fan-out (plan 1.7 decision 8);
+	// its policy names app_rw as the feed's does (lead ruling on the Task 4
+	// review).
 	"reader_feed_counter": {grants: map[string]string{"app_rw": "SELECT,INSERT"},
-		updates: []string{"last_pos"},
-		source:  "09.2 §5.1; ADR-017 item 3; plan 1.7 Task 4"},
+		updates:  []string{"last_pos"},
+		policies: []string{rolePolicyText("app_rw", "(household_id = "+strictHousehold+")", "(household_id = "+strictHousehold+")")},
+		source:   "09.2 §5.1; ADR-017 item 3; plan 1.7 Task 4; lead ruling on the Task 4 review"},
 }
 
 type tableRule struct {

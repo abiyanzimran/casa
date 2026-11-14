@@ -205,4 +205,31 @@ func TestRead(t *testing.T) {
 			t.Fatalf("Readers of 21 members = %v, want an error", got)
 		}
 	})
+
+	// A household always has a member (06 §3.1): none means a household the
+	// transaction's scope hides, and the fan-out must fail, not write
+	// nothing.
+	t.Run("readers of a household outside the transaction, or with no member, are an error", func(t *testing.T) {
+		h := start(t)
+		scoped := h.household(t, "Rumah Kita")
+		h.member(t, scoped, h.newID(t), "Ayu", now)
+		other := h.household(t, "Rumah Lain")
+		h.member(t, other, h.newID(t), "Dewi", now)
+		empty := h.household(t, "Rumah Kosong")
+		for name, c := range map[string]struct{ scope, household pgtype.UUID }{
+			"another household":          {scoped, other},
+			"a household with no member": {empty, empty},
+		} {
+			err := database.Write(t.Context(), h.app, database.Scope{HouseholdID: c.scope}, func(tx pgx.Tx) error {
+				got, err := read.Readers(t.Context(), tx, c.household, read.KindHousehold)
+				if err == nil {
+					t.Errorf("%s: Readers = %v, want an error", name, got)
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
 }
