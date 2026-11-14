@@ -110,7 +110,7 @@ message CompleteSignUpRequest {
   option (buf.validate.message).cel = {
     id: "device_mode.web"
     message: "web clients choose a device mode or finish without a session; native clients send neither"
-    expression: "this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)"
+    expression: "this.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0"
   };
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No validation rule, as setup_token above.
@@ -250,7 +250,7 @@ message CompleteRecoveryRequest {
   option (buf.validate.message).cel = {
     id: "device_mode.web"
     message: "web clients choose a device mode or finish without a session; native clients send neither"
-    expression: "this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)"
+    expression: "this.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0"
   };
   RequestContext request_context = 1 [(buf.validate.field).required = true];
   // No validation rule on purpose: an empty or malformed token gets the same

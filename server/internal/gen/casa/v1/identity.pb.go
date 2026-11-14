@@ -1256,7 +1256,7 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\x12.\n" +
 	"\x10invitation_token\x18\x04 \x01(\tB\x03\x80\x01\x01R\x0finvitationToken\"\x15\n" +
-	"\x13StartSignUpResponse\"\xe5\x04\n" +
+	"\x13StartSignUpResponse\"\x98\x04\n" +
 	"\x15CompleteSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x122\n" +
 	"\x12verification_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\x11verificationToken\x12)\n" +
@@ -1265,8 +1265,8 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"deviceMode\x12'\n" +
 	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession\x12 \n" +
 	"\x05email\x18\x06 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\xfe\x01R\x05email:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
-	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1a\xa1\x01this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)\"H\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xfe\x01R\x05email:\xca\x01\xbaH\xc6\x01\x1a\xc3\x01\n" +
+	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"H\n" +
 	"\x16CompleteSignUpResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x90\x03\n" +
 	"\rSignInRequest\x12H\n" +
@@ -1306,15 +1306,15 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12 \n" +
 	"\x05email\x18\x02 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\"\x17\n" +
-	"\x15StartRecoveryResponse\"\xc4\x04\n" +
+	"\x15StartRecoveryResponse\"\xf7\x03\n" +
 	"\x17CompleteRecoveryRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12*\n" +
 	"\x0erecovery_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\rrecoveryToken\x120\n" +
 	"\fnew_password\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\vnewPassword\x12>\n" +
 	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
 	"deviceMode\x12'\n" +
-	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
-	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1a\xa1\x01this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)\"J\n" +
+	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession:\xca\x01\xbaH\xc6\x01\x1a\xc3\x01\n" +
+	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"J\n" +
 	"\x18CompleteRecoveryResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens*[\n" +
 	"\n" +
