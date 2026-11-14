@@ -36,13 +36,18 @@
 	let emailError: string | undefined = $state();
 	let failure: string | undefined = $state();
 	let busy = $state(false);
+	// A setup link the server refused: the email form stays, and another link can be pasted.
+	let anotherLink = $state(false);
 	let emailBox: HTMLDivElement | undefined = $state();
+	let pasteBox: HTMLDivElement | undefined = $state();
 
 	/**
 	 * A pasted link becomes the held token, or the not-Casa sentence under the field, with no
 	 * request either way (SEC-175 (c) (2)); the field is emptied once the link is taken (c) (1).
+	 * A sentence about the link held before goes with it.
 	 */
 	async function takePasted(): Promise<void> {
+		failure = undefined;
 		const link = parsePastedLink(pasted, location.origin);
 		if (link === 'not-casa') {
 			pasteError = copy.signUp.notCasa;
@@ -51,9 +56,26 @@
 		session.pendingToken = { kind: link.kind, value: link.token };
 		pasted = '';
 		pasteError = undefined;
-		// The paste field is gone; the email field it made way for takes focus (08 §25.5).
+		anotherLink = false;
+		// The paste field is gone; the email field takes focus (08 §25.5).
 		await tick();
 		emailBox?.querySelector('input')?.focus();
+	}
+
+	/**
+	 * A refused link (SEC-30, one sentence per kind of link): an invitation is of no further
+	 * use, so it is dropped and sign-up is closed again with its paste field; a setup link is
+	 * kept, since the email may be what was wrong, and a field for another link is added. The
+	 * sentence stays above the button either way (QG-09 PR B S5).
+	 */
+	async function refused(token: SignUpToken): Promise<void> {
+		if (token.kind === 'setup') {
+			anotherLink = true;
+			return;
+		}
+		session.pendingToken = undefined;
+		await tick();
+		pasteBox?.querySelector('input')?.focus();
 	}
 
 	async function send(token: SignUpToken): Promise<void> {
@@ -63,6 +85,7 @@
 		if (failed) {
 			emailError = failed.email;
 			failure = failed.alert;
+			if (failed.tokenRejected) await refused(token);
 			return;
 		}
 		session.signUpEmail = email;
@@ -85,13 +108,32 @@
 	}
 </script>
 
+{#snippet pasteField()}
+	<div bind:this={pasteBox}>
+		<TextField
+			label={copy.signUp.paste.label}
+			type="url"
+			autocomplete="off"
+			hint={copy.signUp.paste.hint}
+			error={pasteError}
+			bind:value={pasted}
+		/>
+	</div>
+{/snippet}
+
 {#if !redirect}
 	<Screen heading={copy.signUp.title} destination="Buat akun" describedby="{id}-lead">
-		{#if held}
-			<p id="{id}-lead">
-				{held.kind === 'setup' ? copy.signUp.withSetup : copy.signUp.withInvitation}
-			</p>
-			<form novalidate onsubmit={submit}>
+		<p id="{id}-lead">
+			{held
+				? held.kind === 'setup'
+					? copy.signUp.withSetup
+					: copy.signUp.withInvitation
+				: copy.signUp.closed}
+		</p>
+		<!-- One form whose fields follow the held link, so its alert stays mounted and is
+		     announced when a refused invitation closes sign-up again (InlineMessage; 08 §25.5). -->
+		<form novalidate onsubmit={submit}>
+			{#if held}
 				<div bind:this={emailBox}>
 					<TextField
 						label={copy.signUp.email.label}
@@ -103,26 +145,31 @@
 					/>
 				</div>
 				<p class="sebelum-tombol">{copy.signUp.passwordLater}</p>
-				<InlineMessage role="alert" text={failure} />
+			{:else}
+				{@render pasteField()}
+			{/if}
+			<InlineMessage role="alert" text={failure} />
+			<ButtonRow>
+				<Button variant="primary" type="submit" {busy}
+					>{held ? copy.signUp.submit : copy.signUp.paste.submit}</Button
+				>
+			</ButtonRow>
+		</form>
+		{#if held && anotherLink}
+			<form
+				novalidate
+				onsubmit={(event) => {
+					event.preventDefault();
+					takePasted().catch(console.error);
+				}}
+			>
+				{@render pasteField()}
 				<ButtonRow>
-					<Button variant="primary" type="submit" {busy}>{copy.signUp.submit}</Button>
+					<Button variant="outlined" type="submit">{copy.signUp.paste.submit}</Button>
 				</ButtonRow>
 			</form>
-		{:else}
-			<p id="{id}-lead">{copy.signUp.closed}</p>
-			<form novalidate onsubmit={submit}>
-				<TextField
-					label={copy.signUp.paste.label}
-					type="url"
-					autocomplete="off"
-					hint={copy.signUp.paste.hint}
-					error={pasteError}
-					bind:value={pasted}
-				/>
-				<ButtonRow>
-					<Button variant="primary" type="submit">{copy.signUp.paste.submit}</Button>
-				</ButtonRow>
-			</form>
+		{/if}
+		{#if !held}
 			<TextLink href={resolve('/masuk/akun')}>{copy.signUp.signIn}</TextLink>
 		{/if}
 	</Screen>

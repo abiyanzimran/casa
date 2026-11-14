@@ -2,7 +2,7 @@ import { Code } from '@connectrpc/connect';
 import { expect, test, type Page } from '@playwright/test';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
-import { choiceButton, safariTab } from './support';
+import { choiceButton, safariTab, visitedPaths } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -44,15 +44,6 @@ const listMemberships = HouseholdService.method.listMemberships;
 async function signedOut(page: Page) {
 	await failUnmocked(page);
 	return mockRpc(page, listMemberships, () => rpcError(Code.Unauthenticated));
-}
-
-/** Every URL the page shows, client-side navigations included. */
-function visitedPaths(page: Page): string[] {
-	const paths: string[] = [];
-	page.on('framenavigated', (frame) => {
-		if (frame === page.mainFrame()) paths.push(new URL(frame.url()).pathname);
-	});
-	return paths;
 }
 
 async function expectLy01(page: Page): Promise<void> {

@@ -19,10 +19,14 @@ export function heldSignUpToken(): SignUpToken | undefined {
 	return { kind: token.kind, value: token.value };
 }
 
-/** What a failed start shows: a sentence on the email field, or one above the button. */
+/**
+ * What a failed start shows: a sentence on the email field, or one above the button.
+ * tokenRejected: the server refused the held link (TOKEN_REJECTED).
+ */
 export interface SignUpFailure {
 	email?: string;
 	alert?: string;
+	tokenRejected?: true;
 }
 
 const emailSentences = {
@@ -50,7 +54,8 @@ export async function startSignUp(
 		if (await handleSessionError(error)) return {};
 		if (errorCode(error) === ErrorCode.TOKEN_REJECTED) {
 			return {
-				alert: token.kind === 'setup' ? copy.signUp.setupRejected : copy.invitation.rejected
+				alert: token.kind === 'setup' ? copy.signUp.setupRejected : copy.invitation.rejected,
+				tokenRejected: true
 			};
 		}
 		return fieldErrors(error, emailSentences) ?? { alert: actionFailure(error) };

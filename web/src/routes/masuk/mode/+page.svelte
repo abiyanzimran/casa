@@ -15,12 +15,19 @@
 		if (redirect) goto(resolve(redirect), { replaceState: true }).catch(console.error);
 	});
 
-	// A verification link opened before a mode was chosen goes back to its page (08 §7.6
-	// "Halaman verifikasi"); otherwise LY-01.
+	// A link opened before a mode was chosen goes back to its page: a verification link to its
+	// page (08 §7.6 "Halaman verifikasi"), a setup link to LY-02 Buat akun (PR B review M7);
+	// otherwise, an invitation included, LY-01.
+	const after = {
+		verification: '/signup/verify',
+		setup: '/masuk/daftar',
+		invitation: '/masuk'
+	} as const;
+
 	function choose(mode: DeviceMode): void {
 		session.mode = mode;
-		const back = session.pendingToken?.kind === 'verification';
-		goto(resolve(back ? '/signup/verify' : '/masuk')).catch(console.error);
+		const kind = session.pendingToken?.kind;
+		goto(resolve(kind ? after[kind] : '/masuk')).catch(console.error);
 	}
 </script>
 

@@ -52,8 +52,8 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 		setup: async (page) => {
 			await mockRpc(page, IdentityService.method.startSignUp, () => ({}));
 			await page.goto(`/signup#${'A'.repeat(43)}`);
+			// A held setup link goes from LY-91 straight to Buat akun (PR B review M7).
 			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
-			await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
 			await page.getByLabel('Email', { exact: true }).fill(`${'n'.repeat(60)}@contoh.id`);
 			await page.getByRole('button', { name: 'Kirim tautan', exact: true }).click();
 		}

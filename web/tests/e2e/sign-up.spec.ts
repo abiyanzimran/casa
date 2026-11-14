@@ -4,7 +4,13 @@ import { ErrorCode } from '../../src/lib/gen/casa/v1/error_pb';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { DeviceMode, IdentityService } from '../../src/lib/gen/casa/v1/identity_pb';
 import { failUnmocked, mockRpc, rpcError, type RpcError } from './api-mock';
-import { choiceButton, expectNavigationStateOnly, safariTab, type Choice } from './support';
+import {
+	choiceButton,
+	expectNavigationStateOnly,
+	safariTab,
+	visitedPaths,
+	type Choice
+} from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -90,10 +96,17 @@ async function chooseAndSignUp(page: Page, choice: Choice = 'personal'): Promise
 	await expect(page.locator('h1')).toBeFocused();
 }
 
-/** Opens Casa from a setup link and reaches LY-02 Buat akun with the token held. */
+/**
+ * Opens Casa from a setup link and reaches LY-02 Buat akun with the token held: the device mode
+ * on LY-91 leads straight back to Buat akun, without LY-01 (PR B review M7).
+ */
 async function openSetupLink(page: Page): Promise<void> {
 	await page.goto(`/signup#${token}`);
-	await chooseAndSignUp(page);
+	await expect(page).toHaveURL(/\/masuk\/mode$/);
+	await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
+	await expect(page).toHaveURL(/\/masuk\/daftar$/);
+	await expect(page).toHaveTitle('Casa · Buat akun');
+	await expect(page.locator('h1')).toBeFocused();
 	await expect(page.getByText(withSetup, { exact: true })).toBeVisible();
 }
 
@@ -137,8 +150,8 @@ test('SEC-175 (c): a setup link is read from the fragment and removed from the a
 	expect(storage).not.toContain(token);
 	expect(databases).toEqual([]);
 	await expectNavigationStateOnly(page);
-	// Every history entry of this tab: LY-02 Buat akun, LY-01, then where /signup was.
-	for (const path of [/\/masuk\/daftar$/, /\/masuk$/, /\/masuk\/mode$/]) {
+	// Every history entry of this tab: LY-02 Buat akun, then LY-91 where /signup was.
+	for (const path of [/\/masuk\/daftar$/, /\/masuk\/mode$/]) {
 		await page.goBack();
 		await expect(page).toHaveURL(path);
 		expect(page.url()).not.toContain(token);
@@ -226,6 +239,56 @@ test('SEC-30: every rejected sign-up start shows one message per link type', asy
 	await expect(page).toHaveURL(/\/masuk\/daftar$/);
 });
 
+test('SEC-30: a rejected invitation link is dropped, keeps its sentence, and the paste field returns', async ({
+	page
+}) => {
+	const { starts } = await server(page, {
+		start: [rpcError(Code.PermissionDenied, ErrorCode.TOKEN_REJECTED)]
+	});
+	await openWithPastedInvitation(page);
+	await emailField(page).fill(email);
+	await sendLink(page).click();
+	await expect(page.getByRole('alert')).toHaveText(invitationRejected);
+	await expect(page.getByText(closed, { exact: true })).toBeVisible();
+	await expect(emailField(page)).toHaveCount(0);
+	await expect(pasteField(page)).toBeVisible();
+	await expect(
+		page.getByRole('link', { name: 'Sudah punya akun? Masuk', exact: true })
+	).toBeVisible();
+
+	// Another link can be pasted at once, without a reload; the old sentence goes with it.
+	await paste(page, `${new URL(page.url()).origin}/signup#${token}`);
+	await expect(page.getByText(withSetup, { exact: true })).toBeVisible();
+	await expect(page.getByRole('alert')).toHaveText('');
+	await emailField(page).fill(email);
+	await sendLink(page).click();
+	await expect(page).toHaveURL(/\/masuk\/periksa-email$/);
+	expect(starts.map((start) => [start.setupToken, start.invitationToken])).toEqual([
+		['', 'invitation-token'],
+		[token, '']
+	]);
+});
+
+test('SEC-30: a rejected setup link keeps the email form and also offers pasting another link', async ({
+	page
+}) => {
+	await server(page, { start: [rpcError(Code.PermissionDenied, ErrorCode.TOKEN_REJECTED)] });
+	await openSetupLink(page);
+	await expect(pasteField(page)).toHaveCount(0);
+	await emailField(page).fill(email);
+	await sendLink(page).click();
+	await expect(page.getByRole('alert')).toHaveText(setupRejected);
+	await expect(emailField(page)).toHaveValue(email);
+	await expect(pasteField(page)).toHaveAccessibleDescription(pasteHint);
+
+	await paste(page, `${new URL(page.url()).origin}/invite#invitation-token`);
+	await expect(page.getByText(withInvitation, { exact: true })).toBeVisible();
+	await expect(pasteField(page)).toHaveCount(0);
+	await expect(page.getByRole('alert')).toHaveText('');
+	await expect(emailField(page)).toHaveValue(email);
+	await expect(emailField(page)).toBeFocused();
+});
+
 test('08 §7.6: an email the server rejects by its shape is marked on the email field', async ({
 	page
 }) => {
@@ -295,8 +358,12 @@ for (const choice of ['personal', 'shared'] as const) {
 				choice === 'personal' ? passwordHint : `${passwordHint} ${doNotSave}`
 			);
 			await passwordField(page).fill(password);
+			const paths = visitedPaths(page);
 			await proceed(page).click();
 			await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
+			// The used token is dropped before the session check (PR B review M8), and the page
+			// still goes straight to the member's screen, never through LY-01.
+			expect(paths).toEqual(['/']);
 
 			expect(completes).toHaveLength(1);
 			expect(completes[0]).toMatchObject({

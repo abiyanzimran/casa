@@ -121,3 +121,12 @@ export const choiceButton: Record<Choice, string> = {
 	personal: 'Perangkat pribadiku',
 	shared: 'Perangkat bersama atau pinjaman'
 };
+
+/** Every path the page shows from now on, client-side navigations included. */
+export function visitedPaths(page: Page): string[] {
+	const paths: string[] = [];
+	page.on('framenavigated', (frame) => {
+		if (frame === page.mainFrame()) paths.push(new URL(frame.url()).pathname);
+	});
+	return paths;
+}

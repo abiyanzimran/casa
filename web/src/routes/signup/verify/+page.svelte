@@ -34,14 +34,17 @@
 		session.pendingToken?.kind === 'verification' ? session.pendingToken.value : undefined
 	);
 	let rejected = $state(false);
+	let busy = $state(false);
 	// Without a token (reloaded, or used by a sign-up that went through) the page has nothing to
 	// complete, so the screen nextScreen() names follows: the member's screens once signed in.
+	// Not while a completion runs: its token is dropped before the session check, which must
+	// settle first, so LY-01 never shows on the way.
 	const redirect = $derived(
 		displayContext() === 'ios-safari-tab'
 			? '/pasang'
 			: !session.mode
 				? '/masuk/mode'
-				: !token && !rejected
+				: !token && !rejected && !busy
 					? nextScreen()
 					: undefined
 	);
@@ -55,7 +58,6 @@
 	let password = $state('');
 	let passwordError: string | undefined = $state();
 	let failure: string | undefined = $state();
-	let busy = $state(false);
 	let rejectedBox: HTMLDivElement | undefined = $state();
 
 	async function complete(verificationToken: string): Promise<void> {
@@ -85,8 +87,9 @@
 			else failure = actionFailure(error);
 			return;
 		}
+		// Used, so dropped before anything else can fail (PR B review M8).
+		session.pendingToken = undefined;
 		await afterSignIn(mode);
-		session.pendingToken = undefined; // the redirect above then opens nextScreen()
 	}
 </script>
 
@@ -104,12 +107,12 @@
 					>
 				</ButtonRow>
 			</div>
-		{:else if token}
+		{:else if token || busy}
 			<form
 				novalidate
 				onsubmit={(event) => {
 					event.preventDefault();
-					if (busy) return;
+					if (busy || !token) return;
 					busy = true;
 					complete(token)
 						.catch(console.error)
