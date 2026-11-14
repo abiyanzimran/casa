@@ -479,15 +479,11 @@ func TestCookieSession(t *testing.T) {
 		}
 	})
 
-	// wantSiteCleared checks a web sign-out's answer (SEC-164 (b); plan 1.5
-	// decision 14): Clear-Site-Data exactly "cookies", "storage" (no
-	// "cache"), and one Set-Cookie that expires the session cookie with the
-	// attributes of decision 7, never a new value.
-	wantSiteCleared := func(t *testing.T, info *connect.CallInfo) {
+	// wantCookieExpired checks that the response carries one Set-Cookie that
+	// expires the session cookie with the attributes of decision 7, never a
+	// new value (SEC-161 (b), (c)).
+	wantCookieExpired := func(t *testing.T, info *connect.CallInfo) {
 		t.Helper()
-		if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 1 || got[0] != `"cookies", "storage"` {
-			t.Fatalf("Clear-Site-Data %q, want exactly %q", got, `"cookies", "storage"`)
-		}
 		cookie, line := sessionCookie(t, info)
 		if cookie.Name != sessionCookieName || cookie.Value != "" || cookie.MaxAge != -1 || !strings.Contains(line, "; Max-Age=0") ||
 			!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" ||
@@ -496,6 +492,144 @@ func TestCookieSession(t *testing.T) {
 				cookieShape(line), sessionCookieName)
 		}
 	}
+	// wantSiteCleared checks a web sign-out's answer (SEC-164 (b); plan 1.5
+	// decision 14): Clear-Site-Data exactly "cookies", "storage" (no
+	// "cache"), and the expired session cookie.
+	wantSiteCleared := func(t *testing.T, info *connect.CallInfo) {
+		t.Helper()
+		if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 1 || got[0] != `"cookies", "storage"` {
+			t.Fatalf("Clear-Site-Data %q, want exactly %q", got, `"cookies", "storage"`)
+		}
+		wantCookieExpired(t, info)
+	}
+
+	t.Run("SEC-161 a revoked or expired session's cookie is expired with the same attributes, without touching site data", func(t *testing.T) {
+		// 10.5 SEC-161 note of 15 November 2026 conditions (1) to (3);
+		// ADR-030 item 5; SEC-172 (d): local data stays.
+		check := func(t *testing.T, h *identityHarness, cookie string, code casav1.ErrorCode) {
+			t.Helper()
+			ctx := sameOrigin(cookie)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			wantErrorCode(t, h.read(ctx, web, true), connect.CodeUnauthenticated, code)
+			wantCookieExpired(t, info)
+			if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 0 {
+				t.Fatalf("Clear-Site-Data %q, want none", got)
+			}
+			if got := info.ResponseHeader().Values("Cache-Control"); len(got) != 1 || got[0] != "no-store" {
+				t.Fatalf("Cache-Control %q, want exactly no-store", got)
+			}
+		}
+		t.Run("signed out", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			cookie := h.webSignIn(t, email, password, personal)
+			wantOK(t, h.webSignOut(sameOrigin(cookie)))
+			check(t, h, cookie, revoked)
+		})
+		t.Run("30 idle days", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			cookie := h.webSignIn(t, email, password, personal)
+			h.clock.advance(30 * day)
+			check(t, h, cookie, expired)
+		})
+		t.Run("a previous value reused after its window", func(t *testing.T) {
+			h := startIdentity(t)
+			h.signUp(t, email, password)
+			a := h.webSignIn(t, email, password, personal)
+			h.clock.advance(15 * time.Minute)
+			b, err := h.webRead(t, a)
+			wantOK(t, err)
+			h.clock.advance(time.Second)
+			_, err = h.webRead(t, b.Value) // confirms b
+			wantOK(t, err)
+			h.clock.advance(61 * time.Second)
+			check(t, h, a, revoked)
+		})
+	})
+
+	t.Run("an unknown, malformed or native token keeps the uniform answer and sets no cookie", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		a := h.webSignIn(t, email, password, personal)
+		c := a
+		for range 2 { // two rotations: a is no longer any value of the row
+			h.clock.advance(15 * time.Minute)
+			next, err := h.webRead(t, c)
+			wantOK(t, err)
+			c = next.Value
+			h.clock.advance(time.Second)
+			_, err = h.webRead(t, c)
+			wantOK(t, err)
+		}
+		for name, value := range map[string]string{
+			"unknown": tokenOf(t), "malformed": "not base64!", "two rotations old": a, "native access token": tokens.GetAccessToken(),
+		} {
+			ctx := sameOrigin(value)
+			info, _ := connect.CallInfoForClientContext(ctx)
+			err := h.read(ctx, web, true)
+			wantCode(t, err, connect.CodeUnauthenticated)
+			if got := errorCodes(t, err); len(got) != 0 {
+				t.Errorf("%s: error codes %v, want no detail", name, got)
+			}
+			if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+				t.Errorf("%s: %d Set-Cookie headers, want none", name, n)
+			}
+			if got := info.ResponseHeader().Values("Clear-Site-Data"); len(got) != 0 {
+				t.Errorf("%s: Clear-Site-Data %q, want none", name, got)
+			}
+		}
+	})
+
+	t.Run("a stale cookie of one browser never ends the session of another", func(t *testing.T) {
+		// 10.5 SEC-161 note of 15 November 2026 condition (4).
+		for _, c := range []string{"signed out", "30 idle days"} {
+			t.Run(c, func(t *testing.T) {
+				h := startIdentity(t)
+				h.signUp(t, email, password)
+				a := h.webSignIn(t, email, password, personal)
+				b := h.webSignIn(t, email, password, personal)
+				code := revoked
+				if c == "signed out" {
+					wantOK(t, h.webSignOut(sameOrigin(a)))
+				} else {
+					code = expired
+					for range 30 { // B is used daily; A idles out
+						h.clock.advance(day)
+						next, err := h.webRead(t, b)
+						wantOK(t, err)
+						if next != nil {
+							b = next.Value
+						}
+					}
+				}
+				ctx := sameOrigin(a)
+				info, _ := connect.CallInfoForClientContext(ctx)
+				wantErrorCode(t, h.read(ctx, web, true), connect.CodeUnauthenticated, code)
+				wantCookieExpired(t, info)
+				if _, err := h.webRead(t, b); err != nil {
+					t.Fatalf("browser B after A's answer: %v; want OK", err)
+				}
+				hash := sha256.Sum256(decodeToken(t, b))
+				if n := h.count(t, "SELECT count(*) FROM session WHERE token_hash = $1 AND revoked_at IS NULL", hash[:]); n != 1 {
+					t.Fatal("B's session was revoked; want it live")
+				}
+			})
+		}
+	})
+
+	t.Run("a native request of an ended session gets no cookie", func(t *testing.T) {
+		h := startIdentity(t)
+		tokens := h.signUp(t, email, password)
+		_, err := h.client.SignOut(bearer(tokens.GetAccessToken()), &casav1.SignOutRequest{RequestContext: commandRC()})
+		wantOK(t, err)
+		ctx := bearer(tokens.GetAccessToken())
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantErrorCode(t, h.read(ctx, ios, true), connect.CodeUnauthenticated, revoked)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 {
+			t.Fatalf("%d Set-Cookie headers, want none", n)
+		}
+	})
 
 	t.Run("a web sign-out clears the cookie and the site data", func(t *testing.T) {
 		h := startIdentity(t)
@@ -803,14 +937,19 @@ func TestCookieSession(t *testing.T) {
 }
 
 // newCookie returns the session cookie a response set, checked for the
-// attributes every session cookie has, or nil for none; more than one fails
-// the test (a response sets at most one session cookie).
+// attributes every session cookie has, or nil for none or for an expired
+// one (an ended session's answer, which stores no value; the tests of
+// wantCookieExpired check its attributes); more than one fails the test (a
+// response sets at most one session cookie).
 func newCookie(t *testing.T, info *connect.CallInfo) *http.Cookie {
 	t.Helper()
 	if len(info.ResponseHeader().Values("Set-Cookie")) == 0 {
 		return nil
 	}
 	cookie, line := sessionCookie(t, info)
+	if cookie.Value == "" && cookie.MaxAge < 0 {
+		return nil
+	}
 	wantHostCookie(t, cookie, line)
 	return cookie
 }
