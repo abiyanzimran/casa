@@ -52,6 +52,35 @@ func TestSetupToken(t *testing.T) {
 		}
 	})
 
+	t.Run("-origin adds the setup link after the three lines", func(t *testing.T) {
+		// 09.4 §2 note of 14 November 2026; SEC-158 (b).
+		d := databasetest.Migrated(t)
+		withCredential(t, appDatabaseURL, d.URL("app_rw"))
+		code, stdout, stderr := runCasa(t, "setup-token", "-email", "a@example.test", "-origin", "https://casa.example.test")
+		lines := strings.SplitAfter(stdout, "\n")
+		three := strings.Join(lines[:3], "")
+		match := setupTokenOutput.FindStringSubmatch(three)
+		if code != 0 || stderr != "" || match == nil || len(lines) != 5 || lines[4] != "" ||
+			lines[3] != "link: https://casa.example.test/signup#"+match[1]+"\n" {
+			t.Fatalf("exit %d, stdout %q, stderr %q; want the three lines and the link", code, stdout, stderr)
+		}
+	})
+
+	t.Run("an origin casa serve would refuse issues no token", func(t *testing.T) {
+		d := databasetest.Migrated(t)
+		withCredential(t, appDatabaseURL, d.URL("app_rw"))
+		for _, origin := range []string{"http://casa.example.test", "https://casa.example.test/", "https://Casa.example.test"} {
+			code, stdout, stderr := runCasa(t, "setup-token", "-email", "a@example.test", "-origin", origin)
+			if code != 2 || stdout != "" || !strings.Contains(stderr, "-origin") {
+				t.Errorf("%q: exit %d, stdout %q, stderr %q; want 2, no stdout, -origin named", origin, code, stdout, stderr)
+			}
+		}
+		var rows int
+		if err := d.Pool(t, d.AdminRole).QueryRow(t.Context(), "SELECT count(*) FROM setup_token").Scan(&rows); err != nil || rows != 0 {
+			t.Fatalf("%d setup tokens (%v), want 0", rows, err)
+		}
+	})
+
 	t.Run("rejects a malformed email", func(t *testing.T) {
 		d := databasetest.Migrated(t)
 		withCredential(t, appDatabaseURL, d.URL("app_rw"))
@@ -71,7 +100,7 @@ func TestSetupToken(t *testing.T) {
 			{"setup-token"},
 		} {
 			code, _, stderr := runCasa(t, args...)
-			if want := "usage: casa setup-token -email address\n"; code != 2 || stderr != want {
+			if want := "usage: casa setup-token -email address [-origin https://host]\n"; code != 2 || stderr != want {
 				t.Errorf("%q: exit %d, stderr %q; want 2, %q", args, code, stderr, want)
 			}
 		}
