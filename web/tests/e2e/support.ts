@@ -113,3 +113,11 @@ export async function safariTab(page: Page): Promise<void> {
 		Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false });
 	});
 }
+
+export type Choice = 'personal' | 'shared';
+
+/** 08 §25.6 LY-91: the button for each device mode, word for word. */
+export const choiceButton: Record<Choice, string> = {
+	personal: 'Perangkat pribadiku',
+	shared: 'Perangkat bersama atau pinjaman'
+};

@@ -4,7 +4,7 @@ import { ErrorCode } from '../../src/lib/gen/casa/v1/error_pb';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { DeviceMode, IdentityService } from '../../src/lib/gen/casa/v1/identity_pb';
 import { failUnmocked, mockRpc, rpcError, type RpcError } from './api-mock';
-import { expectNavigationStateOnly } from './support';
+import { choiceButton, expectNavigationStateOnly, safariTab, type Choice } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2). The tests
 // that count service worker registrations allow them again below.
@@ -20,13 +20,7 @@ const serverTrouble = 'Ada gangguan di server. Coba lagi beberapa saat lagi.';
 const email = 'nama@contoh.id';
 const password = 'kalimat pendek yang mudah diingat';
 
-type Choice = 'personal' | 'shared';
-
-// 08 §25.6: the LY-91 button for each mode, and the Safari-tab way into shared mode (LY-90).
-const choiceButton: Record<Choice, string> = {
-	personal: 'Perangkat pribadiku',
-	shared: 'Perangkat bersama atau pinjaman'
-};
+// 08 §25.6: the Safari-tab way into shared mode (LY-90).
 const sharedTabWay = 'Pakai sebagai perangkat bersama atau pinjaman';
 
 /**
@@ -44,13 +38,6 @@ async function server(page: Page, ...replies: RpcError[]) {
 		if (reply) return reply;
 		signedIn = true;
 		return {};
-	});
-}
-
-/** Safari on iPhone or iPad in a tab: navigator.standalone exists and is false. */
-async function safariTab(page: Page): Promise<void> {
-	await page.addInitScript(() => {
-		Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false });
 	});
 }
 
@@ -142,39 +129,45 @@ test.describe('with service workers allowed', () => {
 		await signIn(page);
 		await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
 		await expect.poll(async () => (await stored(page)).registrations).toBe(1);
-		const persistence = await page.evaluate(
-			() =>
-				new Promise<unknown>((resolve, reject) => {
-					const open = indexedDB.open('casa');
-					open.onerror = () => {
-						reject(open.error ?? new Error('open failed'));
-					};
-					open.onsuccess = () => {
-						const get = open.result
-							.transaction('meta')
-							.objectStore('meta')
-							.get('persistence_granted');
-						get.onsuccess = () => {
-							open.result.close();
-							resolve(get.result);
+		// The answer is stored once persist() settles, after the screen moved on: polled.
+		const persistence = () =>
+			page.evaluate(
+				() =>
+					new Promise<unknown>((resolve, reject) => {
+						const open = indexedDB.open('casa');
+						open.onerror = () => {
+							reject(open.error ?? new Error('open failed'));
 						};
-					};
-				})
-		);
-		expect(persistence).toEqual({ key: 'persistence_granted', value: expect.any(Boolean) });
+						open.onsuccess = () => {
+							const get = open.result
+								.transaction('meta')
+								.objectStore('meta')
+								.get('persistence_granted');
+							get.onsuccess = () => {
+								open.result.close();
+								resolve(get.result);
+							};
+						};
+					})
+			);
+		await expect
+			.poll(persistence)
+			.toEqual({ key: 'persistence_granted', value: expect.any(Boolean) });
 	});
 });
 
-test('SEC-175 (d): personal mode offers password autocomplete; shared mode turns it off and says not to save', async ({
+test('SEC-175 (d): personal mode offers email and password autocomplete; shared mode turns both off and says not to save', async ({
 	page
 }) => {
 	await server(page);
 	await openSignIn(page, 'personal');
+	await expect(emailField(page)).toHaveAttribute('autocomplete', 'username');
 	await expect(passwordField(page)).toHaveAttribute('autocomplete', 'current-password');
 	await expect(passwordField(page)).toHaveAttribute('type', 'password');
 	await expect(page.getByText(doNotSave)).toHaveCount(0);
 
 	await openSignIn(page, 'shared');
+	await expect(emailField(page)).toHaveAttribute('autocomplete', 'off');
 	await expect(passwordField(page)).toHaveAttribute('autocomplete', 'off');
 	await expect(page.getByText(doNotSave, { exact: true })).toBeVisible();
 	await expect(passwordField(page)).toHaveAccessibleDescription(doNotSave);

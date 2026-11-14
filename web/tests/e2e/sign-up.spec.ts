@@ -4,7 +4,7 @@ import { ErrorCode } from '../../src/lib/gen/casa/v1/error_pb';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { DeviceMode, IdentityService } from '../../src/lib/gen/casa/v1/identity_pb';
 import { failUnmocked, mockRpc, rpcError, type RpcError } from './api-mock';
-import { expectNavigationStateOnly, safariTab } from './support';
+import { choiceButton, expectNavigationStateOnly, safariTab, type Choice } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -45,12 +45,6 @@ const email = 'nama@contoh.id';
 const password = 'kalimat pendek yang mudah diingat';
 // The size of a server token: 32 random bytes in unpadded base64url (identity.NewToken).
 const token = 'A'.repeat(43);
-
-type Choice = 'personal' | 'shared';
-const choiceButton: Record<Choice, string> = {
-	personal: 'Perangkat pribadiku',
-	shared: 'Perangkat bersama atau pinjaman'
-};
 
 /**
  * The server for these tests: no session until CompleteSignUp answers with its next reply (a

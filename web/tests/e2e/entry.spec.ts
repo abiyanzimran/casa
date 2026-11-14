@@ -2,6 +2,7 @@ import { Code } from '@connectrpc/connect';
 import { expect, test, type Page } from '@playwright/test';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
+import { choiceButton, safariTab } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -23,13 +24,11 @@ const ly90 = {
 		'Untuk iPhone atau iPad milik orang lain. Catatanmu tidak disimpan di perangkat ini, dan kamu keluar otomatis sesudah 30 menit tidak dipakai.'
 };
 
-// 08 §25.6 LY-91, word for word.
+// 08 §25.6 LY-91, word for word (the two buttons: choiceButton).
 const ly91 = {
 	question: 'Ini perangkat pribadimu, atau perangkat bersama atau pinjaman?',
-	personal: 'Perangkat pribadiku',
 	personalNote:
 		'Salinan catatan tersimpan di browser perangkat ini, jadi kamu bisa mencatat tanpa internet. Siapa pun yang bisa membuka browser ini dapat membaca salinan itu. Bisa memakai pemberitahuan dan kunci aplikasi.',
-	shared: 'Perangkat bersama atau pinjaman',
 	sharedNote:
 		'Catatanmu tidak disimpan di perangkat ini. Kamu keluar otomatis sesudah 30 menit tidak dipakai, dan paling lama 12 jam. Mencatat perlu internet.',
 	limit:
@@ -45,13 +44,6 @@ const listMemberships = HouseholdService.method.listMemberships;
 async function signedOut(page: Page) {
 	await failUnmocked(page);
 	return mockRpc(page, listMemberships, () => rpcError(Code.Unauthenticated));
-}
-
-/** Safari on iPhone or iPad in a tab: navigator.standalone exists and is false. */
-async function safariTab(page: Page): Promise<void> {
-	await page.addInitScript(() => {
-		Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false });
-	});
 }
 
 /** Every URL the page shows, client-side navigations included. */
@@ -103,7 +95,7 @@ test('SEC-171 (b): a Safari tab on iPhone or iPad shows LY-90 with both ways and
 	// "Yang tidak ada": no sign-in field, no data, no personal mode.
 	await expect(page.getByRole('button')).toHaveCount(1);
 	await expect(page.locator('input, select, textarea, form')).toHaveCount(0);
-	await expect(page.getByText(ly91.personal)).toHaveCount(0);
+	await expect(page.getByText(choiceButton.personal)).toHaveCount(0);
 	// The session check is the only RPC (SEC-172 (b)); LY-90 sends nothing.
 	expect(checks).toHaveLength(1);
 	expect(checks[0]?.requestContext?.userInitiated).toBe(false);
@@ -140,7 +132,7 @@ test('SEC-171 (b): entry screens cannot be skipped by typing their address', asy
 	// LY-91 offers personal mode, which a Safari tab never offers.
 	await page.goto('/masuk/mode');
 	await expect(page).toHaveURL(/\/pasang$/);
-	await expect(page.getByText(ly91.personal)).toHaveCount(0);
+	await expect(page.getByText(choiceButton.personal)).toHaveCount(0);
 	// LY-01 before a way was chosen.
 	await page.goto('/masuk');
 	await expect(page).toHaveURL(/\/pasang$/);
@@ -153,7 +145,7 @@ test('SEC-165: LY-01 before the device mode is chosen shows LY-91', async ({ pag
 	await expect(page.locator('h1')).toHaveText(ly91.question);
 });
 
-for (const choice of [ly91.personal, ly91.shared]) {
+for (const choice of [choiceButton.personal, choiceButton.shared]) {
 	test.describe(`choosing ${choice}`, () => {
 		test('SEC-165: LY-91 has no preselected choice and states what the app cannot prevent', async ({
 			page
@@ -162,8 +154,8 @@ for (const choice of [ly91.personal, ly91.shared]) {
 			await page.goto('/');
 			await expect(page.locator('h1')).toHaveText(ly91.question);
 			await expect(page.getByText(ly91.limit, { exact: true })).toBeVisible();
-			const personal = page.getByRole('button', { name: ly91.personal, exact: true });
-			const shared = page.getByRole('button', { name: ly91.shared, exact: true });
+			const personal = page.getByRole('button', { name: choiceButton.personal, exact: true });
+			const shared = page.getByRole('button', { name: choiceButton.shared, exact: true });
 			await expect(personal).toHaveAccessibleDescription(ly91.personalNote);
 			await expect(shared).toHaveAccessibleDescription(ly91.sharedNote);
 			await expect(page.getByRole('button')).toHaveCount(2);

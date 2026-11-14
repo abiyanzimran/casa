@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
 import { IdentityService } from '../../src/lib/gen/casa/v1/identity_pb';
 import { failUnmocked, mockRpc, rpcError } from './api-mock';
+import { choiceButton, safariTab } from './support';
 
 // page.route does not see requests a service worker handles (plan decision 19; W2).
 test.use({ serviceWorkers: 'block' });
@@ -15,9 +16,7 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 	{
 		path: '/pasang',
 		setup: async (page) => {
-			await page.addInitScript(() => {
-				Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false });
-			});
+			await safariTab(page);
 			await page.goto('/pasang');
 		}
 	},
@@ -27,14 +26,14 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 		setup: async (page) => {
 			// The device mode is memory only, so LY-01 is reached through LY-91.
 			await page.goto('/masuk/mode');
-			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 		}
 	},
 	{
 		path: '/masuk/akun',
 		setup: async (page) => {
 			await page.goto('/masuk/mode');
-			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 			await page.getByRole('button', { name: 'Sudah punya akun', exact: true }).click();
 		}
 	},
@@ -43,7 +42,7 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 		path: '/masuk/daftar',
 		setup: async (page) => {
 			await page.goto('/masuk/mode');
-			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 			await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
 		}
 	},
@@ -53,7 +52,7 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 		setup: async (page) => {
 			await mockRpc(page, IdentityService.method.startSignUp, () => ({}));
 			await page.goto(`/signup#${'A'.repeat(43)}`);
-			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 			await page.getByRole('button', { name: 'Buat akun', exact: true }).click();
 			await page.getByLabel('Email', { exact: true }).fill(`${'n'.repeat(60)}@contoh.id`);
 			await page.getByRole('button', { name: 'Kirim tautan', exact: true }).click();
@@ -63,7 +62,7 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 		path: '/signup/verify',
 		setup: async (page) => {
 			await page.goto('/signup/verify#verification-token');
-			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: choiceButton.personal, exact: true }).click();
 		}
 	}
 ];
