@@ -162,6 +162,7 @@ var isolationValues = map[string]isolationValue{
 	"householddb.JoinMembership.account_id":   pair(accountX, inviteeY),
 	// The invitee of X2's accepted invitation.
 	"householddb.OwnAcceptance.account_id": pair(inviteeX, inviteeY),
+	"readdb.OwnAcceptanceView.account_id":  pair(inviteeX, inviteeY),
 	// A new record's key is one no record holds.
 	"commanddb.InsertIdempotencyRecord.idempotency_key": pair(idempotencyKeyX, uuid("20000000-0000-4000-8000-000000000082")),
 
@@ -329,6 +330,7 @@ var ownCallFails = []struct{ query, reason string }{
 	{"identitydb.UpsertInvitationSignupVerification", lookupScopeOnly},
 	{"identitydb.UseSignupVerification", lookupScopeOnly},
 	{"householddb.OwnAcceptance", lookupScopeOnly},
+	{"readdb.OwnAcceptanceView", lookupScopeOnly},
 	{"identitydb.InsertAccount", "the account it writes must be the scope's (WITH CHECK), and the scope's account " +
 		"exists; sign-up writes in the new account's own scope (09.2 §3 global tables), the production-scope pass " +
 		"(10.1 §5.1 catatan 14 November 2026 (FS-1 1.7 PR C, uji isolasi per kueri) item 5)"},

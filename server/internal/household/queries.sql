@@ -59,10 +59,14 @@ SELECT household_id, member_id FROM membership
 -- name: LastNoticeIssue :one
 -- 09.3 §1 "Mekanisme": the version last issued to the account, by the
 -- primary key (one row).
-SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::boolean AS acknowledged
-  FROM operator_notice_ack
- WHERE account_id = @account_id
- ORDER BY issue_seq DESC
+-- earlier_acknowledged: an issue before this one was acknowledged, A→B→A
+-- included (09.3 §1 note of 14 November 2026); the same primary key serves it.
+SELECT l.issue_seq, l.variant, l.version, l.text_sha256, (l.acknowledged_at IS NOT NULL)::boolean AS acknowledged,
+       EXISTS (SELECT 1 FROM operator_notice_ack e
+                WHERE e.account_id = @account_id AND e.issue_seq < l.issue_seq AND e.acknowledged_at IS NOT NULL) AS earlier_acknowledged
+  FROM operator_notice_ack l
+ WHERE l.account_id = @account_id
+ ORDER BY l.issue_seq DESC
  LIMIT 1;
 
 -- name: IssueNotice :execrows

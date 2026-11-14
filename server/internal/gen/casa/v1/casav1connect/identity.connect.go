@@ -46,6 +46,8 @@ const (
 	// IdentityServiceReauthenticateProcedure is the procedure name of the IdentityService's
 	// Reauthenticate RPC.
 	IdentityServiceReauthenticateProcedure = "/casa.v1.IdentityService/Reauthenticate"
+	// IdentityServiceGetSessionProcedure is the procedure name of the IdentityService's GetSession RPC.
+	IdentityServiceGetSessionProcedure = "/casa.v1.IdentityService/GetSession"
 	// IdentityServiceChangePasswordProcedure is the procedure name of the IdentityService's
 	// ChangePassword RPC.
 	IdentityServiceChangePasswordProcedure = "/casa.v1.IdentityService/ChangePassword"
@@ -108,6 +110,13 @@ var (
 			Procedure:  IdentityServiceReauthenticateProcedure,
 		}
 	})
+	identityServiceGetSessionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("GetSession"),
+			Procedure:  IdentityServiceGetSessionProcedure,
+		}
+	})
 	identityServiceChangePasswordSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
@@ -150,6 +159,12 @@ type IdentityServiceClient interface {
 	// CREDENTIALS_REJECTED; attempts are rate limited per account and per
 	// address (SEC-12; 10.1 §8.1).
 	Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error)
+	// Returns the caller's own account and the device mode of the session that
+	// made the call (ADR-030 item 10 note of 14 November 2026; SEC-170 (a);
+	// SEC-171 (e)); a native session is personal. Outside the queue: never held
+	// by NOTICE_UNREAD, and it writes nothing beyond the boundary's touch and
+	// rotation (09.3 §1).
+	GetSession(context.Context, *v1.GetSessionRequest) (*v1.GetSessionResponse, error)
 	// Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
 	// this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
 	ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error)
@@ -194,6 +209,12 @@ type IdentityServiceHandler interface {
 	// CREDENTIALS_REJECTED; attempts are rate limited per account and per
 	// address (SEC-12; 10.1 §8.1).
 	Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error)
+	// Returns the caller's own account and the device mode of the session that
+	// made the call (ADR-030 item 10 note of 14 November 2026; SEC-170 (a);
+	// SEC-171 (e)); a native session is personal. Outside the queue: never held
+	// by NOTICE_UNREAD, and it writes nothing beyond the boundary's touch and
+	// rotation (09.3 §1).
+	GetSession(context.Context, *v1.GetSessionRequest) (*v1.GetSessionResponse, error)
 	// Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
 	// this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
 	ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error)
@@ -212,6 +233,7 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 		connect.Method{Spec: identityServiceCompleteRecoverySpec(), Handler: adapter.completeRecovery},
 		connect.Method{Spec: identityServiceSignOutSpec(), Handler: adapter.signOut},
 		connect.Method{Spec: identityServiceReauthenticateSpec(), Handler: adapter.reauthenticate},
+		connect.Method{Spec: identityServiceGetSessionSpec(), Handler: adapter.getSession},
 		connect.Method{Spec: identityServiceChangePasswordSpec(), Handler: adapter.changePassword},
 	)
 }
@@ -249,6 +271,10 @@ func (UnimplementedIdentityServiceHandler) SignOut(context.Context, *v1.SignOutR
 
 func (UnimplementedIdentityServiceHandler) Reauthenticate(context.Context, *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.Reauthenticate is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) GetSession(context.Context, *v1.GetSessionRequest) (*v1.GetSessionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.IdentityService.GetSession is not implemented")
 }
 
 func (UnimplementedIdentityServiceHandler) ChangePassword(context.Context, *v1.ChangePasswordRequest) (*v1.ChangePasswordResponse, error) {
@@ -318,6 +344,14 @@ func (c *identityServiceClient) SignOut(ctx context.Context, req *v1.SignOutRequ
 func (c *identityServiceClient) Reauthenticate(ctx context.Context, req *v1.ReauthenticateRequest) (*v1.ReauthenticateResponse, error) {
 	var res v1.ReauthenticateResponse
 	if err := c.client.CallUnary(ctx, identityServiceReauthenticateSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) GetSession(ctx context.Context, req *v1.GetSessionRequest) (*v1.GetSessionResponse, error) {
+	var res v1.GetSessionResponse
+	if err := c.client.CallUnary(ctx, identityServiceGetSessionSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -423,6 +457,18 @@ func (h identityServiceHandler) reauthenticate(ctx context.Context, _ connect.Sp
 		return err
 	}
 	res, err := h.svc.Reauthenticate(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) getSession(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetSessionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetSession(ctx, &req)
 	if err != nil {
 		return err
 	}

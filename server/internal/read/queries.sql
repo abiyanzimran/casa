@@ -67,3 +67,11 @@ SELECT member_id, display_name FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND member_id > @after
  ORDER BY member_id
  LIMIT @lim;
+
+-- name: OwnAcceptanceView :one
+-- The caller's own accepted invitation as GetOwnAcceptance shows it (09.3 §1
+-- note of 14 November 2026), in a lookup transaction (Scope{AccountID}; the
+-- invitee clause of 09.2 §3): only the display name and the expiry. Served
+-- by invitation_invitee, which also makes it one row at most.
+SELECT invitee_display_name, expires_at FROM invitation
+ WHERE invitee_account_id = @account_id AND state = 'accepted';

@@ -213,6 +213,32 @@ func (s *Service) AccountEmail(ctx context.Context, account pgtype.UUID) (string
 	return email, err
 }
 
+// OwnAcceptance is the caller's own acceptance as GetOwnAcceptance shows it:
+// no household data (SEC-32).
+type OwnAcceptance struct {
+	DisplayName string
+	ExpiresAt   time.Time
+}
+
+// OwnAcceptance reads account's accepted invitation in a lookup transaction,
+// found from the account, never from the request (plan 1.6 decision 14).
+// One past its expiry is lapsed: found is false and nothing is written, the
+// same rule as liveInvitation (09.3 §1 note of 14 November 2026).
+func (s *Service) OwnAcceptance(ctx context.Context, account pgtype.UUID) (a OwnAcceptance, found bool, err error) {
+	var row readdb.OwnAcceptanceViewRow
+	err = database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		row, err = readdb.New(tx).OwnAcceptanceView(ctx, account)
+		return err
+	})
+	if errors.Is(err, pgx.ErrNoRows) || err == nil && !s.now().Before(row.ExpiresAt) {
+		return OwnAcceptance{}, false, nil
+	}
+	if err != nil {
+		return OwnAcceptance{}, false, err
+	}
+	return OwnAcceptance{DisplayName: row.InviteeDisplayName.String, ExpiresAt: row.ExpiresAt}, true, nil
+}
+
 // liveInvitation is the household's live invitation in q's transaction: open
 // or accepted, and now before expires_at, whether its expiry is written yet
 // or not (plan 1.6 decision 12; plan 1.7 decision 7). It is the one rule of

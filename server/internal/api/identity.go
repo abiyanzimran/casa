@@ -78,6 +78,25 @@ func (h identityHandler) RefreshSession(ctx context.Context, req *casav1.Refresh
 	return &casav1.RefreshSessionResponse{Tokens: sessionTokens(tokens)}, nil
 }
 
+// GetSession answers the caller's account and the session's device mode.
+// It needs no query: the boundary already authenticated the session (ADR-030
+// item 10 note of 14 November 2026; SEC-170 (a)). Not a command, so never
+// held and keyless; the boundary's touch and rotation are all it writes.
+func (h identityHandler) GetSession(ctx context.Context, _ *casav1.GetSessionRequest) (*casav1.GetSessionResponse, error) {
+	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
+	return &casav1.GetSessionResponse{AccountId: uuidString(session.AccountID), DeviceMode: deviceModeOf(session.DeviceMode)}, nil
+}
+
+// deviceModeOf maps session.device_mode back to the contract's mode.
+func deviceModeOf(mode string) casav1.DeviceMode {
+	for m, name := range deviceModes {
+		if name == mode {
+			return m
+		}
+	}
+	return casav1.DeviceMode_DEVICE_MODE_UNSPECIFIED
+}
+
 func (h identityHandler) SignOut(ctx context.Context, req *casav1.SignOutRequest) (*casav1.SignOutResponse, error) {
 	session, _ := SessionFrom(ctx) // not public: the boundary authenticated it
 	res, err := command.Run(ctx, h.pool, database.Scope{AccountID: session.AccountID},

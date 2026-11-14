@@ -468,23 +468,28 @@ func (q *Queries) JoinMembership(ctx context.Context, arg JoinMembershipParams) 
 }
 
 const lastNoticeIssue = `-- name: LastNoticeIssue :one
-SELECT issue_seq, variant, version, text_sha256, (acknowledged_at IS NOT NULL)::boolean AS acknowledged
-  FROM operator_notice_ack
- WHERE account_id = $1
- ORDER BY issue_seq DESC
+SELECT l.issue_seq, l.variant, l.version, l.text_sha256, (l.acknowledged_at IS NOT NULL)::boolean AS acknowledged,
+       EXISTS (SELECT 1 FROM operator_notice_ack e
+                WHERE e.account_id = $1 AND e.issue_seq < l.issue_seq AND e.acknowledged_at IS NOT NULL) AS earlier_acknowledged
+  FROM operator_notice_ack l
+ WHERE l.account_id = $1
+ ORDER BY l.issue_seq DESC
  LIMIT 1
 `
 
 type LastNoticeIssueRow struct {
-	IssueSeq     int32
-	Variant      string
-	Version      int32
-	TextSha256   []byte
-	Acknowledged bool
+	IssueSeq            int32
+	Variant             string
+	Version             int32
+	TextSha256          []byte
+	Acknowledged        bool
+	EarlierAcknowledged bool
 }
 
 // 09.3 §1 "Mekanisme": the version last issued to the account, by the
 // primary key (one row).
+// earlier_acknowledged: an issue before this one was acknowledged, A→B→A
+// included (09.3 §1 note of 14 November 2026); the same primary key serves it.
 func (q *Queries) LastNoticeIssue(ctx context.Context, accountID pgtype.UUID) (LastNoticeIssueRow, error) {
 	row := q.db.QueryRow(ctx, lastNoticeIssue, accountID)
 	var i LastNoticeIssueRow
@@ -494,6 +499,7 @@ func (q *Queries) LastNoticeIssue(ctx context.Context, accountID pgtype.UUID) (L
 		&i.Version,
 		&i.TextSha256,
 		&i.Acknowledged,
+		&i.EarlierAcknowledged,
 	)
 	return i, err
 }

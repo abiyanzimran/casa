@@ -320,6 +320,41 @@ func TestOperatorNotice(t *testing.T) {
 		}
 	})
 
+	// 09.3 §1 note of 14 November 2026: earlier_version_acknowledged follows
+	// the account's earlier issues, a rename back (A→B→A) included.
+	t.Run("earlier_version_acknowledged follows the earlier issues, A, B, A included", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpUnread(t, "a@example.test")
+		c := h.signUpUnread(t, "c@example.test")
+		earlier := func(m member) bool { return h.notice(t, m).GetEarlierVersionAcknowledged() }
+		if earlier(a) || earlier(c) {
+			t.Fatal("first sight: earlier_version_acknowledged is true, want false")
+		}
+		h.ack(t, a)
+		if n := h.notice(t, a); !n.GetAcknowledged() || n.GetEarlierVersionAcknowledged() {
+			t.Fatalf("acknowledged now = %v earlier = %v, want true and false", n.GetAcknowledged(), n.GetEarlierVersionAcknowledged())
+		}
+		h.clock.advance(time.Minute)
+		h.reopen("Nama Lain", household.PublishedNotices) // B, a new version
+		if n := h.notice(t, a); n.GetAcknowledged() || !n.GetEarlierVersionAcknowledged() {
+			t.Fatalf("new version: acknowledged %v earlier %v, want false and true", n.GetAcknowledged(), n.GetEarlierVersionAcknowledged())
+		}
+		if earlier(c) { // its only earlier issue, A, was never acknowledged
+			t.Fatal("an account whose only earlier issue was never acknowledged reads earlier true")
+		}
+		h.clock.advance(time.Minute)
+		h.reopen(testOperatorName, household.PublishedNotices) // A again
+		if n := h.notice(t, a); n.GetAcknowledged() || !n.GetEarlierVersionAcknowledged() {
+			t.Fatalf("A after B: acknowledged %v earlier %v, want false and true", n.GetAcknowledged(), n.GetEarlierVersionAcknowledged())
+		}
+		if !earlier(a) { // a repeated read of the same issue keeps it
+			t.Fatal("a repeated read lost earlier_version_acknowledged")
+		}
+		if earlier(c) { // A (unacknowledged), B (unacknowledged), A: still none acknowledged
+			t.Fatal("c reads earlier true with no acknowledged issue")
+		}
+	})
+
 	t.Run("SEC-34 every version writes one line in the account's security trail", func(t *testing.T) {
 		h := startHousehold(t)
 		v1 := &fstest.MapFile{Data: publishedV1(t)}
@@ -440,6 +475,7 @@ var noticeFreeReads = []string{
 	casav1connect.HouseholdServiceGetOperatorNoticeProcedure,
 	casav1connect.HouseholdServicePreviewInvitationProcedure,
 	casav1connect.HouseholdServiceGetOpenInvitationProcedure,
+	casav1connect.HouseholdServiceGetOwnAcceptanceProcedure,
 	casav1connect.SyncServiceSyncProcedure, // plan 1.7 decision 12
 }
 

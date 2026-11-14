@@ -63,6 +63,9 @@ const (
 	// HouseholdServiceGetOpenInvitationProcedure is the procedure name of the HouseholdService's
 	// GetOpenInvitation RPC.
 	HouseholdServiceGetOpenInvitationProcedure = "/casa.v1.HouseholdService/GetOpenInvitation"
+	// HouseholdServiceGetOwnAcceptanceProcedure is the procedure name of the HouseholdService's
+	// GetOwnAcceptance RPC.
+	HouseholdServiceGetOwnAcceptanceProcedure = "/casa.v1.HouseholdService/GetOwnAcceptance"
 )
 
 var (
@@ -157,6 +160,13 @@ var (
 			Procedure:  HouseholdServiceGetOpenInvitationProcedure,
 		}
 	})
+	householdServiceGetOwnAcceptanceSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_casa_v1_household_proto.Services().ByName("HouseholdService").Methods().ByName("GetOwnAcceptance"),
+			Procedure:  HouseholdServiceGetOwnAcceptanceProcedure,
+		}
+	})
 )
 
 // HouseholdServiceClient is a client for the casa.v1.HouseholdService service.
@@ -245,6 +255,12 @@ type HouseholdServiceClient interface {
 	// none or it is past its expiry. Never writes; an online read, never held
 	// by NOTICE_UNREAD (plan 1.6 decision 16).
 	GetOpenInvitation(context.Context, *v1.GetOpenInvitationRequest) (*v1.GetOpenInvitationResponse, error)
+	// Returns the caller's own acceptance, found from the caller's account, never
+	// from the request (plan 1.6 decision 14): the display name it gave and its
+	// expiry, no household data (SEC-32). Empty when there is none or it is past
+	// its expiry; it never writes, so an expiry is never recorded here. An online
+	// read, never held by NOTICE_UNREAD (09.3 §1 note of 14 November 2026).
+	GetOwnAcceptance(context.Context, *v1.GetOwnAcceptanceRequest) (*v1.GetOwnAcceptanceResponse, error)
 }
 
 // NewHouseholdServiceClient constructs a client for the casa.v1.HouseholdService service. Multiple
@@ -339,6 +355,12 @@ type HouseholdServiceHandler interface {
 	// none or it is past its expiry. Never writes; an online read, never held
 	// by NOTICE_UNREAD (plan 1.6 decision 16).
 	GetOpenInvitation(context.Context, *v1.GetOpenInvitationRequest) (*v1.GetOpenInvitationResponse, error)
+	// Returns the caller's own acceptance, found from the caller's account, never
+	// from the request (plan 1.6 decision 14): the display name it gave and its
+	// expiry, no household data (SEC-32). Empty when there is none or it is past
+	// its expiry; it never writes, so an expiry is never recorded here. An online
+	// read, never held by NOTICE_UNREAD (09.3 §1 note of 14 November 2026).
+	GetOwnAcceptance(context.Context, *v1.GetOwnAcceptanceRequest) (*v1.GetOwnAcceptanceResponse, error)
 }
 
 // RegisterHouseholdServiceHandler registers svc as the casa.v1.HouseholdService implementation on
@@ -359,6 +381,7 @@ func RegisterHouseholdServiceHandler(server *connect.Server, svc HouseholdServic
 		connect.Method{Spec: householdServiceConfirmInviteeSpec(), Handler: adapter.confirmInvitee},
 		connect.Method{Spec: householdServiceRejectInviteeSpec(), Handler: adapter.rejectInvitee},
 		connect.Method{Spec: householdServiceGetOpenInvitationSpec(), Handler: adapter.getOpenInvitation},
+		connect.Method{Spec: householdServiceGetOwnAcceptanceSpec(), Handler: adapter.getOwnAcceptance},
 	)
 }
 
@@ -415,6 +438,10 @@ func (UnimplementedHouseholdServiceHandler) RejectInvitee(context.Context, *v1.R
 
 func (UnimplementedHouseholdServiceHandler) GetOpenInvitation(context.Context, *v1.GetOpenInvitationRequest) (*v1.GetOpenInvitationResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.GetOpenInvitation is not implemented")
+}
+
+func (UnimplementedHouseholdServiceHandler) GetOwnAcceptance(context.Context, *v1.GetOwnAcceptanceRequest) (*v1.GetOwnAcceptanceResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "casa.v1.HouseholdService.GetOwnAcceptance is not implemented")
 }
 
 type householdServiceClient struct {
@@ -520,6 +547,14 @@ func (c *householdServiceClient) RejectInvitee(ctx context.Context, req *v1.Reje
 func (c *householdServiceClient) GetOpenInvitation(ctx context.Context, req *v1.GetOpenInvitationRequest) (*v1.GetOpenInvitationResponse, error) {
 	var res v1.GetOpenInvitationResponse
 	if err := c.client.CallUnary(ctx, householdServiceGetOpenInvitationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *householdServiceClient) GetOwnAcceptance(ctx context.Context, req *v1.GetOwnAcceptanceRequest) (*v1.GetOwnAcceptanceResponse, error) {
+	var res v1.GetOwnAcceptanceResponse
+	if err := c.client.CallUnary(ctx, householdServiceGetOwnAcceptanceSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -677,6 +712,18 @@ func (h householdServiceHandler) getOpenInvitation(ctx context.Context, _ connec
 		return err
 	}
 	res, err := h.svc.GetOpenInvitation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h householdServiceHandler) getOwnAcceptance(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetOwnAcceptanceRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetOwnAcceptance(ctx, &req)
 	if err != nil {
 		return err
 	}

@@ -50,6 +50,12 @@ service IdentityService {
   // CREDENTIALS_REJECTED; attempts are rate limited per account and per
   // address (SEC-12; 10.1 §8.1).
   rpc Reauthenticate(ReauthenticateRequest) returns (ReauthenticateResponse);
+  // Returns the caller's own account and the device mode of the session that
+  // made the call (ADR-030 item 10 note of 14 November 2026; SEC-170 (a);
+  // SEC-171 (e)); a native session is personal. Outside the queue: never held
+  // by NOTICE_UNREAD, and it writes nothing beyond the boundary's touch and
+  // rotation (09.3 §1).
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse);
   // Replaces the caller's password; needs an open CHANGE_PASSWORD grant of
   // this session, else REAUTH_REQUIRED (SEC-13; SEC-151 (7)).
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
@@ -68,6 +74,15 @@ enum DeviceMode {
   DEVICE_MODE_UNSPECIFIED = 0;
   DEVICE_MODE_PERSONAL = 1;
   DEVICE_MODE_SHARED = 2;
+}
+
+message GetSessionRequest {
+  RequestContext request_context = 1 [(buf.validate.field).required = true];
+}
+
+message GetSessionResponse {
+  string account_id = 1;
+  DeviceMode device_mode = 2;
 }
 
 message StartSignUpRequest {

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -1582,6 +1583,90 @@ func TestWithoutSession(t *testing.T) {
 		wantOK(t, completeSignUp(h, ctx, web, h.lastLink(t), 0, true))
 		if got := info.ResponseHeader().Values("Set-Cookie"); len(got) != 0 {
 			t.Fatalf("%d Set-Cookie headers, want none", len(got))
+		}
+	})
+}
+
+func TestGetSession(t *testing.T) {
+	const email, password = "owner@example.test", "a long enough passphrase"
+	getSession := func(h *householdHarness, ctx context.Context, kind casav1.ClientKind) (*casav1.GetSessionResponse, error) {
+		return h.client.GetSession(ctx, &casav1.GetSessionRequest{RequestContext: identityRC(kind)})
+	}
+
+	t.Run("GetSession answers the caller's account and the session's mode", func(t *testing.T) {
+		h := startHousehold(t)
+		m := h.signUpUnread(t, email)
+		for name, c := range map[string]struct {
+			ctx  context.Context
+			kind casav1.ClientKind
+			want casav1.DeviceMode
+		}{
+			"web personal": {sameOrigin(h.webSignIn(t, email, password, personal)), web, personal},
+			"web shared":   {sameOrigin(h.webSignIn(t, email, password, shared)), web, shared},
+			"native":       {bearer(m.token), ios, personal},
+		} {
+			got, err := getSession(h, c.ctx, c.kind)
+			wantOK(t, err)
+			if got.GetAccountId() != m.account || got.GetDeviceMode() != c.want {
+				t.Errorf("%s: %v, want account %s mode %v", name, got, m.account, c.want)
+			}
+		}
+	})
+
+	t.Run("GetSession without a session answers like any authenticated RPC", func(t *testing.T) {
+		h := startHousehold(t)
+		h.signUpUnread(t, email)
+		_, err := getSession(h, context.Background(), web)
+		wantCode(t, err, connect.CodeUnauthenticated)
+		if codes := errorCodes(t, err); len(codes) != 0 {
+			t.Fatalf("error codes = %v, want no detail", codes)
+		}
+		cookie := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.webSignOut(sameOrigin(cookie)))
+		ctx := sameOrigin(cookie)
+		_, err = getSession(h, ctx, web)
+		wantErrorCode(t, err, connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		if got := newCookie(t, info); got != nil {
+			t.Fatalf("revoked cookie: %v, want the expired cookie", got)
+		}
+		if len(info.ResponseHeader().Values("Set-Cookie")) != 1 {
+			t.Fatal("a revoked cookie gets no expired Set-Cookie")
+		}
+	})
+
+	t.Run("GetSession is never held and writes nothing but the boundary's touch", func(t *testing.T) {
+		h := startHousehold(t)
+		m := h.signUpUnread(t, email)
+		cookie := h.webSignIn(t, email, password, personal)
+		if !h.held(t, m) {
+			t.Fatal("want the account held")
+		}
+		counts := func() string {
+			var out []string
+			rows, err := h.admin.Query(t.Context(), "SELECT relname FROM pg_class WHERE relkind = 'r' AND relnamespace = 'public'::regnamespace ORDER BY 1")
+			if err != nil {
+				t.Fatal(err)
+			}
+			var tables []string
+			for rows.Next() {
+				var name string
+				if err := rows.Scan(&name); err != nil {
+					t.Fatal(err)
+				}
+				tables = append(tables, name)
+			}
+			rows.Close()
+			for _, name := range tables {
+				out = append(out, name+"="+strconv.Itoa(h.count(t, `SELECT count(*) FROM "`+name+`"`)))
+			}
+			return strings.Join(out, " ")
+		}
+		before := counts()
+		_, err := getSession(h, sameOrigin(cookie), web)
+		wantOK(t, err)
+		if after := counts(); after != before {
+			t.Fatalf("row counts changed:\n%s\n%s", before, after)
 		}
 	})
 }

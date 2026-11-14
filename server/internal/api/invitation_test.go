@@ -1207,6 +1207,10 @@ func TestConfirmInvitee(t *testing.T) {
 				return outcome(err)
 			},
 			"RejectInvitee": func(m member) string { return outcome(h.reject(m, rejectRequest(inv.household, unknown))) },
+			"GetOwnAcceptance": func(m member) string {
+				res, err := h.ownAcceptance(m)
+				return outcome(err) + " " + res.GetDisplayName()
+			},
 			"GetOpenInvitation": func(m member) string {
 				res, err := h.openInvitation(m, inv.household)
 				return outcome(err) + " " + res.GetInvitationId()
@@ -1700,5 +1704,68 @@ func TestSignUpByInvitation(t *testing.T) {
 			_, err = h.acceptFromSignup(b)
 			wantRejection(t, err, want, "AcceptInvitation from_signup, "+name)
 		}
+	})
+}
+
+func (h *householdHarness) ownAcceptance(m member) (*casav1.GetOwnAcceptanceResponse, error) {
+	return h.households.GetOwnAcceptance(bearer(m.token), &casav1.GetOwnAcceptanceRequest{RequestContext: identityRC(ios)})
+}
+
+func TestGetOwnAcceptance(t *testing.T) {
+	t.Run("the invitee reads its own acceptance: display name and expiry", func(t *testing.T) {
+		h := startHousehold(t)
+		inv, b := h.acceptedBy(t, "a@example.test", "b@example.test")
+		got, err := h.ownAcceptance(b)
+		wantOK(t, err)
+		if got.GetDisplayName() != "Budi" || !got.GetExpiresAt().AsTime().Equal(inv.expiresAt) {
+			t.Fatalf("own acceptance = %v, want Budi until %v", got, inv.expiresAt)
+		}
+	})
+
+	// SEC-32: the invitee has no household yet.
+	t.Run("GetOwnAcceptance carries no household data", func(t *testing.T) {
+		wantFields(t, (&casav1.GetOwnAcceptanceResponse{}).ProtoReflect().Descriptor(), "display_name", "expires_at")
+		wantFields(t, (&casav1.GetOwnAcceptanceRequest{}).ProtoReflect().Descriptor(), "request_context")
+	})
+
+	t.Run("GetOwnAcceptance never writes and an acceptance past its expiry reads empty", func(t *testing.T) {
+		h := startHousehold(t)
+		inv, b := h.acceptedBy(t, "a@example.test", "b@example.test")
+		events := h.count(t, "SELECT count(*) FROM object_event")
+		h.clock.advance(invitationLifetime + time.Hour)
+		h.signInAgain(t, &b, "b@example.test")
+		got, err := h.ownAcceptance(b)
+		wantOK(t, err)
+		if got.GetDisplayName() != "" || got.GetExpiresAt() != nil {
+			t.Fatalf("own acceptance past its expiry = %v, want empty", got)
+		}
+		if row := h.invitationRow(t, inv.id); !strings.HasPrefix(row, "accepted ") {
+			t.Fatalf("invitation = %q, want it still accepted", row)
+		}
+		if n := h.count(t, "SELECT count(*) FROM object_event"); n != events {
+			t.Fatalf("%d events, want %d", n, events)
+		}
+	})
+
+	t.Run("no acceptance reads empty, not NotFound", func(t *testing.T) {
+		h := startHousehold(t)
+		inv := h.invited(t, "a@example.test")
+		fresh := h.signUpMember(t, "c@example.test")
+		for name, m := range map[string]member{"a fresh account": fresh, "the inviter": inv.inviter} {
+			got, err := h.ownAcceptance(m)
+			if err != nil || got.GetDisplayName() != "" || got.GetExpiresAt() != nil {
+				t.Fatalf("%s: %v, %v; want an empty response", name, got, err)
+			}
+		}
+	})
+
+	t.Run("GetOwnAcceptance is never held", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpUnread(t, "a@example.test")
+		if !h.held(t, a) {
+			t.Fatal("want a held")
+		}
+		_, err := h.ownAcceptance(a)
+		wantOK(t, err)
 	})
 }
