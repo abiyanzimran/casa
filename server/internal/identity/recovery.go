@@ -143,12 +143,7 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 		}
 		var session pgtype.UUID
 		var detail pgtype.Text
-		if client.WithoutSession {
-			// SEC-171 (b) (2) note Q2-3; ADR-030 item 11: every session is
-			// already revoked above; with none opened, the event names the
-			// browser itself (the summary only, SEC-161 (e)).
-			detail = pgtype.Text{String: summarizeUserAgent(client.UserAgent), Valid: true}
-		} else if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
+		if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
 			return err
 		}
 		// SEC-24: the owner reads when, and from which device, through the
