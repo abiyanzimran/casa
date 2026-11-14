@@ -279,14 +279,19 @@ function recheckWhenBack(): void {
 /**
  * Finishes a wipe a failure left pending (the marker in IndexedDB, 10.5 §5) before the session
  * check, so before any screen or queue send, counting its unsent commands first (SEC-172 (a);
- * ADR-024 item 6). A failure is thrown and shows the 'storage' unreachable state.
+ * ADR-024 item 6). A failure is thrown and shows the 'storage' unreachable state. Returns true
+ * when the page is being replaced: after any wipe but a revoked one (whose LY-94 this page
+ * shows), Casa opens on a fresh page, so no sign-in runs on a page whose localDb() refuses.
  */
-async function finishPendingWipe(): Promise<void> {
+async function finishPendingWipe(): Promise<boolean> {
 	const kind = await wipePending();
-	if (!kind) return;
+	if (!kind) return false;
 	carryUnsentDropped(await unsentCount());
 	if (kind === 'session_revoked') revokedWipeCarried = true;
 	await wipeLocalData(kind);
+	if (kind === 'session_revoked') return false;
+	location.replace('/');
+	return true;
 }
 
 /**
@@ -300,7 +305,7 @@ export async function checkSession({
 	timeoutMs = sessionCheckLimitMs
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
-		await finishPendingWipe();
+		if (await finishPendingWipe()) return;
 	} catch (error) {
 		console.error(error);
 		showUnreachable('storage');

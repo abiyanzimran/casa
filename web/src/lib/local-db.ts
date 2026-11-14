@@ -103,6 +103,10 @@ export interface ExistingDb {
  * Opened without a declared version, so Dexie refuses a missing database in the same step that
  * opens an existing one: a database another tab deletes meanwhile is never made again empty,
  * which plan decision 5 would read as personal mode.
+ * ponytail: Dexie answers a missing database by aborting the upgrade and then calling
+ * deleteDatabase, so a probe can delete a database another tab creates in that same instant
+ * (a first personal sign-in racing a check in a second tab); upgrade path: probe with
+ * indexedDB.databases() first, where every pilot browser has it.
  */
 export async function withExistingDb<T>(
 	use: (db: ExistingDb) => Promise<T>
