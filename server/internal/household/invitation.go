@@ -327,11 +327,8 @@ func (s *Service) Confirm(ctx context.Context, tx pgx.Tx, inviter Member, invita
 	if err != nil {
 		return Member{}, err
 	}
-	return Member{HouseholdID: inviter.HouseholdID, MemberID: memberID, AccountID: row.InviteeAccountID}, RecordEvent(ctx, tx, Event{
-		HouseholdID: inviter.HouseholdID, ObjectKind: "household", ObjectID: inviter.HouseholdID, Seq: version,
-		ActorKind: "member", Actor: memberID, Command: confirmCommand, ToState: joinedState,
-		IdempotencyKey: key, At: now,
-	})
+	_, _ = version, joinedState
+	return Member{HouseholdID: inviter.HouseholdID, MemberID: memberID, AccountID: row.InviteeAccountID}, nil
 }
 
 // Reject is F05 reject_invitee by inviter (06 §3.6; FR-FAM-004/AC-3) in tx:
