@@ -1,0 +1,31 @@
+# The weekly long run of the stateful property test (docs/14-engineering-roadmap.md
+# §4.3 "Jumlah kasus"): 1000 checks per property from a new seed, which the log
+# prints first. A failure here counts the same as a failure of a change (§4.3):
+# replay it with RAPID_SEED, keep the shrunk case as a named example test, fix.
+name: property-weekly
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # Monday 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  property:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      # PostgreSQL 18 from the image pinned in the Makefile.
+      - name: db-up
+        run: make db-up
+      - name: server-property-long
+        run: make server-property-long

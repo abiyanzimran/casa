@@ -39,7 +39,7 @@ SQLC := $(CURDIR)/.cache/sqlc-$(SQLC_VERSION)/sqlc
 # The contract buf breaking compares against (QG-04: the main branch).
 BUF_AGAINST_REF ?= refs/remotes/origin/main
 
-.PHONY: check check-server server-fmt server-lint server-vuln server-test server-test-old-binary cpd-go idcheck secrets db-up db-down
+.PHONY: check check-server server-fmt server-lint server-vuln server-test server-property-long server-test-old-binary cpd-go idcheck secrets db-up db-down golden-generate
 .PHONY: sqlc-generate sqlc-generated
 .PHONY: check-web web-install web-fmt web-lint web-check web-vuln cpd-ts web-bundle web-unit web-e2e
 .PHONY: bundle-copy casa web-preview
@@ -95,10 +95,24 @@ db-down:
 server-test:
 	cd server && CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' go test -race -shuffle=on -coverprofile=coverage.out ./...
 
+# Rewrites the name length golden vectors from household.CleanName (ES §2 (c);
+# 14 §4.5; plan 1.7 decision 17). The test then checks the file is current.
+golden-generate:
+	cd server && CASA_GOLDEN_UPDATE=1 go test -count=1 -run '^TestGoldenNameLength$$' ./internal/household/
+
+# The weekly long run of the stateful property test (14 §4.3 "Jumlah kasus";
+# plan 1.7 decision 16): 1000 checks per property from a new seed, printed
+# first so a failure can be replayed with RAPID_SEED. server-test runs the
+# same test with 20 checks and seed 1 (TestMain in internal/api).
+server-property-long:
+	seed="$$(od -An -N8 -tu8 /dev/urandom | tr -d ' ')"; echo "RAPID_SEED=$$seed"; \
+	cd server && RAPID_CHECKS=1000 RAPID_SEED="$$seed" CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' \
+		go test -race -count=1 -timeout 5h -run '^TestHouseholdProperties$$' ./internal/api/
+
 # QG-05 "biner lama di skema baru" (09.4 §4 row "Migrasi"; 09.2 §10: a
 # rollback runs the old binary on the expand-contract schema). The tests of
 # BASE_REF run against databases migrated by this branch's casa binary. The
-# base ref's catalog, architecture and ID-check tests are left out: they check
+# base ref's catalog, architecture, isolation and ID-check tests are left out: they check
 # its own old schema and imports, not the old code's behaviour. -count=1:
 # the test cache does not see the migrate binary, which the tests only exec.
 BASE_REF ?= refs/remotes/origin/main
@@ -114,7 +128,7 @@ server-test-old-binary:
 	trap 'git worktree remove --force .cache/base-tree' EXIT; \
 	cd .cache/base-tree/server && \
 	CASA_TEST_ADMIN_URL='$(CASA_TEST_ADMIN_URL)' CASA_TEST_MIGRATE_BINARY='$(CURDIR)/.cache/casa-head' \
-		go test -race -p 1 -count=1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /cmd/idcheck)
+		go test -race -p 1 -count=1 $$(go list ./... | grep -v -e /internal/schema -e /internal/architecture -e /internal/isolation -e /cmd/idcheck)
 
 # Writes the Go code of every module's queries.sql (server/sqlc.yaml): all
 # production SQL goes through sqlc, parameterized (ES §3, §4).

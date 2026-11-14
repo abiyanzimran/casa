@@ -303,12 +303,18 @@ func (h *identityHarness) clientFrom(t *testing.T, ip net.IP) casav1connect.Iden
 // test exercises would spend that address's count before the assertion.
 func (h *identityHarness) fixtureClient(t *testing.T) casav1connect.IdentityServiceClient {
 	t.Helper()
+	return h.clientFrom(t, h.fixtureAddress())
+}
+
+// fixtureAddress is a loopback address (127.1.x.y) no other call of the
+// test uses.
+func (h *identityHarness) fixtureAddress() net.IP {
 	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.fixturePeers++
 	ip := net.IPv4(127, 1, 0, 0) // the 16-byte form: x.y are its last two bytes
 	binary.BigEndian.PutUint16(ip[14:], h.fixturePeers)
-	h.mu.Unlock()
-	return h.clientFrom(t, ip)
+	return ip
 }
 
 func (h *identityHarness) count(t *testing.T, query string, args ...any) int {

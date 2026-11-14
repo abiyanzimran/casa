@@ -11,6 +11,7 @@ require (
 	golang.org/x/crypto v0.59.0
 	golang.org/x/text v0.44.0
 	google.golang.org/protobuf v1.36.12
+	pgregory.net/rapid v1.3.0
 )
 
 require (

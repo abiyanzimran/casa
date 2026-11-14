@@ -33,6 +33,7 @@ var allowedImports = map[string][]string{
 	"internal/household/householddb":     {},
 	"internal/identity":                  {"internal/database", "internal/identity/identitydb"},
 	"internal/identity/identitydb":       {},
+	"internal/isolation":                 {},
 	"internal/jobs":                      {"internal/database", "internal/jobs/jobsdb"},
 	"internal/jobs/jobsdb":               {},
 	"internal/read":                      {"internal/database", "internal/read/readdb"},
