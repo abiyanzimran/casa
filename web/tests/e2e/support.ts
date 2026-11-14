@@ -1,4 +1,6 @@
 import { expect, type Page } from '@playwright/test';
+import { HouseholdService } from '../../src/lib/gen/casa/v1/household_pb';
+import { mockRpc } from './api-mock';
 
 /** Resolves once the page's service worker is active (SEC-169). */
 export async function serviceWorkerReady(page: Page): Promise<void> {
@@ -50,4 +52,57 @@ export async function expectNavigationStateOnly(page: Page): Promise<string[]> {
 		expect(nonNumbers(JSON.parse(value)), `sessionStorage ${key}`).toEqual([]);
 	}
 	return session.map(([key]) => key);
+}
+
+/**
+ * A personal-mode browser with count unsent commands: the local database as the app's Dexie
+ * schema version 1 makes it (IndexedDB version 10), seeded from a page where no app code runs.
+ */
+export async function seedUnsent(page: Page, count: number): Promise<void> {
+	await page.goto('/manifest.webmanifest');
+	await page.evaluate(
+		(count) =>
+			new Promise<void>((resolve, reject) => {
+				const open = indexedDB.open('casa', 10);
+				open.onupgradeneeded = () => {
+					open.result.createObjectStore('outbox', { keyPath: 'idempotencyKey' });
+					open.result.createObjectStore('meta', { keyPath: 'key' });
+				};
+				open.onerror = () => {
+					reject(open.error ?? new Error('open failed'));
+				};
+				open.onsuccess = () => {
+					const db = open.result;
+					const transaction = db.transaction('outbox', 'readwrite');
+					for (let i = 0; i < count; i++) {
+						transaction.objectStore('outbox').add({
+							idempotencyKey: crypto.randomUUID(),
+							kind: 'test_command',
+							payload: new Uint8Array([1]),
+							protective: false,
+							createdAt: 0,
+							releaseAt: 0
+						});
+					}
+					transaction.oncomplete = () => {
+						db.close();
+						resolve();
+					};
+					transaction.onerror = () => {
+						reject(transaction.error ?? new Error('seed failed'));
+					};
+				};
+			}),
+		count
+	);
+}
+
+/**
+ * A personal-mode browser reopening Casa (plan decision 5): the local database exists and the
+ * session check finds a session, so the app registers the service worker, which it does in
+ * personal mode only (SEC-165 (b)). Call before the page opens the app.
+ */
+export async function personalBrowser(page: Page): Promise<void> {
+	await seedUnsent(page, 0);
+	await mockRpc(page, HouseholdService.method.listMemberships, () => ({ memberships: [] }));
 }

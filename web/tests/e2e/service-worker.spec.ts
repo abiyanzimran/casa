@@ -1,7 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { collectViolations, serviceWorkerReady, violations } from './support';
+import { collectViolations, personalBrowser, serviceWorkerReady, violations } from './support';
+
+// The service worker is registered in personal mode only (SEC-165 (b)), so every test opens
+// Casa as a personal-mode browser first.
+test.beforeEach(async ({ page }) => {
+	await personalBrowser(page);
+});
 
 /** Every pathname in every Cache Storage cache of the page's origin. */
 function cachedUrls(page: Page): Promise<string[]> {
@@ -72,6 +78,8 @@ test('SEC-169 (b): after the first visit the app opens without a network', async
 }) => {
 	await page.goto('/');
 	await serviceWorkerReady(page);
+	// The mocked session check would still answer offline; without it the check meets no network.
+	await page.unrouteAll();
 	await context.setOffline(true);
 	await page.reload();
 	await expect(page).toHaveTitle('Casa');

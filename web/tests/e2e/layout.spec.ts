@@ -28,6 +28,14 @@ const screens: { path: string; setup?: (page: Page) => Promise<void> }[] = [
 			await page.goto('/masuk/mode');
 			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
 		}
+	},
+	{
+		path: '/masuk/akun',
+		setup: async (page) => {
+			await page.goto('/masuk/mode');
+			await page.getByRole('button', { name: 'Perangkat pribadiku', exact: true }).click();
+			await page.getByRole('button', { name: 'Sudah punya akun', exact: true }).click();
+		}
 	}
 ];
 
@@ -73,7 +81,11 @@ for (const { path, setup } of screens) {
 							const labels = (element as HTMLInputElement).labels;
 							return !labels || ![...labels].some((label) => label.innerText.trim());
 						})
-						.map((element) => element.id || element.tagName)
+						.map((element) => element.id || element.tagName),
+					// Fields at 1 rem or more, so Safari on iOS does not zoom in on focus (08 §25.4).
+					smallFields: [...document.querySelectorAll('main input')].filter(
+						(input) => parseFloat(getComputedStyle(input).fontSize) < 16
+					).length
 				}));
 				expect(layout.scrollWidth, `horizontal scroll at ${at}`).toBeLessThanOrEqual(
 					layout.clientWidth
@@ -81,6 +93,7 @@ for (const { path, setup } of screens) {
 				expect(layout.h1, `one h1 at ${at}`).toBe(1);
 				expect(layout.column, `column at ${at}`).toBeLessThanOrEqual(640);
 				expect(layout.unlabelled, `visible labels at ${at}`).toEqual([]);
+				expect(layout.smallFields, `field text below 1 rem at ${at}`).toBe(0);
 				await expect(page.locator('h1')).toBeInViewport();
 			}
 		});

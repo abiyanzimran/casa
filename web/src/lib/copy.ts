@@ -7,7 +7,23 @@ export const copy = {
 		retry: 'Coba lagi',
 		// While a tapped re-check runs (QG-09 S3).
 		retrying: 'Mencoba…',
-		back: 'Kembali'
+		back: 'Kembali',
+		rateLimited: 'Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.'
+	},
+	// 08 §7.6 field.showPassword: the visible text, and the accessible name with the field's.
+	field: {
+		showPassword: {
+			show: 'Tampilkan',
+			hide: 'Sembunyikan',
+			showName: 'Tampilkan kata sandi',
+			hideName: 'Sembunyikan kata sandi'
+		}
+	},
+	// 08 §13.2 row "Tindakan yang memerlukan server": without a connection, and with the server's
+	// fault (also RETRY_EXHAUSTED and errors without a code, 08 §7.6).
+	serverAction: {
+		offline: 'Ini perlu sambungan internet. Coba lagi saat tersambung.',
+		server: 'Ada gangguan di server. Coba lagi beberapa saat lagi.'
 	},
 	home: {
 		// 08 §7.6 `home.unreachable`: opened without a connection; step 1 stores no data.
@@ -58,6 +74,14 @@ export const copy = {
 		line: 'Uang dan urusan rumah tangga, diketahui bersama tanpa perlu saling bertanya.',
 		signUp: 'Buat akun',
 		signIn: 'Sudah punya akun'
+	},
+	// 08 §7.6 signIn.* (LY-02 Masuk); doNotSave is the shared-mode sentence of 08 §25.6 LY-02 (2).
+	signIn: {
+		title: 'Masuk',
+		email: 'Email',
+		password: 'Kata sandi',
+		rejected: 'Email atau kata sandi belum cocok. Periksa keduanya, lalu coba lagi.',
+		doNotSave: 'Jangan simpan kata sandi di browser perangkat ini.'
 	},
 	// 08 §25.7 error table row "Versi aplikasi di bawah minimum" (SEC-169 (d)).
 	update: {

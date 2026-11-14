@@ -16,8 +16,8 @@
 		if (redirect) goto(resolve(redirect), { replaceState: true }).catch(console.error);
 	});
 
-	// ponytail: Task 5 (/masuk/akun) and Task 6 (/masuk/daftar) add the screens these buttons
-	// open; resolve() accepts only routes that exist, so the taps are wired there.
+	// ponytail: Task 6 adds /masuk/daftar, which "Buat akun" opens; resolve() accepts only routes
+	// that exist, so that tap is wired there.
 	const notYetBuilt = () => undefined;
 </script>
 
@@ -26,7 +26,12 @@
 		<p id="{id}-line">{copy.ly01.line}</p>
 		<ButtonRow>
 			<Button variant="primary" onclick={notYetBuilt}>{copy.ly01.signUp}</Button>
-			<Button variant="outlined" onclick={notYetBuilt}>{copy.ly01.signIn}</Button>
+			<Button
+				variant="outlined"
+				onclick={() => {
+					goto(resolve('/masuk/akun')).catch(console.error);
+				}}>{copy.ly01.signIn}</Button
+			>
 		</ButtonRow>
 	</Screen>
 {/if}

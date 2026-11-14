@@ -3,29 +3,33 @@
 	// aksen, at most one per screen; tonal, aksen-muda with aksen-tinta; outlined, garis-tegas with
 	// aksen-tinta. All the same height, a full pill (08 §19.13.5). A busy button is not active and
 	// says so (aria-busy, aria-disabled), but keeps focus, which a disabled attribute would drop.
+	// A submit button sends its form; the form's submit handler checks busy itself, because
+	// Enter in a field submits without a click.
 	import type { Snippet } from 'svelte';
+
+	type Click = (event: MouseEvent & { currentTarget: HTMLButtonElement }) => void;
 
 	let {
 		variant,
-		onclick,
 		busy = false,
-		children
+		children,
+		...action
 	}: {
 		variant: 'primary' | 'outlined' | 'tonal';
-		onclick: (event: MouseEvent & { currentTarget: HTMLButtonElement }) => void;
 		busy?: boolean;
 		children: Snippet;
-	} = $props();
+	} & ({ type?: 'button'; onclick: Click } | { type: 'submit'; onclick?: never }) = $props();
 </script>
 
 <!-- A data attribute, not class={variant}: that would pull clsx into the bundle (ADR-030 item 8). -->
 <button
-	type="button"
+	type={action.type ?? 'button'}
 	data-variant={variant}
 	aria-busy={busy ? 'true' : undefined}
 	aria-disabled={busy ? 'true' : undefined}
 	onclick={(event) => {
-		if (!busy) onclick(event);
+		if (busy) event.preventDefault();
+		else action.onclick?.(event);
 	}}>{@render children()}</button
 >
 
