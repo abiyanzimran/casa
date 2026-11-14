@@ -236,6 +236,20 @@ func (q *Queries) MembershipsOfAccount(ctx context.Context, accountID pgtype.UUI
 	return items, nil
 }
 
+const probeByLabel = `-- name: ProbeByLabel :one
+SELECT display_name FROM membership
+ WHERE household_id = current_setting('app.household_id')::uuid AND display_name = $1
+ LIMIT 1
+`
+
+// Red proof only: a parameter the isolation test knows no value for.
+func (q *Queries) ProbeByLabel(ctx context.Context, probeLabel pgtype.Text) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, probeByLabel, probeLabel)
+	var display_name pgtype.Text
+	err := row.Scan(&display_name)
+	return display_name, err
+}
+
 const readerMember = `-- name: ReaderMember :one
 SELECT member_id FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND account_id = $1

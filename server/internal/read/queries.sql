@@ -67,3 +67,9 @@ SELECT member_id, display_name FROM membership
  WHERE household_id = current_setting('app.household_id')::uuid AND member_id > @after
  ORDER BY member_id
  LIMIT @lim;
+
+-- name: ProbeByLabel :one
+-- Red proof only: a parameter the isolation test knows no value for.
+SELECT display_name FROM membership
+ WHERE household_id = current_setting('app.household_id')::uuid AND display_name = @probe_label
+ LIMIT 1;
