@@ -74,7 +74,7 @@ make sqlc-generated   # fails if the committed code differs (a check-server and 
 cd server && go run ./cmd/casa serve -mail-dir /path/to/mail -listen 127.0.0.1:8080
 ```
 
-`GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `serve` also needs the credential `operator-name`: it fills `{pengelola}` in the operator notice, and changing it issues a new notice version and holds every account until they read it again. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
+`GET /healthz` answers `ok`. `serve` connects as `app_rw` with the credential `app-database-url` (below). `-mail-dir` (required, an existing directory) is the fake mail sender of the developer machine and the temporary test server: each verification or recovery mail becomes one file there, readable by its owner only; a real sender replaces it at FS-1 step 7. `serve` also needs the credential `job-database-url`, the connection string of role `job_runner`, with which its background jobs runner claims due jobs (the jobs themselves run as `app_rw`), and the credential `operator-name`: it fills `{pengelola}` in the operator notice, and changing it issues a new notice version and holds every account until they read it again. `-origin` (default `http://127.0.0.1:8080`) is the base of the emailed links. `-minimum-web-version MAJOR.MINOR.PATCH` sets the lowest web client version allowed to send a write command (default in `server/internal/api/version.go`).
 
 A setup token opens the first account of a household (closed sign-up, SEC-158 (b)); everyone else joins through an invitation link (below). The operator issues one per named person, bound to that person's email and valid 7 days, and records the issuance in the operations log:
 
@@ -83,6 +83,11 @@ casa setup-token -email person@example.com
 ```
 
 It connects as `app_rw` with the connection string in the systemd credential `app-database-url` (`$CREDENTIALS_DIRECTORY/app-database-url`) and prints the token once; the database keeps only its SHA-256.
+
+### Test server runbook
+
+- **A stopped job.** A job is retried with a growing wait up to 10 attempts, then stops: `serve` logs one JSON line at level `ERROR` with the message `job stopped`, the job's `kind`, `id` and failure `code`. A stopped `household.expire_invitation` job is fixed by the operator before the household makes its next invitation: until then the invitation's expiry is written only when someone acts on it, which can reveal when they acted (10.1 §10 note 1.7 Q3, condition 3). Find the cause from the code, then let the job run again by clearing its lock as a superuser: `UPDATE job SET attempts = 0, locked_until = NULL, last_error = NULL WHERE id = '<id>';`.
+- **The jobs runner lost the database.** `serve` prints `casa serve: the jobs runner stopped on a database error` and exits 1, so its supervisor restarts it (systemd `Restart=`, set up at step 7); the error's text is not printed (SEC-44). The PostgreSQL log holds the cause.
 
 ## Identity
 

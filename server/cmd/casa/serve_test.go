@@ -16,14 +16,15 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/database/databasetest"
 )
 
-// served gives serve its database and operator-name credentials and
-// returns a mail directory.
-func served(t *testing.T) (mailDir string) {
+// served gives serve its database, job database and operator-name
+// credentials and returns a mail directory and the database.
+func served(t *testing.T) (mailDir string, d databasetest.Database) {
 	t.Helper()
-	withCredentials(t, map[string]string{ //nolint:gosec // G101: a test database URL and a test name, no secret
-		appDatabaseURL: databasetest.Migrated(t).URL("app_rw"), operatorNameCredential: "Pengelola Uji",
+	d = databasetest.Migrated(t)
+	withCredentials(t, map[string]string{ //nolint:gosec // G101: test database URLs and a test name, no secret
+		appDatabaseURL: d.URL("app_rw"), jobDatabaseURL: d.URL("job_runner"), operatorNameCredential: "Pengelola Uji",
 	})
-	return t.TempDir()
+	return t.TempDir(), d
 }
 
 // TestMain gives every test a web bundle, so no test depends on whether
@@ -34,10 +35,10 @@ func TestMain(m *testing.M) {
 }
 
 // startServe runs casa serve on a free port until the returned cancel is
-// called; wait then returns its exit code and stderr.
-func startServe(t *testing.T) (address string, cancel func(), wait func() (int, string)) {
+// called; wait then returns its exit code and stderr. d is its database.
+func startServe(t *testing.T) (address string, cancel func(), wait func() (int, string), d databasetest.Database) {
 	t.Helper()
-	mailDir := served(t)
+	mailDir, d := served(t)
 	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	stdoutReader, stdoutWriter := io.Pipe()
@@ -65,7 +66,7 @@ func startServe(t *testing.T) (address string, cancel func(), wait func() (int, 
 			return 0, ""
 		}
 	}
-	return address, cancel, wait
+	return address, cancel, wait, d
 }
 
 // get fetches path from the server at address.
@@ -85,7 +86,7 @@ func get(t *testing.T, address, path string) (*http.Response, string) {
 
 func TestServe(t *testing.T) {
 	t.Run("serves /healthz until the context ends", func(t *testing.T) {
-		address, cancel, wait := startServe(t)
+		address, cancel, wait, _ := startServe(t)
 		if res, body := get(t, address, "/healthz"); res.StatusCode != http.StatusOK || body != "ok\n" {
 			t.Fatalf("GET /healthz = %d %q, want 200 \"ok\\n\"", res.StatusCode, body)
 		}
@@ -103,7 +104,7 @@ func TestServe(t *testing.T) {
 		withBundle := embeddedBundle
 		embeddedBundle = fstest.MapFS{"dist/.gitkeep": {Data: []byte("")}}
 		t.Cleanup(func() { embeddedBundle = withBundle })
-		address, cancel, wait := startServe(t)
+		address, cancel, wait, _ := startServe(t)
 		if res, body := get(t, address, "/healthz"); res.StatusCode != http.StatusOK || body != "ok\n" {
 			t.Fatalf("GET /healthz = %d %q, want 200 \"ok\\n\"", res.StatusCode, body)
 		}
@@ -124,7 +125,8 @@ func TestServe(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer func() { _ = taken.Close() }()
-		code, _, stderr := runCasa(t, "serve", "-mail-dir", served(t), "-listen", taken.Addr().String())
+		mailDir, _ := served(t)
+		code, _, stderr := runCasa(t, "serve", "-mail-dir", mailDir, "-listen", taken.Addr().String())
 		if code != 1 || !strings.HasPrefix(stderr, "casa serve: listen tcp 127.0.0.1:") {
 			t.Fatalf("exit %d, stderr %q; want 1 and \"casa serve: listen tcp 127.0.0.1:...\"", code, stderr)
 		}
@@ -221,6 +223,81 @@ func TestServe(t *testing.T) {
 		code, _, stderr = runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
 		if want := "casa serve: credential operator-name is empty\n"; code != 1 || stderr != want {
 			t.Fatalf("exit %d, stderr %q; want 1 and %q", code, stderr, want)
+		}
+	})
+	t.Run("serve refuses to start without the job database credential", func(t *testing.T) {
+		// Plan 1.7 decision 4: the jobs runner claims as job_runner (09.2 §3).
+		database := databasetest.Migrated(t)
+		withCredentials(t, map[string]string{ //nolint:gosec // G101: a test database URL and a test name, no secret
+			appDatabaseURL: database.URL("app_rw"), operatorNameCredential: "Pengelola Uji",
+		})
+		code, _, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+		if code != 1 || !strings.HasPrefix(stderr, "casa serve: read credential job-database-url:") {
+			t.Fatalf("exit %d, stderr %q; want 1 and the missing credential", code, stderr)
+		}
+		fake := "s3cret-pw"
+		withCredentials(t, map[string]string{ //nolint:gosec // G101: a fake password for an unreachable database
+			appDatabaseURL: database.URL("app_rw"), operatorNameCredential: "Pengelola Uji",
+			jobDatabaseURL: "postgres://job_runner:" + fake + "@127.0.0.1:1/casa?connect_timeout=2",
+		})
+		code, stdout, stderr := runCasa(t, "serve", "-mail-dir", t.TempDir(), "-listen", "127.0.0.1:0")
+		if code != 1 || !strings.HasPrefix(stderr, "casa serve: open the job database:") || strings.Contains(stdout+stderr, fake) {
+			t.Fatalf("exit %d, stdout %q, stderr %q; want 1, the error, and no password", code, stdout, stderr)
+		}
+	})
+	t.Run("serve runs due jobs", func(t *testing.T) {
+		// 09.3 §9; plan 1.7 decision 1: a test invitation past its
+		// expires_at, with its job, expires without any request.
+		_, cancel, wait, d := startServe(t)
+		admin := d.Pool(t, d.AdminRole)
+		var invitation string
+		if err := admin.QueryRow(t.Context(), `
+			WITH h AS (INSERT INTO household (name, time_zone, created_at) VALUES ('Uji', 'Asia/Jakarta', now() - interval '8 days') RETURNING id),
+			     m AS (INSERT INTO membership (household_id, display_name, role, permission_set, joined_at)
+			           SELECT id, 'Ayu', 'household_owner', 'two_equal_adults', now() - interval '8 days' FROM h RETURNING household_id, member_id),
+			     i AS (INSERT INTO invitation (household_id, inviter, state, created_at, expires_at)
+			           SELECT household_id, member_id, 'open', now() - interval '8 days', now() - interval '1 day' FROM m RETURNING household_id, id, expires_at),
+			     j AS (INSERT INTO job (household_id, kind, run_at, unique_key, payload)
+			           SELECT household_id, 'household.expire_invitation', expires_at, id::text, uuid_send(id) FROM i)
+			SELECT id::text FROM i`).Scan(&invitation); err != nil {
+			t.Fatal(err)
+		}
+		deadline := time.Now().Add(5 * time.Second)
+		for state := ""; state != "expired"; {
+			if time.Now().After(deadline) {
+				t.Fatalf("invitation state %q 5 s later, want expired", state)
+			}
+			time.Sleep(20 * time.Millisecond)
+			if err := admin.QueryRow(t.Context(), "SELECT state FROM invitation WHERE id = $1", invitation).Scan(&state); err != nil {
+				t.Fatal(err)
+			}
+		}
+		cancel()
+		if code, stderr := wait(); code != 0 || stderr != "" {
+			t.Fatalf("exit code = %d, stderr %q; want 0 and nothing", code, stderr)
+		}
+	})
+	t.Run("serve exits when the jobs runner loses the database", func(t *testing.T) {
+		// Plan 1.7 Task 2: Run returns a database failure to its caller;
+		// serve stops and exits 1 so its supervisor restarts it, without the
+		// error's text (SEC-44).
+		_, _, wait, d := startServe(t)
+		admin := d.Pool(t, d.AdminRole)
+		deadline := time.Now().Add(5 * time.Second)
+		for terminated := 0; terminated == 0; {
+			if time.Now().After(deadline) {
+				t.Fatal("no listening job_runner connection 5 s after the start")
+			}
+			time.Sleep(20 * time.Millisecond)
+			if err := admin.QueryRow(t.Context(), `
+				SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
+				 WHERE usename = 'job_runner' AND datname = current_database() AND query LIKE '%LISTEN jobs%'`).Scan(&terminated); err != nil {
+				t.Fatal(err)
+			}
+		}
+		want := "casa serve: the jobs runner stopped on a database error\n"
+		if code, stderr := wait(); code != 1 || stderr != want {
+			t.Fatalf("exit code = %d, stderr %q; want 1 and %q", code, stderr, want)
 		}
 	})
 	t.Run("never prints the connection string", func(t *testing.T) {
