@@ -718,6 +718,11 @@ Dua penyesuaian ikut catatan ini: **LY-02** mengikuti kontrak, yaitu daftar dimu
 | **Bilah mode bersama dan keluar akun** | | | |
 | — | Bilah, peringatan diam, luring, isi konfirmasi | 7 | §25.6 "Keluar akun di web" dan uji Task 7, kata demi kata |
 | `signOut.dialog` | Judul dan tombol dialog konfirmasi | 7 | Judul "Keluar akun?"; tombol "Keluar akun" dan "Tetap masuk" |
+| **LY-94, sesi habis di mode pribadi** | | | |
+| `ended.otherAccount.title` | Judul dialog "Masuk dengan akun lain" (SEC-170 (a)) | 2 | "Masuk dengan akun lain?" |
+| `ended.otherAccount.body` | Isi; `{n}` = jumlah antrean sebelum dihapus | 2 | n ≥ 1: kalimat §25.6 "Data Casa di perangkat ini akan dihapus, termasuk {n} catatan yang belum terkirim." n = 0: "Data Casa di perangkat ini akan dihapus." (sama dengan keluar akun, §25.6) |
+| `ended.otherAccount.confirm` | Tombol yang menghapus data lokal lalu membuka masuk | 2 | "Hapus dan masuk" |
+| — | Tombol batal; dialog tertutup, LY-94 tetap, fokus kembali ke "Masuk dengan akun lain" | 2 | `common.back` "Kembali" |
 | **LY-06 Buat rumah tangga** (tanpa hari mulai sampai langkah 3) | | | |
 | `household.create.title` | `h1`; tombol utama | 9 | "Buat rumah tangga" |
 | `household.create.name` | Label dan keterangan | 9 | "Nama rumah tangga"; "Misalnya Rumah Kenanga. Nama ini dilihat setiap anggota, juga orang yang kamu undang sebelum ia bergabung." |
