@@ -169,13 +169,14 @@ Catatan 14 November 2026 (FS-1 tugas 1.6; putusan `architect` atas rencana 1.6 Q
 |---|---|---|
 | `household` | `id = H` (kuncinya `id`) | `id = H` |
 | `membership` | `household_id = H′ OR (H′ IS NULL AND account_id = A)` | `household_id = H′` |
-| `invitation` | `household_id = H′ OR (H′ IS NULL AND token_hash = T) OR (H′ IS NULL AND invitee_account_id = A)` | `household_id = H′` |
+| `invitation` | `household_id = H′ OR (H′ IS NULL AND token_hash = T) OR (H′ IS NULL AND code_hash = T) OR (H′ IS NULL AND invitee_account_id = A)` (klausa `code_hash` sejak FS-1 1.7e, catatan 15 November 2026 di bawah) | `household_id = H′` |
 | `signup_verification` (milik `identity`, migrasi `00008`) | `token_hash = T OR setup_token_hash = T OR invitation_token_hash = T OR account_id = A` | `setup_token_hash = T OR invitation_token_hash = T` |
 
 `H` = `current_setting('app.household_id')::uuid`; `H′` = `nullif(current_setting('app.household_id', true), '')::uuid`. Klausa pencarian hanya hidup di transaksi pencarian murni (`H′ IS NULL`) dan hanya di `USING`, sehingga transaksi yang membawa rumah tangga X tidak pernah membaca keanggotaan atau undangan rumah tangga Y (SEC-38 (b)), dan cakupan pencarian tidak dapat menulis. Transaksi pencarian hanya memilih `household_id` dan pengenal baris; sesudahnya perintah berjalan dengan `household_id` dari baris yang ditemukan, tidak pernah dari permintaan. Hak `UPDATE` `signup_verification`: `(token_hash, expires_at, used_at, account_id)`; `account_id` diisi sekali (`WHERE account_id IS NULL`), pengecualian kedua aturan 2 di atas. Diubah 14 November 2026 (FS-1 1.6 PR C tugas 8; putusan `security-privacy`, [10.1 §5.1](../10-security-privacy/01-ancaman-dan-akses.md) catatan 1.6 butir 4 dan [10.4 SEC-158](../10-security-privacy/04-ai-toko-regulasi-perilaku.md) catatan (1); diterima lead menurut FR-FAM-004 catatan (3) dan rencana 1.6 keputusan 15) **[Usulan]**: hak `UPDATE` `app_rw` atas `signup_verification` tepat `(token_hash, email, expires_at, used_at, account_id)`. `email` bukan kolom pemilik, jadi daftar pengecualian aturan 2 tidak berubah. Kueri mengubah `email` hanya pada baris `source = 'invitation'` dan hanya `WHERE account_id IS NULL`.
 
 - **F02** menemukan undangan lewat `token_hash = T`; compare-and-set di transaksi tulis mensyaratkan `version` **dan** `token_hash` sama dengan hash yang dibawa (10.1 §5.1 catatan 1.6 butir 2).
 - **F05 `WithdrawAcceptance`** (putusan `architect`, menerima usulan `security-privacy`): penerima bukan anggota, jadi rumah tangganya ditemukan lewat klausa `invitee_account_id = A` di transaksi pencarian `Read(Scope{AccountID})`, dilayani indeks `invitation_invitee` (§5.1). Compare-and-set mensyaratkan `version`, `state = 'accepted'`, dan `invitee_account_id = A`. Alternatif yang ditolak: pemilih `household_id` dari klien (tetap memerlukan pencarian yang sama untuk memeriksanya, jadi hanya menambah medan), dan menyimpan rumah tangga penerima di tabel `identity` (tepi `identity` ke data rumah tangga).
+- **Kode undangan** (catatan 15 November 2026, FS-1 1.7e; keputusan pemilik 15 November 2026 "Tautan + kode"; syarat `security-privacy` di [10.1 §10](../10-security-privacy/01-ancaman-dan-akses.md) catatan tanggal itu) **[Usulan]** `architect`. Kode **diselesaikan menjadi token, lalu jalur token yang sudah ada berjalan**, supaya pemeriksaan undangan tetap satu implementasi (ES §2). Satu fungsi di modul `household` menerima kode yang sudah dinormalkan (10.1 §10 butir 3), menghitung `HMAC-SHA-256` menurut butir 1, lalu menjalankan pencarian `Read(Scope{TokenHash: hex HMAC})` dengan klausa `code_hash = T`. Pencarian ini memilih `household_id`, `id`, dan **`token_hash`**, pengecualian kecil atas "hanya pengenal baris" di atas: `token_hash` adalah hash, bukan rahasia, dan nilainya sudah dipegang server. Sesudah itu `PreviewInvitation`, `StartSignUp`, dan F02 berjalan persis seperti jalur token dengan `token_hash` yang ditemukan: compare-and-set F02 tetap atas `version` dan `token_hash`, `signup_verification.invitation_token_hash` diisi `token_hash` itu, dan kunci "Mulai pendaftaran per undangan" juga `token_hash` itu, sehingga tautan dan kode berbagi satu jatah (10.1 §10 butir 6 (c)). Karena token dan kode selalu diterbitkan ulang bersama (butir 4), kesamaan `token_hash` di compare-and-set juga membuktikan bahwa kode masih yang terbaru. `T` memakai setelan `app.token_hash` yang sama. Nilai HMAC dan SHA-256 token tidak pernah tertukar dalam praktik, karena keduanya keluaran 256 bit dari fungsi yang berbeda. `from_signup` tidak berubah. Uji RLS 10.1 §5.1 aturan 7 mencakup klausa baru: pencarian lewat `code_hash` menemukan baris tetapi tidak dapat menulis.
 
 Catatan 13 November 2026 (FS-1 1.4, putusan lead Q2; dikukuhkan `security-privacy` dengan penyesuaian, [10.1 §5.1](../10-security-privacy/01-ancaman-dan-akses.md)). `setup_token` dan `signup_verification` (§5.1) juga tabel global. Masuk, autentikasi token, penyegaran, pemulihan, dan pendaftaran harus menemukan satu baris **sebelum akun diketahui**, jadi kebijakan `app.account_id` saja membuatnya mustahil sebagai `app_rw`. `database.Scope` karena itu membawa dua kunci pencarian lagi, dipasang dengan pola `SET LOCAL` yang sama per transaksi: `app.email` (dibandingkan sebagai `citext`) dan `app.token_hash` (SHA-256 token dalam hex), dengan aturan `nullif` di atas. Keduanya kunci pencarian, bukan hak, dan tunduk pada empat aturan 10.1 §5.1:
 
@@ -237,6 +238,7 @@ Catatan 13 November 2026 (FS-1 tugas 1.2): pada koneksi pool yang pernah menjala
 - Email akun (SEC-30).
 - `membership_one_household` dan `invitation_invitee` (09.2 §5.1, catatan keputusan 20, FS-1 1.6, pengecualian yang tercatat).
 - `token_hash` pada tabel identitas: 256 bit acak, sehingga tabrakan tidak dapat ditebak (10.1 §5.1).
+- `invitation_code` (sejak FS-1 1.7e, §5.1 catatan 15 November 2026): kode dibuat server, bukan dipilih klien, jadi pelanggaran unik tidak pernah menjadi oracle bagi pemanggil. Bentrokan dijawab dengan kode baru, bukan galat yang terbaca.
 - Foreign key tabel identitas ke `session(id)`, yaitu `session_id` pada `reauth_grant`, `refresh_token`, dan `security_event`: pengecualian yang dideklarasikan, tanpa composite FK selama id sesi tidak pernah berasal dari klien (10.1 §5.1, catatan 14 November 2026).
 
 **`full_adult_members`** (SEC-10) adalah satu fungsi Go di modul `household` yang membaca `membership`. Setiap penentuan pihak kesepakatan, tingkat `adults`, dan penerima bawaan memanggilnya. Fungsi SQL tiruan tidak dibuat.
@@ -580,6 +582,30 @@ CREATE UNIQUE INDEX invitation_invitee ON invitation (invitee_account_id) WHERE 
 --   * security-privacy memeriksa: server_time = expires_at cukup menyembunyikan waktu aktivitas dari
 --     rumah tangga pengundang; dan di 1.7 baris reader_feed untuk gugur yang ditulis belakangan tidak
 --     membuka waktu itu lewat saat munculnya di umpan.
+-- Catatan 15 November 2026 (FS-1 1.7e, kode undangan; 10.1 §10 catatan tanggal itu; RLS dan alur di §3)
+-- [Usulan] architect. Migrasi berikutnya (00011 bila belum terpakai), expand saja:
+--   ALTER TABLE invitation ADD COLUMN code_hash bytea NULL;
+--                                         -- HMAC-SHA-256(invitation-code-key, "casa.invitation.code.v1" || 12 angka)
+--                                         -- (10.1 §10 butir 1); kode asli tidak pernah disimpan
+--   ALTER TABLE invitation ADD CONSTRAINT invitation_code_live
+--     CHECK (code_hash IS NULL OR (state = 'open' AND token_hash IS NOT NULL));
+--   CREATE UNIQUE INDEX invitation_code ON invitation (code_hash) WHERE code_hash IS NOT NULL;
+--   * Siklus hidup (butir 4): IssueInvitationLink mengisi token_hash dan code_hash baru dalam satu
+--     compare-and-set; setiap penulis yang mengeluarkan undangan dari 'open' (F02, F03, gugur oleh job dan
+--     jalur malas, penutupan lain) mengosongkan code_hash di UPDATE yang sama. CHECK di atas penjaganya:
+--     penulis yang lupa gagal dengan galat, bukan meninggalkan kode hidup. Satu penulis per transisi, tanpa
+--     trigger (aturan "satu implementasi", §5.2 butir 3).
+--   * Bentrok unik saat terbit (peluang ≈ jumlah undangan hidup / 10^12): seluruh database.Write diulang
+--     dengan kode baru, paling banyak 3 kali, lalu galat server (butir 1). Diulang per transaksi, karena
+--     pelanggaran unik membatalkan transaksi PostgreSQL.
+--   * Pengecualian tercatat atas §3 lapis 2 (kunci tidak diawali household_id), seperti invitation_invitee;
+--     gerbang katalog (keyExceptions) mencatatnya. Unik global wajib: satu kode harus menunjuk satu baris.
+--   * QG-05 (biner lama di skema baru): biner lama tidak pernah mengisi code_hash, jadi CHECK selalu
+--     terpenuhi baginya, dan uji perilakunya lulus. Batasnya ada di rollback nyata: biner sebelum 1.7e
+--     yang menerbitkan ulang tautan meninggalkan code_hash lama, dan code_hash itu hidup lagi saat biner
+--     baru kembali. Karena itu runbook rollback (09.4 §6, baris kode undangan) mengosongkan code_hash
+--     lebih dulu. Sesudah GR-2 setiap biner yang mungkin dipasang ulang sudah mengenal kode.
+--   * Down migration: DROP INDEX, DROP CONSTRAINT, DROP COLUMN (kode hidup mati; tautan tetap jalan).
 object_event (                            -- 06 §2.5, INV-A01; tambah-saja (ADR-016 butir 5)
   household_id,
   object_kind  text NOT NULL CHECK (object_kind IN ('household','invitation')),  -- diperluas tiap modul penulis
