@@ -4,6 +4,7 @@
 import { Code, ConnectError } from '@connectrpc/connect';
 import { noteUpgradeRequired } from './app-update.svelte';
 import { api, ctx, errorCode, failureOf } from './api';
+import { displayContext } from './device';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
 import { localDbExists, localDbWiped, wipePending } from './local-db';
@@ -38,6 +39,33 @@ interface Session {
 }
 
 export const session: Session = $state({ state: { kind: 'checking' }, ageDeclared: false });
+
+/** The entry screens before a session (08 §25.6). */
+export type EntryScreen = '/pasang' | '/masuk/mode' | '/masuk';
+
+/**
+ * The screen the app opens at (08 §25.6 flow): LY-90 in a Safari tab on iPhone or iPad until the
+ * shared way is chosen (SEC-171 (b)); LY-91 until a device mode is chosen (SEC-165); then LY-01.
+ * A member's screen is "/".
+ */
+export function nextScreen(): EntryScreen | '/' {
+	if (session.state.kind === 'signed-in') return '/'; // ponytail: Task 8 adds LY-04, LY-05, LY-06
+	if (displayContext() === 'ios-safari-tab' && session.mode !== 'shared') return '/pasang';
+	return session.mode ? '/masuk' : '/masuk/mode';
+}
+
+/**
+ * Where an entry screen sends the person instead of showing, so no step is skipped by its
+ * address: LY-90 only in a Safari tab, LY-91 never there (SEC-171 (b) (1)), LY-01 only with a
+ * mode chosen (SEC-165). An earlier step stays reachable, so Back can change the choice.
+ */
+export function entryRedirect(path: EntryScreen): EntryScreen | '/' | undefined {
+	const tab = displayContext() === 'ios-safari-tab';
+	const shows =
+		session.state.kind === 'signed-out' &&
+		(path === '/pasang' ? tab : path === '/masuk/mode' ? !tab : nextScreen() === '/masuk');
+	return shows ? undefined : nextScreen();
+}
 
 /** The session check waits this long before the app opens without it (SEC-172 (b)). */
 const sessionCheckLimitMs = 3000;

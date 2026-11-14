@@ -18,6 +18,47 @@ export const copy = {
 		unreachableStorage:
 			'Data Casa di perangkat ini belum bisa dibersihkan. Coba lagi. Kalau tetap gagal, tutup tab ini lalu buka Casa lagi.'
 	},
+	// 08 §25.6 LY-90 "Pasang ke layar utama", in a Safari tab on iPhone and iPad (SEC-171 (b)).
+	ly90: {
+		// Above both ways: covers a browser inside another app without detecting it.
+		firstLine:
+			'Kalau kamu membuka halaman ini dari aplikasi lain, buka halaman ini di Safari dulu.',
+		title: 'Pasang Casa di layar utama dulu',
+		reason:
+			'Di iPhone dan iPad, Casa dibuka dari ikonnya di layar utama. Dengan begitu catatanmu tidak terhapus oleh aturan pembersihan data Safari, dan kamu bisa menerima pemberitahuan.',
+		// Numbered text with the iOS button names in Indonesian, no screenshots.
+		steps: [
+			'1. Ketuk ⋯ di samping alamat situs, lalu ketuk Bagikan.',
+			'2. Pilih Tambah ke Layar Utama.',
+			'3. Biarkan Buka sebagai Web App menyala, lalu ketuk Tambah.',
+			'4. Tutup Safari, lalu buka Casa dari layar utama.'
+		],
+		shared: {
+			title: 'Pakai sebagai perangkat bersama atau pinjaman',
+			note: 'Untuk iPhone atau iPad milik orang lain. Catatanmu tidak disimpan di perangkat ini, dan kamu keluar otomatis sesudah 30 menit tidak dipakai.'
+		}
+	},
+	// 08 §25.6 LY-91 "Mode perangkat" (SEC-165): no preselected choice.
+	ly91: {
+		question: 'Ini perangkat pribadimu, atau perangkat bersama atau pinjaman?',
+		personal: {
+			title: 'Perangkat pribadiku',
+			note: 'Salinan catatan tersimpan di browser perangkat ini, jadi kamu bisa mencatat tanpa internet. Siapa pun yang bisa membuka browser ini dapat membaca salinan itu. Bisa memakai pemberitahuan dan kunci aplikasi.'
+		},
+		shared: {
+			title: 'Perangkat bersama atau pinjaman',
+			note: 'Catatanmu tidak disimpan di perangkat ini. Kamu keluar otomatis sesudah 30 menit tidak dipakai, dan paling lama 12 jam. Mencatat perlu internet.'
+		},
+		limit:
+			'Casa tidak bisa mencegah perekam layar atau ketikan, atau pengelola kata sandi, yang terpasang di perangkat ini.'
+	},
+	// 08 §7.6 ly01.*; the two buttons from 08 §5.1 LY-01.
+	ly01: {
+		title: 'Casa',
+		line: 'Uang dan urusan rumah tangga, diketahui bersama tanpa perlu saling bertanya.',
+		signUp: 'Buat akun',
+		signIn: 'Sudah punya akun'
+	},
 	// 08 §25.7 error table row "Versi aplikasi di bawah minimum" (SEC-169 (d)).
 	update: {
 		// The second sentence only in personal mode once signed in, where a local queue exists.

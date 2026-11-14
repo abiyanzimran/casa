@@ -308,7 +308,8 @@ test('SEC-161 (d): a session_expired answer shows LY-94 and keeps the local data
 	await otherAccount.click();
 	await dialog.getByRole('button', { name: 'Hapus dan masuk' }).click();
 	await expect.poll(() => isNewDocument(page)).toBe(true);
-	expect(new URL(page.url()).pathname).toBe('/');
+	// A fresh document at "/", which sends a person without a session on to sign-in (LY-91).
+	await expect(page).toHaveURL(/\/masuk\/mode$/);
 	expect(await hasCasaDatabase(page)).toBe(false);
 });
 

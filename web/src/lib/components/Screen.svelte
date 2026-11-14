@@ -2,15 +2,23 @@
 	// The one-column frame of a screen (08 §17.8, §25.5): at most --lebar-satu-kolom wide with the
 	// screen margin, one h1 that takes focus when the screen opens, and the page title
 	// "Casa · {destination}" or "Casa" alone (SEC-175 (a); 08 §7.6 title table). describedby names
-	// the sentence paragraphs, so focusing the h1 announces them too (QG-09 S2).
+	// the sentence paragraphs, so focusing the h1 announces them too (QG-09 S2). lead is a line
+	// that 08 puts above the heading (LY-90's first line).
 	import type { Snippet } from 'svelte';
 
 	let {
 		heading,
 		destination,
 		describedby,
+		lead,
 		children
-	}: { heading: string; destination?: string; describedby?: string; children: Snippet } = $props();
+	}: {
+		heading: string;
+		destination?: string;
+		describedby?: string;
+		lead?: Snippet;
+		children: Snippet;
+	} = $props();
 
 	let title: HTMLHeadingElement;
 
@@ -24,6 +32,7 @@
 </svelte:head>
 
 <main>
+	{@render lead?.()}
 	<h1 class="judul-layar" tabindex="-1" aria-describedby={describedby} bind:this={title}>
 		{heading}
 	</h1>
@@ -50,5 +59,8 @@
 	}
 	main > :global(p + p) {
 		margin-top: var(--jarak-3);
+	}
+	main > :global(p:has(+ h1)) {
+		margin-bottom: var(--jarak-6);
 	}
 </style>
