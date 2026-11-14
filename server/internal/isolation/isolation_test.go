@@ -4,12 +4,14 @@
 //
 // Every query is found in the generated code, so a new query is tested
 // without a line here unless one of its parameters has no isolation value,
-// which fails the test. For every identifier parameter the query runs twice,
-// as household Y's member, with every other parameter Y's: once with
-// household X's value, once with a fresh random value. Both runs must answer
-// alike (SQLSTATE, row count, and every boolean and integer in the result),
-// the X run must return no X value, and no row X owns may change. Another
-// household's value then behaves exactly like one that never existed.
+// which fails the test. Each query runs as household Y's member: once with
+// Y's values, which must succeed; then, for every identifier parameter, with
+// household X's value and with a fresh random value, every other parameter
+// Y's; and, with two identifiers or more, with all of them X's and all of
+// them fresh. Each X run must answer like its fresh run (SQLSTATE, row
+// count, and every boolean and integer in the result), no run may return an
+// X value, and no row X owns may change. Another household's value then
+// behaves exactly like one that never existed.
 package isolation
 
 import (
@@ -23,6 +25,7 @@ import (
 	"go/parser"
 	"go/token"
 	"maps"
+	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -81,8 +84,19 @@ var otherValuesX = []any{
 	uuid("10000000-0000-4000-8000-000000000051"), // signup_verification (setup token)
 	uuid("10000000-0000-4000-8000-000000000052"), // signup_verification (invitation)
 	uuid("10000000-0000-4000-8000-000000000061"), // security_event
-	hash(0x18), // the invitee's sign-up link
-	"invitee-x@example.test", "Rumah X", "Pemilik X", "Tamu X",
+	uuid("10000000-0000-4000-8000-000000000002"), // household X2
+	uuid("10000000-0000-4000-8000-000000000022"), // X2's member
+	uuid("10000000-0000-4000-8000-000000000072"), // X2's accepted invitation
+	hash(0x18), // the invitation sign-up's link
+	hash(0x19), // the invitation sign-up's invitation token
+	hash(0x42), // credential salt
+	hash(0x43), // credential hash
+	hash(0x34), // idempotency request hash
+	hash(0x35), // idempotency response
+	"invitee-x@example.test", "Rumah X", "Rumah X2", "Pemilik X", "Tamu X",
+	xTime("2026-11-13T12:11:11Z"), xTime("2026-11-14T10:11:11Z"), xTime("2026-11-14T11:11:11Z"),
+	xTime("2026-11-14T12:11:11Z"), xTime("2026-11-14T13:11:11Z"), xTime("2026-11-15T12:11:11Z"),
+	xTime("2026-11-21T12:11:11Z"), xTime("2027-02-12T12:11:11Z"),
 }
 
 // now is the fixture's clock: every token and invitation of the fixture is
@@ -134,10 +148,9 @@ var isolationValues = map[string]isolationValue{
 	"inviter":               pair(memberX, memberY),
 	"actor":                 pair(memberX, memberY),
 	"member_ids":            pair([]pgtype.UUID{memberX}, []pgtype.UUID{memberY}),
-	"object_id":             pair(invitationX, invitationY),
+	"object_id":             pair(householdX, householdY), // the object of X's event and feed row
 	"object_ids":            pair([]pgtype.UUID{householdX}, []pgtype.UUID{householdY}),
 	"session_id":            pair(sessionX, sessionY),
-	"keep":                  pair(sessionX, sessionY),
 	"idempotency_key":       pair(idempotencyKeyX, idempotencyKeyY),
 	"email":                 pair(emailX, emailY),
 	"setup_token_hash":      pair(setupTokenX, setupTokenY),
@@ -145,6 +158,15 @@ var isolationValues = map[string]isolationValue{
 	"cookie_hash":           pair(cookieHashX, cookieHashY),
 	"presented":             pair(sessionTokenX, sessionTokenY),
 	"unique_key":            pair(text(invitationX.String()), text(invitationY.String())),
+
+	// A new member's account is one no membership holds, so Y's own call
+	// joins it.
+	"householddb.InsertMembership.account_id": pair(accountX, inviteeY),
+	"householddb.JoinMembership.account_id":   pair(accountX, inviteeY),
+	// The invitee of X2's accepted invitation.
+	"householddb.OwnAcceptance.account_id": pair(inviteeX, inviteeY),
+	// A new record's key is one no record holds.
+	"commanddb.InsertIdempotencyRecord.idempotency_key": pair(idempotencyKeyX, uuid("20000000-0000-4000-8000-000000000082")),
 
 	"householddb.InsertHousehold.id":        pair(householdX, householdY),
 	"householddb.NextHouseholdVersion.id":   pair(householdX, householdY),
@@ -162,32 +184,35 @@ var isolationValues = map[string]isolationValue{
 	"identitydb.TouchSession.id":            pair(sessionX, sessionY),
 	"identitydb.RevokeSession.id":           pair(sessionX, sessionY),
 	"identitydb.RotateAccessToken.id":       pair(sessionX, sessionY),
-	"jobsdb.DeleteJob.id":                   pair(jobX, jobY),
-	"jobsdb.FailJob.id":                     pair(jobX, jobY),
-	"readdb.AccountEmail.id":                pair(accountX, accountY),
+	// The session kept is not Y's only one, so Y's own call revokes it.
+	"identitydb.RevokeSessions.keep": pair(sessionX, uuid("20000000-0000-4000-8000-000000000032")),
+	"jobsdb.DeleteJob.id":            pair(jobX, jobY),
+	"jobsdb.FailJob.id":              pair(jobX, jobY),
+	"readdb.AccountEmail.id":         pair(accountX, accountY),
 
-	// The Y value of a new token is one no row holds, so Y's own call writes it.
+	// The Y value of a new token (0x6?) is one no row holds, so Y's own call
+	// writes it.
 	"householddb.ReplaceInvitationToken.token_hash":            pair(invitationTokenX, invitationTokenY),
 	"householddb.OpenInvitationByToken.token_hash":             pair(invitationTokenX, invitationTokenY),
 	"householddb.AcceptInvitation.token_hash":                  pair(invitationTokenX, invitationTokenY),
-	"identitydb.InsertSetupToken.token_hash":                   pair(setupTokenX, hash(0x2a)),
+	"identitydb.InsertSetupToken.token_hash":                   pair(setupTokenX, hash(0x61)),
 	"identitydb.GetSetupTokenForEmail.token_hash":              pair(setupTokenX, setupTokenY),
 	"identitydb.UseSetupToken.token_hash":                      pair(setupTokenX, setupTokenY),
-	"identitydb.UpsertSignupVerification.token_hash":           pair(signupLinkX, hash(0x28)),
-	"identitydb.UpsertInvitationSignupVerification.token_hash": pair(signupLinkX, hash(0x20)),
-	"identitydb.GetSignupVerification.token_hash":              pair(signupLinkX, signupLinkY),
+	"identitydb.UpsertSignupVerification.token_hash":           pair(signupLinkX, hash(0x68)),
+	"identitydb.UpsertInvitationSignupVerification.token_hash": pair(signupLinkX, hash(0x69)),
+	"identitydb.GetSignupVerification.token_hash":              pair(hash(0x18), hash(0x28)), // the invitation sign-ups, read in their account's scope
 	"identitydb.UseSignupVerification.token_hash":              pair(signupLinkX, signupLinkY),
-	"identitydb.InsertSession.token_hash":                      pair(sessionTokenX, hash(0x2b)),
+	"identitydb.InsertSession.token_hash":                      pair(sessionTokenX, hash(0x62)),
 	"identitydb.GetSessionByTokenHash.token_hash":              pair(sessionTokenX, sessionTokenY),
 	"identitydb.GetSessionByCookieHash.token_hash":             pair(sessionTokenX, sessionTokenY),
 	"identitydb.GetSessionByCookieHashForUpdate.token_hash":    pair(sessionTokenX, sessionTokenY),
-	"identitydb.RotateCookie.token_hash":                       pair(sessionTokenX, hash(0x2c)),
-	"identitydb.ReissueCookie.token_hash":                      pair(sessionTokenX, hash(0x2d)),
-	"identitydb.RotateAccessToken.token_hash":                  pair(sessionTokenX, hash(0x2e)),
-	"identitydb.InsertRefreshToken.token_hash":                 pair(refreshTokenX, hash(0x2f)),
+	"identitydb.RotateCookie.token_hash":                       pair(sessionTokenX, hash(0x63)),
+	"identitydb.ReissueCookie.token_hash":                      pair(sessionTokenX, hash(0x64)),
+	"identitydb.RotateAccessToken.token_hash":                  pair(sessionTokenX, hash(0x65)),
+	"identitydb.InsertRefreshToken.token_hash":                 pair(refreshTokenX, hash(0x66)),
 	"identitydb.GetRefreshToken.token_hash":                    pair(refreshTokenX, refreshTokenY),
 	"identitydb.UseRefreshToken.token_hash":                    pair(refreshTokenX, refreshTokenY),
-	"identitydb.InsertRecoveryToken.token_hash":                pair(recoveryTokenX, hash(0x29)),
+	"identitydb.InsertRecoveryToken.token_hash":                pair(recoveryTokenX, hash(0x67)),
 	"identitydb.GetRecoveryToken.token_hash":                   pair(recoveryTokenX, recoveryTokenY),
 	"identitydb.UseRecoveryToken.token_hash":                   pair(recoveryTokenX, recoveryTokenY),
 
@@ -216,15 +241,16 @@ var isolationValues = map[string]isolationValue{
 	"invitee_display_name":                  fixed(text("Anggota Baru")),
 	"version":                               fixed(0), // the compare-and-set version of Y's invitation
 	"householddb.AcknowledgeNotice.version": fixed(1), // the operator notice's version
+	"householddb.IssueNotice.version":       fixed(1),
 	"variant":                               fixed("couple"),
 	"text_sha256":                           fixed(hash(0x30)),
-	"text_version":                          fixed(1),
+	"text_version":                          fixed(2), // a version neither account has stated, so a write would land
 	"issue_seq":                             fixed(2),
 	"from_state":                            fixed("open"),
 	"householddb.InsertObjectEvent.from_state": fixed(pgtype.Text{}),
 	"to_state":                 fixed("withdrawn"),
 	"clear_invitee":            fixed(false),
-	"object_kind":              fixed("invitation"),
+	"object_kind":              fixed("household"),
 	"actor_kind":               fixed("member"),
 	"rule":                     fixed(pgtype.Text{}),
 	"seq":                      fixed(1),
@@ -259,26 +285,62 @@ var isolationValues = map[string]isolationValue{
 	"object_kinds":             fixed([]string{"household"}),
 }
 
-// isolationExceptions are the only (query, parameter) pairs allowed to fail,
-// each with its source; parameter "" is the run with Y's values only. An
-// exception that no longer fails fails the test.
-var isolationExceptions = []struct{ query, param, reason string }{
-	{"householddb.InsertMembership", "account_id", membershipOneHousehold},
-	{"householddb.JoinMembership", "account_id", membershipOneHousehold},
+// isolationException lets one (query, parameter) answer X's value
+// differently from a fresh one; parameter "" is the run with Y's values
+// only, "*" the run with every identifier X's. It waives the comparison
+// only: the result must still hold no X value and no row X owns may change,
+// unless crossHousehold, for a role that reads every household by design.
+type isolationException struct {
+	query, param, reason string
+	crossHousehold       bool
+}
+
+// isolationExceptions are the only failures allowed, each with its source.
+// An exception that no longer fails fails the test.
+var isolationExceptions = []isolationException{
+	{"householddb.InsertMembership", "account_id", membershipOneHousehold, false},
+	{"householddb.JoinMembership", "account_id", membershipOneHousehold, false},
 	{"householddb.AcceptInvitation", "invitee_account_id", "invitation_invitee: one open acceptance per account across " +
 		"households, a recorded exception to 09.2 §3 layer 2 keyed by the caller's own account; the handler gives " +
-		"only the session's account (09.2 §5.1 note on plan 1.6 decision 20)"},
-	{"identitydb.InsertSession", "token_hash", randomTokenHash},
-	{"identitydb.RotateCookie", "token_hash", randomTokenHash},
-	{"identitydb.ReissueCookie", "token_hash", randomTokenHash},
-	{"identitydb.RotateAccessToken", "token_hash", randomTokenHash},
-	{"identitydb.InsertRefreshToken", "token_hash", randomTokenHash},
-	{"identitydb.InsertRecoveryToken", "token_hash", randomTokenHash},
-	{"identitydb.InsertRefreshToken", "session_id", sessionForeignKey},
-	{"identitydb.InsertReauthGrant", "session_id", sessionForeignKey},
-	{"identitydb.InsertSecurityEvent", "session_id", sessionForeignKey},
-	{"jobsdb.ClaimDue", "", jobRunnerAcrossHouseholds},
-	{"jobsdb.FailJob", "id", jobRunnerAcrossHouseholds},
+		"only the session's account (09.2 §5.1 note on plan 1.6 decision 20)", false},
+	{"identitydb.InsertSession", "token_hash", randomTokenHash, false},
+	{"identitydb.RotateCookie", "token_hash", randomTokenHash, false},
+	{"identitydb.ReissueCookie", "token_hash", randomTokenHash, false},
+	{"identitydb.RotateAccessToken", "token_hash", randomTokenHash, false},
+	{"identitydb.InsertRefreshToken", "token_hash", randomTokenHash, false},
+	{"identitydb.InsertRecoveryToken", "token_hash", randomTokenHash, false},
+	{"identitydb.InsertRefreshToken", "session_id", sessionForeignKey, false},
+	{"identitydb.InsertReauthGrant", "session_id", sessionForeignKey, false},
+	{"identitydb.InsertSecurityEvent", "session_id", sessionForeignKey, false},
+	// ClaimDue returns and leases X's due job, and FailJob writes it: both
+	// read and change every household's job rows by design, so the leak and
+	// digest checks cannot hold for them.
+	{"jobsdb.ClaimDue", "", jobRunnerAcrossHouseholds, true},
+	{"jobsdb.FailJob", "id", jobRunnerAcrossHouseholds, true},
+}
+
+// ownCallFails are the queries whose call with Y's values cannot succeed in
+// the test's scope, each with its source. Every other query must answer Y's
+// own call without an error and, unless it is exec, with at least one row,
+// so a difference X makes is not hidden behind an error both runs share. An
+// entry that no longer fails fails the test.
+var ownCallFails = []struct{ query, reason string }{
+	{"identitydb.GetSetupTokenForEmail", lookupScopeOnly},
+	{"identitydb.InsertSetupToken", lookupScopeOnly},
+	{"identitydb.UseSetupToken", lookupScopeOnly},
+	{"identitydb.UpsertSignupVerification", lookupScopeOnly},
+	{"identitydb.UpsertInvitationSignupVerification", lookupScopeOnly},
+	{"identitydb.UseSignupVerification", lookupScopeOnly},
+	{"householddb.OwnAcceptance", lookupScopeOnly},
+	{"identitydb.InsertAccount", "the account it writes must be the scope's (WITH CHECK), and the scope's account " +
+		"exists; sign-up writes in the new account's own scope (09.2 §3 global tables), the production-scope pass " +
+		"(10.1 §5.1 catatan 14 November 2026 (FS-1 1.7 PR C, uji isolasi per kueri) item 5)"},
+	{"householddb.InsertHousehold", "the household it writes must be the scope's (WITH CHECK, 09.2 §3 note of 14 " +
+		"November 2026), and the scope's household exists; CreateHousehold's scope is the new id"},
+	{"identitydb.InsertCredential", "one credential per account (primary key), and Y's account holds the one " +
+		"GetCredential and UpdateCredential read"},
+	{"householddb.InsertInvitation", "one live invitation per household (06 §3.6 F01; invitation_live), and Y's " +
+		"live invitation is the one the other invitation queries act on"},
 }
 
 const (
@@ -289,6 +351,9 @@ const (
 		"the server draws, so no caller can name another's (10.1 §5.1 row \"Pemeriksaan unique di luar RLS\")"
 	sessionForeignKey = "the foreign key to session(id) is checked outside row-level security; a recorded " +
 		"exception, without a schema change (10.1 §5.1 catatan 14 November 2026 (FS-1 1.7 PR C, uji isolasi per kueri))"
+	lookupScopeOnly = "its policy clause holds only in a lookup scope (Scope{TokenHash} or Scope{AccountID} " +
+		"without a household), which the fixed scope never sets; the production-scope pass is due before GR-4 " +
+		"(10.1 §5.1 catatan 14 November 2026 (FS-1 1.7 PR C, uji isolasi per kueri) item 5)"
 	jobRunnerAcrossHouseholds = "job_runner claims and fails jobs across households by design; payload holds " +
 		"identifiers only (09.2 §3 row \"job (pengambilan)\" and its note of 14 November 2026, Q1 (b); ruling P7)"
 )
@@ -328,7 +393,7 @@ type owner struct {
 
 var (
 	ownerX = owner{
-		ids:    []pgtype.UUID{householdX, accountX, inviteeX},
+		ids:    []pgtype.UUID{householdX, uuid("10000000-0000-4000-8000-000000000002"), accountX, inviteeX},
 		tokens: [][]byte{setupTokenX, invitationTokenX},
 	}
 	ownerY = owner{
@@ -420,10 +485,15 @@ func TestEveryQueryIsIsolated(t *testing.T) {
 				t.Errorf("isolationValues[%q] is used by no query", key)
 			}
 		}
+		for name := range queryRoles {
+			if !slices.ContainsFunc(queries, func(q query) bool { return q.String() == name }) {
+				t.Errorf("queryRoles names %s, which no query is", name)
+			}
+		}
 	})
 
 	pools := map[string]*pgxpool.Pool{"app_rw": rolePool(t, d, "app_rw"), "job_runner": rolePool(t, d, "job_runner")}
-	triggered := map[string]bool{}
+	triggered, ownCallTriggered := map[string]bool{}, map[string]bool{}
 
 	t.Run("SEC-02 another household's values behave as values that never existed", func(t *testing.T) {
 		for _, q := range queries {
@@ -442,35 +512,61 @@ func TestEveryQueryIsIsolated(t *testing.T) {
 					}
 				}
 				var failures []string
-				check := func(param string, problems []string) {
-					if len(problems) == 0 {
-						return
-					}
-					if reason, ok := exception(q, param); ok {
+				check := func(param string, compared, leakOrChanged []string) {
+					e, excepted := exception(q, param)
+					if excepted && len(compared) > 0 || e.crossHousehold && len(leakOrChanged) > 0 {
 						triggered[q.String()+"/"+param] = true
-						t.Logf("%s: excepted (%s): %s", describe(param), reason, strings.Join(problems, "; "))
-						return
+						t.Logf("%s: excepted (%s): %s", describe(param), e.reason, strings.Join(slices.Concat(compared, leakOrChanged), "; "))
+						compared = nil
+						if e.crossHousehold {
+							leakOrChanged = nil
+						}
 					}
-					failures = append(failures, describe(param)+": "+strings.Join(problems, "; "))
+					if problems := slices.Concat(compared, leakOrChanged); len(problems) > 0 {
+						failures = append(failures, describe(param)+": "+strings.Join(problems, "; "))
+					}
+				}
+				compare := func(param string, x, fresh map[string]any) {
+					runX, runR := r.run(t, x), r.run(t, fresh)
+					var compared []string
+					if runX.code != runR.code || runX.rows != runR.rows || !reflect.DeepEqual(runX.scalars, runR.scalars) {
+						compared = append(compared, fmt.Sprintf("X answers (code %q, rows %d, %v), a fresh value (code %q, rows %d, %v)",
+							runX.code, runX.rows, runX.scalars, runR.code, runR.rows, runR.scalars))
+					}
+					check(param, compared, leakOrChange(runX, before))
 				}
 
 				base := r.run(t, ys)
-				check("", leakOrChange(base, before))
+				check("", nil, leakOrChange(base, before))
+				ownFails := base.code != "" || q.kind != "exec" && base.rows == 0
+				if reason, declared := ownCallFailure(q); declared {
+					if ownFails {
+						ownCallTriggered[q.String()] = true
+						t.Logf("Y's own call fails (code %q, rows %d), declared: %s", base.code, base.rows, reason)
+					}
+				} else if ownFails {
+					failures = append(failures, fmt.Sprintf("Y's own call fails (code %q, rows %d), which would hide what X changes", base.code, base.rows))
+				}
+
+				allX, allFresh := maps.Clone(ys), maps.Clone(ys)
+				identifiers := 0
 				for _, p := range q.params {
 					key, _ := valueKey(q, p)
 					v := isolationValues[key]
 					if !v.identifier() {
 						continue
 					}
+					identifiers++
 					x, fresh := maps.Clone(ys), maps.Clone(ys)
 					x[p], fresh[p] = v.x, freshLike(t, v.x)
-					runX, runR := r.run(t, x), r.run(t, fresh)
-					problems := leakOrChange(runX, before)
-					if runX.code != runR.code || runX.rows != runR.rows || !reflect.DeepEqual(runX.scalars, runR.scalars) {
-						problems = append(problems, fmt.Sprintf("X answers (code %q, rows %d, %v), a fresh value (code %q, rows %d, %v)",
-							runX.code, runX.rows, runX.scalars, runR.code, runR.rows, runR.scalars))
-					}
-					check(p, problems)
+					allX[p], allFresh[p] = v.x, fresh[p]
+					compare(p, x, fresh)
+				}
+				// A query that pins two identifiers together (household and
+				// id) answers nothing when only one is X's, whatever the
+				// policies say; with all of them X's it would find X's row.
+				if identifiers > 1 {
+					compare("*", allX, allFresh)
 				}
 				for _, f := range failures {
 					t.Error(f)
@@ -485,6 +581,11 @@ func TestEveryQueryIsIsolated(t *testing.T) {
 				t.Errorf("%s %s no longer fails; remove its exception", e.query, describe(e.param))
 			}
 		}
+		for _, o := range ownCallFails {
+			if !ownCallTriggered[o.query] {
+				t.Errorf("%s: Y's own call no longer fails; remove it from ownCallFails", o.query)
+			}
+		}
 	})
 
 	if after := digest(t, admin, digestSQL); after != before {
@@ -493,8 +594,11 @@ func TestEveryQueryIsIsolated(t *testing.T) {
 }
 
 func describe(param string) string {
-	if param == "" {
+	switch param {
+	case "":
 		return "with Y's values only"
+	case "*":
+		return "with every identifier X's"
 	}
 	return "parameter " + param
 }
@@ -510,10 +614,19 @@ func leakOrChange(o outcome, before string) []string {
 	return problems
 }
 
-func exception(q query, param string) (string, bool) {
+func exception(q query, param string) (isolationException, bool) {
 	for _, e := range isolationExceptions {
 		if e.query == q.String() && e.param == param {
-			return e.reason, true
+			return e, true
+		}
+	}
+	return isolationException{}, false
+}
+
+func ownCallFailure(q query) (string, bool) {
+	for _, o := range ownCallFails {
+		if o.query == q.String() {
+			return o.reason, true
 		}
 	}
 	return "", false
@@ -535,16 +648,31 @@ func roleOf(q query) string {
 	return "app_rw"
 }
 
-// annotation is sqlc's header line in each query's SQL constant.
-var annotation = regexp.MustCompile(`^-- name: (\w+) :(\w+)`)
+var (
+	// annotation is sqlc's header line in each query's SQL constant.
+	annotation = regexp.MustCompile(`^-- name: (\w+) :(\w+)`)
+	// outDirectory is the output directory of one package in sqlc.yaml.
+	outDirectory = regexp.MustCompile(`(?m)^\s+out:\s*(\S+)\s*$`)
+	// queryKinds are the kinds the runner knows how to count; a batch or
+	// copyfrom query fails the test until it does.
+	queryKinds = []string{"exec", "execrows", "one", "many"}
+)
 
 // discoverQueries reads every method of *Queries, the kind of its query, and
-// its parameters, from the generated code of every sqlc package.
+// its parameters, from the generated code of every package sqlc.yaml names.
 func discoverQueries(t *testing.T) []query {
 	t.Helper()
-	files, err := filepath.Glob("../*/*db/*.sql.go")
+	config, err := os.ReadFile("../../sqlc.yaml")
 	if err != nil {
 		t.Fatal(err)
+	}
+	var files []string
+	for _, m := range outDirectory.FindAllStringSubmatch(string(config), -1) {
+		matched, err := filepath.Glob(filepath.Join("../..", m[1], "*.go"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		files = append(files, matched...)
 	}
 	var queries []query
 	packages := map[string]bool{}
@@ -588,12 +716,13 @@ func discoverQueries(t *testing.T) []query {
 		}
 		for _, decl := range f.Decls {
 			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Recv == nil || !isQueriesReceiver(fn.Recv) {
+			// WithTx is sqlc's own helper in db.go, not a query.
+			if !ok || fn.Recv == nil || !isQueriesReceiver(fn.Recv) || fn.Name.Name == "WithTx" {
 				continue
 			}
 			q := query{pkg: pkg, name: fn.Name.Name, kind: kinds[fn.Name.Name]}
-			if q.kind == "" {
-				t.Fatalf("%s: no sqlc annotation", q)
+			if !slices.Contains(queryKinds, q.kind) {
+				t.Fatalf("%s: query kind %q, the runner knows %v", q, q.kind, queryKinds)
 			}
 			for _, field := range fn.Type.Params.List[1:] { // [0] is ctx
 				if ident, ok := field.Type.(*ast.Ident); ok && structs[ident.Name] != nil {
@@ -797,13 +926,13 @@ var (
 	timeType = reflect.TypeFor[time.Time]()
 )
 
-// walk visits every leaf of a query result: UUIDs, texts, byte strings,
-// strings, booleans and integers. Times say nothing a row count does not.
+// walk visits every leaf of a query result: UUIDs, texts, times, byte
+// strings, strings, booleans and integers.
 func walk(v reflect.Value, visit func(any)) {
 	switch {
-	case v.Type() == uuidType, v.Type() == textType:
+	case v.Type() == uuidType, v.Type() == textType, v.Type() == timeType:
 		visit(v.Interface())
-	case v.Type() == timeType, v.Kind() == reflect.Int64 && v.Type() == reflect.TypeFor[time.Duration]():
+	case v.Type() == reflect.TypeFor[time.Duration]():
 	case v.Kind() == reflect.Slice && v.Type().Elem().Kind() == reflect.Uint8:
 		visit(v.Bytes())
 	case v.Kind() == reflect.Slice:
@@ -864,6 +993,9 @@ func equalValue(v, x any) bool {
 	case string:
 		x, ok := x.(string)
 		return ok && strings.EqualFold(v, x)
+	case time.Time:
+		x, ok := x.(time.Time)
+		return ok && v.Equal(x)
 	}
 	return false
 }
@@ -902,6 +1034,14 @@ func uuid(s string) pgtype.UUID {
 		panic(err)
 	}
 	return id
+}
+
+func xTime(s string) time.Time {
+	at, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		panic(err)
+	}
+	return at
 }
 
 func hash(b byte) []byte { return bytes.Repeat([]byte{b}, 32) }
