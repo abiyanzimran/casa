@@ -307,17 +307,17 @@ test('ADR-024 item 6: LY-94 after a revoked session stays, with its unsent count
 	expect(calls).toHaveLength(1);
 });
 
-test('SEC-172 (a): when the wipe fails, LY-94 never says the data was deleted and the page reloads', async ({
+test('SEC-172 (a): a wipe that keeps failing reloads once, then shows the unreachable state, never LY-94', async ({
 	page
 }) => {
 	await failUnmocked(page);
-	// Every cache deletion fails, so the wipe cannot finish.
+	// Every cache deletion fails, so the wipe can never finish.
 	await page.addInitScript(() => {
 		CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
 	});
 	let answered = 0;
 	await mockRpc(page, listMemberships, () =>
-		++answered === 1 ? signedIn : rpcError(Code.Unauthenticated)
+		++answered === 1 ? signedIn : rpcError(Code.Unauthenticated, ErrorCode.SESSION_REVOKED)
 	);
 	await page.goto('/');
 	await expect(page.locator('h1')).toBeVisible();
@@ -325,9 +325,49 @@ test('SEC-172 (a): when the wipe fails, LY-94 never says the data was deleted an
 		await (await caches.open('casa-probe')).put('/probe', new Response('x'));
 	});
 	await markDocument(page);
+	let documentLoads = 0;
+	page.on('load', () => {
+		documentLoads++;
+	});
 
 	await revokedSignal(page, 0);
+	// The first failure reloads; the reloaded page's check is revoked again, its wipe fails again.
 	await expect.poll(() => isNewDocument(page)).toBe(true);
-	await expect(page.locator('h1')).toBeVisible();
+	await expect(page.getByText(unreachable)).toBeVisible();
 	await expect(page.getByText(revoked)).toHaveCount(0);
+	expect(documentLoads).toBe(1);
+	expect(new URL(page.url()).pathname).toBe('/');
+});
+
+test('SEC-172 (a): a wipe left pending runs on open, before the session check and any screen', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	await seedUnsent(page, 1);
+	await page.evaluate(
+		() =>
+			new Promise<void>((resolve, reject) => {
+				const open = indexedDB.open('casa', 10);
+				open.onerror = () => {
+					reject(open.error ?? new Error('open failed'));
+				};
+				open.onsuccess = () => {
+					const transaction = open.result.transaction('meta', 'readwrite');
+					transaction.objectStore('meta').put({ key: 'wipe_pending', value: true });
+					transaction.oncomplete = () => {
+						open.result.close();
+						resolve();
+					};
+				};
+			})
+	);
+	const databaseAtCheck: boolean[] = [];
+	await mockRpc(page, listMemberships, async () => {
+		databaseAtCheck.push(await hasCasaDatabase(page));
+		return signedIn;
+	});
+	await page.goto('/');
+	await expect(page.locator('h1')).toBeVisible();
+	expect(databaseAtCheck).toEqual([false]);
+	expect(await hasCasaDatabase(page)).toBe(false);
 });

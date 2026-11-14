@@ -2,7 +2,7 @@
 // SEC-172 (a); ADR-024 item 7 (b), (d)). Revoking the push subscription on the server is the
 // server's part (SEC-164 (b), SEC-176 (f)).
 import { APP_SHELL_CACHE_PREFIX } from './app-shell';
-import { deleteLocalDb, localDb, localDbExists } from './local-db';
+import { deleteLocalDb, localDb, localDbExists, markWipePending } from './local-db';
 import { postTabSignal, type WipeKind } from './tab-signal';
 
 async function deleteNonShellCaches(): Promise<void> {
@@ -26,13 +26,15 @@ async function unsubscribePush(): Promise<void> {
 }
 
 /**
- * Deletes the local database and every cache but the app shell, then this browser's push
- * subscription. The push step runs last, once the others have settled, so a push step that
+ * Marks the wipe as pending, deletes the local database and every cache but the app shell,
+ * then this browser's push subscription. The push step runs last, once the others have settled, so a push step that
  * hangs never leaves data behind (SEC-164 (c), SEC-172 (a)). Every step runs even when another
  * fails; failures are then thrown together (ES §1: nothing fails silently).
  */
 export async function wipeLocalData(): Promise<void> {
-	const results = await Promise.allSettled([deleteLocalDb(), deleteNonShellCaches()]);
+	// SEC-172 (a): marked first, so a deletion that fails is finished on the next open.
+	const results = await Promise.allSettled([markWipePending()]);
+	results.push(...(await Promise.allSettled([deleteLocalDb(), deleteNonShellCaches()])));
 	results.push(...(await Promise.allSettled([unsubscribePush()])));
 	const failures: unknown[] = results.flatMap((result) =>
 		result.status === 'rejected' ? [result.reason as unknown] : []

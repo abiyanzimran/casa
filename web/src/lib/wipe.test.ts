@@ -143,3 +143,23 @@ test('SEC-172 (a): broadcastWipe without a local database creates none and repor
 	expect(await broadcastWipe('sign_out')).toBe(0);
 	expect(await indexedDB.databases()).toEqual([]);
 });
+
+test('SEC-172 (a): a database deletion that fails leaves the wipe_pending marker for the next open', async () => {
+	await queueOne();
+	const { wipePending } = await import('./local-db');
+	expect(await wipePending()).toBe(false);
+	vi.spyOn(Dexie, 'delete').mockRejectedValueOnce(new Error('deletion failed'));
+	await expect(wipeLocalData()).rejects.toThrow('local wipe incomplete');
+	expect(await wipePending()).toBe(true);
+
+	// The next wipe (fresh modules: a new page) removes the database, marker included.
+	vi.resetModules();
+	await (await import('./wipe')).wipeLocalData();
+	expect(await Dexie.exists('casa')).toBe(false);
+	expect(await (await import('./local-db')).wipePending()).toBe(false);
+});
+
+test('SEC-165 (b): the wipe marks nothing without a local database', async () => {
+	await wipeLocalData();
+	expect(await Dexie.exists('casa')).toBe(false);
+});

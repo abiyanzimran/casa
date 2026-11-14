@@ -22,10 +22,8 @@ export interface OutboxEntry {
 }
 
 /** Device facts kept across sessions; the union grows with its users. */
-export interface MetaRow {
-	key: 'persistence_granted';
-	value: boolean;
-}
+export type MetaRow =
+	{ key: 'persistence_granted'; value: boolean } | { key: 'wipe_pending'; value: true };
 
 const name = 'casa';
 
@@ -81,4 +79,32 @@ export async function requestPersistence(db: LocalDb): Promise<boolean> {
 	const granted = storage.persist ? await storage.persist().catch(() => false) : false;
 	await db.meta.put({ key: 'persistence_granted', value: granted });
 	return granted;
+}
+
+/**
+ * Marks the local database as being wiped, before the wipe starts (SEC-172 (a)). The marker
+ * lives in the database it guards, never in localStorage (10.5 §5): a successful deletion
+ * removes it, a failed one leaves it for the next open. Without a database there is nothing to
+ * mark and nothing is created (SEC-165 (b)). Its own connection, so a page that already wiped
+ * once (localDb() refuses) can still mark a database another tab brought back.
+ */
+export async function markWipePending(): Promise<void> {
+	if (!(await localDbExists())) return;
+	const db = new LocalDb();
+	try {
+		await db.meta.put({ key: 'wipe_pending', value: true });
+	} finally {
+		db.close();
+	}
+}
+
+/** Whether a wipe was started and did not finish (SEC-172 (a)); creates no database. */
+export async function wipePending(): Promise<boolean> {
+	if (!(await localDbExists())) return false;
+	const db = new LocalDb();
+	try {
+		return (await db.meta.get('wipe_pending')) !== undefined;
+	} finally {
+		db.close();
+	}
 }

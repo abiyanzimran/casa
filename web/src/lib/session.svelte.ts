@@ -4,8 +4,8 @@
 import { api, ctx, errorCode, failureOf } from './api';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
-import { localDbExists } from './local-db';
-import { broadcastWipe } from './wipe';
+import { localDbExists, wipePending } from './local-db';
+import { broadcastWipe, wipeLocalData } from './wipe';
 
 export type DeviceMode = 'personal' | 'shared';
 
@@ -71,6 +71,16 @@ export function showEnded(reason: SessionEndReason, unsentDropped: number): void
 	}
 	resetSessionState();
 	session.state = { kind: 'ended', reason, unsentDropped };
+}
+
+/**
+ * Shows the unreachable state with its re-check (08 §7.6 `home.unreachable`): where a revoked
+ * wipe failed again after its one reload, the app neither says the data is deleted nor reloads
+ * in a loop (SEC-172 (a)).
+ */
+export function showUnreachable(): void {
+	settle({ kind: 'unreachable' });
+	recheckWhenBack();
 }
 
 /**
@@ -142,6 +152,9 @@ export async function checkSession({
 	timeoutMs = sessionCheckLimitMs
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
+		// SEC-172 (a): a wipe a failure left pending (marker in IndexedDB, 10.5 §5) finishes before
+		// the session check, so before any screen or queue send. A failure counts as unreachable.
+		if (await wipePending()) await wipeLocalData();
 		const { memberships } = await api.household.listMemberships(
 			{ requestContext: ctx(userInitiated) },
 			{ timeoutMs }
@@ -157,7 +170,6 @@ export async function checkSession({
 			// unreachable and check again, never on the check surface for good.
 			console.error(handlingError);
 		}
-		settle({ kind: 'unreachable' });
-		recheckWhenBack();
+		showUnreachable();
 	}
 }

@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { tick, type Snippet } from 'svelte';
 	import { on } from 'svelte/events';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import '#lib/design/tokens.css';
 	import Button from '#lib/components/Button.svelte';
 	import Screen from '#lib/components/Screen.svelte';
@@ -8,7 +11,7 @@
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
-	import { checkSession, session, showEnded } from '#lib/session.svelte.js';
+	import { checkSession, session, showEnded, showUnreachable } from '#lib/session.svelte.js';
 	import { onTabSignal, type WipeKind } from '#lib/tab-signal.js';
 	import { wipeLocalData } from '#lib/wipe.js';
 
@@ -45,14 +48,36 @@
 			wiped = false;
 			logFailure(error);
 		}
-		// LY-94 says the data is deleted, so a failed wipe never shows it: the fresh document's
-		// session check runs the wipe again (SEC-172 (a)).
-		if (signal.kind !== 'session_revoked' || !wiped) {
+		if (signal.kind !== 'session_revoked') {
 			location.replace('/');
 			return;
 		}
-		showEnded('revoked', signal.unsentDropped);
+		if (wiped) showEnded('revoked', signal.unsentDropped);
+		else if (!(await retryWipeOnce())) return; // the old screen stays hidden until the reload
 		wiping = false;
+	}
+
+	/**
+	 * LY-94 says the data is deleted, so a failed revoked wipe never shows it (SEC-172 (a)).
+	 * The first failure reloads at /, where the session check runs the wipe again (the
+	 * wipe_pending marker, or the server's next session_revoked). The flag is navigation state
+	 * in this tab's history entry, not storage (10.5 §5), and survives that one reload; a second
+	 * failure in this tab shows the unreachable state with its retry instead of reloading in a
+	 * loop. Returns whether it showed that state rather than reloading.
+	 */
+	async function retryWipeOnce(): Promise<boolean> {
+		if (page.state.wipeRetried) {
+			showUnreachable();
+			return true;
+		}
+		await goto(resolve('/'), {
+			replace: true,
+			shallow: true,
+			state: { wipeRetried: true },
+			persistState: true
+		});
+		location.reload();
+		return false;
 	}
 
 	$effect(() => {
