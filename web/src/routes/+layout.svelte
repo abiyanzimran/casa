@@ -6,8 +6,10 @@
 	import { page } from '$app/state';
 	import '#lib/design/tokens.css';
 	import Button from '#lib/components/Button.svelte';
+	import StatusRow from '#lib/components/StatusRow.svelte';
 	import Screen from '#lib/components/Screen.svelte';
 	import SessionEnded from '#lib/components/SessionEnded.svelte';
+	import { applyUpdate, hasOpenForms, upgrade } from '#lib/app-update.svelte.js';
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
@@ -145,6 +147,18 @@
 {:else if session.state.kind === 'ended'}
 	<SessionEnded reason={session.state.reason} unsentDropped={session.state.unsentDropped} />
 {:else}
+	{#if upgrade.required}
+		<!-- 08 §25.7: applied only without an open form (SEC-169 (c)) -->
+		<StatusRow
+			text={copy.update.required}
+			action={{
+				label: copy.update.button,
+				onclick: () => {
+					applyUpdate(hasOpenForms).catch(logFailure);
+				}
+			}}
+		/>
+	{/if}
 	{@render children()}
 {/if}
 

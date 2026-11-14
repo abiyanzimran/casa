@@ -1,6 +1,7 @@
 // The one in-memory session state of the web client (plan decisions 4 to 6): the result of the
 // session check, the device mode, the memberships, and a link token held for this tab. Nothing
 // here is stored; a new document starts from 'checking'.
+import { noteUpgradeRequired } from './app-update.svelte';
 import { api, ctx, errorCode, failureOf } from './api';
 import { ErrorCode } from './gen/casa/v1/error_pb';
 import type { Membership } from './gen/casa/v1/household_pb';
@@ -115,6 +116,7 @@ export async function endSession(reason: SessionEndReason): Promise<void> {
  * calls this first (ADR-030 item 10).
  */
 export async function handleSessionError(error: unknown): Promise<boolean> {
+	noteUpgradeRequired(error); // the "Perbarui" row, from any answer (SEC-169 (d))
 	if (failureOf(error) !== 'session') return false;
 	switch (errorCode(error)) {
 		case ErrorCode.SESSION_REVOKED:

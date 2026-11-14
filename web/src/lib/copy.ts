@@ -11,6 +11,12 @@ export const copy = {
 		// 08 §7.6 `home.unreachable`: opened without a connection; step 1 stores no data.
 		unreachable: 'Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.'
 	},
+	// 08 §25.7 error table row "Versi aplikasi di bawah minimum" (SEC-169 (d)).
+	update: {
+		required:
+			'Aplikasi perlu diperbarui untuk mengirim catatan. Catatanmu tersimpan di perangkat ini.',
+		button: 'Perbarui'
+	},
 	// 08 §25.6 LY-94 "Sesi berakhir"; never says who or what ended the session.
 	ended: {
 		signIn: 'Masuk',
