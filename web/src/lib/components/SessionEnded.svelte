@@ -5,11 +5,15 @@
 	import type { SessionEndReason } from '#lib/session.svelte.js';
 	import { broadcastWipe, unsentCount } from '#lib/wipe.js';
 	import Button from './Button.svelte';
+	import ButtonRow from './ButtonRow.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Screen from './Screen.svelte';
 
 	let { reason, unsentDropped }: { reason: SessionEndReason; unsentDropped: number } = $props();
 
+	const id = $props.id();
+	const sentence = `${id}-sentence`;
+	const dropped = `${id}-dropped`;
 	let opener = $state<HTMLElement>();
 	let unsent = $state(0);
 
@@ -31,18 +35,21 @@
 	}
 </script>
 
-<Screen heading="Casa">
+<Screen
+	heading="Casa"
+	describedby={reason === 'revoked' && unsentDropped > 0 ? `${sentence} ${dropped}` : sentence}
+>
 	{#if reason === 'revoked'}
-		<p>{copy.ended.revoked}</p>
+		<p id={sentence}>{copy.ended.revoked}</p>
 		{#if unsentDropped > 0}
-			<p>{copy.ended.dropped(unsentDropped)}</p>
+			<p id={dropped}>{copy.ended.dropped(unsentDropped)}</p>
 		{/if}
 	{:else if reason === 'expired'}
-		<p>{copy.ended.expired}</p>
+		<p id={sentence}>{copy.ended.expired}</p>
 	{:else}
-		<p>{copy.ended.sharedEnded}</p>
+		<p id={sentence}>{copy.ended.sharedEnded}</p>
 	{/if}
-	<div class="tombol">
+	<ButtonRow>
 		<Button variant="primary" onclick={signIn}>{copy.ended.signIn}</Button>
 		{#if reason === 'expired'}
 			<Button
@@ -54,7 +61,7 @@
 				}}>{copy.ended.otherAccount.button}</Button
 			>
 		{/if}
-	</div>
+	</ButtonRow>
 </Screen>
 
 {#if reason === 'expired'}
@@ -68,12 +75,3 @@
 		<p>{copy.ended.otherAccount.body(unsent)}</p>
 	</ConfirmDialog>
 {/if}
-
-<style>
-	.tombol {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--jarak-2);
-		margin-top: var(--jarak-6);
-	}
-</style>

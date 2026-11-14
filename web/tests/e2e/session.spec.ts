@@ -14,6 +14,9 @@ const expired =
 	'Waktu masukmu di perangkat ini sudah habis. Masuk lagi dengan akun yang sama; catatan yang belum terkirim tetap tersimpan dan terkirim sesudah kamu masuk.';
 const sharedEnded = 'Kamu sudah keluar otomatis. Catatanmu tidak tersimpan di perangkat ini.';
 const unreachable = 'Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.';
+const unreachableServer = 'Ada gangguan di server. Coba lagi beberapa saat lagi.';
+const unreachableStorage =
+	'Data Casa di perangkat ini belum bisa dibersihkan. Coba lagi. Kalau tetap gagal, tutup tab ini lalu buka Casa lagi.';
 
 const listMemberships = HouseholdService.method.listMemberships;
 const signedIn = { memberships: [] };
@@ -141,32 +144,67 @@ test('SEC-172 (b): the app waits at most 3 seconds for the session check, then c
 	await expect(checking(page)).toBeVisible();
 	await expect(checking(page)).toHaveText('');
 	await expect(page.locator('progress, [role="progressbar"]')).toHaveCount(0);
+	// 08 §25.7: the status row's live region is on the page from the start, empty (QG-09 S6).
+	await expect(page.locator('[role="status"]')).toHaveCount(1);
+	await expect(page.locator('[role="status"]')).toHaveText('');
 
 	await expect(checking(page)).toHaveCount(0, { timeout: 3500 });
-	await expect(page.getByText(unreachable)).toBeVisible();
+	// A timeout while online is the server's (08 §7.6 home.unreachableServer; QG-09 S4).
+	await expect(page.getByText(unreachableServer)).toBeVisible();
 	await expect(page).toHaveTitle('Casa');
 	await expect(page.locator('h1')).toHaveText('Casa');
+	// The focused h1 announces the sentence too (QG-09 S2).
+	await expect(page.locator('h1')).toHaveAccessibleDescription(unreachableServer);
+	await expect(page.locator('[role="status"]')).toHaveCount(1);
 
 	await context.setOffline(true);
 	await context.setOffline(false);
 	await expect.poll(() => calls.length).toBe(2);
 	expect(calls[1]?.requestContext?.userInitiated).toBe(false);
-	await expect(page.getByText(unreachable)).toHaveCount(0);
+	await expect(page.getByText(unreachableServer)).toHaveCount(0);
 });
 
-test('SEC-165 (g): "Coba lagi" checks the session again as a person\'s action', async ({
+test('SEC-165 (g): "Coba lagi" checks the session again as a person\'s action, busy while it checks', async ({
 	page
 }) => {
 	await failUnmocked(page);
+	const secondCheck = Promise.withResolvers<undefined>();
 	let answered = 0;
-	const calls = await mockRpc(page, listMemberships, () =>
-		++answered === 1 ? rpcError(Code.Unavailable) : signedIn
+	const calls = await mockRpc(page, listMemberships, async () => {
+		answered++;
+		if (answered === 2) await secondCheck.promise;
+		return answered === 3 ? signedIn : rpcError(Code.Unavailable);
+	});
+	await page.goto('/');
+	await expect(page.getByText(unreachableServer)).toBeVisible();
+	await page.getByRole('button', { name: 'Coba lagi' }).click();
+	// 08 §7.6 common.retrying (QG-09 S3): not active and busy until the answer.
+	const busy = page.getByRole('button', { name: 'Mencoba…' });
+	await expect(busy).toBeDisabled();
+	await expect(busy).toHaveAttribute('aria-busy', 'true');
+	await expect(busy).toBeFocused();
+	await busy.click({ force: true });
+	secondCheck.resolve(undefined);
+	// The same answer: back to "Coba lagi" with focus kept.
+	const retry = page.getByRole('button', { name: 'Coba lagi' });
+	await expect(retry).toBeEnabled();
+	await expect(retry).toBeFocused();
+	await retry.click();
+	await expect(page.getByText(unreachableServer)).toHaveCount(0);
+	expect(calls.map((call) => call.requestContext?.userInitiated)).toEqual([false, true, true]);
+});
+
+test('SEC-172 (b): opened without a connection, the app says it is not connected', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	// A fetch that never reaches the server (08 §7.6 home.unreachable; QG-09 S4).
+	await page.route(`**/${listMemberships.parent.typeName}/${listMemberships.name}`, (route) =>
+		route.abort('internetdisconnected')
 	);
 	await page.goto('/');
 	await expect(page.getByText(unreachable)).toBeVisible();
-	await page.getByRole('button', { name: 'Coba lagi' }).click();
-	await expect(page.getByText(unreachable)).toHaveCount(0);
-	expect(calls.map((call) => call.requestContext?.userInitiated)).toEqual([false, true]);
+	await expect(page.locator('h1')).toHaveAccessibleDescription(unreachable);
 });
 
 test('SEC-172 (a): a session_revoked answer empties every tab and shows LY-94', async ({
@@ -194,6 +232,7 @@ test('SEC-172 (a): a session_revoked answer empties every tab and shows LY-94', 
 	for (const page of [a, b]) {
 		await expect(page.getByText(revoked)).toBeVisible();
 		await expect(page.getByText(dropped1)).toBeVisible();
+		await expect(page.locator('h1')).toHaveAccessibleDescription(`${revoked} ${dropped1}`);
 		await expect(page).toHaveTitle('Casa');
 		expect(await hasCasaDatabase(page)).toBe(false);
 	}
@@ -285,6 +324,69 @@ test('SEC-165: an expired shared session shows the shared ending', async ({ page
 	expect(await hasCasaDatabase(page)).toBe(false);
 });
 
+/** The boxes of the buttons in a container, in document order. */
+async function buttonBoxes(container: ReturnType<Page['locator']>) {
+	const boxes = [];
+	for (const button of await container.getByRole('button').all())
+		boxes.push(await button.boundingBox());
+	return boxes.map((box) => box ?? { x: 0, y: 0, width: 0, height: 0 });
+}
+
+test('08 §25.4: LY-94 and its dialog stack their buttons upright and equally wide in Ringkas, side by side in Sedang', async ({
+	page
+}) => {
+	await failUnmocked(page);
+	await seedUnsent(page, 0);
+	await mockRpc(page, listMemberships, () =>
+		rpcError(Code.Unauthenticated, ErrorCode.SESSION_EXPIRED)
+	);
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/');
+	const screen = page.locator('main');
+	await expect(page.getByText(expired)).toBeVisible();
+	await expect(page.locator('h1')).toHaveAccessibleDescription(expired);
+	let [first, second] = await buttonBoxes(screen);
+	expect(second.width).toBe(first.width);
+	expect(second.x).toBe(first.x);
+	expect(second.y).toBeGreaterThan(first.y + first.height);
+
+	await page.getByRole('button', { name: 'Masuk dengan akun lain' }).click();
+	const dialog = page.getByRole('dialog');
+	await expect(dialog).toBeVisible();
+	[first, second] = await buttonBoxes(dialog);
+	expect(second.width).toBe(first.width);
+	expect(second.y).toBeGreaterThan(first.y + first.height);
+	await page.keyboard.press('Escape');
+	await expect(dialog).toBeHidden();
+
+	await page.setViewportSize({ width: 744, height: 1133 });
+	[first, second] = await buttonBoxes(screen);
+	expect(second.width).toBe(first.width);
+	expect(second.y).toBe(first.y);
+	await page.getByRole('button', { name: 'Masuk dengan akun lain' }).click();
+	await expect(dialog).toBeVisible();
+	[first, second] = await buttonBoxes(dialog);
+	expect(second.width).toBe(first.width);
+	expect(second.y).toBe(first.y);
+});
+
+test('08 §25.4: a pressed button shrinks a little while held', async ({ page }) => {
+	await failUnmocked(page);
+	await mockRpc(page, listMemberships, () =>
+		rpcError(Code.Unauthenticated, ErrorCode.SESSION_EXPIRED)
+	);
+	await page.goto('/');
+	const button = page.getByRole('button', { name: 'Masuk' });
+	await button.hover();
+	await page.mouse.down();
+	// 08 §19.13.7 "Tekan kendali": scale(0.97) while :active.
+	await expect
+		.poll(() => button.evaluate((element) => getComputedStyle(element).transform))
+		.toBe('matrix(0.97, 0, 0, 0.97, 0, 0)');
+	await page.mouse.move(0, 0);
+	await page.mouse.up();
+});
+
 test('SEC-164 (d): a page restored from the back-forward cache checks the session first', async ({
 	page
 }) => {
@@ -332,7 +434,7 @@ test('ADR-024 item 6: LY-94 after a revoked session stays, with its unsent count
 		++answered === 1 ? rpcError(Code.Unavailable) : signedIn
 	);
 	await page.goto('/');
-	await expect(page.getByText(unreachable)).toBeVisible(); // the re-check listener is armed
+	await expect(page.getByText(unreachableServer)).toBeVisible(); // the re-check listener is armed
 
 	await revokedSignal(page, 1);
 	await expect(page.getByText(revoked)).toBeVisible();
@@ -390,7 +492,8 @@ for (const { server, later } of afterRevoke) {
 		await revokedSignal(page, 0);
 		// The first failure reloads; the reloaded page's check is revoked again, its wipe fails again.
 		await expect.poll(() => isNewDocument(page)).toBe(true);
-		await expect(page.getByText(unreachable)).toBeVisible();
+		// 08 §7.6 home.unreachableStorage: never says the data is deleted (QG-09 S4).
+		await expect(page.getByText(unreachableStorage)).toBeVisible();
 		await expect(page.getByText(revoked)).toHaveCount(0);
 		expect(documentLoads).toBe(1);
 		expect(new URL(page.url()).pathname).toBe('/');

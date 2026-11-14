@@ -6,6 +6,7 @@
 	// notice (W15).
 	import type { Snippet } from 'svelte';
 	import Button from './Button.svelte';
+	import ButtonRow from './ButtonRow.svelte';
 
 	let {
 		opener = $bindable(),
@@ -54,12 +55,12 @@
 >
 	<h2 id="{id}-title" class="judul-bagian">{title}</h2>
 	<div id="{id}-body">{@render children()}</div>
-	<div class="tombol">
+	<ButtonRow>
 		{#if cancelLabel}
 			<Button variant="outlined" onclick={close}>{cancelLabel}</Button>
 		{/if}
 		<Button variant="primary" onclick={confirm}>{confirmLabel}</Button>
-	</div>
+	</ButtonRow>
 </dialog>
 
 <style>
@@ -84,13 +85,6 @@
 	}
 	dialog :global(p) {
 		margin: 0;
-	}
-	.tombol {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: var(--jarak-2);
-		margin-top: var(--jarak-6);
 	}
 	@media (forced-colors: active) {
 		dialog {

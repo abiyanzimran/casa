@@ -6,10 +6,11 @@
 	import { page } from '$app/state';
 	import '#lib/design/tokens.css';
 	import Button from '#lib/components/Button.svelte';
+	import ButtonRow from '#lib/components/ButtonRow.svelte';
 	import StatusRow from '#lib/components/StatusRow.svelte';
 	import Screen from '#lib/components/Screen.svelte';
 	import SessionEnded from '#lib/components/SessionEnded.svelte';
-	import { updateNow, upgrade } from '#lib/app-update.svelte.js';
+	import { updateNow, updateRow } from '#lib/app-update.svelte.js';
 	import { copy } from '#lib/copy.js';
 	import { missingFeatures } from '#lib/device.js';
 	import { registerServiceWorker } from '#lib/service-worker-registration.js';
@@ -19,7 +20,8 @@
 		checkSession,
 		session,
 		showEnded,
-		showUnreachable
+		showUnreachable,
+		type UnreachableCause
 	} from '#lib/session.svelte.js';
 	import { onTabSignal, type WipeKind } from '#lib/tab-signal.js';
 	import { wipeLocalData } from '#lib/wipe.js';
@@ -31,6 +33,25 @@
 
 	// SEC-172 (a): set first, so the screen's data leaves the DOM before the wipe starts.
 	let wiping = $state(false);
+	// A tapped re-check is running (08 §7.6 common.retrying).
+	let retrying = $state(false);
+
+	const id = $props.id();
+	const sentence = `${id}-sentence`;
+
+	// 08 §7.6: the unreachable sentence by its cause (QG-09 S4).
+	const unreachableText: Record<UnreachableCause, string> = {
+		offline: copy.home.unreachable,
+		server: copy.home.unreachableServer,
+		storage: copy.home.unreachableStorage
+	};
+
+	// 08 §25.7: the update row, on the signed-in and signed-out screens only.
+	const row = $derived(
+		!wiping && (session.state.kind === 'signed-in' || session.state.kind === 'signed-out')
+			? updateRow(session.state.kind === 'signed-in' && session.mode === 'personal')
+			: undefined
+	);
 
 	function logFailure(error: unknown): void {
 		console.error(error);
@@ -38,6 +59,15 @@
 
 	function check(userInitiated = false): void {
 		checkSession({ userInitiated }).catch(logFailure);
+	}
+
+	async function retry(): Promise<void> {
+		retrying = true;
+		try {
+			await checkSession({ userInitiated: true });
+		} finally {
+			retrying = false;
+		}
 	}
 
 	/**
@@ -81,7 +111,7 @@
 	 */
 	async function retryWipeOnce(unsentDropped: number): Promise<boolean> {
 		if (page.state.wipeRetried) {
-			showUnreachable();
+			showUnreachable('storage');
 			return true;
 		}
 		// The unsent count goes along, so the reloaded page's LY-94 still shows it (ADR-024 item 6).
@@ -133,37 +163,38 @@
 		</p>
 		<p>Bila Casa terbuka di dalam aplikasi lain atau di jendela pribadi, buka di browser biasa.</p>
 	</Screen>
-{:else if wiping || session.state.kind === 'checking'}
-	<!-- 08 §25.7: the session check shows the paper surface with the knot, no sentence, no spinner -->
-	<div class="pemeriksaan" aria-busy="true"><span class="simpul"></span></div>
-{:else if session.state.kind === 'unreachable'}
-	<Screen heading="Casa">
-		<p>{copy.home.unreachable}</p>
-		<div class="tombol">
-			<Button
-				variant="primary"
-				onclick={() => {
-					check(true);
-				}}>{copy.common.retry}</Button
-			>
-		</div>
-	</Screen>
-{:else if session.state.kind === 'ended'}
-	<SessionEnded reason={session.state.reason} unsentDropped={session.state.unsentDropped} />
 {:else}
-	{#if upgrade.required}
-		<!-- 08 §25.7: applied only without an open form (SEC-169 (c)) -->
-		<StatusRow
-			text={copy.update.required}
-			action={{
-				label: copy.update.button,
-				onclick: () => {
-					updateNow().catch(logFailure);
-				}
-			}}
-		/>
+	<!-- 08 §25.7: applied only without an open form (SEC-169 (c)) -->
+	<StatusRow
+		text={row?.text}
+		action={row?.button && {
+			...row.button,
+			onclick: () => {
+				updateNow().catch(logFailure);
+			}
+		}}
+	/>
+	{#if wiping || session.state.kind === 'checking'}
+		<!-- 08 §25.7: the session check shows the paper surface with the knot, no sentence, no spinner -->
+		<div class="pemeriksaan" aria-busy="true"><span class="simpul"></span></div>
+	{:else if session.state.kind === 'unreachable'}
+		<Screen heading="Casa" describedby={sentence}>
+			<p id={sentence}>{unreachableText[session.state.cause]}</p>
+			<ButtonRow>
+				<Button
+					variant="primary"
+					busy={retrying}
+					onclick={() => {
+						retry().catch(logFailure);
+					}}>{retrying ? copy.common.retrying : copy.common.retry}</Button
+				>
+			</ButtonRow>
+		</Screen>
+	{:else if session.state.kind === 'ended'}
+		<SessionEnded reason={session.state.reason} unsentDropped={session.state.unsentDropped} />
+	{:else}
+		{@render children()}
 	{/if}
-	{@render children()}
 {/if}
 
 <style>
@@ -185,8 +216,5 @@
 			forced-color-adjust: none;
 			background: CanvasText;
 		}
-	}
-	.tombol {
-		margin-top: var(--jarak-6);
 	}
 </style>

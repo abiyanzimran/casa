@@ -5,17 +5,28 @@
 export const copy = {
 	common: {
 		retry: 'Coba lagi',
+		// While a tapped re-check runs (QG-09 S3).
+		retrying: 'Mencoba…',
 		back: 'Kembali'
 	},
 	home: {
 		// 08 §7.6 `home.unreachable`: opened without a connection; step 1 stores no data.
-		unreachable: 'Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.'
+		unreachable: 'Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.',
+		// Online, but the server errs or does not answer in time (§13.2 sentence).
+		unreachableServer: 'Ada gangguan di server. Coba lagi beberapa saat lagi.',
+		// A wipe failed a second time in this tab (SEC-172 (a)); never says the data is deleted.
+		unreachableStorage:
+			'Data Casa di perangkat ini belum bisa dibersihkan. Coba lagi. Kalau tetap gagal, tutup tab ini lalu buka Casa lagi.'
 	},
 	// 08 §25.7 error table row "Versi aplikasi di bawah minimum" (SEC-169 (d)).
 	update: {
+		// The second sentence only in personal mode once signed in, where a local queue exists.
 		required:
 			'Aplikasi perlu diperbarui untuk mengirim catatan. Catatanmu tersimpan di perangkat ini.',
-		button: 'Perbarui'
+		requiredShort: 'Aplikasi perlu diperbarui untuk mengirim catatan.',
+		button: 'Perbarui',
+		checking: 'Memeriksa…',
+		deferred: 'Diperbarui setelah isianmu ditutup.'
 	},
 	// 08 §25.6 LY-94 "Sesi berakhir"; never says who or what ended the session.
 	ended: {

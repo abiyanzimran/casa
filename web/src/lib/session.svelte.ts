@@ -1,6 +1,7 @@
 // The one in-memory session state of the web client (plan decisions 4 to 6): the result of the
 // session check, the device mode, the memberships, and a link token held for this tab. Nothing
 // here is stored; a new document starts from 'checking'.
+import { Code, ConnectError } from '@connectrpc/connect';
 import { noteUpgradeRequired } from './app-update.svelte';
 import { api, ctx, errorCode, failureOf } from './api';
 import { ErrorCode } from './gen/casa/v1/error_pb';
@@ -13,10 +14,17 @@ export type DeviceMode = 'personal' | 'shared';
 /** Why a session ended, for LY-94 (08 §25.6). */
 export type SessionEndReason = 'revoked' | 'expired' | 'shared-ended';
 
+/**
+ * Why the app opened without the session (08 §7.6): no connection (home.unreachable), the
+ * server erred or did not answer while online (home.unreachableServer), or a wipe failed again
+ * (home.unreachableStorage).
+ */
+export type UnreachableCause = 'offline' | 'server' | 'storage';
+
 export type SessionState =
 	| { kind: 'checking' }
 	| { kind: 'signed-out' }
-	| { kind: 'unreachable' }
+	| { kind: 'unreachable'; cause: UnreachableCause }
 	| { kind: 'signed-in'; memberships: Membership[] }
 	| { kind: 'ended'; reason: SessionEndReason; unsentDropped: number };
 
@@ -104,13 +112,23 @@ export function showEnded(reason: SessionEndReason, unsentDropped: number): void
 }
 
 /**
- * Shows the unreachable state with its re-check (08 §7.6 `home.unreachable`): where a revoked
- * wipe failed again after its one reload, the app neither says the data is deleted nor reloads
- * in a loop (SEC-172 (a)).
+ * Shows the unreachable state with its re-check (08 §7.6): where a revoked wipe failed again
+ * after its one reload ('storage'), the app neither says the data is deleted nor reloads in a
+ * loop (SEC-172 (a)).
  */
-export function showUnreachable(): void {
-	settle({ kind: 'unreachable' });
+export function showUnreachable(cause: UnreachableCause): void {
+	settle({ kind: 'unreachable', cause });
 	recheckWhenBack();
+}
+
+/**
+ * A failed session check as the person sees it (08 §7.6): no connection, or the server's. A
+ * timeout while the browser is online is the server's, though failureOf counts it offline.
+ */
+function unreachableCause(error: unknown): UnreachableCause {
+	const timedOutOnline =
+		navigator.onLine && ConnectError.from(error).code === Code.DeadlineExceeded;
+	return failureOf(error) === 'offline' && !timedOutOnline ? 'offline' : 'server';
 }
 
 /**
@@ -179,7 +197,7 @@ function recheckWhenBack(): void {
 /**
  * Finishes a wipe a failure left pending (the marker in IndexedDB, 10.5 §5) before the session
  * check, so before any screen or queue send, counting its unsent commands first (SEC-172 (a);
- * ADR-024 item 6). A failure is thrown and counts as unreachable.
+ * ADR-024 item 6). A failure is thrown and shows the 'storage' unreachable state.
  */
 async function finishPendingWipe(): Promise<void> {
 	const kind = await wipePending();
@@ -201,6 +219,12 @@ export async function checkSession({
 }: { userInitiated?: boolean; timeoutMs?: number } = {}): Promise<void> {
 	try {
 		await finishPendingWipe();
+	} catch (error) {
+		console.error(error);
+		showUnreachable('storage');
+		return;
+	}
+	try {
 		const { memberships } = await api.household.listMemberships(
 			{ requestContext: ctx(userInitiated) },
 			{ timeoutMs }
@@ -219,10 +243,10 @@ export async function checkSession({
 			if (await handleSessionError(error)) return;
 			if (failureOf(error) !== 'offline') console.error(error);
 		} catch (handlingError) {
-			// Acting on the session error failed (a revoked wipe could not count the queue): stay
+			// Acting on the session error failed (local storage could not be read): stay
 			// unreachable and check again, never on the check surface for good.
 			console.error(handlingError);
 		}
-		showUnreachable();
+		showUnreachable(unreachableCause(error));
 	}
 }

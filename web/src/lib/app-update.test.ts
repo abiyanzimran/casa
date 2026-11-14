@@ -104,6 +104,9 @@ test('08 §25.7: Perbarui with no registration reloads, unless a form is open', 
 	const b = browser(false, false);
 	await updateModule.updateNow();
 	expect(b.reload).toHaveBeenCalledTimes(1);
+	// The reloaded page (fresh modules), now with a form open.
+	vi.resetModules();
+	updateModule = await import('./app-update.svelte');
 	const close = updateModule.openForm();
 	await updateModule.updateNow();
 	expect(b.reload).toHaveBeenCalledTimes(1);
@@ -130,4 +133,51 @@ test('08 §25.7: a second tap while an update runs does nothing', async () => {
 	b.fireControllerChange();
 	await first;
 	expect(b.registration.update).toHaveBeenCalledTimes(1);
+});
+
+test('08 §25.7: the update row says the second sentence only signed in on a personal device', () => {
+	expect(updateModule.updateRow(true)).toBeUndefined(); // no row before CLIENT_UPGRADE_REQUIRED
+	updateModule.noteUpgradeRequired(upgradeRequired);
+	expect(updateModule.updateRow(true)).toEqual({
+		text: 'Aplikasi perlu diperbarui untuk mengirim catatan. Catatanmu tersimpan di perangkat ini.',
+		button: { label: 'Perbarui', busy: false }
+	});
+	expect(updateModule.updateRow(false)).toEqual({
+		text: 'Aplikasi perlu diperbarui untuk mengirim catatan.',
+		button: { label: 'Perbarui', busy: false }
+	});
+});
+
+test('08 §25.7: while Perbarui looks for a version its button is busy and says Memeriksa…', async () => {
+	const b = browser(false);
+	let finish: () => void = () => undefined;
+	b.registration.update.mockImplementationOnce(
+		() =>
+			new Promise<void>((resolve) => {
+				finish = resolve;
+			})
+	);
+	updateModule.noteUpgradeRequired(upgradeRequired);
+	const updating = updateModule.updateNow();
+	await vi.waitFor(() => {
+		expect(b.registration.update).toHaveBeenCalled();
+	});
+	expect(updateModule.updateRow(true)?.button).toEqual({ label: 'Memeriksa…', busy: true });
+	finish();
+	await updating;
+	expect(b.reload).toHaveBeenCalledTimes(1);
+});
+
+test('08 §25.7: an update deferred by an open form says so without a button, and a failed one returns to Perbarui', async () => {
+	const b = browser(true);
+	updateModule.noteUpgradeRequired(upgradeRequired);
+	const close = updateModule.openForm();
+	await updateModule.updateNow();
+	expect(updateModule.updateRow(true)).toEqual({ text: 'Diperbarui setelah isianmu ditutup.' });
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	b.registration.update.mockRejectedValueOnce(new Error('network'));
+	close();
+	await vi.waitFor(() => {
+		expect(updateModule.updateRow(true)?.button).toEqual({ label: 'Perbarui', busy: false });
+	});
 });
