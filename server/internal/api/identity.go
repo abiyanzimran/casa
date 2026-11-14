@@ -89,9 +89,9 @@ func (h identityHandler) GetSession(ctx context.Context, _ *casav1.GetSessionReq
 
 // deviceModeOf maps session.device_mode back to the contract's mode.
 func deviceModeOf(mode string) casav1.DeviceMode {
-	for m, name := range deviceModes {
+	for _, name := range deviceModes {
 		if name == mode {
-			return m
+			return casav1.DeviceMode_DEVICE_MODE_PERSONAL
 		}
 	}
 	return casav1.DeviceMode_DEVICE_MODE_UNSPECIFIED
