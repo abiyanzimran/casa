@@ -55,6 +55,9 @@ func RecordEvent(ctx context.Context, tx pgx.Tx, e Event) error {
 	}); err != nil {
 		return err
 	}
+	if e.Command == cancelCommand {
+		return nil
+	}
 	return sync.Changed(ctx, tx, e.HouseholdID, kind, e.ObjectID)
 }
 
