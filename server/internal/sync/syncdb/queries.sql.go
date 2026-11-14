@@ -12,7 +12,6 @@ import (
 )
 
 const bumpCounter = `-- name: BumpCounter :one
-
 INSERT INTO reader_feed_counter AS c (household_id, member_id, last_pos)
 VALUES ($1, $2, $3::bigint)
 ON CONFLICT (household_id, member_id) DO UPDATE SET last_pos = c.last_pos + excluded.last_pos
@@ -25,9 +24,8 @@ type BumpCounterParams struct {
 	N           int64
 }
 
-// The feed writer's queries (ADR-017 item 3; 09.2 §5.1, §6 step 6; plan 1.7
-// decision 8). Each runs in the command's database.Write, whose household
-// scope row-level security checks (09.2 §3 layer 4).
+// In the command's database.Write, whose household scope row-level security
+// checks (09.2 §3 layer 4; 09.2 §6 step 6).
 // Moves the reader's last position on by n and returns it, so the reader's
 // n new rows take last_pos - n + 1 … last_pos, without a gap. Two commands
 // that reach the same reader collide on this row under SERIALIZABLE and one
@@ -37,6 +35,61 @@ func (q *Queries) BumpCounter(ctx context.Context, arg BumpCounterParams) (int64
 	var last_pos int64
 	err := row.Scan(&last_pos)
 	return last_pos, err
+}
+
+const feedAfter = `-- name: FeedAfter :many
+SELECT pos, object_kind, object_id, change FROM reader_feed
+ WHERE household_id = $1 AND member_id = $2 AND pos > $3
+ ORDER BY pos
+ LIMIT $4
+`
+
+type FeedAfterParams struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+	After       int64
+	Lim         int32
+}
+
+type FeedAfterRow struct {
+	Pos        int64
+	ObjectKind string
+	ObjectID   pgtype.UUID
+	Change     string
+}
+
+// The reader's feed rows after a position, by position, in Sync's read
+// transaction; the caller asks for its page plus one (ADR-017 item 3; plan
+// 1.7 decisions 11, 14). Served by reader_feed_pkey (household_id,
+// member_id, pos).
+func (q *Queries) FeedAfter(ctx context.Context, arg FeedAfterParams) ([]FeedAfterRow, error) {
+	rows, err := q.db.Query(ctx, feedAfter,
+		arg.HouseholdID,
+		arg.MemberID,
+		arg.After,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FeedAfterRow
+	for rows.Next() {
+		var i FeedAfterRow
+		if err := rows.Scan(
+			&i.Pos,
+			&i.ObjectKind,
+			&i.ObjectID,
+			&i.Change,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insertFeedRows = `-- name: InsertFeedRows :exec
@@ -67,4 +120,24 @@ func (q *Queries) InsertFeedRows(ctx context.Context, arg InsertFeedRowsParams) 
 		arg.ObjectIds,
 	)
 	return err
+}
+
+const lastPos = `-- name: LastPos :one
+SELECT coalesce((SELECT last_pos FROM reader_feed_counter
+                  WHERE household_id = $1 AND member_id = $2), 0)::bigint
+`
+
+type LastPosParams struct {
+	HouseholdID pgtype.UUID
+	MemberID    pgtype.UUID
+}
+
+// The reader's last feed position, in Sync's read transaction: P0 of a
+// snapshot, or L of the resync checks (plan 1.7 decisions 10, 11). No row
+// is 0. Served by reader_feed_counter_pkey.
+func (q *Queries) LastPos(ctx context.Context, arg LastPosParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lastPos, arg.HouseholdID, arg.MemberID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }

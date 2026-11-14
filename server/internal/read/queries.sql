@@ -1,7 +1,3 @@
--- The read path's queries (09.2 §1 row read, rule 2; SEC-06), moved from
--- household and identity without change (plan 1.7 decision 6; plan 1.6
--- Q10). Each runs in a database.Read whose scope row-level security checks.
-
 -- name: MembershipsOfAccount :many
 -- The account's own memberships, in a lookup transaction (Scope{AccountID};
 -- 09.2 §3 layer 1): only household_id and the row's id (plan 1.6 decision
@@ -54,3 +50,20 @@ SELECT member_id FROM membership
  WHERE household_id = @household_id
  ORDER BY member_id
  LIMIT 21;
+
+-- name: HouseholdView :one
+-- The household object of sync (plan 1.7 decision 7), in the household's
+-- own read transaction. Served by an index on id (household_pkey or the
+-- (id, currency) key).
+SELECT id, name, time_zone, currency FROM household
+ WHERE id = current_setting('app.household_id')::uuid;
+
+-- name: MemberViews :many
+-- The member objects of sync (plan 1.7 decision 7) after a member id, by id:
+-- a snapshot page (ADR-017 item 7) or, from the nil id, every member. The
+-- caller bounds lim by its page or by maxMembers + 1 (ES §3). Served by an
+-- index leading with household_id; the at most 20 rows are sorted in memory.
+SELECT member_id, display_name FROM membership
+ WHERE household_id = current_setting('app.household_id')::uuid AND member_id > @after
+ ORDER BY member_id
+ LIMIT @lim;

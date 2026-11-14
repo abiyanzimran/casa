@@ -102,6 +102,33 @@ func (q *Queries) HouseholdMembers(ctx context.Context, arg HouseholdMembersPara
 	return items, nil
 }
 
+const householdView = `-- name: HouseholdView :one
+SELECT id, name, time_zone, currency FROM household
+ WHERE id = current_setting('app.household_id')::uuid
+`
+
+type HouseholdViewRow struct {
+	ID       pgtype.UUID
+	Name     string
+	TimeZone string
+	Currency string
+}
+
+// The household object of sync (plan 1.7 decision 7), in the household's
+// own read transaction. Served by an index on id (household_pkey or the
+// (id, currency) key).
+func (q *Queries) HouseholdView(ctx context.Context) (HouseholdViewRow, error) {
+	row := q.db.QueryRow(ctx, householdView)
+	var i HouseholdViewRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.TimeZone,
+		&i.Currency,
+	)
+	return i, err
+}
+
 const liveInvitationView = `-- name: LiveInvitationView :one
 SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name FROM invitation
  WHERE household_id = current_setting('app.household_id')::uuid AND state IN ('open', 'accepted')
@@ -133,8 +160,48 @@ func (q *Queries) LiveInvitationView(ctx context.Context) (LiveInvitationViewRow
 	return i, err
 }
 
-const membershipsOfAccount = `-- name: MembershipsOfAccount :many
+const memberViews = `-- name: MemberViews :many
+SELECT member_id, display_name FROM membership
+ WHERE household_id = current_setting('app.household_id')::uuid AND member_id > $1
+ ORDER BY member_id
+ LIMIT $2
+`
 
+type MemberViewsParams struct {
+	After pgtype.UUID
+	Lim   int32
+}
+
+type MemberViewsRow struct {
+	MemberID    pgtype.UUID
+	DisplayName pgtype.Text
+}
+
+// The member objects of sync (plan 1.7 decision 7) after a member id, by id:
+// a snapshot page (ADR-017 item 7) or, from the nil id, every member. The
+// caller bounds lim by its page or by maxMembers + 1 (ES §3). Served by an
+// index leading with household_id; the at most 20 rows are sorted in memory.
+func (q *Queries) MemberViews(ctx context.Context, arg MemberViewsParams) ([]MemberViewsRow, error) {
+	rows, err := q.db.Query(ctx, memberViews, arg.After, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MemberViewsRow
+	for rows.Next() {
+		var i MemberViewsRow
+		if err := rows.Scan(&i.MemberID, &i.DisplayName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const membershipsOfAccount = `-- name: MembershipsOfAccount :many
 SELECT household_id, member_id FROM membership
  WHERE account_id = $1
  ORDER BY joined_at, household_id
@@ -146,9 +213,6 @@ type MembershipsOfAccountRow struct {
 	MemberID    pgtype.UUID
 }
 
-// The read path's queries (09.2 §1 row read, rule 2; SEC-06), moved from
-// household and identity without change (plan 1.7 decision 6; plan 1.6
-// Q10). Each runs in a database.Read whose scope row-level security checks.
 // The account's own memberships, in a lookup transaction (Scope{AccountID};
 // 09.2 §3 layer 1): only household_id and the row's id (plan 1.6 decision
 // 3). Served by membership_one_household; at most 20 [Usulan].

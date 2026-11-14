@@ -5,8 +5,10 @@
 package read
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -185,11 +187,8 @@ func (s *Service) OpenInvitation(ctx context.Context, r Reader) (inv OpenInvitat
 		if err != nil {
 			return err
 		}
-		row, err := q.LiveInvitationView(ctx)
-		if errors.Is(err, pgx.ErrNoRows) || err == nil && !s.now().Before(row.ExpiresAt) {
-			return nil
-		}
-		if err != nil {
+		row, live, err := s.liveInvitation(ctx, q)
+		if err != nil || !live {
 			return err
 		}
 		inv, found = OpenInvitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt, Inviter: row.Inviter}, true
@@ -213,4 +212,177 @@ func (s *Service) AccountEmail(ctx context.Context, account pgtype.UUID) (string
 		return err
 	})
 	return email, err
+}
+
+// liveInvitation is the household's live invitation in q's transaction: open
+// or accepted, and now before expires_at, whether its expiry is written yet
+// or not (plan 1.6 decision 12; plan 1.7 decision 7). It is the one rule of
+// GetOpenInvitation and of sync.
+func (s *Service) liveInvitation(ctx context.Context, q *readdb.Queries) (readdb.LiveInvitationViewRow, bool, error) {
+	row, err := q.LiveInvitationView(ctx)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return row, false, nil
+	}
+	return row, err == nil && s.now().Before(row.ExpiresAt), err
+}
+
+// CheckReader is ErrNotFound unless r's account holds the membership
+// r.MemberID of tx's household, checked again inside the read transaction
+// (SEC-151; ruling P5: the read path's own layer).
+func CheckReader(ctx context.Context, tx pgx.Tx, r Reader) error {
+	member, err := readdb.New(tx).ReaderMember(ctx, r.AccountID)
+	if errors.Is(err, pgx.ErrNoRows) || err == nil && member != r.MemberID {
+		return ErrNotFound
+	}
+	return err
+}
+
+// Household is the household object of sync (plan 1.7 decision 7).
+type Household struct {
+	ID       pgtype.UUID
+	Name     string
+	TimeZone string
+	Currency string
+}
+
+// Invitation is the invitation object of sync: its state only, never the
+// invitee's name or email (plan 1.6 Q12; plan 1.7 decision 7).
+type Invitation struct {
+	ID        pgtype.UUID
+	State     string // open or accepted
+	ExpiresAt time.Time
+	Inviter   pgtype.UUID // member_id
+}
+
+// Object is one projection; exactly one field is set.
+type Object struct {
+	Household  *Household
+	Member     *Member
+	Invitation *Invitation
+}
+
+// snapshotOrder is the order of kinds in a snapshot (plan 1.7 decision 10).
+var snapshotOrder = []ObjectKind{KindHousehold, KindMember, KindInvitation}
+
+// nilID is the uuid before every other, where a kind's page starts.
+var nilID = pgtype.UUID{Valid: true}
+
+// kindPage is up to n live objects of kind in tx's household with an id
+// after after, by id. A household has one household object and at most one
+// live invitation (invitation_live), so only members need a keyset page.
+func (s *Service) kindPage(ctx context.Context, q *readdb.Queries, kind ObjectKind, after pgtype.UUID, n int) ([]Projected, error) {
+	var out []Projected
+	switch kind {
+	case KindHousehold:
+		h, err := q.HouseholdView(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, Projected{ObjectRef{kind, h.ID}, Object{Household: &Household{ID: h.ID, Name: h.Name, TimeZone: h.TimeZone, Currency: h.Currency}}})
+	case KindMember:
+		rows, err := q.MemberViews(ctx, readdb.MemberViewsParams{After: after, Lim: int32(min(n, maxMembers+1))}) //nolint:gosec // bounded by maxMembers + 1
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range rows {
+			out = append(out, Projected{ObjectRef{kind, m.MemberID}, Object{Member: &Member{MemberID: m.MemberID, DisplayName: m.DisplayName.String}}})
+		}
+	case KindInvitation:
+		row, live, err := s.liveInvitation(ctx, q)
+		if err != nil {
+			return nil, err
+		}
+		if live {
+			out = append(out, Projected{ObjectRef{kind, row.ID}, Object{Invitation: &Invitation{ID: row.ID, State: row.State, ExpiresAt: row.ExpiresAt, Inviter: row.Inviter}}})
+		}
+	}
+	out = slices.DeleteFunc(out, func(p Projected) bool { return bytes.Compare(p.Ref.ID.Bytes[:], after.Bytes[:]) <= 0 })
+	return out[:min(n, len(out))], nil
+}
+
+// Objects projects refs for r in tx, a read transaction of r's household; a
+// ref that r cannot read (canRead) or that is not live (plan 1.7 decision 7)
+// is absent from the map. Today the rule reads by kind alone (canRead); r is
+// what step 2's rule reads.
+func (s *Service) Objects(ctx context.Context, tx pgx.Tx, r Reader, refs []ObjectRef) (map[ObjectRef]Object, error) {
+	q := readdb.New(tx)
+	out := map[ObjectRef]Object{}
+	for _, kind := range snapshotOrder {
+		if !canRead(kind) || !slices.ContainsFunc(refs, func(ref ObjectRef) bool { return ref.Kind == kind }) {
+			continue
+		}
+		all, err := s.kindPage(ctx, q, kind, nilID, maxMembers+1)
+		if err != nil {
+			return nil, err
+		}
+		if len(all) > maxMembers {
+			return nil, errTooManyMembers
+		}
+		for _, p := range all {
+			if slices.Contains(refs, p.Ref) {
+				out[p.Ref] = p.Object
+			}
+		}
+	}
+	return out, nil
+}
+
+// SnapshotMark is a position in the snapshot order (kind, then id); its zero
+// value is the start.
+type SnapshotMark struct {
+	Kind  ObjectKind
+	After pgtype.UUID
+}
+
+// Projected is one object of a snapshot page.
+type Projected struct {
+	Ref    ObjectRef
+	Object Object
+}
+
+// errUnknownMark: a mark of no kind of the snapshot; the cursor codec makes
+// none, so it is a programming error.
+var errUnknownMark = errors.New("snapshot mark of an unknown kind")
+
+// SnapshotPage returns up to limit live objects r can read after mark, in
+// order of kind, then id (ADR-017 item 7; plan 1.7 decision 10), from tx, a
+// read transaction of r's household; done when none is left after them, and
+// next is the mark of the last one returned. Its order is by id, never time,
+// so it does not tell how many objects r cannot read (SEC-04).
+func (s *Service) SnapshotPage(ctx context.Context, tx pgx.Tx, r Reader, mark SnapshotMark, limit int) (objects []Projected, next SnapshotMark, done bool, err error) {
+	if mark.Kind == "" {
+		mark = SnapshotMark{Kind: snapshotOrder[0], After: nilID}
+	}
+	start := slices.Index(snapshotOrder, mark.Kind)
+	if start < 0 {
+		return nil, SnapshotMark{}, false, errUnknownMark
+	}
+	q := readdb.New(tx)
+	// One object more than the page tells whether any is left.
+	for i, kind := range snapshotOrder[start:] {
+		need := limit + 1 - len(objects)
+		if need <= 0 {
+			break
+		}
+		if !canRead(kind) {
+			continue
+		}
+		after := nilID
+		if i == 0 {
+			after = pgtype.UUID{Bytes: mark.After.Bytes, Valid: true}
+		}
+		page, err := s.kindPage(ctx, q, kind, after, need)
+		if err != nil {
+			return nil, SnapshotMark{}, false, err
+		}
+		objects = append(objects, page...)
+	}
+	done = len(objects) <= limit
+	objects = objects[:min(limit, len(objects))]
+	next = mark
+	if len(objects) > 0 {
+		last := objects[len(objects)-1].Ref
+		next = SnapshotMark{Kind: last.Kind, After: last.ID}
+	}
+	return objects, next, done, nil
 }

@@ -24,11 +24,13 @@ import (
 
 var start = time.Date(2026, 11, 14, 9, 0, 0, 0, time.UTC)
 
-// harness runs household's commands as app_rw against a migrated database
-// and reads the feed as the superuser.
+// harness runs household's commands and Sync as app_rw against a migrated
+// database and reads the feed as the superuser.
 type harness struct {
 	admin, app *pgxpool.Pool
 	h          *household.Service
+	read       *read.Service
+	sync       *sync.Service
 	now        time.Time
 }
 
@@ -36,7 +38,10 @@ func newHarness(t *testing.T) *harness {
 	t.Helper()
 	d := databasetest.Migrated(t)
 	x := &harness{admin: d.Pool(t, d.AdminRole), app: d.Pool(t, "app_rw"), now: start}
-	x.h = household.New(x.app, func() time.Time { return x.now }, "Pengelola", household.PublishedNotices)
+	clock := func() time.Time { return x.now }
+	x.h = household.New(x.app, clock, "Pengelola", household.PublishedNotices)
+	x.read = read.New(x.app, clock)
+	x.sync = sync.New(x.app, x.read, testKey(t))
 	return x
 }
 
