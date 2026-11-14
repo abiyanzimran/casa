@@ -48,10 +48,7 @@ func (s syncHandler) Sync(ctx context.Context, req *casav1.SyncRequest) (*casav1
 	if err != nil {
 		return nil, householdError(err)
 	}
-	unacknowledged, err := s.noticeHeld(ctx, m.AccountID)
-	if err != nil {
-		return nil, householdError(err)
-	}
+	unacknowledged := false
 	limit := int(req.GetLimit())
 	if limit == 0 {
 		limit = defaultSyncLimit
