@@ -1279,3 +1279,170 @@ func tokenOf(t *testing.T) string {
 	}
 	return base64.RawURLEncoding.EncodeToString(raw[:])
 }
+
+// TestWithoutSession covers without_session on CompleteSignUp and
+// CompleteRecovery (ADR-030 item 11; SEC-171 (b) (2) note of 14 November
+// 2026, Q2-1 to Q2-5).
+func TestWithoutSession(t *testing.T) {
+	password, next := strings.Repeat("no session ", 3), strings.Repeat("no session next ", 2) // built, so no secret scanner sees a literal
+	const email = "owner@example.test"
+	rejected := casav1.ErrorCode_ERROR_CODE_TOKEN_REJECTED
+
+	completeSignUp := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, link string, mode casav1.DeviceMode, without bool) error {
+		_, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(kind), VerificationToken: link, Password: password, DeviceMode: mode, WithoutSession: without,
+		})
+		return err
+	}
+	completeRecovery := func(h *identityHarness, ctx context.Context, kind casav1.ClientKind, link string, mode casav1.DeviceMode, without bool) error {
+		_, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
+			RequestContext: identityRC(kind), RecoveryToken: link, NewPassword: next, DeviceMode: mode, WithoutSession: without,
+		})
+		return err
+	}
+
+	t.Run("SEC-171 (b) (2) a web sign-up completed without a session sets no cookie, returns no tokens and opens no session", func(t *testing.T) {
+		h := startIdentity(t)
+		wantOK(t, h.startSignUp(h.issue(t, email), email))
+		link := h.lastLink(t)
+		ctx, info := webCall(safariIPhone)
+		res, err := h.client.CompleteSignUp(ctx, &casav1.CompleteSignUpRequest{
+			RequestContext: identityRC(web), VerificationToken: link, Password: password, WithoutSession: true,
+		})
+		wantOK(t, err)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || res.GetTokens() != nil {
+			t.Fatalf("%d Set-Cookie headers, tokens %t; want none", n, res.GetTokens() != nil)
+		}
+		if n := h.count(t, "SELECT count(*) FROM session"); n != 0 {
+			t.Fatalf("%d sessions, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'sign_in'"); n != 0 {
+			t.Fatalf("%d sign_in events, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM account WHERE email = $1", email); n != 1 {
+			t.Fatalf("%d accounts, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM credential"); n != 1 {
+			t.Fatalf("%d credentials, want 1", n)
+		}
+		ctx, _ = webCall(safariIPhone)
+		wantErrorCode(t, completeSignUp(h, ctx, web, link, 0, true), connect.CodePermissionDenied, rejected)
+		_, err = h.signIn(email, password)
+		wantOK(t, err)
+	})
+
+	t.Run("SEC-171 (b) (2) a web recovery without a session revokes every session and records recovery without a session", func(t *testing.T) {
+		h := startIdentity(t)
+		h.signUp(t, email, password) // a native session
+		cookie := h.webSignIn(t, email, password, personal)
+		_, err := h.startRecovery(email)
+		wantOK(t, err)
+		ctx, info := webCall(safariIPhone)
+		res, err := h.client.CompleteRecovery(ctx, &casav1.CompleteRecoveryRequest{
+			RequestContext: identityRC(web), RecoveryToken: h.lastLink(t), NewPassword: next, WithoutSession: true,
+		})
+		wantOK(t, err)
+		if n := len(info.ResponseHeader().Values("Set-Cookie")); n != 0 || res.GetTokens() != nil {
+			t.Fatalf("%d Set-Cookie headers, tokens %t; want none", n, res.GetTokens() != nil)
+		}
+		if n := h.count(t, "SELECT count(*) FROM session WHERE revoked_at IS NULL"); n != 0 {
+			t.Fatalf("%d live sessions, want none", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'recovery' AND session_id IS NULL AND detail = $1", "Safari · iOS"); n != 1 {
+			t.Fatalf("%d recovery events without a session and with the browser summary, want 1", n)
+		}
+		if n := h.count(t, "SELECT count(*) FROM security_event WHERE kind = 'recovery'"); n != 1 {
+			t.Fatalf("%d recovery events, want exactly 1", n)
+		}
+		wantErrorCode(t, h.read(sameOrigin(cookie), web, true), connect.CodeUnauthenticated, casav1.ErrorCode_ERROR_CODE_SESSION_REVOKED)
+		_, err = h.signIn(email, next)
+		wantOK(t, err)
+	})
+
+	t.Run("the flag from a native client, or with a device mode, is an invalid argument", func(t *testing.T) {
+		h := startIdentity(t)
+		token := strings.Repeat("A", 43)
+		type call func(*identityHarness, context.Context, casav1.ClientKind, string, casav1.DeviceMode, bool) error
+		for name, complete := range map[string]call{"CompleteSignUp": completeSignUp, "CompleteRecovery": completeRecovery} {
+			for _, c := range []struct {
+				kind    casav1.ClientKind
+				without bool
+				mode    casav1.DeviceMode
+				invalid bool
+			}{
+				{ios, true, 0, true}, {web, true, personal, true}, {web, false, 0, true},
+				{ios, false, 0, false}, {web, false, personal, false}, {web, true, 0, false},
+			} {
+				ctx, _ := webCall(safariIPhone)
+				err := complete(h, ctx, c.kind, token, c.mode, c.without)
+				if !c.invalid {
+					wantErrorCode(t, err, connect.CodePermissionDenied, rejected) // valid shape: the unknown link is rejected
+					continue
+				}
+				wantCode(t, err, connect.CodeInvalidArgument)
+				if got := ruleIDs(t, err); !slices.Equal(got, []string{"device_mode.web"}) {
+					t.Errorf("%s %+v: rules %v, want [device_mode.web]", name, c, got)
+				}
+			}
+		}
+	})
+
+	t.Run("a rejected link gets the same TOKEN_REJECTED with and without the flag", func(t *testing.T) {
+		// SEC-30: code, message and details are equal.
+		h := startIdentity(t)
+		token := strings.Repeat("B", 43)
+		ctx, _ := webCall(safariIPhone)
+		withSignUp := rejectionOf(t, completeSignUp(h, ctx, web, token, 0, true))
+		withRecovery := rejectionOf(t, completeRecovery(h, ctx, web, token, 0, true))
+		for name, without := range map[string]rejection{
+			"CompleteSignUp":   rejectionOf(t, completeSignUp(h, ctx, web, token, personal, false)),
+			"CompleteRecovery": rejectionOf(t, completeRecovery(h, ctx, web, token, personal, false)),
+		} {
+			with := withSignUp
+			if name == "CompleteRecovery" {
+				with = withRecovery
+			}
+			if !with.equal(without) || with.code != connect.CodePermissionDenied {
+				t.Errorf("%s: rejection with the flag %+v differs from without %+v", name, with, without)
+			}
+		}
+	})
+
+	t.Run("the token-use limiter counts the same with and without the flag", func(t *testing.T) {
+		// 10.1 §8.1: 20 failed token uses per address, the 21st is limited.
+		h := startIdentity(t)
+		token := strings.Repeat("C", 43)
+		for i := range 20 {
+			ctx, _ := webCall(safariIPhone)
+			if i%2 == 0 {
+				wantErrorCode(t, completeSignUp(h, ctx, web, token, 0, true), connect.CodePermissionDenied, rejected)
+			} else {
+				wantErrorCode(t, completeSignUp(h, ctx, web, token, personal, false), connect.CodePermissionDenied, rejected)
+			}
+		}
+		for _, without := range []bool{true, false} {
+			mode := personal
+			if without {
+				mode = 0
+			}
+			ctx, _ := webCall(safariIPhone)
+			wantErrorCode(t, completeSignUp(h, ctx, web, token, mode, without), connect.CodeResourceExhausted, casav1.ErrorCode_ERROR_CODE_RATE_LIMITED)
+		}
+	})
+
+	t.Run("a without-session completion leaves a stale cookie untouched", func(t *testing.T) {
+		// Q2-4: a request carrying the cookie of a revoked session gets no
+		// Set-Cookie at all.
+		h := startIdentity(t)
+		h.signUp(t, email, password)
+		stale := h.webSignIn(t, email, password, personal)
+		wantOK(t, h.webSignOut(sameOrigin(stale)))
+		wantOK(t, h.startSignUp(h.issue(t, "second@example.test"), "second@example.test"))
+		ctx := sameOrigin(stale)
+		info, _ := connect.CallInfoForClientContext(ctx)
+		wantOK(t, completeSignUp(h, ctx, web, h.lastLink(t), 0, true))
+		if got := info.ResponseHeader().Values("Set-Cookie"); len(got) != 0 {
+			t.Fatalf("%d Set-Cookie headers, want none", len(got))
+		}
+	})
+}

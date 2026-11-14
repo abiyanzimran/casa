@@ -124,7 +124,8 @@ type IdentityServiceClient interface {
 	// same TOKEN_REJECTED (SEC-30).
 	StartSignUp(context.Context, *v1.StartSignUpRequest) (*v1.StartSignUpResponse, error)
 	// Opens the account with the emailed link and the person's own password,
-	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10).
+	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10), unless
+	// without_session (SEC-171 (b) (2) note Q2; ADR-030 item 11).
 	CompleteSignUp(context.Context, *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error)
 	// Opens a native session with email and password. An unknown email and a
 	// wrong password get the same CREDENTIALS_REJECTED (SEC-12).
@@ -137,7 +138,8 @@ type IdentityServiceClient interface {
 	// requests are rate limited per email and per address (10.1 §8.1).
 	StartRecovery(context.Context, *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error)
 	// Sets a new password with the emailed link, revokes every other session
-	// of the account, and opens a session for this device (SEC-24). Every
+	// of the account, and opens a session for this device (SEC-24) unless
+	// without_session (SEC-171 (b) (2) note Q2; ADR-030 item 11). Every
 	// rejection of the link is the same TOKEN_REJECTED (SEC-30).
 	CompleteRecovery(context.Context, *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error)
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and
@@ -166,7 +168,8 @@ type IdentityServiceHandler interface {
 	// same TOKEN_REJECTED (SEC-30).
 	StartSignUp(context.Context, *v1.StartSignUpRequest) (*v1.StartSignUpResponse, error)
 	// Opens the account with the emailed link and the person's own password,
-	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10).
+	// and its first session (SEC-158; SEC-26; FR-FAM-001 AC-10), unless
+	// without_session (SEC-171 (b) (2) note Q2; ADR-030 item 11).
 	CompleteSignUp(context.Context, *v1.CompleteSignUpRequest) (*v1.CompleteSignUpResponse, error)
 	// Opens a native session with email and password. An unknown email and a
 	// wrong password get the same CREDENTIALS_REJECTED (SEC-12).
@@ -179,7 +182,8 @@ type IdentityServiceHandler interface {
 	// requests are rate limited per email and per address (10.1 §8.1).
 	StartRecovery(context.Context, *v1.StartRecoveryRequest) (*v1.StartRecoveryResponse, error)
 	// Sets a new password with the emailed link, revokes every other session
-	// of the account, and opens a session for this device (SEC-24). Every
+	// of the account, and opens a session for this device (SEC-24) unless
+	// without_session (SEC-171 (b) (2) note Q2; ADR-030 item 11). Every
 	// rejection of the link is the same TOKEN_REJECTED (SEC-30).
 	CompleteRecovery(context.Context, *v1.CompleteRecoveryRequest) (*v1.CompleteRecoveryResponse, error)
 	// Revokes the caller's session (09.3 §1 "keluar akun"): never held, and

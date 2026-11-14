@@ -247,6 +247,9 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 		if err != nil {
 			return err
 		}
+		if client.WithoutSession { // SEC-171 (b) (2) note Q2; ADR-030 item 11
+			return nil
+		}
 		tokens, _, err = openSession(ctx, tx, account, client, now)
 		return err
 	})

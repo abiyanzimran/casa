@@ -143,13 +143,19 @@ func (s *Service) completeRecovery(ctx context.Context, client Client, recoveryT
 			return err
 		}
 		var session pgtype.UUID
-		if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
+		var detail pgtype.Text
+		if client.WithoutSession {
+			// SEC-171 (b) (2) note Q2-3; ADR-030 item 11: every session is
+			// already revoked above; with none opened, the event names the
+			// browser itself (the summary only, SEC-161 (e)).
+			detail = pgtype.Text{String: summarizeUserAgent(client.UserAgent), Valid: true}
+		} else if tokens, session, err = openSession(ctx, tx, account, client, now); err != nil {
 			return err
 		}
 		// SEC-24: the owner reads when, and from which device, through the
-		// new session.
+		// new session, or through the event's detail when there is none.
 		return q.InsertSecurityEvent(ctx, identitydb.InsertSecurityEventParams{
-			AccountID: account, SessionID: session, Kind: "recovery", OccurredAt: now,
+			AccountID: account, SessionID: session, Kind: "recovery", Detail: detail, OccurredAt: now,
 		})
 	})
 	return tokens, err

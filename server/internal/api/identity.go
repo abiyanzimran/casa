@@ -187,8 +187,13 @@ func (h identityHandler) CompleteRecovery(ctx context.Context, req *casav1.Compl
 
 // openedSession hands a new session to its client: a web session only as the
 // cookie, with tokens left unset in the response (SEC-161 (b)); a native one
-// as tokens. A cookie that cannot be set is an internal error.
+// as tokens. A completion without a session answers with neither and sets no
+// Set-Cookie at all, a stale cookie included (SEC-171 (b) (2) note Q2-4;
+// ADR-030 item 11). A cookie that cannot be set is an internal error.
 func openedSession(ctx context.Context, client identity.Client, tokens identity.Tokens) (*casav1.SessionTokens, error) {
+	if client.WithoutSession {
+		return nil, nil
+	}
 	if client.Kind == "web" {
 		return nil, setSessionCookie(ctx, tokens.Cookie)
 	}
@@ -210,7 +215,7 @@ var deviceModes = map[casav1.DeviceMode]string{
 }
 
 // clientOf builds the caller from request_context and, when the request has
-// one, device_mode, both already checked at the boundary (plan 1.5 decision
+// one, device_mode and without_session, all already checked at the boundary (plan 1.5 decision
 // 9), the connection's peer address (10.1 §8.1: TLS ends in the binary, so
 // the peer is the client), and the User-Agent, which identity only
 // summarizes (SEC-161 (e)).
@@ -221,6 +226,9 @@ func clientOf(ctx context.Context, req interface {
 	client := identity.Client{Kind: clientKindOf(rc), Version: rc.GetClientVersion()}
 	if withMode, ok := req.(interface{ GetDeviceMode() casav1.DeviceMode }); ok {
 		client.DeviceMode = deviceModes[withMode.GetDeviceMode()]
+	}
+	if without, ok := req.(interface{ GetWithoutSession() bool }); ok {
+		client.WithoutSession = without.GetWithoutSession()
 	}
 	if info, ok := connect.CallInfoForServerContext(ctx); ok {
 		client.Address = info.PeerAddr

@@ -130,6 +130,12 @@ type Client struct {
 	// DeviceMode is "personal" or "shared" for web and "" for native, whose
 	// session is stored as personal (plan 1.5 decision 9; SEC-165).
 	DeviceMode string
+	// WithoutSession is a web client finishing a sign-up or recovery that
+	// opens no session of its own, e.g. a verification page in another tab
+	// or app: no session row, no sign_in event, no token (SEC-171 (b) (2)
+	// note of 14 November 2026, Q2; ADR-030 item 11). Like DeviceMode, it is
+	// a property of the request, checked at the boundary.
+	WithoutSession bool
 	// UserAgent is read only by summarizeUserAgent and never stored or
 	// logged (SEC-161 (e)).
 	UserAgent string

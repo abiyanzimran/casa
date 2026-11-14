@@ -242,9 +242,14 @@ type CompleteSignUpRequest struct {
 	// from tying up the hash [Usulan].
 	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	// The web session's mode (SEC-165 (a); ADR-030 item 5).
-	DeviceMode    DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	DeviceMode DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
+	// A web client that opens no session of its own (a verification page in
+	// another browser tab or app): the response sets no cookie and carries no
+	// tokens (SEC-171 (b) (2) note Q2, 14 November 2026; ADR-030 item 11).
+	// With it, device_mode must be unspecified; native clients never send it.
+	WithoutSession bool `protobuf:"varint,5,opt,name=without_session,json=withoutSession,proto3" json:"without_session,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CompleteSignUpRequest) Reset() {
@@ -303,6 +308,13 @@ func (x *CompleteSignUpRequest) GetDeviceMode() DeviceMode {
 		return x.DeviceMode
 	}
 	return DeviceMode_DEVICE_MODE_UNSPECIFIED
+}
+
+func (x *CompleteSignUpRequest) GetWithoutSession() bool {
+	if x != nil {
+		return x.WithoutSession
+	}
+	return false
 }
 
 type CompleteSignUpResponse struct {
@@ -996,9 +1008,14 @@ type CompleteRecoveryRequest struct {
 	// At least 12 characters and not on the common password list (SEC-11).
 	NewPassword string `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
 	// The web session's mode (SEC-165 (a); ADR-030 item 5).
-	DeviceMode    DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	DeviceMode DeviceMode `protobuf:"varint,4,opt,name=device_mode,json=deviceMode,proto3,enum=casa.v1.DeviceMode" json:"device_mode,omitempty"`
+	// A web client that opens no session of its own (a verification page in
+	// another browser tab or app): the response sets no cookie and carries no
+	// tokens (SEC-171 (b) (2) note Q2, 14 November 2026; ADR-030 item 11).
+	// With it, device_mode must be unspecified; native clients never send it.
+	WithoutSession bool `protobuf:"varint,5,opt,name=without_session,json=withoutSession,proto3" json:"without_session,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CompleteRecoveryRequest) Reset() {
@@ -1059,6 +1076,13 @@ func (x *CompleteRecoveryRequest) GetDeviceMode() DeviceMode {
 	return DeviceMode_DEVICE_MODE_UNSPECIFIED
 }
 
+func (x *CompleteRecoveryRequest) GetWithoutSession() bool {
+	if x != nil {
+		return x.WithoutSession
+	}
+	return false
+}
+
 type CompleteRecoveryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Tokens        *SessionTokens         `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
@@ -1115,14 +1139,15 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x05email\x18\x03 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\x12.\n" +
 	"\x10invitation_token\x18\x04 \x01(\tB\x03\x80\x01\x01R\x0finvitationToken\"\x15\n" +
-	"\x13StartSignUpResponse\"\xae\x03\n" +
+	"\x13StartSignUpResponse\"\xc3\x04\n" +
 	"\x15CompleteSignUpRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x122\n" +
 	"\x12verification_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\x11verificationToken\x12)\n" +
 	"\bpassword\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\bpassword\x12>\n" +
 	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
-	"deviceMode:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
-	"\x0fdevice_mode.web\x12:web clients choose a device mode; native clients send none\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"H\n" +
+	"deviceMode\x12'\n" +
+	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
+	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1a\xa1\x01this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)\"H\n" +
 	"\x16CompleteSignUpResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens\"\x90\x03\n" +
 	"\rSignInRequest\x12H\n" +
@@ -1162,14 +1187,15 @@ const file_casa_v1_identity_proto_rawDesc = "" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12 \n" +
 	"\x05email\x18\x02 \x01(\tB\n" +
 	"\xbaH\ar\x05\x18\xfe\x01`\x01R\x05email\"\x17\n" +
-	"\x15StartRecoveryResponse\"\xaf\x03\n" +
+	"\x15StartRecoveryResponse\"\xc4\x04\n" +
 	"\x17CompleteRecoveryRequest\x12H\n" +
 	"\x0frequest_context\x18\x01 \x01(\v2\x17.casa.v1.RequestContextB\x06\xbaH\x03\xc8\x01\x01R\x0erequestContext\x12*\n" +
 	"\x0erecovery_token\x18\x02 \x01(\tB\x03\x80\x01\x01R\rrecoveryToken\x120\n" +
 	"\fnew_password\x18\x03 \x01(\tB\r\xbaH\ar\x05\x10\f\x18\x80\b\x80\x01\x01R\vnewPassword\x12>\n" +
 	"\vdevice_mode\x18\x04 \x01(\x0e2\x13.casa.v1.DeviceModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\n" +
-	"deviceMode:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
-	"\x0fdevice_mode.web\x12:web clients choose a device mode; native clients send none\x1aUthis.request_context.client_kind == 3 ? this.device_mode != 0 : this.device_mode == 0\"J\n" +
+	"deviceMode\x12'\n" +
+	"\x0fwithout_session\x18\x05 \x01(\bR\x0ewithoutSession:\x97\x02\xbaH\x93\x02\x1a\x90\x02\n" +
+	"\x0fdevice_mode.web\x12Yweb clients choose a device mode or finish without a session; native clients send neither\x1a\xa1\x01this.request_context.client_kind == 3 ? (this.without_session ? this.device_mode == 0 : this.device_mode != 0) : (this.device_mode == 0 && !this.without_session)\"J\n" +
 	"\x18CompleteRecoveryResponse\x12.\n" +
 	"\x06tokens\x18\x01 \x01(\v2\x16.casa.v1.SessionTokensR\x06tokens*[\n" +
 	"\n" +
