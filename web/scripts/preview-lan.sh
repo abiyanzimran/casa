@@ -38,22 +38,8 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 caddy=$root/.cache/bin/caddy
 data=${CASA_PREVIEW_CADDY_DATA:-$HOME/.local/share/casa-preview-caddy} # off the repository: its mount may not keep file modes
 
-if [ "$("$caddy" version 2>/dev/null | cut -d' ' -f1)" != "$caddy_version" ]; then
-	[ "$(uname -sm)" = "Linux x86_64" ] || { echo "preview-lan: no pinned checksum for $(uname -sm)" >&2; exit 1; }
-	dl=$(mktemp -d)
-	"$root/scripts/fetch-verified.sh" \
-		"https://github.com/caddyserver/caddy/releases/download/$caddy_version/caddy_${caddy_version#v}_linux_amd64.tar.gz" \
-		"$caddy_sha256" "$dl/caddy.tar.gz"
-	mkdir -p "$root/.cache/bin"
-	tar -xzf "$dl/caddy.tar.gz" -C "$dl" caddy
-	mv "$dl/caddy" "$caddy"
-	rm -rf "$dl"
-	[ "$("$caddy" version | cut -d' ' -f1)" = "$caddy_version" ] || { echo "preview-lan: unexpected caddy version" >&2; exit 1; }
-fi
-for p in "$backend_port" "$https_port" "$cert_port"; do
-	if ss -ltn "sport = :$p" | grep -q LISTEN; then echo "preview-lan: port $p is already in use" >&2; exit 1; fi
-done
-
+# One 0700 run directory (mktemp) for everything of this run, the Caddy download included,
+# removed on every exit, a failed download too.
 run=$(mktemp -d)
 mkdir -p "$run/pub"; mkdir -p -m 700 "$data"
 pids=()
@@ -67,6 +53,22 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+if [ "$("$caddy" version 2>/dev/null | cut -d' ' -f1)" != "$caddy_version" ]; then
+	[ "$(uname -sm)" = "Linux x86_64" ] || { echo "preview-lan: no pinned checksum for $(uname -sm)" >&2; exit 1; }
+	dl=$run/download
+	mkdir "$dl"
+	"$root/scripts/fetch-verified.sh" \
+		"https://github.com/caddyserver/caddy/releases/download/$caddy_version/caddy_${caddy_version#v}_linux_amd64.tar.gz" \
+		"$caddy_sha256" "$dl/caddy.tar.gz"
+	mkdir -p "$root/.cache/bin"
+	tar -xzf "$dl/caddy.tar.gz" -C "$dl" caddy
+	mv "$dl/caddy" "$caddy"
+	[ "$("$caddy" version | cut -d' ' -f1)" = "$caddy_version" ] || { echo "preview-lan: unexpected caddy version" >&2; exit 1; }
+fi
+for p in "$backend_port" "$https_port" "$cert_port"; do
+	if ss -ltn "sport = :$p" | grep -q LISTEN; then echo "preview-lan: port $p is already in use" >&2; exit 1; fi
+done
+
 CASA_RUN_DIR=$run CASA_ORIGIN="https://$ip:$https_port" CASA_LISTEN="127.0.0.1:$backend_port" "$root/web/scripts/fullstack-server.sh" &
 pids+=($!)
 for _ in $(seq 300); do
@@ -76,16 +78,20 @@ for _ in $(seq 300); do
 done
 [ -e "$run/ready" ] || { echo "preview-lan: casa not ready after 300 s" >&2; exit 1; }
 
-# Caddy keeps its CA (and so the devices' trust) between runs in $data.
+# Caddy keeps its CA (and so the devices' trust) between runs in $data. skip_install_trust:
+# the CA is trusted only on the three pilot devices (Q5), never added to this PC's trust
+# stores. bind: the site listens on the LAN address only.
 # Same as `caddy reverse-proxy --from ... --to ... --internal-certs`, in a
 # Caddyfile so the admin API can be off. Origin is passed through unchanged.
 cat >"$run/Caddyfile" <<CADDYFILE
 {
 	admin off
 	local_certs
+	skip_install_trust
 	auto_https disable_redirects
 }
 https://$ip:$https_port {
+	bind $ip
 	reverse_proxy 127.0.0.1:$backend_port
 }
 CADDYFILE
@@ -99,6 +105,7 @@ for _ in $(seq 60); do
 done
 [ -s "$crt" ] || { echo "preview-lan: Caddy made no root certificate" >&2; exit 1; }
 cp "$crt" "$run/pub/root.crt" # the public part only
+fingerprint=$(openssl x509 -noout -fingerprint -sha256 -in "$crt" | cut -d= -f2)
 python3 -I -m http.server "$cert_port" --bind "$ip" --directory "$run/pub" >/dev/null 2>&1 &
 pids+=($!)
 
@@ -107,6 +114,7 @@ cat <<MSG
 Casa preview is up. Stop with Ctrl-C.
   App (after trusting the certificate): https://$ip:$https_port/
   Root certificate to install (public part): http://$ip:$cert_port/root.crt
+    compare on the device before trusting it: $fingerprint
   Mail files (open the link inside from the device browser): $run/mail
   Setup tokens (0600, one per person): $run/setup-token-1 and $run/setup-token-2
     first sign-up link: https://$ip:$https_port/signup#<contents of the file>

@@ -15,8 +15,8 @@
 #   CASA_WEB_DB_PORT   loopback port of the container (default 55441; 55432 is
 #                      taken by another project, 55440 is casa-postgres of make db-up)
 #   CASA_SETUP_EMAILS  one setup token per address, space separated
-#   CASA_RUN_DIR       an existing 0700 directory the caller owns; default: a
-#                      new mktemp directory this script removes on exit
+#   CASA_RUN_DIR       an existing 0700 directory the caller owns (checked); default:
+#                      a new mktemp directory this script removes on exit
 #
 # It prints addresses and file paths, never a token, a password or a mail body.
 # Files in the run directory: mail/ (one file per mail), setup-token-N (0600,
@@ -33,15 +33,31 @@ container=casa-postgres-web
 image=$(sed -n 's/^POSTGRES_IMAGE := //p' "$root/Makefile")
 [ -n "$image" ] || { echo "fullstack-server: POSTGRES_IMAGE not found in Makefile" >&2; exit 1; }
 
+# A running container of this name belongs to another run (a preview, or the fullstack test):
+# never replaced under it.
+if docker ps -q -f "name=^$container$" | grep -q .; then
+	echo "fullstack-server: $container is already running (a preview or test is using it); stop that run first" >&2
+	exit 1
+fi
+if ss -ltn "sport = :$port" | grep -q LISTEN; then
+	echo "fullstack-server: port $port is in use by something else; set CASA_WEB_DB_PORT" >&2
+	exit 1
+fi
+
 own_run=
 if [ -z "${CASA_RUN_DIR:-}" ]; then
 	CASA_RUN_DIR=$(mktemp -d)
 	own_run=1
+elif [ ! -d "$CASA_RUN_DIR" ] || [ ! -O "$CASA_RUN_DIR" ] || [ "$(stat -c %a "$CASA_RUN_DIR")" != 700 ]; then
+	# It receives the setup tokens and the credentials.
+	echo "fullstack-server: CASA_RUN_DIR must be an existing 0700 directory you own" >&2
+	exit 1
 fi
 run=$CASA_RUN_DIR
 cred=$run/credentials
 mail=$run/mail
 casa_pid=
+own_container=
 
 cleanup() {
 	trap '' INT TERM
@@ -49,7 +65,7 @@ cleanup() {
 		kill "$casa_pid" 2>/dev/null || true
 		wait "$casa_pid" 2>/dev/null || true
 	fi
-	docker rm -f "$container" >/dev/null 2>&1 || true
+	if [ -n "$own_container" ]; then docker rm -f "$container" >/dev/null 2>&1 || true; fi
 	rm -rf "$cred"
 	if [ -n "$own_run" ]; then rm -rf "$run"; fi
 }
@@ -57,21 +73,16 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-if ss -ltn "sport = :$port" | grep -q LISTEN && ! docker ps -q -f "name=^$container$" | grep -q .; then
-	echo "fullstack-server: port $port is in use by something else; set CASA_WEB_DB_PORT" >&2
-	exit 1
-fi
-
 # The binary: this worktree's server and the web bundle embedded in it.
 (cd "$root" && make casa >/dev/null)
 casa=$root/.cache/casa
 
-# The database. Only the container of this name is ever replaced.
-docker rm -f "$container" >/dev/null 2>&1 || true
+# The database, removed on exit by this run only.
 docker image inspect "$image" >/dev/null 2>&1 || docker pull -q "$image" >/dev/null
 # trust: bound to 127.0.0.1, data on tmpfs, test data only (as make db-up).
 docker run -d --rm --name "$container" -p "127.0.0.1:$port:5432" \
 	-e POSTGRES_HOST_AUTH_METHOD=trust --tmpfs /var/lib/postgresql "$image" >/dev/null
+own_container=1
 ready=
 for _ in $(seq 60); do
 	if docker exec "$container" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; then ready=1; break; fi
