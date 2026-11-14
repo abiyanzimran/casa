@@ -226,7 +226,7 @@ func (b boundary) session(ctx context.Context, header *connect.Header, cookie st
 		return session, nil
 	case withCookie:
 		session, err := b.sessions.Cookie(ctx, cookie)
-		if errors.Is(err, identity.ErrSessionExpired) || errors.Is(err, identity.ErrSessionRevoked) {
+		if errors.Is(err, identity.ErrSessionExpired) || errors.Is(err, identity.ErrSessionRevoked) || errors.Is(err, identity.ErrUnauthenticated) {
 			// ADR-030 item 5; 10.5 SEC-161 note of 15 November 2026
 			// conditions (1) to (4); SEC-172 (d). Residual risk accepted
 			// (Q3): a late answer may expire a newer cookie of the same
