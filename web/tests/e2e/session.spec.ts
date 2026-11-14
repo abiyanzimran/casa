@@ -399,21 +399,23 @@ test('08 §25.4: a pressed button shrinks a little while held', async ({ page })
 });
 
 for (const mode of ['shared', 'personal'] as const) {
-	test(`SEC-179: in ${mode} mode, sessionStorage holds only SvelteKit's navigation numbers and localStorage nothing`, async ({
-		page
-	}) => {
-		await failUnmocked(page);
-		if (mode === 'personal') await seedUnsent(page, 1);
-		await mockRpc(page, listMemberships, () =>
-			rpcError(Code.Unauthenticated, ErrorCode.SESSION_EXPIRED)
-		);
-		await page.goto('/');
-		await markDocument(page);
-		// "Masuk" opens a new document; SvelteKit writes its navigation state as the old one unloads.
-		await page.getByRole('button', { name: 'Masuk', exact: true }).click();
-		await expect.poll(() => isNewDocument(page)).toBe(true);
-		await expect(page.getByRole('button', { name: 'Masuk', exact: true })).toBeVisible();
-		expect(await expectNavigationStateOnly(page)).toContain('sveltekit:history-info');
+	test.describe(`in ${mode} mode`, () => {
+		test("SEC-179: sessionStorage holds only SvelteKit's navigation numbers and localStorage nothing", async ({
+			page
+		}) => {
+			await failUnmocked(page);
+			if (mode === 'personal') await seedUnsent(page, 1);
+			await mockRpc(page, listMemberships, () =>
+				rpcError(Code.Unauthenticated, ErrorCode.SESSION_EXPIRED)
+			);
+			await page.goto('/');
+			await markDocument(page);
+			// "Masuk" opens a new document; SvelteKit writes its navigation state as the old one unloads.
+			await page.getByRole('button', { name: 'Masuk', exact: true }).click();
+			await expect.poll(() => isNewDocument(page)).toBe(true);
+			await expect(page.getByRole('button', { name: 'Masuk', exact: true })).toBeVisible();
+			expect(await expectNavigationStateOnly(page)).toContain('sveltekit:history-info');
+		});
 	});
 }
 
@@ -498,37 +500,39 @@ const afterRevoke = [
 ];
 
 for (const { server, later } of afterRevoke) {
-	test(`SEC-172 (a): a wipe that keeps failing reloads once, then shows the unreachable state, never LY-94 (server: ${server})`, async ({
-		page
-	}) => {
-		await failUnmocked(page);
-		// Every cache deletion fails, so the wipe can never finish.
-		await page.addInitScript(() => {
-			CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
-		});
-		let answered = 0;
-		const calls = await mockRpc(page, listMemberships, () =>
-			++answered === 1 ? signedIn : later()
-		);
-		await page.goto('/');
-		await expect(page.locator('h1')).toBeVisible();
-		await seedProbeCache(page);
-		await markDocument(page);
-		let documentLoads = 0;
-		page.on('load', () => {
-			documentLoads++;
-		});
+	test.describe(`server: ${server}`, () => {
+		test('SEC-172 (a): a wipe that keeps failing reloads once, then shows the unreachable state, never LY-94', async ({
+			page
+		}) => {
+			await failUnmocked(page);
+			// Every cache deletion fails, so the wipe can never finish.
+			await page.addInitScript(() => {
+				CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
+			});
+			let answered = 0;
+			const calls = await mockRpc(page, listMemberships, () =>
+				++answered === 1 ? signedIn : later()
+			);
+			await page.goto('/');
+			await expect(page.locator('h1')).toBeVisible();
+			await seedProbeCache(page);
+			await markDocument(page);
+			let documentLoads = 0;
+			page.on('load', () => {
+				documentLoads++;
+			});
 
-		await revokedSignal(page, 0);
-		// The first failure reloads; the reloaded page's check is revoked again, its wipe fails again.
-		await expect.poll(() => isNewDocument(page)).toBe(true);
-		// 08 §7.6 home.unreachableStorage: never says the data is deleted (QG-09 S4).
-		await expect(page.getByText(unreachableStorage)).toBeVisible();
-		await expect(page.getByText(revoked)).toHaveCount(0);
-		expect(documentLoads).toBe(1);
-		expect(new URL(page.url()).pathname).toBe('/');
-		// One check per document: the goto with state before the reload starts no check (I3).
-		expect(calls).toHaveLength(2);
+			await revokedSignal(page, 0);
+			// The first failure reloads; the reloaded page's check is revoked again, its wipe fails again.
+			await expect.poll(() => isNewDocument(page)).toBe(true);
+			// 08 §7.6 home.unreachableStorage: never says the data is deleted (QG-09 S4).
+			await expect(page.getByText(unreachableStorage)).toBeVisible();
+			await expect(page.getByText(revoked)).toHaveCount(0);
+			expect(documentLoads).toBe(1);
+			expect(new URL(page.url()).pathname).toBe('/');
+			// One check per document: the goto with state before the reload starts no check (I3).
+			expect(calls).toHaveLength(2);
+		});
 	});
 }
 
