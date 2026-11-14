@@ -19,7 +19,8 @@ test.use({ serviceWorkers: 'block' });
 const closed =
 	'Akun Casa dibuat lewat tautan: tautan undangan dari anggota keluarga, atau tautan pemasangan dari pengelola server.';
 const pasteHint = 'Salin tautan dari pesan yang kamu terima, lalu tempel di sini.';
-const notCasa = 'Tautan ini bukan tautan Casa. Salin lagi tautan dari pesan yang kamu terima.';
+const notCasa = 'Teks ini tidak memuat tautan Casa. Salin lagi tautan dari pesan yang kamu terima.';
+const pasteMany = 'Ada lebih dari satu tautan Casa di teks ini. Tempel satu tautan saja.';
 const withInvitation = 'Kamu membuka undangan Casa. Buat akun dulu, lalu undangannya tampil.';
 const withSetup =
 	'Tautan pemasangan siap dipakai. Pakai email yang kamu berikan ke pengelola server.';
@@ -213,7 +214,13 @@ test('SEC-158: without a held link sign-up is closed, and a pasted link is check
 		await expect(pasteField(page)).toHaveAttribute('aria-invalid', 'true');
 		await expect(pasteField(page)).toBeFocused(); // 08 §25.5 "Formulir"
 	}
-	await paste(page, `  ${origin}/signup#${token} `);
+	// SEC-175 (c) note: two different Casa links in the text are refused, none picked.
+	await paste(page, `a ${origin}/signup#${token} b ${origin}/invite#${token} c`);
+	await expect(pasteField(page)).toHaveAccessibleDescription(`${pasteHint} ${pasteMany}`);
+	await expect(pasteField(page)).toHaveAttribute('aria-invalid', 'true');
+	await expect(pasteField(page)).toBeFocused();
+	// SEC-175 (c) note: a link among other text is taken, the rest ignored.
+	await paste(page, `Halo, ini tautannya (${origin}/signup#${token}). Terima kasih!`);
 	await expect(page.getByText(withSetup, { exact: true })).toBeVisible();
 	expect(await lead.evaluate((node) => [node.isConnected, node.textContent.trim()])).toEqual([
 		true,

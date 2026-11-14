@@ -51,7 +51,7 @@
 		<InlineMessage role="status" text={resent ? copy.checkEmail.resent : undefined} />
 		<ButtonRow>
 			<Button
-				variant="tonal"
+				variant="outlined"
 				{busy}
 				onclick={() => {
 					busy = true;

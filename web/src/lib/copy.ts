@@ -106,7 +106,8 @@ export const copy = {
 			submit: 'Lanjut'
 		},
 		signIn: 'Sudah punya akun? Masuk',
-		notCasa: 'Tautan ini bukan tautan Casa. Salin lagi tautan dari pesan yang kamu terima.',
+		notCasa: 'Teks ini tidak memuat tautan Casa. Salin lagi tautan dari pesan yang kamu terima.',
+		pasteMany: 'Ada lebih dari satu tautan Casa di teks ini. Tempel satu tautan saja.',
 		withInvitation: 'Kamu membuka undangan Casa. Buat akun dulu, lalu undangannya tampil.',
 		withSetup: 'Tautan pemasangan siap dipakai. Pakai email yang kamu berikan ke pengelola server.',
 		email: {

@@ -45,21 +45,22 @@
 
 	/**
 	 * A pasted link becomes the held token, or the not-Casa sentence under the field, with no
-	 * request either way (SEC-175 (c) (2)); the field is emptied once the link is taken (c) (1).
+	 * request either way (SEC-175 (c) (2)), found inside other text if need be (note "tempel
+	 * tautan dalam teks"; two different links are refused, none picked); the field is emptied once the link is taken (c) (1).
 	 * A sentence about the link held before goes with it.
 	 */
 	async function takePasted(): Promise<void> {
 		failure = undefined;
 		const link = parsePastedLink(pasted, location.origin);
-		if (link === 'not-casa') {
-			pasteError = copy.signUp.notCasa;
+		if (link === 'not-casa' || link === 'many') {
+			pasteError = link === 'many' ? copy.signUp.pasteMany : copy.signUp.notCasa;
 			// Its field takes focus, so the sentence is read (08 §25.5 "Formulir").
 			await tick();
 			pasteBox?.querySelector('input')?.focus();
 			return;
 		}
 		session.pendingToken = { kind: link.kind, value: link.token };
-		pasted = '';
+		pasted = ''; // (1): nothing but the link is taken from the text, and nothing is kept
 		pasteError = undefined;
 		anotherLink = false;
 		// The paste field is gone; the email field takes focus (08 §25.5).
