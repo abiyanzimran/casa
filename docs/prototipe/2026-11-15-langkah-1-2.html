@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="text-scale" content="scale">
+<title>Casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<style>
+/* Prototipe klik Casa, FS-1 langkah 1 dan 2. ux-designer, 14 November 2026; v2 dan v3 15 November 2026.
+   v3: pendaftaran terbuka (keputusan pemilik produk 15 November 2026; 10.4 SEC-158 catatan 15 November, O1-O10).
+   v4: lebih sedikit langkah (pemilik produk 15 November 2026): hanya Masuk dan Buat akun; kode undangan opsional di Buat akun;
+   akun tanpa rumah tangga memakai kartu "Punya kode undangan?" di Beranda; masuk langsung ke rumah tangga, menunggu pengundang
+   memastikan 1 ketukan. LY-11, "Saya diundang", pratinjau, dan LY-08 layar penuh dihapus.
+   v5 (pemilik produk 15 November 2026 sore; 10.4 SEC-158 catatan "kode verifikasi"): Buat akun satu layar (email, nama panggilan, kata sandi,
+   kode undangan; tombol "Daftar"), tanpa kalimat bantu; layar baru "Cek emailmu" (kode 6 angka, kirim ulang 60 detik, ganti email);
+   Lupa kata sandi lewat kode 8 angka (email, kode, kata sandi baru). Layar periksa-email-tautan, halaman verifikasi, dan LY-92 dihapus.
+   Teks jalur daftar dan masuk dipangkas: satu kalimat pendek paling banyak.
+   v6 (pemilik produk 15 November 2026): urutan daftar baru. Buat akun (email, nama panggilan, "Lanjut"), Cek emailmu, di tab browser LY-91,
+   Buat kata sandi (kata sandi, konfirmasi, kode undangan kalau ada; "Selesai"), lalu LY-04, LY-05, rumah tangga atau kartu menunggu.
+   Slogan LY-01 dalam satu konstanta TAGLINE. */
+/* (lanjutan komentar v4) */
+/*
+   Token: salinan nilai web/src/lib/design/tokens.css (08 §19.13). Yang ditandai BARU belum ada di token
+   (usulan 08 §19.13.5 "Skala huruf, ritme tegak, dan ruang layar"). Setiap jarak dari skala 4/8/12/16/24/32/40/48/64. */
+:root{
+  color-scheme:light dark;
+  --kertas:light-dark(#f4f4f4,#111111);--kartu:light-dark(#ffffff,#1c1c1c);--sisip:light-dark(#eeeeee,#262626);
+  --garis:light-dark(#dcdcdc,#333333);--garis-tegas:light-dark(#767676,#8c8c8c);
+  --tinta:light-dark(#141414,#f0f0f0);--tinta-2:light-dark(#595959,#adadad);
+  --selubung:light-dark(rgb(20 20 20 / .4),rgb(0 0 0 / .6));--bayangan:0 2px 12px light-dark(rgb(20 20 20 / .16),transparent);
+  /* Pemilik produk 15 Nov 2026: aksen hitam di semua layar. Asal: --aksen:light-dark(#1757f0,#1a5cff);--di-atas-aksen:#ffffff;--aksen-tinta:light-dark(#1757f0,#8dbbff);--aksen-muda:light-dark(#e8efff,#1c2a45); */
+  --aksen:light-dark(#141414,#f0f0f0);--di-atas-aksen:light-dark(#ffffff,#141414);--aksen-tinta:light-dark(#141414,#f0f0f0);--aksen-muda:light-dark(#ececec,#2a2a2a);--tautan:light-dark(#1757f0,#8dbbff);
+  --sorot:#c6f432;--di-atas-sorot:#141414;--navigasi:light-dark(#262626,#333333);--di-atas-navigasi:#adadad;--pil-navigasi:light-dark(#ffffff,#f0f0f0);
+  --positif:light-dark(#005a43,#6bd6a8);--galat:light-dark(#93112b,#ff9eab);
+  --garis-kartu:light-dark(transparent,#333333); /* BARU: garis kartu hanya di tema gelap (§17.8) */
+  --huruf:'Figtree',system-ui,sans-serif;
+  /* Skala jarak (08 §19.13.5, sama dengan tokens.css) */
+  --jarak-1:4px;--jarak-2:8px;--jarak-3:12px;--jarak-4:16px;--jarak-6:24px;--jarak-8:32px;--jarak-10:40px;--jarak-12:48px;--jarak-16:64px;--lebar-lembar:560px;
+  /* Skala huruf: nilai tokens.css; tiga peran BARU memakai nilai yang sudah ada */
+  --ukuran-terkecil:.8125rem;--ukuran-keterangan:.9375rem;--ukuran-isi:1rem;
+  --ukuran-pengantar:1.0625rem; /* BARU: = angka-baris; HIG Body 17 */
+  --ukuran-judul-bagian:1.25rem;--ukuran-judul-layar:1.5rem;
+  --ukuran-judul-sambut:1.75rem; /* BARU: = angka-besar; HIG Title 1 28 */
+  --ukuran-merek:2.5rem; /* BARU: = angka-utama dasar; hanya LY-01 */
+  --baris-teks:1.5;--baris-kecil:1.4;--baris-judul:1.25; /* BARU: tinggi baris per jenis teks */
+  --lebar-baca:70ch; /* BARU sebagai token; nilainya 08 §17.8 */
+  --lebar-kolom-masuk:440px; /* BARU: kolom layar masuk mulai Sedang */
+  --margin:16px;--jarak-kartu:12px;--padding-kartu:16px;--padding-kartu-samping:16px;--ukuran-angka-utama:2.5rem;
+  --lebar-utama-min:360px;--panel-samping:clamp(320px,33.333%,400px);
+  --gerak-warna:150ms;--gerak:200ms;--gerak-lembar:300ms;--lengkung:cubic-bezier(.2,0,0,1);--lengkung-masuk:cubic-bezier(.05,.7,.1,1);
+}
+@media (min-width:600px){:root{--margin:24px;--jarak-kartu:16px;--padding-kartu:24px;--ukuran-angka-utama:3rem}}
+@media (min-width:840px){:root{--jarak-kartu:24px}}
+@media (min-width:1200px){:root{--margin:32px;--padding-kartu-samping:24px}}
+@media (prefers-reduced-motion:reduce){:root{--gerak:0ms;--gerak-lembar:0ms}}
+html[data-tema=terang]{color-scheme:light}
+html[data-tema=gelap]{color-scheme:dark}
+*{box-sizing:border-box}
+html{background:var(--kertas);-webkit-text-size-adjust:100%}
+/* Sama dengan tokens.css: di iPhone dan iPad 1rem mengikuti ukuran teks sistem (17 px bawaan) */
+@supports (font: -apple-system-body) and (-webkit-touch-callout: none){html{font:-apple-system-body}}
+body{margin:0;font-family:var(--huruf);color:var(--tinta);line-height:var(--baris-teks);font-size:var(--ukuran-isi);-webkit-tap-highlight-color:transparent}
+p{max-width:var(--lebar-baca)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--aksen-tinta);outline-offset:2px}
+[hidden]{display:none!important}
+[tabindex="-1"]:focus{outline:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.ic{width:20px;height:20px;fill:currentColor;flex:none}
+h1,h2,h3,p{margin:0}
+
+/* Teks */
+.h-merek{font-size:var(--ukuran-merek);font-weight:700;line-height:1.1;letter-spacing:-.03em}
+.h-sambut{font-size:var(--ukuran-judul-sambut);font-weight:700;line-height:1.2;letter-spacing:-.015em}
+.h-layar{font-size:var(--ukuran-judul-layar);font-weight:700;line-height:var(--baris-judul)}
+.judul-bagian{font-size:var(--ukuran-judul-bagian);font-weight:600;line-height:1.3}
+.judul-sub{font-size:var(--ukuran-keterangan);font-weight:500;color:var(--tinta-2);line-height:var(--baris-kecil)}
+.lead{font-size:var(--ukuran-pengantar);color:var(--tinta-2);line-height:var(--baris-teks)}
+.kecil{font-size:var(--ukuran-terkecil);color:var(--tinta-2);line-height:var(--baris-kecil)}
+.hint{font-size:var(--ukuran-keterangan);color:var(--tinta-2);line-height:var(--baris-kecil)}
+.c{text-align:center;align-self:center}
+.lead.c,.hint.c{max-width:24em} /* kalimat rata tengah: satu lebar untuk semua layar */
+.angka-utama{font-size:max(40px,var(--ukuran-angka-utama));font-weight:600;line-height:1.15;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.angka-besar{font-size:1.75rem;font-weight:600;line-height:1.25;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.angka-utama .rp,.angka-besar .rp{font-size:.6em;font-weight:500;letter-spacing:0;color:var(--tinta-2)}
+.angka-baris{font-size:1.0625rem;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--tinta)}
+
+/* Ikon aplikasi */
+.appicon{width:48px;height:48px;border-radius:12px;background:#1757f0;display:grid;place-items:center;flex:none}
+.appicon svg{width:74%;height:74%}
+.appicon.s{width:32px;height:32px;border-radius:8px}
+.appicon.l{width:64px;height:64px;border-radius:16px}
+.appicon.xl{width:96px;height:96px;border-radius:24px}
+
+/* Tombol */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--jarak-2);width:100%;min-height:48px;padding:var(--jarak-3) var(--jarak-6);border-radius:999px;font-weight:600;line-height:var(--baris-judul);text-align:center;border:1px solid transparent;text-decoration:none;transition:background-color var(--gerak-warna) var(--lengkung)}
+.btn.biru{background:var(--aksen);color:var(--di-atas-aksen)}
+.btn.biru:hover{background:light-dark(#0f4ad6,#3a73ff)}
+.btn.hitam{background:var(--tinta);color:var(--kartu)}
+.btn.abu{background:var(--sisip);color:var(--tinta)}
+.btn.garis{border-color:var(--aksen-tinta);color:var(--aksen-tinta)}
+.btn.garis:hover,.btn.abu:hover{background:var(--aksen-muda)}
+.btn.k40{min-height:40px;padding:var(--jarak-2) var(--jarak-4);position:relative}
+.btn.k40::after{content:"";position:absolute;inset:-4px 0} /* area 48 (08 §19.13.5) */
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn .ic{width:20px;height:20px}
+/* Masuk dengan Apple/Google: 48px, pil seperti tombol lain. Apple: hitam di terang, putih di gelap, logo satu warna. Google: netral berbingkai 1px, "G" berwarna tetap. */
+.btn.apple{background:light-dark(#000,#fff);color:light-dark(#fff,#000);border-color:light-dark(#000,#fff)}
+.btn.google{background:light-dark(#fff,#131314);color:light-dark(#1f1f1f,#e3e3e3);border-color:light-dark(#747775,#8e918f)}
+.btn.apple:hover{background:light-dark(#2a2a2a,#e6e6e6)}
+.btn.google:hover{background:light-dark(#f2f2f2,#1f1f21)}
+.btn .logo{width:20px;height:20px;flex:none}
+.atau{display:flex;align-items:center;gap:var(--jarak-4);margin-top:var(--jarak-6);color:var(--tinta-2);font-size:var(--ukuran-keterangan)}
+.atau::before,.atau::after{content:"";flex:1;height:1px;background:var(--garis-tegas)}
+.tlink{display:inline-flex;align-items:center;gap:var(--jarak-1);min-height:48px;color:var(--tautan);font-weight:600;text-decoration:none}
+.tlink:hover{text-decoration:underline}
+.ib{width:48px;height:48px;display:grid;place-items:center;border-radius:999px;color:var(--tinta)}
+.ib span{width:40px;height:40px;border-radius:999px;background:var(--sisip);display:grid;place-items:center}
+.stack{display:flex;flex-direction:column;gap:var(--jarak-3)}
+.back{display:inline-flex;align-items:center;gap:var(--jarak-1);min-height:48px;color:var(--tautan);font-weight:600;align-self:flex-start;margin-left:calc(-1 * var(--jarak-1));text-decoration:none}
+.back{min-width:48px;justify-content:flex-start;margin-left:-8px}
+.back .ic{width:28px;height:28px}
+
+/* Baris pilihan dua baris: 72, padding 12/16, lingkaran 40, jarak 12 (08 §19.13.5 "Baris daftar") */
+.tiles{display:flex;flex-direction:column;gap:var(--jarak-3)}
+.row{display:grid;grid-template-columns:40px 1fr 20px;gap:var(--jarak-3);align-items:center;min-height:72px;padding:var(--jarak-3) var(--jarak-4);background:var(--kartu);color:var(--tinta);text-align:left;border-radius:20px;border:1px solid var(--garis-kartu);box-shadow:0 1px 2px light-dark(rgb(20 20 20 / .06),transparent);width:100%;transition:background-color var(--gerak-warna) var(--lengkung)}
+.row:hover,.row:active{background:var(--sisip)}
+.row .circ{width:40px;height:40px;border-radius:50%;background:var(--aksen-muda);color:var(--aksen-tinta);display:grid;place-items:center}
+.row .circ .ic{width:20px;height:20px}
+.row .tt{font-weight:600;font-size:var(--ukuran-pengantar);line-height:1.3;display:block}
+.row .nn{font-size:var(--ukuran-keterangan);color:var(--tinta-2);line-height:var(--baris-kecil);display:block;margin-top:var(--jarak-1)}
+.row .chev{color:var(--tinta-2)}
+
+/* Isian: label 8 isian 8 petunjuk; antarisian 24 */
+.field{display:flex;flex-direction:column;gap:var(--jarak-2)}
+.field>label,.pl{font-weight:600;line-height:var(--baris-judul)}
+.inp{height:48px;width:100%;border-radius:12px;border:1px solid var(--garis-tegas);background:var(--kartu);padding:0 var(--jarak-4);font-size:1rem}
+.inp:focus{outline:2px solid var(--aksen-tinta);outline-offset:0;border-color:transparent}
+.inp[aria-invalid=true]{border-color:var(--galat)}
+.inp[aria-invalid=true]:focus{outline-color:var(--galat);border-color:var(--galat)} /* galat + fokus: satu tepi merah tebal (1px + 2px), tanpa cincin tinta di atasnya (WCAG 2.4.7, 2.4.11) */
+.inp[readonly]{background:var(--sisip);border-color:var(--garis)}
+/* Isian kode: satu isian, angka besar (28, HIG Title 1), tinggi 64; indent = jarak huruf agar angka tampak di tengah */
+.kode-in{height:64px;text-align:center;font-size:var(--ukuran-judul-sambut);font-weight:600;letter-spacing:.3em;text-indent:.3em;font-variant-numeric:tabular-nums}
+.kode-in::placeholder{color:transparent}
+.sb.form>.lead.kiri{max-width:var(--lebar-baca)}
+@media (min-width:600px){.sb.form>.lead.kiri{text-align:center;align-self:center}}
+.sb.form>.ok{margin-top:var(--jarak-4)}
+.pw{position:relative}
+.pw .inp{padding-right:56px}
+.pw .show{position:absolute;right:0;top:0;bottom:0;width:48px;display:flex;align-items:center;justify-content:center;color:var(--tinta-2)}
+.pw .show .ic{width:22px;height:22px}
+.err{display:flex;gap:var(--jarak-2);align-items:flex-start;color:var(--galat);font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil)}
+.err .ic{width:18px;height:18px;margin-top:2px}
+.galat{display:flex;gap:var(--jarak-2);align-items:flex-start;color:var(--galat);font-weight:500}
+.galat .ic{margin-top:2px}
+.info,.ok{display:flex;gap:var(--jarak-3);align-items:flex-start;padding:var(--jarak-3) var(--jarak-4);border-radius:12px;font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil)}
+.info{background:var(--aksen-muda);color:var(--tinta)}
+.info .ic{color:var(--aksen-tinta)}
+.ok{background:var(--sisip)}
+.ok .ic{color:var(--positif)}
+.cek{display:grid;grid-template-columns:24px 1fr;gap:var(--jarak-3);align-items:center;min-height:56px;padding:var(--jarak-3) var(--jarak-4);border-radius:20px;background:var(--kartu);border:1px solid var(--garis-kartu);cursor:pointer;font-weight:500;line-height:var(--baris-kecil)}
+.cek input{width:24px;height:24px;margin:0;accent-color:var(--aksen)}
+.cek:has(input:disabled){opacity:.55;cursor:not-allowed}
+.form-stack{display:flex;flex-direction:column;gap:var(--jarak-6);margin-top:var(--jarak-6)}
+.links{display:flex;flex-direction:column;align-items:center;margin-top:var(--jarak-2)}
+.banner{display:flex;align-items:center;gap:var(--jarak-3);min-height:48px;padding:0 var(--jarak-2) 0 var(--jarak-4);border-radius:12px;background:var(--sisip);font-weight:600;margin-top:var(--jarak-4)}
+.banner .tlink{margin-left:auto;padding:0 var(--jarak-2)}
+
+/* Layar masuk: ponsel atas-bawah; mulai Sedang kolom 440 di tengah layar */
+.sb{min-height:100dvh;display:flex;flex-direction:column;width:100%;max-width:calc(var(--lebar-kolom-masuk) + 2 * var(--margin));margin:0 auto;padding:calc(var(--jarak-4) + env(safe-area-inset-top)) var(--margin) max(var(--jarak-6),calc(var(--jarak-4) + env(safe-area-inset-bottom)))}
+.sb.hasbar{padding-top:calc(72px + env(safe-area-inset-top))} /* 8 + bilah 48 + 16 */
+.sb .grow{flex:1 1 auto;min-height:var(--jarak-6)}
+.sb .sp{height:var(--jarak-16);flex:none}
+.sb .only-wide{display:none}
+.sb .lead.c{margin-top:var(--jarak-2)}
+@media (min-width:600px){
+  .sb{justify-content:center;padding-top:var(--jarak-16);padding-bottom:var(--jarak-12)}
+  .sb .grow{flex:0 0 var(--jarak-8)}
+  .sb .sp{height:0}
+  .sb>.back{position:fixed;top:var(--jarak-6);left:var(--margin)}
+  .sb.form .only-wide{display:grid;align-self:center;margin-bottom:var(--jarak-6)}
+  .sb.form>h1{text-align:center}
+}
+.sb .appicon.c{margin-top:var(--jarak-2)}
+.langkah{list-style:none;margin:var(--jarak-6) 0 0;padding:0 var(--jarak-4);background:var(--kartu);border-radius:20px;border:1px solid var(--garis-kartu)}
+.langkah li{display:grid;grid-template-columns:24px 1fr;gap:var(--jarak-3);padding:var(--jarak-3) 0;align-items:start}
+.langkah li+li{border-top:1px solid var(--garis)}
+.langkah .no{width:24px;height:24px;border-radius:50%;background:var(--sorot);color:var(--di-atas-sorot);display:grid;place-items:center;font-weight:700;font-size:var(--ukuran-terkecil)}
+.atas{display:flex;gap:var(--jarak-2);align-items:flex-start;font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil);color:var(--tinta-2);margin:0 0 var(--jarak-6)}
+.atas .ic{margin-top:1px}
+.teks p+p{margin-top:var(--jarak-4)}
+.teks{margin-top:var(--jarak-6)}
+.bigcirc{width:64px;height:64px;border-radius:50%;background:var(--aksen-muda);color:var(--aksen-tinta);display:grid;place-items:center;align-self:center}
+.bigcirc .ic{width:32px;height:32px}
+.email{font-weight:600;color:var(--tinta);overflow-wrap:anywhere}
+/* Kode undangan di LY-07 (putusan security-privacy 15 November 2026: 12 angka, dikelompokkan 4-4-4) */
+.kode{margin-top:var(--jarak-6);padding:var(--jarak-4);border-radius:20px;background:var(--kartu);border:1px solid var(--garis-kartu);text-align:center}
+.kode-v{font-size:var(--ukuran-judul-sambut);font-weight:600;line-height:1.2;letter-spacing:.04em;font-variant-numeric:tabular-nums;margin:var(--jarak-1) auto 0; /* teks besar: turun baris di antara kelompok, tidak di dalamnya */user-select:all;-webkit-user-select:all}
+.kode .hint{margin:var(--jarak-2) auto 0}
+
+/* Bilah mode bersama */
+.bbar{display:flex;align-items:center;gap:var(--jarak-2);min-height:48px;padding:0 var(--jarak-2) 0 var(--jarak-4);background:var(--navigasi);color:#f0f0f0;font-weight:600;font-size:var(--ukuran-keterangan);border-radius:999px;margin-bottom:var(--jarak-4)}
+.bbar .tlink{color:var(--sorot);min-height:48px;padding:0 var(--jarak-2)}
+.bbar-fix{position:fixed;z-index:15;top:calc(var(--jarak-2) + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(calc(100% - 2 * var(--margin)),var(--lebar-kolom-masuk))}
+
+/* Kerangka aplikasi */
+.nk,.nb{display:none}
+.catat{color:var(--tinta)}
+.catat .fab{width:56px;height:56px;border-radius:999px;background:var(--aksen);color:var(--di-atas-aksen);display:grid;place-items:center;box-shadow:var(--bayangan)}
+.catat .fab .ic,.tab .ic{width:24px;height:24px}
+.tabs{display:flex}
+.tab{text-decoration:none;display:grid;place-items:center}
+.pil{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:64px;height:56px;border-radius:999px;font-size:13px;font-weight:600;line-height:1;transition:background-color var(--gerak-warna) var(--lengkung)}
+.nav{position:fixed;z-index:20;display:flex;align-items:center}
+.isi{display:block}
+/* Kolom isi: 640 untuk satu kolom (08 §17.8 lebar baca); Beranda melebar hanya sebanyak kolom yang berisi */
+.kolom{--lebar-isi:640px;max-width:var(--lebar-isi);margin:0 auto}
+@media (min-width:840px){.kolom[data-kol="2"],.kolom[data-kol="3"]{--lebar-isi:none}}
+@media (min-width:1200px){.kolom[data-kol="2"]{--lebar-isi:792px}} /* 2 × 384 + 24: lebar kolom sama dengan tiga kolom kelak */
+.wrap{display:flex;flex-direction:column;gap:var(--jarak-kartu)}
+.kepala{display:flex;align-items:center;gap:var(--jarak-3);min-height:48px}
+@media (max-width:599.98px){
+  .nav{left:var(--margin);right:var(--margin);bottom:calc(var(--jarak-3) + env(safe-area-inset-bottom));justify-content:space-between;flex-wrap:wrap-reverse;row-gap:var(--jarak-3);pointer-events:none}
+  .nav>*{pointer-events:auto}
+  .tabs{order:1;height:64px;padding:0 var(--jarak-2);background:var(--navigasi);border-radius:999px;box-shadow:var(--bayangan)}
+  .tab{width:64px;height:64px;color:var(--di-atas-navigasi)}
+  .tab.on{color:var(--navigasi)}
+  .tab.on .pil{background:var(--pil-navigasi)}
+  .catat{order:2;margin-left:auto} /* tidak muat sebaris (< 336): naik ke atas dok, kanan (08 §19.13.6) */
+  .catat .lbl{display:none}
+  .nofab .tabs{margin:0 auto}
+  /* bawah: 12 + dok 64 + 24 + ruang aman (08 §19.13.6) */
+  .isi{padding:calc(var(--jarak-4) + env(safe-area-inset-top)) var(--margin) calc(100px + env(safe-area-inset-bottom))}
+}
+@media (min-width:600px) and (max-width:1199.98px){
+  .nav{left:0;top:0;bottom:0;width:80px;flex-direction:column;padding:calc(var(--jarak-4) + env(safe-area-inset-top)) 0 var(--jarak-4);overflow-y:auto}
+  .nk{display:grid;margin-bottom:var(--jarak-4)}
+  .catat{display:flex;flex-direction:column;align-items:center;gap:var(--jarak-1);width:80px;margin-bottom:var(--jarak-6);font-size:13px;font-weight:600}
+  .tabs{flex-direction:column}
+  .tab{width:80px;height:64px;color:var(--tinta)}
+  .tab.on .pil{background:var(--tinta);color:var(--kartu)}
+  .isi{padding:var(--jarak-6) var(--margin) var(--jarak-8) calc(80px + env(safe-area-inset-left) + var(--margin))}
+  .kepala .appicon{display:none}
+}
+@media (min-width:1200px){
+  .nav{top:0;left:0;right:0;height:64px;padding:0 var(--margin);background:var(--kertas);gap:var(--jarak-2)}
+  .nk{display:grid}
+  .nb{display:block;font-weight:700;font-size:var(--ukuran-judul-bagian);margin-left:var(--jarak-1)}
+  .tabs{order:2;margin:0 auto;background:var(--kartu);border-radius:999px;padding:var(--jarak-1);border:1px solid var(--garis-kartu)}
+  .tab{height:48px;color:var(--tinta)}
+  .pil{flex-direction:row;gap:var(--jarak-2);width:auto;height:48px;padding:0 var(--jarak-4);font-size:var(--ukuran-keterangan)}
+  .tab.on .pil{background:var(--tinta);color:var(--kartu)}
+  .catat{order:3;display:flex;align-items:center;gap:var(--jarak-2);height:48px;padding:0 var(--jarak-6) 0 var(--jarak-4);border-radius:999px;background:var(--aksen);color:var(--di-atas-aksen);font-weight:600}
+  .catat .fab{width:auto;height:auto;background:none;box-shadow:none}
+  .catat .fab .ic{width:20px;height:20px}
+  .isi{padding:calc(64px + var(--jarak-6)) var(--margin) var(--jarak-8);max-width:calc(1200px + 2 * var(--margin));margin:0 auto}
+  .kepala .appicon{display:none}
+}
+.nofab .catat{display:none}
+
+/* Kartu */
+.card{background:var(--kartu);border-radius:20px;padding:var(--padding-kartu);border:1px solid var(--garis-kartu)}
+.khead{display:flex;align-items:center;gap:var(--jarak-3);min-height:48px;margin-bottom:var(--jarak-2)}
+.circ{width:40px;height:40px;border-radius:50%;background:var(--sisip);color:var(--aksen-tinta);display:grid;place-items:center;flex:none}
+.cols{display:flex;flex-direction:column;gap:var(--jarak-kartu)}
+.c1,.c2,.c3{display:flex;flex-direction:column;gap:var(--jarak-kartu);min-width:0}
+.c2:empty,.c3:empty{display:none}
+/* Kolom grid = kolom yang berisi (data-kol); kolom kosong tidak memakan tempat */
+@media (min-width:840px){
+  .cols[data-kol="2"],.cols[data-kol="3"]{display:grid;grid-template-columns:minmax(var(--lebar-utama-min),1fr) var(--panel-samping);align-items:start}
+  .c1{grid-column:1;grid-row:1 / span 2}.c2{grid-column:2;grid-row:1}.c3{grid-column:2;grid-row:2}
+  .c2 .card,.c3 .card{padding:var(--padding-kartu-samping)}
+}
+@media (min-width:1200px){
+  .cols[data-kol="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols[data-kol="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .c1{grid-row:1}.c2{grid-column:2}.c3{grid-column:3;grid-row:1}
+}
+.hr{height:1px;background:var(--garis);margin:var(--jarak-3) 0 var(--jarak-1)}
+.hrow{display:grid;grid-template-columns:auto 1fr auto;gap:var(--jarak-3);align-items:center;min-height:48px}
+.glyphs{display:flex;flex-direction:row;gap:var(--jarak-1);color:var(--tinta-2)}
+.glyphs .ic{width:18px;height:18px}
+.hchild{display:flex;justify-content:space-between;align-items:center;gap:var(--jarak-3);min-height:32px;padding-left:var(--jarak-8)}
+.hchild .kecil{display:inline-flex;gap:var(--jarak-2);align-items:center}
+.hchild .ic{width:16px;height:16px}
+.stamp{margin-top:var(--jarak-1)}
+.antre{display:flex;align-items:center;gap:var(--jarak-2);min-height:48px;width:100%;margin-top:var(--jarak-2);padding:0 var(--jarak-3);border-radius:12px;background:var(--sisip);font-weight:600;font-size:var(--ukuran-keterangan);text-align:left}
+.antre .ic:last-child{margin-left:auto;color:var(--tinta-2)}
+.privrow{display:flex;justify-content:space-between;align-items:center;gap:var(--jarak-3);min-height:48px}
+.sub{margin:var(--jarak-2) 0 var(--jarak-1)}
+.mrow{display:flex;justify-content:space-between;gap:var(--jarak-3);align-items:flex-start;padding:var(--jarak-2) 0}
+.mt{font-weight:500;display:block;line-height:var(--baris-kecil)}
+.ms{display:block;font-size:var(--ukuran-terkecil);color:var(--tinta-2);line-height:var(--baris-kecil)}
+.mbtn{display:grid;grid-template-columns:1fr 1fr;gap:var(--jarak-2);padding:var(--jarak-1) 0 var(--jarak-2)}
+.lrow{display:flex;justify-content:space-between;gap:var(--jarak-4);align-items:center;min-height:56px;padding:var(--jarak-2) 0;line-height:var(--baris-kecil)}
+.lrow+.lrow{border-top:1px solid var(--garis)}
+.lrow .k{color:var(--tinta-2)}
+.lrow .v{text-align:right;font-weight:500}
+.mem{display:grid;grid-template-columns:40px 1fr;gap:var(--jarak-3);align-items:center;min-height:56px}
+.ava{width:40px;height:40px;border-radius:50%;background:var(--sorot);color:var(--di-atas-sorot);display:grid;place-items:center;font-weight:700}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--jarak-4);padding:var(--jarak-6) var(--jarak-2)}
+.empty .btn{width:auto}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 var(--jarak-2);border-radius:999px;font-size:var(--ukuran-terkecil);font-weight:600;background:var(--sisip);color:var(--tinta)}
+.skel{background:var(--sisip);border-radius:8px;height:16px}
+.status{display:flex;gap:var(--jarak-3);align-items:flex-start;padding:var(--jarak-3) var(--jarak-4);border-radius:12px;background:var(--sisip);font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil);margin-bottom:var(--jarak-4)}
+.status:empty{display:none}
+.status .ic{flex:none}
+.hist{margin:0;padding:0;list-style:none}
+.hist li{padding:var(--jarak-3) 0;font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil)}
+.hist li+li{border-top:1px solid var(--garis)}
+
+/* Lapisan: selubung, lembar, dialog, baris hasil */
+.scrim{position:fixed;inset:0;z-index:40;background:var(--selubung);animation:pudar var(--gerak-lembar) var(--lengkung)}
+/* Lembar: padding 24; kepala 64 menempel saat isi digulir, jadi satu Simpan selalu terlihat; blok ke blok 16, di dalam blok 8 */
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;max-height:90dvh;overflow:auto;overscroll-behavior:contain;background:var(--kartu);border-radius:28px 28px 0 0;padding:0 var(--jarak-6) calc(var(--jarak-6) + env(safe-area-inset-bottom));box-shadow:var(--bayangan);animation:naik var(--gerak-lembar) var(--lengkung-masuk)}
+.grab{width:32px;height:4px;border-radius:2px;background:var(--garis-tegas);margin:var(--jarak-2) auto var(--jarak-1);opacity:.6}
+@media (min-width:600px){
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:min(var(--lebar-lembar,560px),calc(100% - 2 * var(--margin)));border-radius:28px;max-height:88dvh;padding-top:var(--jarak-2);animation:pudar var(--gerak-lembar) var(--lengkung)}
+  .grab{display:none}
+}
+@keyframes naik{from{transform:translateY(40px);opacity:.4}}
+@keyframes pudar{from{opacity:0}}
+.shead{position:sticky;top:0;z-index:3;background:var(--kartu);display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:var(--jarak-2);min-height:64px;margin:0 calc(-1 * var(--jarak-6)) var(--jarak-2);padding:0 var(--jarak-6) 0 var(--jarak-4)}
+.shead .btn{width:auto}
+.shead2{display:flex;justify-content:space-between;align-items:center;gap:var(--jarak-3);min-height:64px;margin-right:calc(-1 * var(--jarak-1))}
+.sh-t{font-size:var(--ukuran-judul-bagian);font-weight:600;justify-self:start}
+.menu-wrap{position:relative;justify-self:start;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:var(--jarak-2);min-height:32px;padding:var(--jarak-1) var(--jarak-3);border-radius:999px;background:var(--sisip);font-weight:500;line-height:var(--baris-judul);text-align:left;position:relative}
+.chip::after{content:"";position:absolute;inset:-8px 0}
+.chip .ic{width:18px;height:18px}
+.menu{position:absolute;z-index:5;top:var(--jarak-10,40px);left:0;min-width:220px;background:var(--kartu);border-radius:12px;box-shadow:0 6px 24px light-dark(rgb(20 20 20 / .2),rgb(0 0 0 / .6));border:1px solid var(--garis-kartu);padding:var(--jarak-2) 0}
+.menu button{display:flex;align-items:center;gap:var(--jarak-3);width:100%;min-height:48px;padding:0 var(--jarak-4);text-align:left;font-weight:500}
+.menu button:hover{background:var(--sisip)}
+.menu .ic{color:var(--aksen-tinta)}
+.sheet>.galat{margin-bottom:var(--jarak-4)}
+.jml-panel{background:var(--sisip);border-radius:12px;padding:var(--jarak-4)}
+.jml-row{display:flex;align-items:center;gap:var(--jarak-2);margin-top:var(--jarak-2)}
+.jml-row .rp{font-size:var(--ukuran-pengantar);font-weight:500;color:var(--tinta-2)}
+.jml{flex:1;min-width:0;border:0;background:transparent;font-size:1.75rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;padding:0;height:48px}
+.jml:focus{outline:none}
+.jml-panel:focus-within{outline:2px solid var(--aksen-tinta);outline-offset:2px}
+.nol{width:auto;flex:none;background:var(--kartu)}
+.grup{margin-top:var(--jarak-4);border-radius:12px;border:1px solid var(--garis);overflow:hidden}
+.pilih{display:grid;grid-template-columns:auto 1fr 20px;gap:var(--jarak-3);align-items:center;min-height:56px;padding:0 var(--jarak-4);position:relative;cursor:pointer}
+.pilih+.pilih{border-top:1px solid var(--garis)}
+.pilih .pl{font-weight:500;color:var(--tinta-2)}
+.pilih select{appearance:none;border:0;background:transparent;text-align:right;text-align-last:right;font-weight:600;min-height:56px;padding:0;cursor:pointer;width:100%}
+.pilih select:focus{outline:none}
+.pilih:focus-within{outline:2px solid var(--aksen-tinta);outline-offset:-2px;border-radius:12px}
+.pilih .ic{color:var(--tinta-2)}
+.ket{font-size:var(--ukuran-terkecil);line-height:var(--baris-kecil);color:var(--tinta-2);margin-top:var(--jarak-2)}
+.tgl{border:0;padding:0;margin:var(--jarak-4) 0 0}
+.tgl legend{padding:0;margin:0}
+/* Chip tampak 32; label 48 lewat padding 8 atas-bawah, jadi area ketuk 48 dan baris berjarak 0 */
+.chips{display:flex;flex-wrap:wrap;gap:0 var(--jarak-2)}
+.chips label{position:relative;display:inline-flex;padding:var(--jarak-2) 0}
+.chips input{position:absolute;opacity:0;inset:0;margin:0}
+.chips span{display:inline-flex;align-items:center;gap:var(--jarak-2);height:32px;padding:0 var(--jarak-3);border-radius:999px;border:1px solid var(--garis);background:var(--kartu);font-weight:500;cursor:pointer}
+.chips input:checked+span{background:var(--aksen);color:var(--di-atas-aksen);border-color:var(--aksen)}
+.chips input:focus-visible+span{outline:2px solid var(--aksen-tinta);outline-offset:2px}
+.chips .ic{width:18px;height:18px}
+.chips input:not(:checked)+span .ic{display:none}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:var(--jarak-1);padding:var(--jarak-1);border-radius:999px;background:var(--sisip);min-height:40px}
+.seg label{position:relative;display:grid}
+.seg label::after{content:"";position:absolute;inset:-8px 0} /* tampak 32 di jalur 40; area 48 */
+.seg input{position:absolute;opacity:0;inset:0;margin:0}
+.seg span{display:flex;align-items:center;justify-content:center;gap:var(--jarak-2);border-radius:999px;font-weight:600;cursor:pointer}
+.seg input:checked+span{background:var(--tinta);color:var(--kartu)}
+.seg input:focus-visible+span{outline:2px solid var(--aksen-tinta)}
+details.rinci{margin-top:var(--jarak-4);border-top:1px solid var(--garis)}
+details.rinci summary{display:flex;align-items:center;gap:var(--jarak-2);min-height:48px;font-weight:600;color:var(--aksen-tinta);cursor:pointer;list-style:none}
+details.rinci summary::-webkit-details-marker{display:none}
+details[open].rinci summary .ic{transform:rotate(180deg)}
+details.rinci .field{margin-top:var(--jarak-2)}
+details.rinci>.tlink{margin-top:var(--jarak-2)}
+.split{margin-top:var(--jarak-4);padding:var(--jarak-3);border-radius:12px;background:var(--sisip)}
+.srow{display:grid;grid-template-columns:1fr 132px 48px;gap:var(--jarak-2);align-items:center;margin-top:var(--jarak-2)}
+.srow select,.srow input{height:48px;border-radius:12px;border:1px solid var(--garis-tegas);background:var(--kartu);padding:0 var(--jarak-3);min-width:0}
+.srow input{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.srow2{display:flex;justify-content:space-between;align-items:center;gap:var(--jarak-2);margin-top:var(--jarak-2)}
+.srow2 .btn{width:auto}
+.sisa{font-weight:600;margin-top:var(--jarak-2);font-variant-numeric:tabular-nums}
+.draf{display:flex;align-items:center;gap:0 var(--jarak-2);flex-wrap:wrap;padding:0 var(--jarak-4);border-radius:12px;background:var(--aksen-muda);margin-bottom:var(--jarak-4);font-size:var(--ukuran-keterangan)}
+.draf>span{padding:var(--jarak-3) 0 0;flex-basis:100%}
+.draf .tlink{min-height:48px}
+/* Dialog: padding 24; judul ke isi 16; isi ke tombol 24; tombol 8 (Material dialog; 08 §19.13.5) */
+.dialog{position:fixed;z-index:51;left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100% - 2 * var(--jarak-6)));background:var(--kartu);border-radius:28px;padding:var(--jarak-6);box-shadow:var(--bayangan);animation:pudar var(--gerak-lembar) var(--lengkung)}
+.dialog p{margin-top:var(--jarak-4);color:var(--tinta-2)}
+.dlg-btn{display:flex;flex-direction:column-reverse;gap:var(--jarak-2);margin-top:var(--jarak-6)}
+.scrim.d{z-index:50}
+/* Baris hasil: 12 di atas dok (12 + 64 + 12 = 88 + ruang aman) */
+.snack{position:fixed;z-index:30;left:var(--margin);right:var(--margin);bottom:calc(88px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:var(--jarak-1);min-height:56px;padding:var(--jarak-1) var(--jarak-1) var(--jarak-1) var(--jarak-4);border-radius:12px;background:var(--navigasi);color:#f0f0f0;font-weight:500;line-height:var(--baris-kecil);box-shadow:var(--bayangan);animation:naik var(--gerak) var(--lengkung-masuk)}
+.snack span{flex:1}
+.snack .sa{display:inline-flex;align-items:center;gap:var(--jarak-2);min-height:48px;padding:0 var(--jarak-3);color:var(--sorot);font-weight:700;text-decoration:none;border-radius:999px}
+@media (min-width:600px){.snack{left:calc(80px + var(--margin));right:auto;bottom:var(--jarak-6);max-width:520px}}
+@media (min-width:1200px){.snack{left:50%;transform:translateX(-50%)}}
+.proto{display:inline-flex;align-items:center;gap:var(--jarak-2);align-self:center;margin-top:var(--jarak-4);min-height:48px;padding:0 var(--jarak-4);border-radius:999px;border:1.5px dashed var(--garis-tegas);color:var(--tinta-2);font-size:.875rem;font-weight:600;text-align:left}
+.proto::before{content:"Prototipe";font-size:.6875rem;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--sorot);color:#141414}
+.pnote{display:block;padding:var(--jarak-3) var(--jarak-4);border:1.5px dashed var(--garis-tegas);border-radius:12px;color:var(--tinta-2);font-size:var(--ukuran-keterangan);line-height:var(--baris-kecil)}
+
+/* Alat prototipe: bukan bagian aplikasi */
+#pt-btn{position:fixed;z-index:90;top:calc(8px + env(safe-area-inset-top));right:8px;height:36px;padding:0 12px;border-radius:999px;background:#141414;color:#c6f432;font:600 13px/1 var(--huruf);box-shadow:0 2px 10px rgb(0 0 0 / .3);opacity:.9}
+@media (min-width:600px){#pt-btn{top:auto;right:auto;left:12px;bottom:12px}}
+#pt{position:fixed;z-index:95;inset:0 0 0 auto;width:min(420px,100%);background:#141414;color:#f0f0f0;overflow:auto;padding:16px 16px 40px;font-size:14px;box-shadow:-8px 0 30px rgb(0 0 0 / .4);color-scheme:dark}
+#pt[hidden]{display:none}
+#pt h2{font-size:18px;margin:0}
+#pt h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#adadad;margin:18px 0 6px}
+#pt .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#pt .x{width:40px;height:40px;border-radius:999px;background:#262626;color:#f0f0f0;font-size:18px}
+#pt .tg{display:flex;flex-wrap:wrap;gap:6px}
+#pt .tg button{min-height:34px;padding:0 10px;border-radius:999px;border:1px solid #555;color:#f0f0f0;font-size:13px;font-weight:600}
+#pt .tg button[aria-pressed=true]{background:#c6f432;color:#141414;border-color:#c6f432}
+#pt ul{list-style:none;margin:0;padding:0}
+#pt li button{display:flex;gap:10px;width:100%;text-align:left;padding:8px 6px;border-radius:8px;color:#f0f0f0;font-size:14px}
+#pt li button:hover{background:#262626}
+#pt li b{flex:none;min-width:62px;color:#8dbbff;font-weight:600;font-size:12px;padding-top:2px}
+#pt .lbl{color:#adadad;font-size:12px;margin:2px 0 6px}
+#pt p{color:#adadad;margin:8px 0 0;line-height:1.45}
+</style>
+</head>
+<body>
+<!-- Phosphor 2.1.1 (MIT), salinan glif web/static/symbols/; simpul digambar sendiri (08 §19.5) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-eye" viewBox="0 0 256 256"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></symbol>
+<symbol id="i-eye-x" viewBox="0 0 256 256"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></symbol>
+<symbol id="l-apple" viewBox="0 0 24 24"><path fill="currentColor" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+<symbol id="l-google" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></symbol>
+<symbol id="i-arrow-left"viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></symbol>
+<symbol id="i-left-b" viewBox="0 0 256 256"><path d="M168.49,199.51a12,12,0,0,1-17,17l-80-80a12,12,0,0,1,0-17l80-80a12,12,0,0,1,17,17L97,128Z"/></symbol>
+<symbol id="i-house" viewBox="0 0 256 256"><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"/></symbol>
+<symbol id="i-house-f" viewBox="0 0 256 256"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 256 256"><path d="M216,64H56a8,8,0,0,1,0-16H192a8,8,0,0,0,0-16H56A24,24,0,0,0,32,56V184a24,24,0,0,0,24,24H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm0,128H56a8,8,0,0,1-8-8V78.63A23.84,23.84,0,0,0,56,80H216Zm-48-60a12,12,0,1,1,12,12A12,12,0,0,1,168,132Z"/></symbol>
+<symbol id="i-wallet-f" viewBox="0 0 256 256"><path d="M216,64H56a8,8,0,0,1,0-16H192a8,8,0,0,0,0-16H56A24,24,0,0,0,32,56V184a24,24,0,0,0,24,24H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64Zm-36,80a12,12,0,1,1,12-12A12,12,0,0,1,180,144Z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 256 256"><path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z"/></symbol>
+<symbol id="i-chat-f" viewBox="0 0 256 256"><path d="M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Z"/></symbol>
+<symbol id="i-user" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></symbol>
+<symbol id="i-user-f" viewBox="0 0 256 256"><path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"/></symbol>
+<symbol id="i-users" viewBox="0 0 256 256"><g transform="translate(-8 34) scale(.74)"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.850,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></g><g transform="translate(84 14) scale(.74)"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></g></symbol>
+<symbol id="i-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol>
+<symbol id="i-x" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
+<symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+<symbol id="i-right" viewBox="0 0 256 256"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></symbol>
+<symbol id="i-left" viewBox="0 0 256 256"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></symbol>
+<symbol id="i-down" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></symbol>
+<symbol id="i-info" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-68-56a12,12,0,1,1-12-12A12,12,0,0,1,140,152Z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 256 256"><path d="M72,104a8,8,0,0,1,8-8h96a8,8,0,0,1,0,16H80A8,8,0,0,1,72,104Zm8,40h96a8,8,0,0,0,0-16H80a8,8,0,0,0,0,16ZM232,56V208a8,8,0,0,1-11.58,7.15L192,200.94l-28.42,14.21a8,8,0,0,1-7.16,0L128,200.94,99.58,215.15a8,8,0,0,1-7.16,0L64,200.94,35.58,215.15A8,8,0,0,1,24,208V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56Zm-16,0H40V195.06l20.42-10.22a8,8,0,0,1,7.160,0L96,199.06l28.42-14.22a8,8,0,0,1,7.16,0L160,199.06l28.42-14.22a8,8,0,0,1,7.16,0L216,195.06Z"/></symbol>
+<symbol id="i-money" viewBox="0 0 256 256"><path d="M128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152ZM240,56H16a8,8,0,0,0-8,8V192a8,8,0,0,0,8,8H240a8,8,0,0,0,8-8V64A8,8,0,0,0,240,56ZM193.65,184H62.35A56.78,56.78,0,0,0,24,145.65v-35.3A56.78,56.78,0,0,0,62.35,72h131.3A56.78,56.78,0,0,0,232,110.35v35.3A56.78,56.78,0,0,0,193.65,184ZM232,93.37A40.81,40.81,0,0,1,210.63,72H232ZM45.37,72A40.81,40.81,0,0,1,24,93.37V72ZM24,162.63A40.81,40.81,0,0,1,45.37,184H24ZM210.63,184A40.81,40.81,0,0,1,232,162.63V184Z"/></symbol>
+<symbol id="i-bank" viewBox="0 0 256 256"><path d="M24,104H48v64H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16H208V104h24a8,8,0,0,0,4.19-14.81l-104-64a8,8,0,0,0-8.38,0l-104,64A8,8,0,0,0,24,104Zm40,0H96v64H64Zm80,0v64H112V104Zm48,64H160V104h32ZM128,41.39,203.74,88H52.26ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208Z"/></symbol>
+<symbol id="i-mobile" viewBox="0 0 256 256"><path d="M176,16H80A24,24,0,0,0,56,40V216a24,24,0,0,0,24,24h96a24,24,0,0,0,24-24V40A24,24,0,0,0,176,16ZM72,64H184V192H72Zm8-32h96a8,8,0,0,1,8,8v8H72V40A8,8,0,0,1,80,32Zm96,192H80a8,8,0,0,1-8-8v-8H184v8A8,8,0,0,1,176,224Z"/></symbol>
+<symbol id="i-hourglass" viewBox="0 0 256 256"><path d="M200,75.64V40a16,16,0,0,0-16-16H72A16,16,0,0,0,56,40V76a16.07,16.07,0,0,0,6.4,12.8L114.67,128,62.4,167.2A16.07,16.07,0,0,0,56,180v36a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V180.36a16.09,16.09,0,0,0-6.350-12.77L141.27,128l52.38-39.6A16.05,16.05,0,0,0,200,75.64ZM184,216H72V180l56-42,56,42.35Zm0-140.36L128,118,72,76V40H184Z"/></symbol>
+<symbol id="i-undo" viewBox="0 0 256 256"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"/></symbol>
+<symbol id="i-warn" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 256 256"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L81.32,88.55l-.06.12A65,65,0,0,0,72,88a64,64,0,0,0,0,128h88a87.34,87.34,0,0,0,31.8-5.93l10.28,11.31a8,8,0,1,0,11.84-10.76ZM160,200H72a48,48,0,0,1,0-96c1.1,0,2.2,0,3.3.12A88.4,88.4,0,0,0,72,128a8,8,0,0,0,16,0,72.25,72.25,0,0,1,5.06-26.54l87,95.7A71.66,71.66,0,0,1,160,200Zm88-72a87.89,87.89,0,0,1-22.35,58.61A8,8,0,0,1,213.71,176,72,72,0,0,0,117.37,70a8,8,0,0,1-9.48-12.89A88,88,0,0,1,248,128Z"/></symbol>
+<symbol id="i-out" viewBox="0 0 256 256"><path d="M120,216a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h64a8,8,0,0,1,0,16H56V208h56A8,8,0,0,1,120,216Zm109.66-93.66-40-40a8,8,0,0,0-11.32,11.32L204.69,120H112a8,8,0,0,0,0,16h92.69l-26.35,26.34a8,8,0,0,0,11.32,11.32l40-40A8,8,0,0,0,229.66,122.34Z"/></symbol>
+<symbol id="i-plane" viewBox="0 0 256 256"><path d="M231.87,114l-168-95.89A16,16,0,0,0,40.92,37.34L71.55,128,40.92,218.67A16,16,0,0,0,56,240a16.15,16.15,0,0,0,7.930-2.1l167.92-96.05a16,16,0,0,0,.05-27.89ZM56,224a.56.56,0,0,0,0-.12L85.74,136H144a8,8,0,0,0,0-16H85.74L56.06,32.16A.46.46,0,0,0,56,32l168,95.83Z"/></symbol>
+<symbol id="i-knot" viewBox="0 0 256 256"><path fill="none" stroke="#C6F432" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" d="M20 200 L60 201 L99 203 L125 201 L141 197 L152 190 L158 182 L163 172 M155 101 L147 89 L135 76 L120 64 L102 56 L85 53 L70 55 L58 62 L51 72 L48 85 L50 97 L56 108 L60 115 M126 143 L147 141 L167 135 L184 126 L197 114 L205 98 L208 84 L205 72 L196 61 L183 55 L169 53 L160 54 M104 97 L96 113 L91 130 L89 146 L90 162 L94 175 L98 182 M164 203 L196 201 L228 200 L236 200"/></symbol>
+</svg>
+
+<div id="app"></div>
+
+<button id="pt-btn" type="button" aria-controls="pt" aria-expanded="false">Peta layar</button>
+<aside id="pt" hidden aria-label="Alat prototipe">
+  <div class="top"><h2>Peta layar</h2><button class="x" type="button" data-pt="tutup" aria-label="Tutup peta">&#x2715;</button></div>
+  <p>Alat prototipe, bukan bagian aplikasi. Tanpa data nyata, penyimpanan, atau jaringan. Kata bertanda <b style="color:#c6f432">BARU</b> di laporan belum ada di 08.</p>
+  <h3>Dibuka dari</h3>
+  <div class="tg" data-tog="ctx"><button data-v="app">Ikon layar utama</button><button data-v="tab">Tab browser (komputer, Chrome)</button><button data-v="safari">Tab Safari iPhone/iPad</button></div>
+  <h3>Tema</h3>
+  <div class="tg" data-tog="tema"><button data-v="">Ikuti sistem</button><button data-v="terang">Terang</button><button data-v="gelap">Gelap</button></div>
+  <h3>Sambungan</h3>
+  <div class="tg" data-tog="offline"><button data-v="0">Tersambung</button><button data-v="1">Luring</button></div>
+  <h3>Pelihat dan mode sesudah masuk</h3>
+  <div class="tg" data-tog="viewer"><button data-v="sari">Sari (istri, iPhone)</button><button data-v="andi">Andi (suami, iPad)</button></div>
+  <div class="tg" data-tog="mode" style="margin-top:6px"><button data-v="pribadi">Perangkat pribadi</button><button data-v="bersama">Perangkat bersama</button></div>
+
+  <h3>Langkah 1 · masuk dan bergabung</h3>
+  <ul>
+    <li><button data-jump="ly90" data-set="ctx=safari;held=;mode=;in=false"><b>LY-90</b>Pasang di layar utama (tab Safari)</button></li>
+    <li><button data-jump="cek" data-set="ctx=safari;held=;mode=;in=false;viewer=sari;hh=false;linkOk=true"><b>Tautan</b>Ketuk tautan undangan di tab Safari: diperiksa, lalu LY-90 bernama keluarga</button></li>
+    <li><button data-jump="ly01" data-set="in=false;mode=;held=;carried=false;waiting=false;hh=false;age=false;notice=false;rumah=solo"><b>LY-01</b>Sambutan (Masuk, Buat akun). Mulai dari sini: Buat akun tanpa kode = Andi, dengan kode = Sari</button></li>
+    <li><button data-jump="ly02" data-set="ctx=app;in=false;mode=;held="><b>LY-02</b>Masuk · aplikasi terpasang (pribadi otomatis, tautan bersama)</button></li>
+    <li><button data-jump="ly02" data-set="ctx=app;in=false;mode=bersama;held="><b>LY-02</b>Masuk · aplikasi terpasang, dipilih perangkat bersama</button></li>
+    <li><button data-jump="ly02" data-set="ctx=tab;in=false;mode=;held="><b>LY-02</b>Masuk · tab browser (pertanyaan mode sesudah Masuk)</button></li>
+    <li><button data-jump="ly02" data-set="ctx=safari;in=false;mode=bersama;held="><b>LY-02</b>Masuk · tab Safari, jalan perangkat bersama</button></li>
+    <li><button data-jump="ly02" data-set="in=false;mode=;held=undangan;hh=false;age=true;notice=true;waiting=false"><b>LY-02</b>Masuk · dari tautan undangan (akun tanpa rumah tangga, lalu Beranda dengan kartu)</button></li>
+    <li><button data-jump="ly02" data-set="in=false;mode=;held=undangan;hh=true;waiting=false"><b>LY-02</b>Masuk · dari tautan undangan, akun sudah punya rumah tangga</button></li>
+    <li><button data-jump="ly02" data-set="in=false;err=rejected"><b>LY-02</b>Masuk · email atau kata sandi belum cocok</button></li>
+    <li><button data-jump="ly91" data-set="ctx=tab;in=false;mode=;after=masuk"><b>LY-91</b>Perangkat ini milik siapa? (tab browser)</button></li>
+    <li><button data-jump="daftar" data-set="ctx=app;in=false;held=;carried=false;mode=pribadi"><b>LY-02</b>Buat akun · email dan nama panggilan (aplikasi terpasang)</button></li>
+    <li><button data-jump="buatsandi" data-set="ctx=app;in=false;held=;carried=false;mode=pribadi;email=sari@contoh.id;kj=daftar"><b>LY-02</b>Buat kata sandi · kata sandi, konfirmasi, kode undangan (kalau ada)</button></li>
+    <li><button data-jump="ly01" data-set="ctx=tab;in=false;held=;carried=false;mode=;after="><b>LY-02</b>Buat akun · tab browser: Buat akun, Cek emailmu, LY-91, lalu Buat kata sandi</button></li>
+    <li><button data-jump="daftar" data-set="ctx=app;in=false;held=undangan;mode=pribadi"><b>LY-02</b>Buat akun · dari tautan undangan ("Kamu diundang ke Rumah Kenanga"; kode terkunci di Buat kata sandi)</button></li>
+    <li><button data-jump="lengkapi" data-set="ctx=app;in=false;held=;carried=false;mode=pribadi;prov=google;name=Sari"><b>LY-02</b>Lengkapi akun · sesudah Apple atau Google (nama terisi, kode kalau ada)</button></li>
+    <li><button data-jump="lengkapi" data-set="ctx=app;in=false;held=undangan;mode=pribadi;prov=apple;name=Sari"><b>LY-02</b>Lengkapi akun · dari tautan undangan (kode terkunci)</button></li>
+    <li><button data-jump="kode" data-set="ctx=app;in=false;held=;carried=false;mode=pribadi;kj=daftar;email=sari@contoh.id;kcount=60"><b>LY-03</b>Cek emailmu · kode 6 angka (pendaftaran). Tombol Prototipe: kode benar, salah, kedaluwarsa, terlalu banyak percobaan</button></li>
+    <li><button data-jump="kode" data-set="ctx=app;in=false;held=;carried=false;mode=pribadi;kj=daftar;email=sari@contoh.id;kcount=0"><b>LY-03</b>Cek emailmu · Kirim ulang sudah aktif</button></li>
+    <li><button data-jump="lupa" data-set="ctx=app;in=false;mode=pribadi"><b>LY-02</b>Lupa kata sandi · email</button></li>
+    <li><button data-jump="kode" data-set="ctx=app;in=false;mode=pribadi;kj=pulih;email=sari@contoh.id;kcount=60"><b>LY-03</b>Cek emailmu · kode 8 angka (pemulihan)</button></li>
+    <li><button data-jump="sandibaru" data-set="ctx=app;in=false;mode=pribadi;kj=pulih"><b>LY-02</b>Kata sandi baru, lalu masuk ke Beranda</button></li>
+    <li><button data-jump="ly04" data-set="in=true;age=false"><b>LY-04</b>Sebelum mulai (usia)</button></li>
+    <li><button data-jump="ly05" data-set="in=true;age=true;versi=umum"><b>LY-05</b>Pemberitahuan · teks umum, akun dari pendaftaran terbuka (O7, BARU)</button></li>
+    <li><button data-jump="ly05" data-set="in=true;age=true;versi=pilot"><b>LY-05</b>Pemberitahuan · versi pasangan pilot</button></li>
+    <li><button data-jump="ly06" data-set="in=true;hh=false;held=;viewer=andi;age=true;notice=true"><b>LY-06</b>Beri nama rumah tangga (tanpa kode)</button></li>
+    <li><button data-jump="beranda" data-set="in=true;hh=true;waiting=false;rumah=solo;viewer=andi;data=kosong;loading=false;srvErr=false"><b>LY-20</b>Beranda · rumah tangga baru, kartu Undang</button></li>
+    <li><button data-jump="ly07" data-set="in=true;viewer=andi;hh=true;waiting=false;rumah=solo"><b>LY-07</b>Sebelum mengundang</button></li>
+    <li><button data-jump="ly07open" data-set="in=true;rumah=open;viewer=andi;hh=true;waiting=false"><b>LY-07</b>Undangan terbuka</button></li>
+    <li><button data-jump="beranda" data-set="in=true;hh=true;waiting=false;rumah=accepted;viewer=andi;data=cth01;loading=false;srvErr=false"><b>LY-08</b>Beranda Andi · "Sari bergabung lewat undanganmu" (satu ketukan)</button></li>
+    <li><button data-jump="beranda" data-set="in=true;hh=false;waiting=false;held=;rl=false;viewer=sari;age=true;notice=true;loading=false"><b>LY-20</b>Beranda · akun tanpa rumah tangga: "Punya kode undangan?"</button></li>
+    <li><button data-jump="beranda" data-set="in=true;hh=false;waiting=false;held=undangan;rl=false;viewer=sari;age=true;notice=true;loading=false"><b>LY-20</b>Beranda · akun tanpa rumah tangga, dari tautan undangan</button></li>
+    <li><button data-jump="beranda" data-set="in=true;hh=false;waiting=false;held=;rl=true;viewer=sari;age=true;notice=true;loading=false"><b>LY-20</b>Beranda · kartu kode, terlalu banyak percobaan</button></li>
+    <li><button data-jump="menunggu" data-set="in=true;hh=true;waiting=true;hhName=Rumah Kenanga;viewer=sari;held=;loading=false"><b>LY-20</b>Beranda Sari · menunggu dikukuhkan (tanpa uang)</button></li>
+    <li><button data-jump="cek" data-set="ctx=tab;in=false;held=;linkOk=true;viewer=sari;hh=false;waiting=false"><b>Tautan</b>Ketuk tautan undangan (Android, komputer): diperiksa, lalu Buat akun</button></li>
+    <li><button data-jump="cek" data-set="ctx=tab;in=true;held=;linkOk=true;viewer=sari;hh=false;waiting=false;age=true;notice=true"><b>Tautan</b>Ketuk tautan, sudah masuk tanpa rumah tangga: Beranda dengan kartu</button></li>
+    <li><button data-jump="cek" data-set="ctx=tab;in=true;held=;linkOk=true;viewer=sari;hh=true;waiting=false"><b>Tautan</b>Ketuk tautan, sudah punya rumah tangga (O5)</button></li>
+    <li><button data-jump="cek" data-set="ctx=tab;in=false;held=;linkOk=false"><b>Tautan</b>Ketuk tautan undangan yang tidak berlaku</button></li>
+    <li><button data-jump="tidakberlaku" data-set="in=false"><b>Undangan</b>Undangan tidak berlaku (seragam)</button></li>
+    <li><button data-jump="punya" data-set="in=true;hh=true;viewer=sari;waiting=false"><b>Undangan</b>Akun ini sudah punya rumah tangga (O5)</button></li>
+    <li><button data-jump="rumah" data-set="in=true;rumah=joined;viewer=sari;hh=true"><b>/</b>Rumah tangga · dua anggota (sesudah bergabung)</button></li>
+    <li><button data-jump="ly94/dicabut" data-set="in=false"><b>LY-94</b>Sesi berakhir · dicabut</button></li>
+    <li><button data-jump="ly94/habis" data-set="in=false"><b>LY-94</b>Sesi berakhir · waktu habis (pribadi)</button></li>
+    <li><button data-jump="ly94/bersama" data-set="in=false"><b>LY-94</b>Sesi berakhir · perangkat bersama</button></li>
+  </ul>
+  <h3>Langkah 2 · mencatat</h3>
+  <ul data-base="hh=true;waiting=false;rumah=joined">
+    <li><button data-jump="beranda" data-set="in=true;data=kosong;loading=false;srvErr=false"><b>LY-20</b>Beranda · belum ada tempat uang</button></li>
+    <li><button data-jump="ly09" data-set="in=true"><b>LY-09</b>Tempat uang pertama</button></li>
+    <li><button data-jump="beranda" data-set="in=true;data=cth01;loading=false;srvErr=false"><b>LY-20</b>Beranda · uang saat mulai (07 CTH-01)</button></li>
+    <li><button data-jump="beranda" data-set="in=true;data=cth08;viewer=sari;loading=false;srvErr=false"><b>LY-20</b>Beranda · Sari, serah terima menunggu (CTH-08)</button></li>
+    <li><button data-jump="beranda" data-set="in=true;data=cth08;viewer=andi;loading=false;srvErr=false"><b>LY-20</b>Beranda · Andi, menunggu Sari (CTH-08)</button></li>
+    <li><button data-jump="catat" data-set="in=true;kind=belanja"><b>LY-32</b>Catat · Belanja</button></li>
+    <li><button data-jump="catat" data-set="in=true;kind=belanja;split=1"><b>LY-32</b>Catat · bagi ke beberapa kategori</button></li>
+    <li><button data-jump="catat" data-set="in=true;kind=kasih"><b>LY-32</b>Catat · Kasih ke</button></li>
+    <li><button data-jump="catat" data-set="in=true;kind=terima"><b>LY-32</b>Catat · Terima dari</button></li>
+    <li><button data-jump="ly42/e30" data-set="in=true;viewer=sari"><b>LY-42</b>Rincian catatan, Perbaiki (07 CTH-30)</button></li>
+    <li><button data-jump="beranda" data-set="in=true;loading=true"><b>LY-20</b>Memuat pertama kali</button></li>
+    <li><button data-jump="beranda" data-set="in=true;srvErr=true;loading=false"><b>LY-20</b>Gangguan server</button></li>
+    <li><button data-jump="saya" data-set="in=true"><b>Saya</b>Tempat sementara, Keluar akun</button></li>
+  </ul>
+  <p>Luring: pakai saklar Sambungan di atas, lalu catat sesuatu. Mode bersama dan luring: Simpan gagal dengan isian tetap terbuka.</p>
+</aside>
+
+<script>
+'use strict';
+/* ---------- Keadaan (hanya di memori) ---------- */
+const PL={sari:'Sari',andi:'Andi'};
+const other=v=>v==='sari'?'andi':'sari';
+const CATS=['Belanja bulanan','Dapur','Transportasi','Listrik dan air','Sekolah','Kesehatan','Kiriman keluarga'];
+const PLACES=()=>[
+  {id:'tun-a',name:'Dompet Andi',kind:'money',holder:'andi',amt:0},
+  {id:'bnk-a',name:'Rekening Mandiri Andi',kind:'bank',holder:'andi',amt:0},
+  {id:'tun-s',name:'Dompet Sari',kind:'money',holder:'sari',amt:0},
+  {id:'ewl-s',name:'E-wallet GoPay Sari',kind:'mobile',holder:'sari',amt:0},
+  {id:'tab-s',name:'Rekening BCA Sari',kind:'bank',holder:'sari',amt:0}];
+function preset(k){
+  if(k==='kosong') return {places:[],pending:[],disputed:[],priv:{sari:250000,andi:400000}};
+  const p=PLACES();
+  /* 07 CTH-01 sesudah: BNK-S 500000, TUN-S 200000, TUN-I 300000, EWL-I 100000, TAB-I 5000000 */
+  const a=k==='cth01'?{'tun-a':200000,'bnk-a':500000,'tun-s':300000,'ewl-s':100000,'tab-s':5000000}
+  /* 07 CTH-08 sesudah: BNK-S 500000, TUN-S 700000, TUN-I 4300000 (4000000 belum dikonfirmasi), EWL-I 100000, TAB-I 5000000 */
+                     :{'tun-a':700000,'bnk-a':500000,'tun-s':4300000,'ewl-s':100000,'tab-s':5000000};
+  p.forEach(x=>x.amt=a[x.id]);
+  return {places:p,pending:k==='cth08'?[{id:'h1',from:'andi',to:'sari',amt:4000000,place:'tun-s'}]:[],disputed:[],priv:{sari:250000,andi:400000}};
+}
+const newDraft=(kind='belanja')=>({kind,amt:'',from:null,to:null,cat:CATS[0],date:'hari',tgl:'',note:'',split:null,err:'',offer:false});
+const S={ctx:'app',offline:false,viewer:'sari',mode:null,in:false,held:null,hh:true,age:false,notice:false,rumah:'joined',hhName:'Rumah Kenanga',name:'',carried:false,waiting:false,
+  versi:'pilot',linkOk:true,rl:false,
+  email:'',cred:{email:'',pw:''},err:null,reject:false,after:null,data:preset('cth08'),queue:[],
+  prov:null,kj:'daftar',kcount:0,kerr:'',kmode:'',kvalue:'',kbatas:false,kodeLapsed:false,joinErr:null,
+  entries:[{id:'e30',kind:'belanja',label:'Parkir',amt:50000,from:'tun-s',to:null,cat:'Transportasi',date:'Sabtu, 14 November 2026',late:0,by:'sari',status:null,hist:[],applied:false}],
+  d:newDraft(),edit:null,menu:false,sheet:null,dlg:null,snack:null,flash:null,loading:false,srvErr:false,seq:100};
+if(matchMedia('(display-mode: standalone)').matches) S.ctx='app';
+
+/* ---------- Pembantu ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic=(n,c='')=>`<svg class="ic ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const KNOT=`<svg aria-hidden="true"><use href="#i-knot"/></svg>`;
+const rp=n=>'Rp'+Number(n).toLocaleString('id-ID');
+const rpBig=n=>`<span class="rp">Rp</span>${Number(n).toLocaleString('id-ID')}`;
+const num=s=>Number(String(s||'').replace(/\D/g,''))||0;
+const fmtIn=s=>{const d=String(s).replace(/\D/g,'').replace(/^0+/,'').slice(0,15);return d?Number(d).toLocaleString('id-ID'):'';};
+const sum=a=>a.reduce((t,p)=>t+p.amt,0);
+const P=id=>S.data.places.find(p=>p.id===id);
+const pname=id=>(P(id)||{name:'?'}).name;
+const proto=(label,act,extra='')=>`<button type="button" class="proto" data-act="${act}" ${extra}>${label}</button>`;
+const route=()=>location.hash.slice(1).split('/');
+function go(r){ if(location.hash==='#'+r) render(true); else location.hash=r; }
+function start(){ return S.ctx==='safari'?'ly90':'ly01'; }
+const tile=(icon,tt,nn,attrs)=>`<button type="button" class="row" ${attrs}><span class="circ">${ic(icon)}</span><span><span class="tt">${tt}</span><span class="nn">${nn}</span></span>${ic('right','chev')}</button>`;
+function fld(id,label,o={}){
+  return `<div class="field"><label for="${id}">${label}</label>
+  <input id="${id}" class="inp" type="${o.type||'text'}" value="${esc(o.val||'')}" autocomplete="${o.ac||'off'}" ${o.im?`inputmode="${o.im}"`:''} ${o.attrs||''} ${o.err?'aria-invalid="true"':''} aria-describedby="${id}-h ${id}-e" ${o.req?'required':''}>
+  ${o.hint?`<p class="hint" id="${id}-h">${o.hint}</p>`:''}<p class="err" id="${id}-e" ${o.err?'':'hidden'}>${ic('warn')}<span>${o.err||''}</span></p></div>`;
+}
+function pwf(id,label,o={}){
+  return `<div class="field"><label for="${id}">${label}</label>
+  <div class="pw"><input id="${id}" class="inp" type="password" value="${esc(o.val||'')}" autocomplete="${o.ac}" aria-describedby="${id}-h ${id}-e"><button type="button" class="show" data-act="show" data-for="${id}" aria-label="Tampilkan kata sandi" aria-pressed="false">${ic('eye')}</button></div>
+  ${o.hint?`<p class="hint" id="${id}-h">${o.hint}</p>`:''}<p class="err" id="${id}-e" hidden>${ic('warn')}<span></span></p></div>`;
+}
+function setErr(id,msg){ const e=document.getElementById(id+'-e'), i=document.getElementById(id); if(!e) return; e.hidden=!msg; e.querySelector('span').textContent=msg||''; if(i){ if(msg){i.setAttribute('aria-invalid','true');} else i.removeAttribute('aria-invalid'); } if(msg&&i) i.focus(); return !msg; }
+function alertMsg(msg){ const a=$('#alert'); if(!a) return; a.hidden=!msg; a.querySelector('span').textContent=msg||''; }
+const alertP=(msg='')=>`<p class="galat" role="alert" id="alert" ${msg?'':'hidden'}>${ic('warn')}<span>${msg}</span></p>`;
+function busy(btn,fn){ if(!btn) return fn(); const t=btn.textContent; btn.disabled=true; btn.setAttribute('aria-busy','true'); btn.textContent='Memproses…'; setTimeout(()=>{ btn.disabled=false; btn.removeAttribute('aria-busy'); btn.textContent=t; fn(); },550); }
+function flashP(){ const f=S.flash; S.flash=null; return f?`<p class="ok" role="status">${ic('check')}<span>${f}</span></p>`:''; }
+/* Kode undangan (putusan security-privacy 15 November 2026; 10 berkas 01 §10): 12 angka acak, tampil 4-4-4.
+   Contoh dan jumlah angka di satu konstanta. Klien tidak pernah menyimpan kode. */
+const KODE_UNDANGAN={contoh:'482109375521',angka:12,kadaluwarsa:'111122223333'};
+const kodeTampil=k=>k.replace(/(\d{4})(?=\d)/g,'$1 ');
+/* isian menerima spasi, NBSP, tab, "-" dan "." di antara angka; harus tepat 12 angka */
+const kodeDari=v=>{ const s=String(v||'').trim().replace(/[\s \-.]/g,''); if(new RegExp('^\\d{'+KODE_UNDANGAN.angka+'}$').test(s)) return s;
+  /* pesan undangan utuh yang ditempel: diterima bila memuat tepat satu kelompok 12 angka (08 §25.6 LY-02 di web butir (1)) */
+  const m=String(v||'').match(/(?<!\d)\d{4}[\s \-.]?\d{4}[\s \-.]?\d{4}(?!\d)/g)||[];
+  return m.length===1?m[0].replace(/\D/g,''):null; };
+const TAUTAN_UNDANGAN='https://casa.contoh.id/invite#t=8f3k2q', BERLAKU='Sabtu, 21 November 2026 pukul 14.20';
+/* Teks terbagi: tautan + kode + masa berlaku, tanpa nama (SEC-29) */
+const teksBagikan=()=>`Kamu diundang bergabung di Casa. Buka tautan ini: ${TAUTAN_UNDANGAN}\nAtau buka Casa dan ketik kode ${kodeTampil(KODE_UNDANGAN.contoh)} saat membuat akun. Sudah punya akun? Ketik kode itu di Beranda.\nBerlaku sampai ${BERLAKU}.`;
+const FORMAT_KODE='Kode undangan terdiri dari 12 angka.';
+const KODE_RL='Coba lagi nanti.';
+/* Isian kode undangan: terisi dari tautan (terkunci, kode tidak pernah sampai ke klien) atau diketik. Dipakai di Buat akun dan kartu Beranda. Tanpa kalimat bantu; hanya galat. */
+function kodeFld(label,err){
+  if(S.held==='undangan') return `<div>${fld('f-kode',label,{val:'Terisi dari tautan undangan',attrs:'readonly aria-readonly="true"'})}<button type="button" class="tlink" data-act="lepasKode">Lepas undangan</button></div>`;
+  return fld('f-kode',label,{err,attrs:ISIAN_KODE});
+}
+const kodeProto=()=>`${proto('Isi contoh kode','isi',`data-v="${kodeTampil(KODE_UNDANGAN.contoh)}"`)}${proto('Isi kode yang tidak berlaku (ditolak sesudah akun jadi)','isi',`data-v="${kodeTampil(KODE_UNDANGAN.kadaluwarsa)}"`)}`;
+const ISIAN_KODE='inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go"';
+const offBtn=(label,act)=>S.offline?`<button class="btn biru" disabled aria-describedby="offwhy">${label}</button><p class="hint" id="offwhy">Ini perlu sambungan internet. Coba lagi saat tersambung.</p>`:`<button class="btn biru" ${act}>${label}</button>`;
+
+/* ---------- Layar ---------- */
+const V={};
+
+V.ly90=()=>({t:'Pasang',k:'sb',h:`
+  <p class="atas">${ic('info')}<span>Kalau kamu membuka halaman ini dari aplikasi lain, buka halaman ini di Safari dulu.</span></p>
+  <span class="appicon l c">${KNOT}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Pasang Casa di layar utama dulu</h1>
+  <p class="lead c" style="margin-top:8px">Di iPhone dan iPad, Casa dibuka dari ikonnya di layar utama.</p>
+  ${S.held==='undangan'?`<p class="info" style="margin-top:24px">${ic('info')}<span><b>Andi mengundangmu ke Rumah Kenanga.</b> Sesudah Casa terpasang, ketik kodenya di Buat akun atau di Beranda.</span></p>`:''}
+  <ol class="langkah">
+    <li><span class="no">1</span><span>Ketuk <b>⋯</b> di samping alamat situs, lalu ketuk <b>Bagikan</b>.</span></li>
+    <li><span class="no">2</span><span>Pilih <b>Tambah ke Layar Utama</b>.</span></li>
+    <li><span class="no">3</span><span>Biarkan <b>Buka sebagai Web App</b> menyala, lalu ketuk <b>Tambah</b>.</span></li>
+    <li><span class="no">4</span><span>Tutup Safari, lalu buka Casa dari layar utama.</span></li>
+  </ol>
+  <div class="grow"></div>
+  ${S.held==='undangan'?`<p class="hint c" style="margin-bottom:var(--jarak-3)">Di perangkat bersama, undanganmu ikut terbawa.</p>`:''}
+  <div class="tiles">${tile('users','Pakai sebagai perangkat bersama','Keluar otomatis sesudah 30 menit tidak dipakai','data-act="lewatBersama"')}</div>
+  ${proto('Buka Casa dari layar utama','dariIkon')}`});
+
+const TAGLINE='Kelola uang dan urusan keluarga bersama'; /* LY-01, satu tempat; pilihan pemilik produk 15 November 2026 */
+V.ly01=()=>({t:'Selamat datang',k:'sb',back:S.ctx==='safari'?'ly90':null,h:`
+  <div class="grow" style="flex-grow:.9"></div>
+  <span class="appicon xl c">${KNOT}</span>
+  <h1 class="h-merek c" style="margin-top:24px" tabindex="-1">Casa</h1>
+  <p class="lead c">${TAGLINE}</p>
+  <div class="grow"></div>
+  <div class="stack"><a class="btn biru" href="#ly02">Masuk</a><a class="btn garis" href="#daftar" data-act="keDaftar">Buat akun</a></div>`});
+
+/* Masuk dengan Apple/Google (desain; dibangun saat tahap publik). Di perangkat bersama tombol disembunyikan: sesi penyedia di browser bisa tertinggal. */
+const provBtns=()=>{ if(S.mode==='bersama') return ''; const d=S.offline?'disabled aria-describedby="offwhy"':'';
+  const b=(p,l,n)=>`<button type="button" class="btn ${p}" data-act="prov" data-p="${p}" ${d}><svg class="logo" aria-hidden="true"><use href="#l-${p}"/></svg>${n}</button>`;
+  return `<div class="atau" role="separator"><span>atau</span></div><div class="stack" style="margin-top:var(--jarak-6)">${b('apple','a','Lanjutkan dengan Apple')}${b('google','g','Lanjutkan dengan Google')}${S.offline?'<p class="hint" id="offwhy">Ini perlu sambungan internet. Coba lagi saat tersambung.</p>':''}</div>`; };
+const provProto=()=>S.mode==='bersama'?'':proto('Apple atau Google: email sudah punya akun Casa','provAda');
+V.ly02=()=>{
+  const sh=S.mode==='bersama';
+  const acE=sh?'off':'username', acP=sh?'off':'current-password';
+  return {t:'Masuk',k:'sb form',back:'ly01',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Masuk</h1>
+  ${S.held==='undangan'?`<p class="info" style="margin-top:16px" role="status">${ic('info')}<span><b>Kamu diundang ke ${esc(S.hhName)}.</b></span></p>`:''}
+  ${sh&&S.ctx==='app'?`<div class="banner">${ic('users')}<span>Masuk sebagai perangkat bersama</span><button type="button" class="tlink" data-act="batalBersama">Batal</button></div>`:''}
+  <form data-submit="masuk" novalidate class="form-stack" style="margin-top:var(--jarak-6)">
+    ${fld('f-email','Email',{type:'email',ac:acE,val:S.cred.email||S.email})}
+    ${pwf('f-pw','Kata sandi',{ac:acP,val:S.err==='rejected'?'':S.cred.pw,hint:sh?'Jangan simpan kata sandi di browser perangkat ini.':''})}
+    ${alertP(S.err==='rejected'?'Email atau kata sandi belum cocok.':'')}
+    <button class="btn biru" type="submit">Masuk</button>
+  </form>
+  <div class="links"><a class="tlink" href="#lupa" data-act="keLupa">Lupa kata sandi?</a></div>
+  ${provBtns()}
+  <div class="links"><a class="tlink" href="#daftar" data-act="keDaftar">Belum punya akun? Buat akun</a></div>
+  ${provProto()}
+  <div class="grow"></div>
+  ${S.ctx==='app'&&!sh?`<button type="button" class="tlink c" style="font-weight:500;color:var(--tinta-2);flex-wrap:wrap;justify-content:center;text-align:center" data-act="bersamaLink">Perangkat ini dipakai orang lain? <span style="color:var(--aksen-tinta);font-weight:600">Masuk sebagai perangkat bersama</span></button>`:''}`,
+  after(){ if(S.err==='rejected'){ const p=$('#f-pw'); p&&p.focus(); } }};
+};
+
+V.ly91=()=>({t:'Mode perangkat',k:'sb',back:S.after==='sandi'?'daftar':'ly02',h:`
+  <div class="sp"></div>
+  <span class="appicon l c">${KNOT}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1" id="m-t">Perangkat ini<br>milik siapa?</h1>
+  <div class="grow"></div>
+  <div class="tiles" role="group" aria-labelledby="m-t">
+    ${tile('user','Perangkat pribadiku','Catatan disimpan di perangkat ini','data-act="mode" data-m="pribadi"')}
+    ${tile('users','Perangkat bersama','Keluar otomatis sesudah 30 menit tidak dipakai. Jangan simpan kata sandi di browser perangkat ini.','data-act="mode" data-m="bersama"')}
+  </div>
+  <button type="button" class="tlink c" style="margin-top:var(--jarak-2)" data-act="sheet" data-s="beda" aria-haspopup="dialog">Apa bedanya?</button>`});
+
+/* Buat akun (v6): hanya email dan nama panggilan, tanpa kalimat bantu. Server hanya menerima email di sini (10.4 butir 1, 7). */
+V.daftar=()=>{
+  const held=S.held==='undangan';
+  return {t:'Buat akun',k:'sb form',back:'ly01',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Buat akun</h1>
+  ${held?`<p class="info" role="status" style="margin-top:16px">${ic('info')}<span><b>Kamu diundang ke Rumah Kenanga.</b></span></p>`:''}
+  <form data-submit="daftar" novalidate class="form-stack" style="margin-top:var(--jarak-6)">
+    ${fld('f-email','Email',{type:'email',ac:'username',val:S.email})}
+    ${fld('f-dn','Nama panggilan',{ac:'nickname',val:S.name})}
+    ${alertP()}
+    <button class="btn biru" type="submit">Lanjut</button>
+  </form>
+  ${provBtns()}
+  <div class="links"><a class="tlink" href="#ly02">Sudah punya akun? Masuk</a></div>
+  ${provProto()}`};
+};
+
+/* Lengkapi akun: sesudah Apple/Google. Email sudah terverifikasi penyedia: tanpa kode email, tanpa kata sandi. */
+V.lengkapi=()=>{ const held=S.held==='undangan', nm=S.prov==='apple'?'Apple':'Google';
+  return {t:'Lengkapi akun',k:'sb form',focusSel:'#f-dn',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Lengkapi akun</h1>
+  <form data-submit="lengkapi" novalidate class="form-stack">
+    ${fld('f-dn','Nama panggilan',{ac:'nickname',val:S.name})}
+    ${kodeFld('Kode undangan (kalau ada)')}
+    ${alertP()}
+    <button class="btn biru" type="submit">Selesai</button>
+  </form>
+  <p class="pnote" style="margin-top:var(--jarak-4)"><b>Prototipe, dari ${nm}:</b> email datang sudah terverifikasi, jadi tanpa kode email dan tanpa kata sandi. Apple boleh memberi email penutup (nama@privaterelay.appleid.com); Casa memakainya sebagai email akun. Apple mengirim nama hanya sekali; kalau kosong, isian nama kosong.</p>
+  ${held?'':kodeProto()}`};
+};
+
+/* Buat kata sandi (v6): sesudah kode email benar (di tab browser: sesudah LY-91, sebelum isian kata sandi apa pun).
+   Kode undangan ikut di memori klien; server tidak menerimanya saat pendaftaran (10.4 butir 7). */
+V.buatsandi=()=>{
+  const sh=S.mode==='bersama', held=S.held==='undangan';
+  return {t:'Buat kata sandi',k:'sb form',focusSel:'#f-pw',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Buat kata sandi</h1>
+  <form data-submit="buatsandi" novalidate class="form-stack">
+    ${pwf('f-pw','Kata sandi',{ac:sh?'off':'new-password',val:''})}
+    ${pwf('f-pw2','Konfirmasi kata sandi',{ac:sh?'off':'new-password',val:''})}
+    ${kodeFld('Kode undangan (kalau ada)')}
+    ${alertP()}
+    <button class="btn biru" type="submit">Selesai</button>
+  </form>
+  ${held?'':kodeProto()}`};
+};
+
+/* Lupa kata sandi: email, lalu kode 8 angka, lalu kata sandi baru. Jawaban sama untuk email yang terdaftar maupun tidak (SEC-12). */
+V.lupa=()=>({t:'Lupa kata sandi',k:'sb form',back:'ly02',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Lupa kata sandi</h1>
+  <form data-submit="lupa" novalidate class="form-stack">
+    ${fld('f-email','Email',{type:'email',ac:S.mode==='bersama'?'off':'username',val:S.email||S.cred.email})}
+    ${alertP()}
+    <button class="btn biru" type="submit">Kirim kode</button>
+  </form>`});
+
+/* Cek emailmu: satu layar untuk kode pendaftaran (6 angka) dan kode pemulihan (8 angka). Kode tidak pernah disimpan (SEC-175, SEC-179). */
+const KJ=()=>S.kj==='pulih'
+  ?{n:8,benar:'48219305',lewat:'11111111',batas:'22222222',surat:'Kode pemulihan Casa-mu: 48219305. Jangan berikan kode ini kepada siapa pun.',tanpa:'Email yang belum punya akun menerima email tanpa kode: "Tidak ada akun Casa dengan email ini. Pilih Buat akun." Layar ini sama untuk keduanya.'}
+  :{n:6,benar:'482193',lewat:'111111',batas:'222222',surat:'Kode Casa-mu: 482193. Jangan berikan kode ini kepada siapa pun.',tanpa:'Email yang sudah punya akun menerima email tanpa kode: "Sudah ada akun Casa dengan email ini. Masuk, atau pilih Lupa kata sandi."'};
+V.kode=()=>{ const j=KJ(), pulih=S.kj==='pulih', em=S.email||'sari@contoh.id';
+  return {t:'Cek email',k:'sb form',back:pulih?'lupa':'daftar',focusSel:'#f-ko',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Cek emailmu</h1>
+  <p class="lead kiri" style="margin-top:8px">Kode dikirim ke <span class="email">${esc(em)}</span></p>
+  ${flashP()}
+  <form data-submit="kode" novalidate class="form-stack">
+    <div class="field"><label class="sr" for="f-ko">Kode ${j.n} angka, terkirim otomatis</label>
+      <input id="f-ko" class="inp kode-in" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" value="" ${S.kbatas?'readonly':''} ${S.kerr?'aria-invalid="true"':''} aria-describedby="f-ko-e">
+      <p class="err" id="f-ko-e" role="alert" ${S.kerr?'':'hidden'}>${ic('warn')}<span>${S.kerr||''}</span></p></div>
+    ${alertP(S.kbatas?'Coba lagi nanti.':'')}
+  </form>
+  <button class="btn garis" id="kirim-ulang" style="margin-top:var(--jarak-4)" data-act="kirimUlang" ${(S.kcount>0||S.kbatas)?'disabled':''}>Kirim ulang${S.kcount>0?` (${S.kcount})`:''}</button>
+  <div class="links"><a class="tlink" href="#${pulih?'lupa':'daftar'}" data-act="gantiEmail">Ganti email</a></div>
+  <p class="pnote" style="margin-top:var(--jarak-4)"><b>Prototipe, isi email:</b> ${esc(j.surat)}<br>${esc(j.tanpa)}</p>
+  ${proto('Isi kode benar','isiKode',`data-v="${j.benar}"`)}${proto('Isi kode salah','isiKode',`data-v="${'9'.repeat(j.n)}"`)}${proto('Isi kode kedaluwarsa (15 menit)','isiKode',`data-v="${j.lewat}"`)}${proto('Isi kode: terlalu banyak percobaan','isiKode',`data-v="${j.batas}"`)}${S.kcount>0?proto('Lewati hitung mundur 60 detik','lewatHitung'):''}`,
+  after(){ clearInterval(V.kode.t);
+    if(S.kcount>0) V.kode.t=setInterval(()=>{ const b=$('#kirim-ulang'); if(!b||route()[0]!=='kode'){ clearInterval(V.kode.t); return; }
+      S.kcount--; b.textContent='Kirim ulang'+(S.kcount>0?` (${S.kcount})`:''); if(S.kcount<=0){ b.disabled=false; clearInterval(V.kode.t); } },1000); }};
+};
+
+/* Kata sandi baru sesudah kode pemulihan. Mode perangkat sudah ditanyakan sebelum Lupa kata sandi di tab browser. */
+V.sandibaru=()=>({t:'Kata sandi baru',k:'sb form',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Kata sandi baru</h1>
+  <form data-submit="sandibaru" novalidate class="form-stack">
+    ${pwf('f-pw','Kata sandi',{ac:S.mode==='bersama'?'off':'new-password',val:''})}
+    ${alertP()}
+    <button class="btn biru" type="submit">Simpan</button>
+  </form>`});
+
+V.ly04=()=>({t:'Sebelum mulai',k:'sb',h:`
+  <div class="sp"></div>
+  <span class="appicon l c">${KNOT}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Sebelum mulai</h1>
+  <p class="lead c">Casa dibuat untuk orang dewasa.</p>
+  <div class="grow"></div>
+  <label class="cek"><input type="checkbox" id="usia"><span>Saya berusia 18 tahun atau lebih.</span></label>
+  <button class="btn biru" id="lanjut" style="margin-top:12px" data-act="usia" disabled>Lanjut</button>`});
+
+/* O7 (10.4 SEC-158 catatan 15 November 2026): teks umum bagi akun dari pendaftaran terbuka, sampai SEC-36 ada.
+   Draf ux-designer, BARU; bunyi kanonis ditetapkan security-privacy di 10.1 §11.3 (perubahan bunyi = versi baru, SEC-34). */
+const TEKS_UMUM=[
+  'Server tempat Casa menyimpan datamu dikelola oleh satu orang, bukan perusahaan.',
+  'Di dalam aplikasi, anggota lain di rumah tanggamu tidak dapat melihat dana pribadimu, isi dompet campuranmu, atau apa pun yang ditandai "hanya kamu".',
+  'Di luar aplikasi berbeda. Pengelola server memegang akses tetap ke basis data dan salinan cadangannya. Dari sana ia dapat membaca semua data yang tersimpan di server, termasuk dana pribadi, isi dompet campuran, dan isi chat beserta foto. Data ini tidak dienkripsi terhadap pengelola server, dan saat ini kamu tidak dapat melihat kapan ia membukanya.',
+  'Kalau kamu memakai Casa di browser atau dari ikonnya di layar utama, aplikasinya dimuat dari server itu setiap kali diperbarui. Pengelola server dapat mengubah aplikasi itu, juga khusus untuk akunmu.',
+  'Kalau kamu lupa kata sandi, akunmu hanya dapat dipulihkan lewat emailmu.',
+  'Bila keadaan ini tidak cocok untukmu, jangan mengisi data pribadi apa pun. Kamu dapat membaca pemberitahuan ini lagi kapan saja di "Siapa melihat apa".'];
+V.ly05=()=>({t:'Pemberitahuan pengelola',k:'sb form',h:`
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Siapa yang dapat melihat datamu di luar aplikasi</h1>
+  ${S.versi==='umum'?`<div class="teks">${TEKS_UMUM.map(p=>`<p>${esc(p)}</p>`).join('')}<span id="akhir" style="display:block;height:1px"></span></div>`:`<div class="teks">
+    <p>Server aplikasi ini dikelola oleh Andi, yang juga anggota rumah tangga ini.</p>
+    <p>Di dalam aplikasi, pasanganmu tidak dapat melihat dana pribadimu, isi dompet campuranmu, setelan jam tenangmu, atau apa pun yang ditandai "hanya kamu".</p>
+    <p>Di luar aplikasi berbeda. Pengelola server dapat membuka basis data dan salinan cadangan secara langsung. Dari sana semua data yang tersimpan di server dapat terbaca, termasuk dana pribadi, isi dompet campuran, isi chat beserta foto, dan setelan pribadi. Aturan di aplikasi tidak mencegah itu, dan data ini tidak dienkripsi terhadap pengelola server.</p>
+    <p>Kalau kamu memakai Casa di browser atau dari ikonnya di layar utama, aplikasinya dimuat dari server yang dikelola Andi setiap kali diperbarui. Pengelola server dapat mengubah aplikasi itu, juga khusus untuk akunmu, termasuk agar data yang hanya tersimpan di perangkatmu ikut terkirim. Perubahan seperti itu tidak tercatat di riwayat keamanan akunmu.</p>
+    <p>Bila keadaan ini tidak cocok untukmu, jangan mengisi data pribadi apa pun. Kamu dapat membaca pemberitahuan ini lagi kapan saja di "Siapa melihat apa".</p>
+    <span id="akhir" style="display:block;height:1px"></span>
+  </div>`}
+  <p class="hint" id="bacadulu" style="margin-top:24px">Baca sampai akhir untuk melanjutkan.</p>
+  <label class="cek" style="margin-top:12px"><input type="checkbox" id="baca" disabled><span>Saya sudah membaca dan memahami pemberitahuan ini.</span></label>
+  <button class="btn biru" id="lanjut" style="margin-top:12px" data-act="baca" disabled>Lanjut</button>`,
+  after(){ const s=$('#akhir'); if(!s) return; new IntersectionObserver((en,o)=>{ if(en[0].isIntersecting){ $('#baca').disabled=false; $('#bacadulu').hidden=true; o.disconnect(); } }).observe(s); }});
+
+/* LY-06 (v4): langsung sesudah LY-05 tanpa kode; nama tampilan sudah diisi di Buat akun, jadi tinggal nama rumah tangga dan zona waktu */
+V.ly06=()=>({t:'Beri nama rumah tangga',k:'sb form',h:`
+  <span class="appicon l only-wide">${KNOT}</span>
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Beri nama rumah tangga</h1>
+  ${flashP()}
+  <form data-submit="rt" novalidate class="form-stack">
+    ${fld('f-nama','Nama rumah tangga',{val:'Rumah Kenanga',hint:'Misalnya Rumah Kenanga.'})}
+    <div class="field"><label for="f-tz">Zona waktu</label>
+      <select id="f-tz" class="inp"><option>Asia/Jakarta (WIB)</option><option>Asia/Makassar (WITA)</option><option>Asia/Jayapura (WIT)</option><option>Asia/Singapore</option></select></div>
+    ${S.offline?offBtn('Buat rumah tangga',''):'<button class="btn biru" type="submit">Buat rumah tangga</button>'}
+  </form>
+  <a class="tlink c" style="margin-top:var(--jarak-2)" href="#beranda">Nanti saja</a>`});
+
+/* Pintu undangan di Beranda: kartu Undang (satu anggota), Undangan terbuka, dan kartu pengundang "bergabung lewat undanganmu" (satu ketukan) */
+function door(){
+  const pa=other(S.viewer);
+  if(S.rumah==='solo') return {top:'',bottom:`<section class="card"><div class="khead"><span class="circ">${ic('users')}</span><h2 class="judul-bagian">Undang</h2></div><p>Ajak anggota rumah tangga yang lain supaya kalian melihat catatan yang sama.</p><a class="btn biru" style="margin-top:16px" href="#ly07">Undang</a></section>`};
+  if(S.rumah==='open') return {top:'',bottom:`<section class="card"><div class="khead"><span class="circ">${ic('clock')}</span><h2 class="judul-bagian">Undangan</h2></div><p>Undangan terbuka sampai ${BERLAKU}.</p><a class="btn abu" style="margin-top:16px" href="#ly07open">Lihat undangan</a></section>`};
+  if(S.rumah==='accepted') return {bottom:'',top:`<section class="card" aria-labelledby="dk-t"><div class="khead"><span class="circ">${ic('users')}</span><h2 class="judul-bagian" id="dk-t">${PL[pa]} bergabung lewat undanganmu</h2></div><p>Ia memakai email ini:</p><p class="email" style="margin-top:8px">${pa}@contoh.id</p><p style="margin-top:8px">Pastikan ini email orang yang kamu undang. Uang rumah tangga tampil baginya sesudah kamu memastikan.</p><div class="stack" style="margin-top:16px"><button class="btn biru" data-act="kukuhkan">Ya, ini ${PL[pa]}</button><button class="btn garis" data-act="bukanDia">Bukan dia</button></div></section>`};
+  return {top:'',bottom:''};
+}
+
+function head(title){ return `<div class="kepala"><span class="appicon s">${KNOT}</span><h1 class="h-layar" tabindex="-1">${esc(title)}</h1></div>`; }
+
+V.rumah=()=>{
+  if(S.offline) return {t:'',k:'app',tab:'beranda',fab:false,h:`<div class="wrap">${head('Casa')}<div class="card empty">${ic('cloud')}<p>Belum tersambung. Rumah tanggamu tampil begitu tersambung lagi.</p><button class="btn abu" data-act="cobaLagi">Coba lagi</button></div></div>`};
+  const me=S.viewer, pa=other(me), both=S.rumah==='joined';
+  const mem=[me].concat(both?[pa]:[]).sort().map(h=>`<div class="mem"><span class="ava" aria-hidden="true">${PL[h][0]}</span><span>${PL[h]}${h===me?' (kamu)':''}</span></div>`).join('');
+  const dr=door();
+  return {t:'Rumah tangga',k:'app',tab:'beranda',fab:false,back:'beranda',h:`<div class="wrap">${head(S.hhName)}${flashP()}
+    ${dr.top}${dr.bottom}
+    <section class="card"><div class="khead"><span class="circ">${ic('user')}</span><h2 class="judul-bagian">Anggota</h2></div>${mem}</section></div>`};
+};
+
+V.ly07=()=>({t:'Undang',k:'sb',back:'beranda',h:`
+  <div class="sp"></div>
+  <span class="bigcirc">${ic('users')}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Sebelum mengundang</h1>
+  <p class="lead c">Orang yang bergabung akan melihat semua catatan uang bersama rumah tangga ini sejak awal, termasuk yang dicatat sebelum ia bergabung. Uang pribadimu tetap hanya kamu yang melihat.</p>
+  <div class="grow"></div>
+  <button class="btn biru" data-act="bagikan">Bagikan undangan</button>
+  <p class="hint c" style="margin:var(--jarak-2) auto 0">Tautan dan kode berlaku 7 hari. Kirim hanya ke orang yang kamu undang. Ia langsung masuk, tetapi baru melihat uang rumah tangga sesudah kamu memastikan bahwa itu dia.</p>
+  <a class="tlink c" href="#beranda">Nanti saja</a>`});
+
+/* Kode tampil hanya selama layar ini terbuka; tidak disimpan klien (putusan security-privacy) */
+V.ly07open=()=>({t:'Undang',k:'sb',back:'beranda',h:`
+  <div class="sp"></div>
+  <span class="bigcirc">${ic('clock')}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Undangan terbuka</h1>
+  <p class="lead c">Berlaku sampai ${BERLAKU}.</p>
+  <div class="kode" role="group" aria-labelledby="kode-l"><p class="kecil" id="kode-l">Kode undangan</p><p class="kode-v">${kodeTampil(KODE_UNDANGAN.contoh)}</p>
+    <p class="hint">Kalau tautannya tidak bisa dibuka, ia dapat mengetik kode ini saat membuat akun. Kalau ia sudah punya akun Casa, ia mengetiknya di Beranda.</p></div>
+  <div class="grow"></div>
+  ${flashP()}
+  <button class="btn abu" style="margin-top:var(--jarak-3)" data-act="bagikan">Bagikan lagi</button>
+  <p class="hint c" style="margin:var(--jarak-2) auto var(--jarak-3)">Tautan dan kode baru dibuat; yang kamu kirim sebelumnya tidak berlaku lagi.</p>
+  <button class="btn garis" data-act="batalUndangan">Batalkan undangan</button>
+  <p class="pnote" style="margin-top:var(--jarak-4);white-space:pre-line">Prototipe, teks yang dibagikan:
+${esc(teksBagikan())}</p>
+  ${proto(PL[other(S.viewer)]+' bergabung lewat undangan (notifikasi N-24 dibuka)','diterima')}`});
+
+/* Tautan undangan diketuk: diperiksa server, tanpa menempel apa pun. Sah: Buat akun dengan nama keluarga, atau Beranda bila sudah masuk. */
+V.cek=()=>({t:'Undangan',k:'sb',h:`
+  <div class="sp"></div>
+  <span class="bigcirc">${ic('hourglass')}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1" aria-busy="true">Memeriksa undangan…</h1>
+  <div class="grow"></div>`,
+  after(){ clearTimeout(V.cek.t); if(S.in&&S.hh){ go('punya'); return; } /* O5: tanpa RPC */
+    V.cek.t=setTimeout(()=>{ if(route()[0]!=='cek') return;
+    if(!S.linkOk){ go('tidakberlaku'); return; }
+    S.held='undangan';
+    if(S.ctx==='safari'&&S.mode!=='bersama'){ go('ly90'); return; }
+    if(S.in){ go('beranda'); return; }
+    go('daftar'); },800); }});
+
+/* O5: satu rumah tangga aktif per akun. Diputuskan klien dari keanggotaannya sendiri, tanpa RPC pratinjau. */
+V.punya=()=>({t:'Undangan',k:'sb',h:`
+  <div class="sp"></div>
+  <span class="bigcirc">${ic('house')}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Kamu sudah punya rumah tangga</h1>
+  <p class="lead c">Satu akun hanya bisa berada di satu rumah tangga. Akunmu sekarang anggota ${esc(S.hhName)}.</p>
+  <p class="hint c" style="margin-top:var(--jarak-4)">Untuk bergabung ke rumah tangga lain, keluar dulu dari ${esc(S.hhName)} di Saya, lalu buka undangannya lagi.</p>
+  <div class="grow"></div>
+  <a class="btn abu" href="#beranda" data-act="lepasUndangan">Ke ${esc(S.hhName)}</a>`});
+
+/* SEC-30: satu kalimat untuk setiap sebab, kode maupun tautan */
+V.tidakberlaku=()=>{ const b=S.in?'beranda':'ly01'; return {t:'Undangan',k:'sb',back:b,h:`
+  <div class="sp"></div>
+  <span class="bigcirc">${ic('warn')}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">Undangan ini tidak dapat dipakai</h1>
+  <p class="lead c">Minta undangan baru kepada yang mengundangmu.</p>
+  <div class="grow"></div>
+  <a class="btn abu" href="#${b}">Kembali</a>`}; };
+
+/* Beranda rumah tangga yang baru dimasuki, menunggu pengundang memastikan (SEC-32: tanpa uang atau catatan apa pun) */
+function waitView(tab){ return {t:'Menunggu',k:'app',tab,fab:false,h:`<div class="wrap">${head(S.hhName)}${flashP()}
+  <section class="card" aria-labelledby="mw-t"><div class="khead"><span class="circ">${ic('hourglass')}</span><h2 class="judul-bagian" id="mw-t">Menunggu dikukuhkan</h2></div>
+    <p>${esc(S.name||'Sari')} menunggu dikukuhkan. Kami beri tahu begitu selesai.</p>
+    <p class="hint" style="margin-top:var(--jarak-3)">Sesudah Andi memastikan ini kamu, kamu melihat semua catatan uang bersama rumah tangga ini, termasuk yang dicatat sebelum kamu bergabung. Uang pribadimu tetap hanya kamu yang melihat.</p>
+    <button class="btn garis" style="margin-top:var(--jarak-4)" data-act="batalGabung">Batal bergabung</button></section>
+  ${proto('Andi mengukuhkan','dikukuhkan')}</div>`}; }
+V.menunggu=()=>waitView('beranda');
+
+/* Akun tanpa rumah tangga (keluar dari satu, atau melewati LY-06): kartu kode dan jalan membuat sendiri */
+function berandaTanpaRumah(){ const held=S.held==='undangan';
+  return {t:'Beranda',k:'app',tab:'beranda',fab:false,kol:1,h:`<div class="wrap">${head('Casa')}${flashP()}
+  <div class="cols" data-kol="1"><div class="c1">
+    <section class="card" aria-labelledby="kd-t"><div class="khead"><span class="circ">${ic('users')}</span><h2 class="judul-bagian" id="kd-t">${held?'Kamu diundang ke Rumah Kenanga':'Punya kode undangan?'}</h2></div>
+      <form data-submit="gabung" novalidate class="form-stack" style="margin-top:var(--jarak-4)">
+        ${kodeFld('Kode undangan',S.joinErr)}
+        ${alertP()}
+        <button class="btn biru" type="submit">Gabung</button>
+      </form></section>
+    <section class="card"><div class="khead"><span class="circ">${ic('house')}</span><h2 class="judul-bagian">Belum punya undangan?</h2></div><p>Mulai rumah tangga sendiri, lalu undang yang lain.</p><a class="btn garis" style="margin-top:16px" href="#ly06">Buat rumah tangga</a></section>
+  </div><div class="c2"></div><div class="c3"></div></div>
+  ${held?'':kodeProto()}</div>`}; }
+
+V.ly94=(arg)=>{
+  const T={dicabut:['Kamu sudah keluar','Kamu sudah keluar di perangkat ini, dan data Casa di browser ini sudah dihapus.'],
+           habis:['Waktu masuk habis','Masuk lagi. Catatan yang belum terkirim tetap tersimpan dan terkirim sesudah kamu masuk.'],
+           bersama:['Kamu sudah keluar otomatis','Kamu sudah keluar otomatis. Catatanmu tidak tersimpan di perangkat ini.']}[arg]||[];
+  return {t:'',k:'sb',h:`
+  <div class="sp"></div>
+  <span class="appicon l c">${KNOT}</span>
+  <h1 class="h-sambut c" style="margin-top:24px" tabindex="-1">${T[0]}</h1>
+  <p class="lead c">${T[1]}</p>
+  <div class="grow"></div>
+  <div class="stack"><button class="btn biru" data-act="keMasuk">Masuk</button>${arg==='habis'?'<button class="btn garis" id="akunlain" data-act="akunLain">Masuk dengan akun lain</button>':''}</div>`};
+};
+
+/* Langkah 2 */
+function holderRows(D){
+  const me=S.viewer, pa=other(me);
+  return [me,pa].filter(h=>D.places.some(p=>p.holder===h)).map(h=>{
+    const ps=D.places.filter(p=>p.holder===h);
+    const kinds=[...new Set(ps.map(p=>p.kind))].slice(0,3);
+    const who=h===me?'kamu':PL[h];
+    const kids=D.pending.filter(x=>x.to===h).map(x=>`<div class="hchild"><span class="kecil">${ic('info')}Menunggu ${who} mengonfirmasi</span><span class="angka-baris">${rp(x.amt)}</span></div>`).join('')
+             +D.disputed.filter(x=>x.to===h).map(x=>`<div class="hchild"><span class="kecil">${ic('info')}Sedang dibahas</span><span class="angka-baris">${rp(x.amt)}</span></div>`).join('');
+    return `<div class="hrow"><span class="glyphs">${kinds.map(k=>ic(k)).join('')}</span><span>Dipegang ${who}</span><span class="angka-baris">${rp(sum(ps))}</span></div>${kids}`;
+  }).join('');
+}
+V.beranda=()=>{
+  const D=S.data, me=S.viewer, pa=other(me), n=S.queue.length;
+  if(!S.hh) return berandaTanpaRumah();
+  if(S.waiting) return waitView('beranda');
+  const dr=door();
+  if(S.loading) return {t:'Beranda',k:'app',tab:'beranda',kol:1,h:`<div class="wrap">${head(S.hhName)}<div class="cols" data-kol="1"><div class="c1">
+    <section class="card" aria-busy="true"><div class="khead"><span class="circ">${ic('wallet')}</span><h2 class="judul-bagian">Uang kita</h2></div>
+    <div class="skel" style="width:60%;height:48px"></div><div class="skel" style="width:40%;margin-top:8px"></div><div class="hr"></div>
+    <div class="skel" style="margin:16px 0"></div><div class="skel" style="margin:16px 0"></div>
+    <p class="kecil" role="status">Mengambil catatan rumah tangga…</p></section></div></div></div>`};
+  if(!D.places.length) return {t:'Beranda',k:'app',tab:'beranda',kol:1,h:`<div class="wrap">${head(S.hhName)}${flashP()}<div class="cols" data-kol="1"><div class="c1">
+    ${dr.top}<section class="card"><div class="khead"><span class="circ">${ic('wallet')}</span><h2 class="judul-bagian">Uang kita</h2></div>
+    <div class="empty"><p class="lead" style="color:var(--tinta)">Mulai dari tempat uang yang kamu pegang sekarang.</p><a class="btn hitam" href="#ly09">${ic('plus')}Tambah tempat uang</a></div></section>${dr.bottom}</div></div></div>`};
+  const mineWait=D.pending.filter(x=>x.to===me), theirWait=D.pending.filter(x=>x.to===pa);
+  const menunggu=(mineWait.length||theirWait.length)?`<section class="card"><div class="khead"><span class="circ">${ic('clock')}</span><h2 class="judul-bagian">Menunggu</h2></div>
+    ${mineWait.length?`<h3 class="judul-sub sub">Menunggu kamu</h3>`+mineWait.map(x=>`<div class="mrow"><span><span class="mt">${PL[x.from]} kasih ke kamu</span><span class="ms">Ke ${esc(pname(x.place))}</span></span><span class="angka-baris">${rp(x.amt)}</span></div>
+      <div class="mbtn"><button class="btn hitam k40" data-act="terima" data-id="${x.id}">Sudah terima</button><button class="btn abu k40" data-act="tidakSesuai" data-id="${x.id}">Tidak sesuai</button></div>`).join(''):''}
+    ${theirWait.length?`<h3 class="judul-sub sub">Menunggu ${PL[pa]}</h3>`+theirWait.map(x=>`<div class="mrow"><span><span class="mt">Kasih ke ${PL[pa]}</span><span class="ms">Ke ${esc(pname(x.place))}</span></span><span class="angka-baris">${rp(x.amt)}</span></div>`).join(''):''}
+  </section>`:'';
+  /* kolom 3 (Minggu ini, Anggaran) datang di langkah 3; sampai itu Beranda hanya selebar kolom yang berisi */
+  const kol=menunggu?2:1;
+  return {t:'Beranda',k:'app',tab:'beranda',kol,h:`<div class="wrap">${head(S.hhName)}${flashP()}
+  <div class="cols" data-kol="${kol}"><div class="c1">
+    ${dr.top}<section class="card" aria-labelledby="uk-t"><div class="khead"><span class="circ">${ic('wallet')}</span><h2 class="judul-bagian" id="uk-t">Uang kita</h2></div>
+      <p class="angka-utama">${rpBig(sum(D.places))}</p>
+      <p class="kecil">Bulan ini, 1–30 November</p>
+      ${S.offline||n?`<p class="kecil stamp">Diperbarui di perangkat ini 10.42</p>`:''}
+      ${n?`<button class="antre" data-act="sheet" data-s="antre">${ic('clock')}<span>${n} catatan belum terkirim</span>${ic('right')}</button>`:''}
+      <div class="hr"></div>
+      ${holderRows(D)}
+    </section>
+    <section class="card"><div class="khead"><span class="circ">${ic('lock')}</span><h2 class="judul-bagian">Uang pribadi saya</h2></div>
+      <div class="privrow"><span class="kecil">Hanya kamu yang melihat ini.</span><span class="angka-baris">${rp(D.priv[me])}</span></div></section>
+    ${dr.bottom}
+  </div><div class="c2">${menunggu}</div><div class="c3"></div></div></div>`};
+};
+
+V.ly09=()=>({t:'Tempat uang',k:'sb form',back:'beranda',h:`
+  <h1 class="h-layar" style="margin-top:8px" tabindex="-1">Di mana uang rumah tangga sekarang?</h1>
+  <form data-submit="tempat" novalidate class="form-stack">
+    <fieldset style="border:0;padding:0;margin:0"><legend class="pl" style="margin-bottom:var(--jarak-2)">Jenis</legend>
+      <div class="seg"><label><input type="radio" name="jenis" value="tunai" checked><span>Tunai</span></label><label><input type="radio" name="jenis" value="rekening"><span>Rekening</span></label><label><input type="radio" name="jenis" value="ewallet"><span>E-wallet</span></label></div></fieldset>
+    <fieldset class="tgl" style="margin:0"><legend class="pl">Dipegang siapa?</legend>
+      <div class="chips"><label><input type="radio" name="pegang" value="${S.viewer}" checked><span>${ic('check')}Aku</span></label><label><input type="radio" name="pegang" value="${other(S.viewer)}"><span>${ic('check')}${PL[other(S.viewer)]}</span></label><label><input type="radio" name="pegang" value="bersama"><span>${ic('check')}Bersama</span></label></div></fieldset>
+    <div class="jml-panel"><label for="j9" class="pl">Uang yang ada saat mulai</label><div class="jml-row"><span class="rp">Rp</span><input id="j9" class="jml" inputmode="numeric" autocomplete="off" placeholder="0"><button type="button" class="btn abu nol" data-act="nol" data-for="j9">000<span class="sr">, tambah tiga nol</span></button></div></div>
+    <p class="hint">Akan tampil sebagai "Dompet ${PL[S.viewer]}". Nama pemegang selalu tampil.</p>
+    <button class="btn biru" type="submit">Simpan</button>
+    <button class="btn abu" type="button" data-act="tambahLagi">Simpan dan tambah lagi</button>
+  </form>
+  <a class="tlink c" href="#beranda">Lewati</a>
+  <p class="pnote" style="margin-top:var(--jarak-4)">Prototipe: Simpan mengisi lima tempat uang contoh 07 CTH-01.</p>`});
+
+function kinds(){ const pa=PL[other(S.viewer)]; return {
+  belanja:{label:'Belanja',from:'mine',fromL:'Dibayar dari',cat:true},
+  masuk:{label:'Uang masuk',to:'mine',toL:'Masuk ke'},
+  kasih:{label:'Kasih ke '+pa,from:'mine',fromL:'Dari',to:'theirs',toL:'Ke'},
+  terima:{label:'Terima dari '+pa,from:'theirs',fromL:'Dari',to:'mine',toL:'Ke'},
+  pindah:{label:'Pindah uang',from:'mine',fromL:'Dari',to:'mine',toL:'Ke'}}; }
+function sisaText(){ const d=S.d; if(!d.split) return ''; const t=num(d.amt), s=d.split.reduce((a,r)=>a+num(r.amt),0), x=t-s;
+  if(!t) return 'Tulis jumlah belanja dulu.'; return x>0?'Belum dibagi '+rp(x):x<0?'Lebih '+rp(-x)+' dari jumlah belanja':'Sudah terbagi semua.'; }
+function catatSheet(){
+  const d=S.d, K=kinds(), k=K[d.kind], me=S.viewer, pa=other(me);
+  const mine=S.data.places.filter(p=>p.holder===me), theirs=S.data.places.filter(p=>p.holder===pa);
+  const listFrom=k.from==='mine'?mine:theirs;
+  if(k.from&&!listFrom.some(p=>p.id===d.from)) d.from=(listFrom[0]||{}).id;
+  const listTo=k.to==='mine'?mine.filter(p=>p.id!==d.from):theirs;
+  if(k.to&&!listTo.some(p=>p.id===d.to)) d.to=(listTo[0]||{}).id;
+  const sel=(name,label,list,val)=>`<label class="pilih"><span class="pl">${label}</span><select data-d="${name}">${list.map(p=>`<option value="${p.id}" ${p.id===val?'selected':''}>${esc(p.name)}</option>`).join('')}</select>${ic('down')}</label>`;
+  const catSel=`<label class="pilih"><span class="pl">Kategori</span><select data-d="cat">${CATS.map(c=>`<option ${c===d.cat?'selected':''}>${c}</option>`).join('')}</select>${ic('down')}</label>`;
+  const menu=S.menu?`<div class="menu" role="menu">${Object.keys(K).map(key=>`<button type="button" role="menuitemradio" aria-checked="${key===d.kind}" data-act="kind" data-k="${key}">${key===d.kind?ic('check'):'<span class="ic"></span>'}${K[key].label}</button>`).join('')}</div>`:'';
+  const split=d.split?`<div class="split"><p class="pl">Bagi ke beberapa kategori</p>
+    ${d.split.map((r,i)=>`<div class="srow"><select data-s="${i}" data-f="cat" aria-label="Kategori baris ${i+1}">${CATS.map(c=>`<option ${c===r.cat?'selected':''}>${c}</option>`).join('')}</select><input class="jml-s" data-s="${i}" data-f="amt" inputmode="numeric" autocomplete="off" value="${r.amt}" placeholder="0" aria-label="Jumlah baris ${i+1}"><button type="button" class="ib" data-act="hapusBaris" data-i="${i}" aria-label="Hapus baris ${i+1}">${ic('x')}</button></div>`).join('')}
+    <div class="srow2"><button type="button" class="tlink" data-act="tambahBaris">${ic('plus')}Tambah kategori</button><button type="button" class="btn abu k40" data-act="bagiRata">Bagi rata</button></div>
+    <p class="sisa" id="sisa" aria-live="polite">${sisaText()}</p></div>`:'';
+  const late=d.date!=='hari';
+  return `<div class="scrim" data-act="tutupCatat"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ct-t">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="shead">
+      <button type="button" class="ib" data-act="tutupCatat" aria-label="Tutup">${ic('x')}</button>
+      ${S.edit?`<h2 class="sh-t" id="ct-t">Perbaiki</h2>`:`<div class="menu-wrap"><button type="button" class="chip" id="ct-t" data-act="menu" aria-haspopup="menu" aria-expanded="${S.menu}">${k.label}${ic('down')}</button>${menu}</div>`}
+      <button type="button" class="btn biru" data-act="simpan">Simpan</button>
+    </div>
+    ${d.err?`<p class="galat" role="alert">${ic('warn')}<span>${d.err}</span></p>`:''}
+    ${d.offer?`<div class="draf"><span>Ada isian yang belum disimpan.</span><button type="button" class="tlink" data-act="lanjutDraf">Lanjutkan yang tadi</button><button type="button" class="tlink" data-act="mulaiBaru">Mulai baru</button></div>`:''}
+    <div class="jml-panel"><label for="jml" class="pl">Jumlah</label><div class="jml-row"><span class="rp">Rp</span><input id="jml" class="jml" data-d="amt" inputmode="numeric" autocomplete="off" value="${d.amt}" placeholder="0"><button type="button" class="btn abu nol" data-act="nol" data-for="jml">000<span class="sr">, tambah tiga nol</span></button></div></div>
+    <div class="grup">
+      ${k.from?sel('from',k.fromL,listFrom,d.from):''}
+      ${k.to?sel('to',k.toL,listTo,d.to):''}
+      ${k.cat&&!d.split?catSel:''}
+    </div>
+    ${d.kind==='kasih'?`<p class="ket">${PL[pa]} mengonfirmasi sesudah menerima.</p>`:''}
+    ${split}
+    <fieldset class="tgl"><legend class="pl">Tanggal</legend><div class="chips">
+      <label><input type="radio" name="tgl" value="hari" data-d="date" ${d.date==='hari'?'checked':''}><span>${ic('check')}Hari ini</span></label>
+      <label><input type="radio" name="tgl" value="kemarin" data-d="date" ${d.date==='kemarin'?'checked':''}><span>${ic('check')}Kemarin</span></label>
+      <label><input type="radio" name="tgl" value="pilih" data-d="date" ${d.date==='pilih'?'checked':''}><span>${ic('check')}Pilih tanggal</span></label></div>
+      ${d.date==='pilih'?`<input type="date" class="inp" style="margin-top:var(--jarak-1)" data-d="tgl" value="${d.tgl}" max="2026-11-14" aria-label="Tanggal kejadian">`:''}
+      ${late?`<p class="ket">Catatan untuk tanggal lampau tetap sah.</p>`:''}
+    </fieldset>
+    <details class="rinci" ${d.note||d.split?'open':''}><summary>${ic('down')}Tambah rincian</summary>
+      ${fld('f-note','Catatan',{val:d.note})}
+      ${k.cat&&!d.split?`<button type="button" class="tlink" data-act="bagi">${ic('plus')}Bagi ke beberapa kategori</button>`:''}
+    </details>
+  </div>`; /* satu Simpan, di kepala lembar yang menempel (08 §19.13.5 "Lembar"; §17.8 aturan 4) */
+}
+V.catat=()=>{ const b=V.beranda(); b.t='Catat'; b.extra=catatSheet(); b.focusSel='#jml'; return b; };
+
+V.ly42=(id)=>{
+  const e=S.entries.find(x=>x.id===id)||S.entries[0], K=kinds();
+  const lbl={belanja:'Belanja',masuk:'Uang masuk',kasih:K.kasih.label,terima:K.terima.label,pindah:'Pindah uang'}[e.kind];
+  const done=e.status==='Dibatalkan';
+  return {t:'Rincian catatan',k:'app',tab:'beranda',back:'beranda',h:`<div class="wrap">
+    <div class="kepala"><h1 class="h-layar" tabindex="-1">${esc(e.label)}</h1>${e.status?`<span class="pill">${e.status}</span>`:''}</div>
+    <section class="card">
+      <p class="angka-besar" ${done?'style="text-decoration:line-through;color:var(--tinta-2)"':''}>${rpBig(e.amt)}</p>
+      ${e.queued?`<p class="kecil" style="display:flex;gap:var(--jarak-2);align-items:center">${ic('clock')}Belum terkirim</p>`:''}
+      <div class="hr"></div>
+      <div class="lrow"><span class="k">Jenis</span><span class="v">${lbl}</span></div>
+      ${e.from?`<div class="lrow"><span class="k">Dari</span><span class="v">${esc(pname(e.from))}</span></div>`:''}
+      ${e.to?`<div class="lrow"><span class="k">Ke</span><span class="v">${esc(pname(e.to))}</span></div>`:''}
+      ${e.cat?`<div class="lrow"><span class="k">Kategori</span><span class="v">${esc(e.cat)}</span></div>`:''}
+      <div class="lrow"><span class="k">Tanggal</span><span class="v">${e.date}${e.late?`<br><span class="kecil">dicatat ${e.late} hari kemudian</span>`:''}</span></div>
+      <div class="lrow"><span class="k">Dicatat oleh</span><span class="v">${PL[e.by]}${e.by===S.viewer?' (kamu)':''}</span></div>
+    </section>
+    ${e.hist.length?`<section class="card"><div class="khead"><span class="circ">${ic('clock')}</span><h2 class="judul-bagian">Riwayat</h2></div><ul class="hist">${e.hist.map(h=>`<li>${h}</li>`).join('')}</ul></section>`:''}
+    ${done?'':`<div class="stack"><button class="btn hitam" data-act="perbaiki" data-id="${e.id}">Perbaiki</button><button class="btn garis" data-act="batalkanCatatan" data-id="${e.id}">Batalkan catatan</button></div>`}
+  </div>`};
+};
+const holder=(t,step)=>({t,k:'app',tab:t.toLowerCase(),h:`<div class="wrap">${head(t)}<p class="pnote">Prototipe: layar ${t} dibangun di langkah ${step}.</p></div>`});
+V.uang=()=>S.waiting?waitView('uang'):holder('Uang',3);
+V.chat=()=>S.waiting?waitView('chat'):holder('Chat',5);
+V.saya=()=>({t:'Saya',k:'app',tab:'saya',h:`<div class="wrap">${head('Saya')}<p class="pnote">Prototipe: layar Saya dibangun di langkah 6.</p>
+  <section class="card"><div class="lrow"><span>Perangkat ini</span><span class="v">${S.mode==='bersama'?'Perangkat bersama':'Perangkat pribadi'}</span></div></section>
+  <button class="btn garis" data-act="keluar">${ic('out')}Keluar akun</button></div>`});
+
+/* ---------- Kerangka, lapisan, render ---------- */
+const TABS=[['beranda','house','Beranda'],['uang','wallet','Uang'],['chat','chat','Chat'],['saya','user','Saya']];
+function nav(t,fab){
+  return `<div class="nav"><span class="nk appicon s">${KNOT}</span><span class="nb">Casa</span>
+  ${fab?`<button type="button" class="catat" data-act="catat" aria-label="Catat"><span class="fab">${ic('plus')}</span><span class="lbl" aria-hidden="true">Catat</span></button>`:''}
+  <nav class="tabs" aria-label="Tujuan utama">${TABS.map(([r,i,l])=>`<a class="tab${r===t?' on':''}" href="#${r}" ${r===t?'aria-current="page"':''}><span class="pil">${ic(r===t?i+'-f':i)}<span>${l}</span></span></a>`).join('')}</nav></div>`;
+}
+function statusRow(){
+  let t='', i='warn';
+  if(S.offline){ i='cloud'; t=S.mode==='bersama'?'Belum tersambung. Di perangkat bersama, catatan tidak disimpan di perangkat ini.':'Belum tersambung. Catatan dan pesan tersimpan di perangkat ini dan terkirim nanti.'; }
+  else if(S.srvErr) t='Ada gangguan di server. Catatanmu aman di perangkat ini; kami coba lagi otomatis.';
+  return `<p class="status" role="status">${t?ic(i)+'<span>'+t+'</span>':''}</p>`;
+}
+function wrap(v){
+  const bar=S.in&&S.mode==='bersama'?`<div class="bbar">${ic('users')}<span>Perangkat bersama</span><span aria-hidden="true">·</span><button type="button" class="tlink" data-act="keluar">Keluar akun</button></div>`:'';
+  if(v.k.indexOf('sb')===0) return `${bar?`<div class="bbar-fix">${bar}</div>`:''}<main class="sb ${v.k.slice(2)}${bar?' hasbar':''}" id="isi">${v.back?`<a class="back" href="#${v.back}" aria-label="Kembali">${ic('left-b')}</a>`:''}${v.h}</main>`;
+  return `<div class="app${v.fab===false?' nofab':''}">${nav(v.tab,v.fab!==false)}<main class="isi" id="isi"><div class="kolom" data-kol="${v.kol||1}">${bar}${statusRow()}${v.back?`<a class="back" href="#${v.back}" aria-label="Kembali">${ic('left-b')}</a>`:''}${v.h}</div></main></div>`;
+}
+function overlays(){
+  let h='';
+  if(S.sheet==='beda') h+=sheetBox('Apa bedanya?',`
+    <div class="lrow" style="align-items:flex-start"><span class="circ">${ic('user')}</span><span style="flex:1"><b>Perangkat pribadiku</b><br><span class="hint">Salinan catatan tersimpan di browser perangkat ini. Siapa pun yang bisa membuka browser ini dapat membaca salinan itu. Bisa memakai pemberitahuan dan kunci aplikasi.</span></span></div>
+    <div class="lrow" style="align-items:flex-start"><span class="circ">${ic('users')}</span><span style="flex:1"><b>Perangkat bersama</b><br><span class="hint">Catatanmu tidak disimpan di perangkat ini. Kamu keluar otomatis sesudah 30 menit tidak dipakai, dan paling lama 12 jam. Mencatat perlu internet. Jangan simpan kata sandi di browser perangkat ini.</span></span></div>
+    <button class="btn abu" style="margin-top:var(--jarak-6)" data-act="tutupSheet">Tutup</button>`);
+  if(S.sheet==='antre') h+=sheetBox('Belum terkirim',`
+    ${S.queue.map(e=>`<div class="lrow"><span style="display:flex;gap:8px;align-items:center">${ic('clock')}${esc(e.label)}</span><span class="angka-baris">${rp(e.amt)}</span></div>`).join('')}
+    ${S.ctx!=='app'?`<p class="hint" style="margin-top:var(--jarak-2)">Catatan ini bisa hilang kalau browser menghapus data situs. Buka Casa saat tersambung supaya terkirim.</p>`:''}
+    <button class="btn abu" style="margin-top:var(--jarak-6)" data-act="tutupSheet">Tutup</button>`);
+  if(S.dlg){ const d=S.dlg; h+=`<div class="scrim d" data-act="tutupDlg"></div><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dl-t" aria-describedby="dl-b"><h2 class="judul-bagian" id="dl-t">${d.t}</h2>${d.b?`<p id="dl-b">${d.b}</p>`:''}${d.why?`<p class="hint">${d.why}</p>`:''}<div class="dlg-btn"><button class="btn abu" data-act="tutupDlg">${d.no}</button><button class="btn hitam" data-act="dlgOk" ${d.why?'disabled':''}>${d.ok}</button></div></div>`; }
+  if(S.snack){ const s=S.snack; h+=`<div class="snack" role="status"><span>${s.text}</span>${s.view?`<a class="sa" href="#ly42/${s.view}">Lihat</a>`:''}${s.undo?`<button type="button" class="sa" data-act="urungkan">${ic('undo')}Urungkan</button>`:''}</div>`; }
+  return h;
+}
+const sheetBox=(t,b)=>`<div class="scrim" data-act="tutupSheet"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div class="grab" aria-hidden="true"></div><div class="shead2"><h2 class="judul-bagian" id="sh-t">${t}</h2><button type="button" class="ib" data-act="tutupSheet" aria-label="Tutup">${ic('x')}</button></div>${b}</div>`;
+
+let lastRoute='';
+function render(navd){
+  const [name,arg]=route();
+  const f=V[name]||V[start()];
+  const v=f(arg);
+  document.title='Casa'+(v.t?' · '+v.t:''); /* SEC-175 (a): tanpa nama, email, atau angka */
+  $('#app').innerHTML=wrap(v)+(v.extra||'')+overlays();
+  if(v.after) v.after();
+  const key=location.hash;
+  if(navd||key!==lastRoute){
+    lastRoute=key;
+    if(v.focusSel){ const el=$(v.focusSel); el&&el.focus({preventScroll:true}); }
+    else { window.scrollTo(0,0); const h=$('#isi h1'); h&&h.focus({preventScroll:true}); }
+  }
+  if(S.dlg){ const b=$('.dialog .btn.abu'); b&&b.focus(); }
+  else if(S.sheet){ const b=$('.sheet .ib'); b&&b.focus(); }
+}
+window.addEventListener('hashchange',()=>{ S.menu=false; S.sheet=null; S.dlg=null; render(true); });
+
+/* ---------- Uang: perubahan hanya disimulasikan sebagai jawaban server ---------- */
+function applyE(e,sign=1){ /* ponytail: simulasi angka server sesudah jeda; aplikasi asli tidak menghitung (ADR-013) */
+  const D=S.data;
+  if(e.from&&P(e.from)) P(e.from).amt-=sign*e.amt;
+  if(e.to&&P(e.to)) P(e.to).amt+=sign*e.amt;
+  if(e.kind==='kasih'){ if(sign>0) D.pending.push({id:'h'+e.id,from:e.by,to:other(e.by),amt:e.amt,place:e.to}); else D.pending=D.pending.filter(x=>x.id!=='h'+e.id); }
+  e.applied=sign>0;
+}
+let snackT=null;
+function snack(text,o={}){
+  clearTimeout(snackT); if(S.snack&&S.snack.commit) S.snack.commit();
+  S.snack={text,view:o.view,undo:o.undo,commit:o.commit};
+  snackT=setTimeout(()=>{ const s=S.snack; S.snack=null; if(s&&s.commit) s.commit(); if(route()[0]==='catat'){ const el=$('.snack'); el&&el.remove(); } else render(); },5000);
+}
+function flushQueue(){ S.queue.forEach(e=>{ e.queued=false; applyE(e); }); S.queue=[]; }
+
+/* ---------- Tindakan ---------- */
+const A={};
+A.show=b=>{ const i=document.getElementById(b.dataset.for); const s=i.type==='password'; i.type=s?'text':'password'; b.innerHTML=ic(s?'eye-x':'eye'); b.setAttribute('aria-pressed',String(s)); b.setAttribute('aria-label',s?'Sembunyikan kata sandi':'Tampilkan kata sandi'); };
+A.isi=b=>{ const i=$('#f-kode'); i.value=b.dataset.v; setErr('f-kode',''); i.focus(); };
+A.lepasKode=()=>{ S.held=null; render(); const i=$('#f-kode'); i&&i.focus(); };
+A.lewatBersama=()=>{ S.mode='bersama'; go('ly01'); };
+A.dariIkon=()=>{ S.ctx='app'; S.held=null; S.mode=null; sync(); go('ly01'); };
+/* Di tab browser pertanyaan mode mendahului isian kata sandi baru (Buat akun, Lupa kata sandi); di aplikasi terpasang mode pribadi otomatis */
+const perluMode=()=>S.ctx!=='app'&&!S.mode;
+A.keDaftar=()=>go('daftar'); /* v6: LY-91 tidak lagi mendahului Buat akun; ia muncul sesudah kode email benar, sebelum isian kata sandi */
+A.keLupa=()=>{ if(perluMode()){ S.after='lupa'; go('ly91'); } else go('lupa'); };
+A.gantiEmail=b=>{ clearInterval(V.kode.t); S.kmode=''; S.kbatas=false; S.kerr=''; go(b.getAttribute('href').slice(1)); };
+A.isiKode=b=>{ const i=$('#f-ko'); if(!i||i.readOnly) return; i.value=b.dataset.v; i.dispatchEvent(new Event('input',{bubbles:true})); };
+A.lewatHitung=()=>{ S.kcount=0; render(); };
+A.kirimUlang=b=>busy(b,()=>{ S.kcount=60; S.kerr=''; S.kbatas=false; S.kmode=''; S.flash='Kode baru sudah dikirim.'; render(); });
+A.bersamaLink=()=>{ S.mode='bersama'; render(); };
+A.batalBersama=()=>{ S.mode=null; render(); };
+/* Apple/Google: klik mensimulasikan persetujuan di penyedia; akun baru ke Lengkapi akun, akun yang sudah ada langsung masuk */
+A.prov=b=>{ if(S.offline) return; b.disabled=true; b.setAttribute('aria-busy','true'); setTimeout(()=>{
+  S.prov=b.dataset.p; S.name='Sari'; S.hh=false; S.age=false; S.notice=false; S.waiting=false; S.joinErr=null; S.cred.pw='';
+  if(perluMode()){ S.after='prov'; go('ly91'); } else go('lengkapi'); },550); };
+A.provAda=()=>{ S.hh=true; S.age=true; S.notice=true; S.waiting=false; if(perluMode()){ S.after='masuk'; go('ly91'); } else finishSignIn(); };
+A.mode=b=>{ S.mode=b.dataset.m; sync(); const a=S.after; if(a==='prov'){ S.after=null; go('lengkapi'); } else if(a==='sandi'||a==='lupa'){ S.after=null; go(a==='sandi'?'buatsandi':a); } else finishSignIn(); };
+A.sheet=b=>{ S.sheet=b.dataset.s; render(); };
+A.tutupSheet=()=>{ S.sheet=null; render(); };
+A.tutupDlg=()=>{ const f=S.dlg&&S.dlg.ret; S.dlg=null; render(); if(f){ const el=document.getElementById(f); el&&el.focus(); } };
+A.dlgOk=()=>{ const d=S.dlg; S.dlg=null; d.fn(); };
+/* Sesudah LY-04 dan LY-05: pendaftaran yang membawa undangan langsung bergabung (F02, lalu F04: menunggu pengundang);
+   kode yang ditolak: akun tetap ada, Beranda tanpa rumah tangga dengan galat di kartu kode (10.4 butir 7);
+   tautan yang dipegang sesudah Masuk ke Beranda dengan kartu; selain itu LY-06 */
+function afterOnboarding(){
+  if(S.carried&&S.kodeLapsed){ S.carried=false; S.kodeLapsed=false; S.held=null; S.joinErr=TIDAK_BERLAKU; S.hh=false; return 'beranda'; }
+  if(S.carried){ S.carried=false; S.held=null; S.waiting=true; S.hh=true; S.hhName='Rumah Kenanga'; return 'menunggu'; }
+  return S.held==='undangan'?'beranda':'ly06';
+}
+A.usia=()=>{ S.age=true; go(S.notice?afterOnboarding():'ly05'); };
+A.baca=()=>{ S.notice=true; go(afterOnboarding()); };
+A.lepasUndangan=b=>{ S.held=null; go(b.getAttribute('href').slice(1)); };
+A.cobaLagi=b=>{ b.disabled=true; b.setAttribute('aria-busy','true'); b.textContent='Mencoba…'; setTimeout(render,700); };
+A.bagikan=()=>{ S.rumah='open'; S.flash=S.ctx==='app'?null:'Pesan undangan sudah disalin. Tempel di pesan untuk orang yang kamu undang.'; go('ly07open'); };
+A.batalUndangan=()=>{ S.dlg={t:'Batalkan undangan?',b:'Tautan dan kode yang sudah kamu kirim tidak bisa dipakai lagi. Kamu bisa membuat undangan baru kapan saja.',ok:'Batalkan undangan',no:'Biarkan terbuka',fn:()=>{ S.rumah='solo'; S.flash='Undangan dibatalkan.'; go('beranda'); }}; render(); };
+A.diterima=()=>{ S.rumah='accepted'; go('beranda'); };
+A.kukuhkan=b=>busy(b,()=>{ S.rumah='joined'; S.flash=PL[other(S.viewer)]+' sudah menjadi anggota.'; go('beranda'); });
+A.bukanDia=()=>{ const pa=PL[other(S.viewer)]; S.dlg={t:'Bukan orang yang kamu undang?',b:pa+' tidak bergabung, dan undangan ini berakhir. Kamu bisa membuat undangan baru.',ok:'Bukan dia',no:'Kembali',fn:()=>{ S.rumah='solo'; S.flash='Undangan berakhir. Kamu bisa membuat undangan baru.'; go('beranda'); }}; render(); };
+A.batalGabung=()=>{ S.dlg={t:'Batal bergabung?',b:'Untuk bergabung nanti, kamu perlu undangan baru.',ok:'Batal bergabung',no:'Tetap menunggu',fn:()=>{ S.held=null; S.waiting=false; S.hh=false; S.flash='Kamu batal bergabung.'; go('beranda'); }}; render(); };
+A.dikukuhkan=()=>{ S.waiting=false; S.hh=true; S.held=null; S.rumah='joined'; S.viewer='sari'; S.data=preset('cth08'); S.flash='Kamu sudah menjadi anggota Rumah Kenanga.'; sync(); go('beranda'); };
+A.keMasuk=()=>{ S.in=false; S.mode=null; sync(); go(S.ctx==='safari'?'ly90':'ly02'); };
+A.akunLain=()=>{ S.dlg={t:'Masuk dengan akun lain?',b:'Data Casa di perangkat ini akan dihapus, termasuk 2 catatan yang belum terkirim.',ok:'Hapus dan masuk',no:'Kembali',ret:'akunlain',fn:()=>{ S.queue=[]; S.cred={email:'',pw:''}; S.in=false; S.mode=null; go('ly02'); }}; render(); };
+A.keluar=()=>{ const n=S.queue.length; S.dlg={t:'Keluar akun?',b:'Data Casa di perangkat ini akan dihapus.'+(n?` ${n} catatan di perangkat ini belum terkirim dan tidak akan masuk kalau kamu keluar sekarang.`:''),why:S.offline?'Keluar akun perlu sambungan internet.':'',ok:'Keluar akun',no:'Tetap masuk',fn:()=>{ S.in=false; S.mode=null; S.queue=[]; sync(); go(start()); }}; render(); };
+A.tambahLagi=()=>{ const i=$('#j9'); i.value=''; i.focus(); S.flash=null; const f=document.querySelector('[data-submit=tempat]'); f.querySelector('input[name=jenis]').checked=true; };
+
+/* Catat */
+A.catat=()=>{ if(!S.data.places.length){ go('ly09'); return; } S.edit=null; if(S.d.amt) S.d.offer=true; go('catat'); };
+A.tutupCatat=()=>{ S.menu=false; S.edit=null; go('beranda'); };
+A.lanjutDraf=()=>{ S.d.offer=false; render(); };
+A.mulaiBaru=()=>{ S.d=newDraft(S.d.kind); render(); };
+A.menu=()=>{ S.menu=!S.menu; render(); const m=$('.menu button[aria-checked=true]'); m&&m.focus(); };
+A.kind=b=>{ S.menu=false; const amt=S.d.amt; S.d=newDraft(b.dataset.k); S.d.amt=amt; render(); $('#ct-t').focus(); };
+A.nol=b=>{ const i=document.getElementById(b.dataset.for); const v=num(i.value); if(v){ i.value=fmtIn(String(v)+'000'); i.dispatchEvent(new Event('input',{bubbles:true})); } i.focus(); };
+A.bagi=()=>{ S.d.split=[{cat:S.d.cat,amt:''},{cat:CATS[1],amt:''}]; render(); };
+A.tambahBaris=()=>{ S.d.split.push({cat:CATS[2],amt:''}); render(); };
+A.hapusBaris=b=>{ const s=S.d.split; s.splice(+b.dataset.i,1); if(s.length<2){ S.d.cat=(s[0]||{}).cat||S.d.cat; S.d.split=null; } render(); };
+A.bagiRata=()=>{ const t=num(S.d.amt), s=S.d.split, n=s.length; if(!t) return render(); const base=Math.floor(t/n), rem=t-base*n;
+  s.forEach((r,i)=>r.amt=fmtIn(String(i===0?base+rem:base))); render(); };  /* sisa bagi di baris pertama (14 §4.5) */
+const TODAY=new Date(2026,10,14);
+function dateText(d){ if(d.date==='hari') return 'Sabtu, 14 November 2026'; if(d.date==='kemarin') return 'Jumat, 13 November 2026';
+  if(!d.tgl) return 'Sabtu, 14 November 2026'; return new Date(d.tgl+'T00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function lateDays(d){ if(d.date==='kemarin') return 1; if(d.date==='pilih'&&d.tgl) return Math.max(0,Math.round((TODAY-new Date(d.tgl+'T00:00'))/864e5)); return 0; }
+A.simpan=()=>{
+  const d=S.d, K=kinds(), k=K[d.kind], amt=num(d.amt);
+  d.err='';
+  if(!amt) d.err='Tulis jumlahnya dulu.';
+  else if(d.split&&d.split.reduce((a,r)=>a+num(r.amt),0)!==amt) d.err='Jumlah per kategori belum sama dengan jumlah belanja.';
+  else if(S.mode==='bersama'&&S.offline) d.err='Catatan belum tersimpan karena belum tersambung. Isianmu masih di sini; Simpan lagi saat tersambung.';
+  if(d.err){ render(); if(!amt){ const j=$('#jml'); j&&j.focus(); } return; }
+  if(S.edit){
+    const e=S.entries.find(x=>x.id===S.edit), old=e.amt, wasApplied=e.applied;
+    if(wasApplied) applyE(e,-1);
+    e.amt=amt; e.status='Diperbaiki'; e.hist.unshift(`Diperbaiki oleh ${PL[S.viewer]}: ${rp(old)} jadi ${rp(amt)} · Sab, 14 Nov`);
+    if(wasApplied) applyE(e,1);
+    S.edit=null; S.d=newDraft();
+    snack('Catatan diperbaiki.',{undo:()=>{ if(e.applied) applyE(e,-1); e.amt=old; e.status=null; e.hist.shift(); if(wasApplied) applyE(e,1); }});
+    go('ly42/'+e.id); return;
+  }
+  const cat=k.cat?(d.split?d.split.map(r=>r.cat).join(', '):d.cat):null;
+  const e={id:'e'+(++S.seq),kind:d.kind,label:d.note||(d.kind==='belanja'?cat:k.label),amt,from:k.from?d.from:null,to:k.to?d.to:null,cat,
+    date:dateText(d),late:lateDays(d),by:S.viewer,status:null,hist:[],applied:false,queued:S.offline};
+  S.entries.push(e); S.d=newDraft();
+  snack(`${k.label} ${rp(amt)} tersimpan.`,{view:e.id,
+    undo:()=>{ S.entries=S.entries.filter(x=>x!==e); },
+    commit:()=>{ if(e.queued) S.queue.push(e); else applyE(e); }});
+  go('beranda');
+};
+A.urungkan=()=>{ clearTimeout(snackT); const s=S.snack; S.snack=null; if(s&&s.undo) s.undo(); render(); };
+A.perbaiki=b=>{ const e=S.entries.find(x=>x.id===b.dataset.id); S.edit=e.id;
+  S.d=Object.assign(newDraft(e.kind),{amt:fmtIn(String(e.amt)),from:e.from,to:e.to,cat:e.cat&&CATS.includes(e.cat)?e.cat:CATS[0],note:e.label!==e.cat?e.label:''});
+  go('catat'); };
+A.batalkanCatatan=b=>{ const e=S.entries.find(x=>x.id===b.dataset.id);
+  S.dlg={t:'Batalkan catatan ini?',b:'Catatan tetap ada di riwayat dengan tanda Dibatalkan, dan jumlahnya tidak dihitung lagi.',ok:'Batalkan catatan',no:'Kembali',fn:()=>{
+    const was=e.applied; e.status='Dibatalkan'; e.hist.unshift(`Dibatalkan oleh ${PL[S.viewer]} · Sab, 14 Nov`);
+    snack('Catatan dibatalkan.',{undo:()=>{ e.status=null; e.hist.shift(); },commit:()=>{ if(was) applyE(e,-1); }}); render(); }}; render(); };
+A.terima=b=>{ const D=S.data, x=D.pending.find(p=>p.id===b.dataset.id); D.pending=D.pending.filter(p=>p!==x);
+  snack(`${rp(x.amt)} dari ${PL[x.from]} sudah kamu terima.`,{undo:()=>D.pending.push(x)}); render(); };
+A.tidakSesuai=b=>{ const D=S.data, x=D.pending.find(p=>p.id===b.dataset.id);
+  S.dlg={t:'Tandai tidak sesuai?',b:`${PL[x.from]} akan melihat bahwa ${rp(x.amt)} ini belum sesuai dengan yang kamu terima. Kalian bisa membahasnya.`,ok:'Tandai tidak sesuai',no:'Kembali',fn:()=>{
+    D.pending=D.pending.filter(p=>p!==x); D.disputed.push(x); snack('Ditandai tidak sesuai.',{undo:()=>{ D.disputed=D.disputed.filter(p=>p!==x); D.pending.push(x); }}); render(); }}; render(); };
+
+/* Formulir */
+const F={};
+F.masuk=f=>{
+  const em=$('#f-email').value.trim(), pw=$('#f-pw').value;
+  const okE=setErr('f-email',em.indexOf('@')<1?'Tulis email lengkap, misalnya nama@contoh.id.':'');
+  const okP=okE?setErr('f-pw',pw?'':'Tulis kata sandimu.'):true;
+  if(!okE||!okP) return;
+  S.cred={email:em,pw}; S.err=null;
+  if(S.offline){ alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.'); return; }
+  if(S.ctx==='tab'&&!S.mode){ S.after='masuk'; go('ly91'); return; } /* tanpa RPC sebelum pilihan diketuk */
+  busy(f.querySelector('[type=submit]'),finishSignIn);
+};
+function finishSignIn(){
+  if(S.reject){ S.reject=false; S.err='rejected'; S.cred.pw=''; go('ly02'); return; }
+  S.err=null; S.after=null; S.in=true; if(!S.mode) S.mode='pribadi'; sync();
+  if(S.held==='undangan'&&S.hh){ go('punya'); return; }
+  if(S.waiting){ go('menunggu'); return; }
+  if(S.hh){ go('beranda'); return; }
+  /* akun yang sudah selesai LY-04 dan LY-05 tetapi tanpa rumah tangga masuk ke Beranda dengan kartu kode */
+  go(!S.age?'ly04':!S.notice?'ly05':'beranda');
+}
+const TIDAK_BERLAKU='Undangan ini tidak dapat dipakai. Minta undangan baru kepada yang mengundangmu.'; /* SEC-30, §7.2 */
+/* Buat akun: server hanya menerima email di sini; kata sandi, nama, dan kode dipegang di memori layar sampai kode email benar (10.4 butir 1, 7).
+   Kode undangan tidak diperiksa di sini: ditolak sesudah akun jadi (kartu kode di Beranda). */
+const sandiUmum=p=>/password|1234567890|qwertyuiop/i.test(p);
+F.daftar=f=>{ const em=$('#f-email').value.trim(), dn=$('#f-dn').value.trim();
+  if(!setErr('f-email',!/^\S+@\S+\.\S+$/.test(em)?'Tulis email lengkap, misalnya nama@contoh.id.':'')) return;
+  if(!setErr('f-dn',!dn?'Tulis nama panggilanmu.':dn.length>40?'Nama paling banyak 40 karakter.':'')) return;
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{
+    S.email=em; S.name=dn; S.cred.pw=''; S.hh=false; S.age=false; S.notice=false; S.waiting=false; S.joinErr=null;
+    S.kj='daftar'; S.kcount=60; S.kerr=''; S.kmode=''; S.kbatas=false; go('kode'); }); };
+/* Buat kata sandi: kata sandi, konfirmasi, kode undangan (kalau ada). Daftar blokir diperiksa di sini (10.4 butir 4 (d)). */
+F.buatsandi=f=>{ const pw=$('#f-pw').value, pw2=$('#f-pw2').value, held=S.held==='undangan';
+  if(!setErr('f-pw',pw.length<12?'Kata sandi paling sedikit 12 karakter.':pw.length>1024?'Kata sandi ini terlalu panjang. Pakai paling banyak 1.024 karakter.':sandiUmum(pw)?'Kata sandi ini terlalu umum. Pilih yang lain.':'')) return;
+  if(!setErr('f-pw2',pw2!==pw?'Kata sandi tidak sama':'')) return;
+  const raw=held?'':$('#f-kode').value.trim(); let k=null;
+  if(raw){ k=kodeDari(raw); if(!k) return setErr('f-kode',FORMAT_KODE); }
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{
+    S.carried=held||!!k; S.kodeLapsed=!!k&&k===KODE_UNDANGAN.kadaluwarsa; S.viewer=S.carried?'sari':'andi'; /* prototipe: pengundang Andi, penerima Sari */
+    akunLahir(); }); };
+F.lengkapi=f=>{ const dn=$('#f-dn').value.trim(), held=S.held==='undangan';
+  if(!setErr('f-dn',!dn?'Tulis nama panggilanmu.':dn.length>40?'Nama paling banyak 40 karakter.':'')) return;
+  const raw=held?'':$('#f-kode').value.trim(); let k=null;
+  if(raw){ k=kodeDari(raw); if(!k) return setErr('f-kode',FORMAT_KODE); }
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{ S.name=dn;
+    S.carried=held||!!k; S.kodeLapsed=!!k&&k===KODE_UNDANGAN.kadaluwarsa; S.viewer=S.carried?'sari':'andi';
+    akunLahir(); }); };
+F.lupa=f=>{ const em=$('#f-email').value.trim();
+  if(!setErr('f-email',!/^\S+@\S+\.\S+$/.test(em)?'Tulis email lengkap, misalnya nama@contoh.id.':'')) return;
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{ S.email=em; S.kj='pulih'; S.kcount=60; S.kerr=''; S.kmode=''; S.kbatas=false; go('kode'); }); };
+/* Akun lahir (pendaftaran): LY-04 berikutnya. */
+function akunLahir(){ S.hh=false; S.age=false; S.notice=false; S.versi='umum'; S.in=true; if(!S.mode) S.mode='pribadi'; S.cred.pw=''; sync(); go('ly04'); }
+/* Kode diketik penuh (otomatis terkirim) atau Enter. Jawaban server disimulasikan menurut angka kode; galat satu kalimat pendek. */
+F.kode=f=>{ const j=KJ(), i=$('#f-ko');
+  const v=i.value.replace(/\D/g,'');
+  if(v.length!==j.n) return setErr('f-ko',`Kode terdiri dari ${j.n} angka.`);
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  i.readOnly=true; i.setAttribute('aria-busy','true');
+  setTimeout(()=>{ if(route()[0]!=='kode') return; i.readOnly=false; i.removeAttribute('aria-busy');
+    if(v===j.batas){ S.kbatas=true; S.kerr=''; render(); return; }
+    if(v===j.lewat){ S.kcount=0; S.kerr='Kode sudah tidak berlaku. Kirim ulang.'; render(); const x=$('#f-ko'); x&&x.focus(); return; }
+    if(v!==j.benar){ i.value=''; S.kerr='Kode salah.'; setErr('f-ko',S.kerr); return; }
+    S.kerr='';
+    if(S.kj==='pulih'){ go('sandibaru'); return; }
+    if(perluMode()){ S.after='sandi'; go('ly91'); return; } /* tab browser: LY-91 mendahului isian kata sandi apa pun */
+    go('buatsandi'); },550); };
+F.sandibaru=f=>{ const p=$('#f-pw').value;
+  if(!setErr('f-pw',p.length<12?'Kata sandi paling sedikit 12 karakter.':p.length>1024?'Kata sandi ini terlalu panjang. Pakai paling banyak 1.024 karakter.':sandiUmum(p)?'Kata sandi ini terlalu umum. Pilih yang lain.':'')) return;
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{ S.in=true; if(!S.mode) S.mode='pribadi'; S.hh=true; S.age=true; S.notice=true; S.waiting=false; S.joinErr=null; S.cred.pw=''; S.flash='Kata sandi baru tersimpan. Perangkat lain keluar otomatis.'; sync(); go('beranda'); }); };
+/* Kartu "Punya kode undangan?" di Beranda akun tanpa rumah tangga */
+F.gabung=f=>{ const held=S.held==='undangan'; let k=null;
+  if(!held){ k=kodeDari($('#f-kode').value); if(!k) return setErr('f-kode',FORMAT_KODE); }
+  if(S.offline) return alertMsg('Ini perlu sambungan internet. Coba lagi saat tersambung.');
+  busy(f.querySelector('[type=submit]'),()=>{
+    if(!held&&S.rl) return alertMsg(KODE_RL);
+    if(k===KODE_UNDANGAN.kadaluwarsa) return setErr('f-kode',TIDAK_BERLAKU);
+    S.held=null; S.joinErr=null; S.waiting=true; S.hh=true; S.hhName='Rumah Kenanga'; S.viewer='sari'; go('menunggu'); }); };
+F.rt=f=>{ const n=$('#f-nama').value.trim();
+  if(!setErr('f-nama',!n?'Tulis nama rumah tangga.':n.length>60?'Nama rumah tangga paling banyak 60 karakter.':'')) return;
+  busy(f.querySelector('[type=submit]'),()=>{ S.hhName=n; S.hh=true; S.waiting=false; S.rumah='solo'; S.data=preset('kosong'); go('beranda'); }); };
+F.tempat=f=>{ S.data=preset('cth01'); go('beranda'); };
+
+/* ---------- Peristiwa ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tog] button'); if(t){ setTog(t.parentElement.dataset.tog,t.dataset.v); return; }
+  const j=e.target.closest('[data-jump]'); if(j){ applySet(((j.closest('ul')||{dataset:{}}).dataset.base||'')+';'+(j.dataset.set||'')); togglePt(false); go(j.dataset.jump); return; }
+  if(e.target.closest('[data-pt=tutup]')){ togglePt(false); return; }
+  const a=e.target.closest('[data-act]'); if(a&&A[a.dataset.act]){ e.preventDefault(); A[a.dataset.act](a); return; }
+  if(S.menu&&!e.target.closest('.menu-wrap')){ S.menu=false; render(); }
+});
+document.addEventListener('submit',e=>{ const f=e.target.closest('[data-submit]'); if(!f) return; e.preventDefault(); F[f.dataset.submit](f); });
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.classList.contains('jml')||t.classList.contains('jml-s')){ const v=fmtIn(t.value); if(t.value!==v) t.value=v; }
+  if(t.dataset.d){ if(t.type!=='radio') S.d[t.dataset.d]=t.value; }
+  if(t.id==='f-note') S.d.note=t.value;
+  if(t.dataset.s!==undefined&&t.dataset.f==='amt') S.d.split[+t.dataset.s].amt=t.value;
+  if((t.dataset.d==='amt'||t.dataset.f==='amt')&&S.d.split){ const s=$('#sisa'); if(s) s.textContent=sisaText(); }
+  if(t.id==='f-email'||t.id==='f-pw'||t.id==='f-kode'||t.id==='f-dn') setErr(t.id,'');
+  if(t.id==='f-ko'&&!t.readOnly){ const n=KJ().n, v=t.value.replace(/\D/g,'').slice(0,n); if(t.value!==v) t.value=v; S.kerr=''; setErr('f-ko',''); /* terkirim otomatis pada angka terakhir */
+    if(v.length===n) setTimeout(()=>{ const f=t.closest('form'); f&&route()[0]==='kode'&&F.kode(f); },0); }
+  if(t.id==='f-kode') alertMsg('');
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='usia') $('#lanjut').disabled=!t.checked;
+  if(t.id==='baca') $('#lanjut').disabled=!t.checked;
+  if(t.dataset.s!==undefined&&t.dataset.f==='cat'){ S.d.split[+t.dataset.s].cat=t.value; }
+  if(t.dataset.d&&t.tagName==='SELECT'){ S.d[t.dataset.d]=t.value; if(t.dataset.d==='from') render(); }
+  if(t.name==='tgl'){ S.d.date=t.value; render(); }
+});
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  if(!$('#pt').hidden) return togglePt(false);
+  if(S.dlg) return A.tutupDlg(); if(S.menu){ S.menu=false; render(); return; } if(S.sheet) return A.tutupSheet(); if(route()[0]==='catat') A.tutupCatat(); });
+
+/* ---------- Alat prototipe ---------- */
+function togglePt(open){ $('#pt').hidden=!open; $('#pt-btn').setAttribute('aria-expanded',open); if(open) $('#pt .x').focus(); else $('#pt-btn').focus(); }
+$('#pt-btn').addEventListener('click',()=>togglePt($('#pt').hidden));
+function applySet(s){
+  S.sheet=null; S.dlg=null; S.menu=false; S.err=null; S.edit=null; S.flash=null; S.joinErr=null; S.kerr=''; S.kmode=''; S.kbatas=false; S.kodeLapsed=false; clearInterval(V.kode.t);
+  s.split(';').filter(Boolean).forEach(p=>{ let [k,v]=p.split('='); if(v==='true') v=true; else if(v==='false') v=false; else if(v==='') v=null;
+    if(k==='data') S.data=preset(v);
+    else if(k==='kcount') S.kcount=+v;
+    else if(k==='kind') S.d=newDraft(v);
+    else if(k==='split'){ S.d.amt='150.000'; S.d.split=[{cat:CATS[0],amt:''},{cat:CATS[1],amt:''}]; }
+    else S[k]=v; });
+  if(S.in&&!S.mode) S.mode='pribadi';
+  sync();
+}
+function setTog(k,v){
+  if(k==='tema'){ if(v) document.documentElement.dataset.tema=v; else delete document.documentElement.dataset.tema; }
+  else if(k==='offline'){ const was=S.offline; S.offline=v==='1'; if(was&&!S.offline) flushQueue(); }
+  else S[k]=v;
+  sync(); render();
+}
+function sync(){
+  const cur={ctx:S.ctx,tema:document.documentElement.dataset.tema||'',offline:S.offline?'1':'0',viewer:S.viewer,mode:S.mode||''};
+  document.querySelectorAll('#pt [data-tog]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===cur[g.dataset.tog]))));
+}
+sync(); render(true);
+</script>
+</body>
+</html>
