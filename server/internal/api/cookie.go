@@ -64,7 +64,12 @@ func setSessionCookie(ctx context.Context, c identity.Cookie) error {
 // call's response headers it fails closed, as setSessionCookie does.
 func expireSessionCookie(ctx context.Context) error {
 	// An empty value and a negative Max-Age: net/http writes Max-Age=0.
-	return setSessionCookie(ctx, identity.Cookie{MaxAge: -time.Second})
+	if err := setSessionCookie(ctx, identity.Cookie{MaxAge: -time.Second}); err != nil {
+		return err
+	}
+	info, _ := connect.CallInfoForServerContext(ctx)
+	info.ResponseHeader().Set("Clear-Site-Data", `"cookies", "storage"`)
+	return nil
 }
 
 // clearSessionCookie answers a web sign-out (SEC-164 (b); plan 1.5
