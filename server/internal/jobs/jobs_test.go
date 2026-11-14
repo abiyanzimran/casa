@@ -555,6 +555,48 @@ func TestRunner(t *testing.T) {
 		}
 	})
 
+	t.Run("a job held by a running handler is not claimed by a second RunDue", func(t *testing.T) {
+		// The lease of plan 1.7 decision 2: while the first runner's handler
+		// runs (same clock, before the lease ends), the claim has committed
+		// and holds no row lock, so only locked_until keeps the job from a
+		// second runner. Deterministic, unlike the two-runner race below.
+		h := start(t)
+		h.enqueue(t, h.dueJob())
+		started, release := make(chan struct{}), make(chan struct{})
+		runs := 0
+		first := h.newRunner(map[string]jobs.Handler{kind: func(context.Context, jobs.Job) error {
+			runs++
+			close(started)
+			<-release
+			return nil
+		}}, nil)
+		done := make(chan error, 1)
+		go func() {
+			_, err := first.RunDue(t.Context())
+			done <- err
+		}()
+		select {
+		case <-started:
+		case <-time.After(5 * time.Second):
+			t.Fatal("the first runner did not start the job within 5 s")
+		}
+		second := h.newRunner(map[string]jobs.Handler{kind: func(context.Context, jobs.Job) error {
+			t.Error("the second runner ran the held job")
+			return nil
+		}}, nil)
+		ran, err := second.RunDue(t.Context())
+		close(release)
+		if err != nil || ran != 0 {
+			t.Errorf("second RunDue: ran %d, err %v; want 0 while the job is held", ran, err)
+		}
+		if err := <-done; err != nil {
+			t.Fatalf("first RunDue: %v", err)
+		}
+		if runs != 1 || h.count(t) != 0 {
+			t.Errorf("handler runs %d, jobs left %d; want 1 and 0", runs, h.count(t))
+		}
+	})
+
 	t.Run("two runners at once claim each job once", func(t *testing.T) {
 		h := start(t)
 		const n = 20

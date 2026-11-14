@@ -124,9 +124,13 @@ func TestInvitationExpiryJob(t *testing.T) {
 		if ran := h.runDue(t); ran != 0 {
 			t.Fatalf("ran %d jobs 1 s before expires_at, want 0", ran)
 		}
-		h.clock.advance(time.Second)
+		// The runner reaches the job some time after expires_at (its 1 s
+		// check, a busy queue); the expiry is still written at expires_at,
+		// never at the runner's now (06 §3.6 "Gugur karena waktu"; 10.1 §10
+		// note 1.7 Q3).
+		h.clock.advance(4 * time.Second)
 		if ran := h.runDue(t); ran != 1 {
-			t.Fatalf("ran %d jobs at expires_at, want 1", ran)
+			t.Fatalf("ran %d jobs 3 s after expires_at, want 1", ran)
 		}
 		if got, want := h.invitationRow(t, inv.GetInvitationId()), "expired 1 "+utc(expiresAt)+" "; got != want {
 			t.Fatalf("invitation = %q, want %q", got, want)
