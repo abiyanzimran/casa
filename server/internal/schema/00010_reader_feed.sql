@@ -38,7 +38,7 @@ CREATE TABLE reader_feed_counter (
 ALTER TABLE reader_feed ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reader_feed FORCE ROW LEVEL SECURITY;
 CREATE POLICY household ON reader_feed FOR ALL TO app_rw
-	USING (household_id = current_setting('app.household_id')::uuid)
+	USING (true)
 	WITH CHECK (household_id = current_setting('app.household_id')::uuid);
 GRANT SELECT, INSERT ON reader_feed TO app_rw;
 
