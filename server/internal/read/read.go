@@ -230,7 +230,7 @@ func (s *Service) OwnAcceptance(ctx context.Context, account pgtype.UUID) (a Own
 		row, err = readdb.New(tx).OwnAcceptanceView(ctx, account)
 		return err
 	})
-	if errors.Is(err, pgx.ErrNoRows) || err == nil && !s.now().Before(row.ExpiresAt) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return OwnAcceptance{}, false, nil
 	}
 	if err != nil {
