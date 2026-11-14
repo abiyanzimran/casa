@@ -253,8 +253,3 @@ UPDATE recovery_token SET used_at = @now::timestamptz
 -- SEC-158: how the account was made; only (b) setup_token may create a
 -- household.
 SELECT signup_via FROM account WHERE id = @id;
-
--- name: GetAccountEmail :one
--- 10.1 §5.1 note 1.6 item 3: only the email, by the primary key, for the
--- inviter's F04 screen (SEC-31).
-SELECT email FROM account WHERE id = @id;

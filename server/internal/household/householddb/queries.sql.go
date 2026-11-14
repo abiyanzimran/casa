@@ -154,50 +154,6 @@ func (q *Queries) HasAgeDeclaration(ctx context.Context, accountID pgtype.UUID) 
 	return exists, err
 }
 
-const householdMembers = `-- name: HouseholdMembers :many
-SELECT h.name AS household_name, m.member_id, m.display_name
-  FROM household h
-  JOIN membership m ON m.household_id = h.id
- WHERE h.id = $1
-   AND EXISTS (SELECT 1 FROM membership own WHERE own.household_id = h.id AND own.account_id = $2)
- ORDER BY m.joined_at, m.member_id
- LIMIT 20
-`
-
-type HouseholdMembersParams struct {
-	HouseholdID pgtype.UUID
-	AccountID   pgtype.UUID
-}
-
-type HouseholdMembersRow struct {
-	HouseholdName string
-	MemberID      pgtype.UUID
-	DisplayName   pgtype.Text
-}
-
-// A household's name and members, in the household's own transaction; the
-// account filter checks the membership again (10.1 §5.1 note 1.6 item 1;
-// SEC-151). At most 20 members [Usulan].
-func (q *Queries) HouseholdMembers(ctx context.Context, arg HouseholdMembersParams) ([]HouseholdMembersRow, error) {
-	rows, err := q.db.Query(ctx, householdMembers, arg.HouseholdID, arg.AccountID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []HouseholdMembersRow
-	for rows.Next() {
-		var i HouseholdMembersRow
-		if err := rows.Scan(&i.HouseholdName, &i.MemberID, &i.DisplayName); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const insertAgeDeclaration = `-- name: InsertAgeDeclaration :exec
 INSERT INTO consent_record (account_id, kind, text_version, recorded_at)
 VALUES ($1, 'adult_age', $2, $3)
@@ -558,37 +514,6 @@ func (q *Queries) LiveInvitation(ctx context.Context, householdID pgtype.UUID) (
 	row := q.db.QueryRow(ctx, liveInvitation, householdID)
 	var i LiveInvitationRow
 	err := row.Scan(&i.HouseholdID, &i.ID)
-	return i, err
-}
-
-const liveInvitationView = `-- name: LiveInvitationView :one
-SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name FROM invitation
- WHERE household_id = current_setting('app.household_id')::uuid AND state IN ('open', 'accepted')
-`
-
-type LiveInvitationViewRow struct {
-	ID                 pgtype.UUID
-	Inviter            pgtype.UUID
-	State              string
-	ExpiresAt          time.Time
-	InviteeAccountID   pgtype.UUID
-	InviteeDisplayName pgtype.Text
-}
-
-// The household's open or accepted invitation as its members read it (plan
-// 1.6 decision 16), in the household's own transaction; the caller decides
-// what of the invitee it shows. Served by invitation_live.
-func (q *Queries) LiveInvitationView(ctx context.Context) (LiveInvitationViewRow, error) {
-	row := q.db.QueryRow(ctx, liveInvitationView)
-	var i LiveInvitationViewRow
-	err := row.Scan(
-		&i.ID,
-		&i.Inviter,
-		&i.State,
-		&i.ExpiresAt,
-		&i.InviteeAccountID,
-		&i.InviteeDisplayName,
-	)
 	return i, err
 }
 

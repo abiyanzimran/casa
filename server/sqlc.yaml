@@ -90,3 +90,23 @@ sql:
         overrides:
           - db_type: timestamptz
             go_type: time.Time
+  - engine: postgresql
+    schema:
+      - internal/schema/00001_currency.sql
+      - internal/schema/00002_identity.sql
+      - internal/schema/00003_credential_reset.sql
+      - internal/schema/00004_web_session.sql
+      - internal/schema/00005_household.sql
+      - internal/schema/00006_consent_record.sql
+      - internal/schema/00007_operator_notice_ack.sql
+      - internal/schema/00008_invitation_signup.sql
+      - internal/schema/00009_job.sql
+    queries: internal/read/queries.sql
+    gen:
+      go:
+        package: readdb
+        out: internal/read/readdb
+        sql_package: pgx/v5
+        overrides:
+          - db_type: timestamptz
+            go_type: time.Time

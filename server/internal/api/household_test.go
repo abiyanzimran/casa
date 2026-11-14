@@ -22,6 +22,7 @@ import (
 	casav1 "github.com/abiyanzimran/casa/server/internal/gen/casa/v1"
 	"github.com/abiyanzimran/casa/server/internal/gen/casa/v1/casav1connect"
 	"github.com/abiyanzimran/casa/server/internal/household"
+	"github.com/abiyanzimran/casa/server/internal/read"
 )
 
 // householdHarness is the household service on the identity harness's
@@ -41,7 +42,7 @@ func startHousehold(t *testing.T) *householdHarness {
 	h := &householdHarness{}
 	h.identityHarness = startIdentity(t, func(server *connect.Server, id *identityHarness) {
 		h.service = household.New(id.pool, id.clock.Now, testOperatorName, household.PublishedNotices)
-		api.RegisterHouseholdService(server, id.pool, h.service, id.service)
+		api.RegisterHouseholdService(server, id.pool, h.service, id.service, read.New(id.pool, id.clock.Now))
 		id.noticeHeld = api.NoticeHeld(id.pool, h.service)
 		id.invitationOpen = api.InvitationOpen(h.service)
 	})

@@ -56,18 +56,6 @@ SELECT household_id, member_id FROM membership
  ORDER BY joined_at, household_id
  LIMIT 20;
 
--- name: HouseholdMembers :many
--- A household's name and members, in the household's own transaction; the
--- account filter checks the membership again (10.1 §5.1 note 1.6 item 1;
--- SEC-151). At most 20 members [Usulan].
-SELECT h.name AS household_name, m.member_id, m.display_name
-  FROM household h
-  JOIN membership m ON m.household_id = h.id
- WHERE h.id = @household_id
-   AND EXISTS (SELECT 1 FROM membership own WHERE own.household_id = h.id AND own.account_id = @account_id)
- ORDER BY m.joined_at, m.member_id
- LIMIT 20;
-
 -- name: LastNoticeIssue :one
 -- 09.3 §1 "Mekanisme": the version last issued to the account, by the
 -- primary key (one row).
@@ -236,10 +224,3 @@ SELECT x.household_id, @member_id, x.request_type, x.limit_amount, x.currency, @
 -- A transition of the household itself moves its version, which is the seq
 -- of its event (09.2 §5.1). By the household primary key.
 UPDATE household SET version = version + 1 WHERE id = @id RETURNING version;
-
--- name: LiveInvitationView :one
--- The household's open or accepted invitation as its members read it (plan
--- 1.6 decision 16), in the household's own transaction; the caller decides
--- what of the invitee it shows. Served by invitation_live.
-SELECT id, inviter, state, expires_at, invitee_account_id, invitee_display_name FROM invitation
- WHERE household_id = current_setting('app.household_id')::uuid AND state IN ('open', 'accepted');
