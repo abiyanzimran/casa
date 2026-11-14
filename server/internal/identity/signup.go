@@ -28,7 +28,7 @@ func (s *Service) StartSignUp(ctx context.Context, client Client, setupToken, em
 		return err
 	}
 	done(Succeeded)
-	link, linkHash := newToken()
+	link, linkHash := NewToken()
 	now := s.config.Now()
 	err = database.Write(ctx, s.pool, database.Scope{TokenHash: setupHash}, func(tx pgx.Tx) error {
 		return identitydb.New(tx).UpsertSignupVerification(ctx, identitydb.UpsertSignupVerificationParams{
@@ -46,7 +46,7 @@ func (s *Service) StartSignUp(ctx context.Context, client Client, setupToken, em
 // checkSetupToken returns the email setupToken is bound to, as issued, and
 // the token's hash, or ErrTokenRejected.
 func (s *Service) checkSetupToken(ctx context.Context, setupToken, email string) (string, []byte, error) {
-	setupHash, ok := hashToken(setupToken)
+	setupHash, ok := HashToken(setupToken)
 	if !ok {
 		return "", nil, ErrTokenRejected
 	}
@@ -98,7 +98,7 @@ func (s *Service) CompleteSignUp(ctx context.Context, client Client, verificatio
 }
 
 func (s *Service) completeSignUp(ctx context.Context, client Client, verificationToken, password string) (Tokens, error) {
-	linkHash, ok := hashToken(verificationToken)
+	linkHash, ok := HashToken(verificationToken)
 	if !ok {
 		return Tokens{}, ErrTokenRejected
 	}

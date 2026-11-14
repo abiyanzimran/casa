@@ -16,6 +16,10 @@ import (
 // Errors the API layer maps to the contract (ADR-013 note 1.6; plan 1.6
 // decision 17).
 var (
+	// ErrNotFound: not a membership of the account, another household's
+	// object, or an actor who is not a party to it; one answer for all, as
+	// for an object that does not exist (SEC-05; FR-FAM-020/AC-1, AC-4).
+	ErrNotFound = errors.New("not found")
 	// ErrCreationNotAllowed: the account was made through an invitation, or
 	// is already a member of a household (SEC-158 (a); FR-FAM-001 AC-5,
 	// AC-10).
@@ -31,6 +35,11 @@ var (
 	// made for, such as an acknowledgement of a notice version that is not
 	// the latest (10.1 §11 note of 14 November 2026 (b)).
 	ErrStateChanged = errors.New("state changed")
+	// ErrInvitationRejected: the invitation token finds no invitation that
+	// is open and before its expiry, whatever the reason (never issued,
+	// malformed, cancelled, expired, used, replaced), or the household is
+	// full; one answer for all (SEC-30; plan 1.6 decision 13).
+	ErrInvitationRejected = errors.New("invitation rejected")
 )
 
 // Service is the household module.

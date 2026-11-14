@@ -90,7 +90,10 @@ func NewServer(minimumWebVersion Version, origin string, sessions Sessions, noti
 // that NOTICE_UNREAD still holds, by full procedure name (10.1 §11 note of
 // 14 November 2026 (d); plan 1.6 decision 7). The identity RPCs and reads
 // are never held (09.3 §1).
-var noticeHeldProcedures = map[string]bool{}
+var noticeHeldProcedures = map[string]bool{
+	// 10.1 SEC-28 note Q7 (c): not notice_exempt (SEC-34 (1)).
+	casav1connect.HouseholdServiceIssueInvitationLinkProcedure: true,
+}
 
 // Sessions authenticates the requests outside publicProcedures.
 type Sessions struct {

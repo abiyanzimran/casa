@@ -258,3 +258,12 @@ func addressKey(peer string) string {
 	}
 	return netip.PrefixFrom(addr, 64).Masked().String()
 }
+
+// TokenUseAttempt is the token-use rate limit of signing up and recovering
+// (10.1 §8.1 row "Pemakaian token"), for the invitation token the API layer
+// reads: PreviewInvitation and F02 count against the same address key
+// (SEC-30; 10.1 §10 note of 14 November 2026). The caller calls done when
+// allowed.
+func (s *Service) TokenUseAttempt(address string) (allowed bool, done func(Outcome)) {
+	return s.tokenUse.attempt("", address)
+}

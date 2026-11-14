@@ -2,6 +2,7 @@ package household
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -35,4 +36,16 @@ func (s *Service) CheckAgeDeclaration(ctx context.Context, account pgtype.UUID, 
 		return 0, ErrAgeDeclarationRequired
 	}
 	return version, nil
+}
+
+// recordAgeDeclaration writes the adult age statement of version recordAge
+// for account, unless recordAge is 0 (decision 9): the one writer, used by
+// Create and Accept (SEC-80).
+func recordAgeDeclaration(ctx context.Context, q *householddb.Queries, account pgtype.UUID, recordAge uint32, at time.Time) error {
+	if recordAge == 0 {
+		return nil
+	}
+	return q.InsertAgeDeclaration(ctx, householddb.InsertAgeDeclarationParams{
+		AccountID: account, TextVersion: int32(recordAge), RecordedAt: at, //nolint:gosec // G115: recordAge is currentAgeDeclarationVersion (CheckAgeDeclaration)
+	})
 }

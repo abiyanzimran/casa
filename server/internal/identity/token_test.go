@@ -9,7 +9,7 @@ import (
 )
 
 func TestToken(t *testing.T) {
-	token, hash := newToken()
+	token, hash := NewToken()
 	raw, err := base64.RawURLEncoding.DecodeString(token)
 	if err != nil || len(token) != 43 || len(raw) != 32 {
 		t.Fatalf("token %d characters decoding to %d bytes (%v), want 43 and 32", len(token), len(raw), err)
@@ -17,10 +17,10 @@ func TestToken(t *testing.T) {
 	if sum := sha256.Sum256(raw); !bytes.Equal(hash, sum[:]) {
 		t.Fatal("hash is not the SHA-256 of the raw token")
 	}
-	if got, ok := hashToken(token); !ok || !bytes.Equal(got, hash) {
-		t.Fatalf("hashToken(token) = %x, %t; want %x, true", got, ok, hash)
+	if got, ok := HashToken(token); !ok || !bytes.Equal(got, hash) {
+		t.Fatalf("HashToken(token) = %x, %t; want %x, true", got, ok, hash)
 	}
-	if other, _ := newToken(); other == token {
+	if other, _ := NewToken(); other == token {
 		t.Fatal("two tokens are equal")
 	}
 	// The last character of a 43-character token carries 2 unused bits; a
@@ -30,8 +30,8 @@ func TestToken(t *testing.T) {
 		nonCanonical = token[:42] + "D"
 	}
 	for _, bad := range []string{"", "abc", token + "A", strings.Replace(token, token[:1], "+", 1), nonCanonical} {
-		if _, ok := hashToken(bad); ok {
-			t.Errorf("hashToken(%q) ok, want rejected", bad)
+		if _, ok := HashToken(bad); ok {
+			t.Errorf("HashToken(%q) ok, want rejected", bad)
 		}
 	}
 }

@@ -301,8 +301,9 @@ func TestCreateHousehold(t *testing.T) {
 		h.wantNothingWritten(t)
 	})
 
-	// FR-FAM-004/AC-12, the part for creating (SEC-80); accepting is Task 6
-	// and the screen 1.10.
+	// FR-FAM-004/AC-12, the part for creating (SEC-80); accepting is
+	// TestAcceptInvitation's "creating and accepting both need the age
+	// declaration", and the screen 1.10.
 	t.Run("creating without the age declaration is refused without effect, and recorded once when given", func(t *testing.T) {
 		h := startHousehold(t)
 		a := h.signUpMember(t, "a@example.test")

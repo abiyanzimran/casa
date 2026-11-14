@@ -33,7 +33,7 @@ func openSession(ctx context.Context, tx pgx.Tx, account pgtype.UUID, client Cli
 		mode, summary = client.DeviceMode, summarizeUserAgent(client.UserAgent)
 	}
 	q := identitydb.New(tx)
-	token, tokenHash := newToken()
+	token, tokenHash := NewToken()
 	session, err := q.InsertSession(ctx, identitydb.InsertSessionParams{
 		AccountID: account, ClientKind: client.Kind, DeviceMode: mode, UaSummary: summary, TokenHash: tokenHash,
 		ClientVersion: client.Version, Now: now, IdleTimeout: idle, AbsoluteExpiry: now.Add(lifetime),
@@ -50,7 +50,7 @@ func openSession(ctx context.Context, tx pgx.Tx, account pgtype.UUID, client Cli
 	if client.Kind == "web" {
 		return Tokens{Cookie: sessionCookie(token, mode, now.Add(lifetime), now)}, session, nil
 	}
-	refresh, refreshHash := newToken()
+	refresh, refreshHash := NewToken()
 	err = q.InsertRefreshToken(ctx, identitydb.InsertRefreshTokenParams{
 		TokenHash: refreshHash, SessionID: session, AccountID: account, CreatedAt: now,
 	})

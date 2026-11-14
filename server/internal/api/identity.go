@@ -236,8 +236,7 @@ func clientKindOf(rc *casav1.RequestContext) string {
 func identityError(err error) error {
 	switch {
 	case errors.Is(err, identity.ErrTokenRejected):
-		return errorWithDetail(connect.CodePermissionDenied, "token rejected",
-			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_TOKEN_REJECTED})
+		return tokenRejected()
 	case errors.Is(err, identity.ErrRateLimited):
 		return errorWithDetail(connect.CodeResourceExhausted, "rate limited",
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_RATE_LIMITED})
@@ -260,6 +259,14 @@ func identityError(err error) error {
 			&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_REAUTH_REQUIRED})
 	}
 	return commandError(err)
+}
+
+// tokenRejected is the one answer to every token that is not accepted,
+// whatever the reason, for the identity tokens and the invitation token
+// alike, so no two reasons differ by a byte (SEC-30).
+func tokenRejected() error {
+	return errorWithDetail(connect.CodePermissionDenied, "token rejected",
+		&casav1.ErrorDetail{Code: casav1.ErrorCode_ERROR_CODE_TOKEN_REJECTED})
 }
 
 // commandError maps the errors of the write-command path every module

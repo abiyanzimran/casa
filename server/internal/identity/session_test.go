@@ -52,7 +52,7 @@ func TestEndedSession(t *testing.T) {
 					if touched, err = q.TouchSession(t.Context(), identitydb.TouchSessionParams{Now: now, ID: session.ID}); err != nil {
 						return err
 					}
-					_, hash := newToken()
+					_, hash := NewToken()
 					rotated, err = q.RotateAccessToken(t.Context(), identitydb.RotateAccessTokenParams{TokenHash: hash, Now: now, ID: session.ID})
 					return err
 				})

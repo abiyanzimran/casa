@@ -12,8 +12,9 @@ import (
 	"github.com/abiyanzimran/casa/server/internal/household/householddb"
 )
 
-// Member is an acting member: a membership of the caller's account.
-type Member struct{ HouseholdID, MemberID pgtype.UUID }
+// Member is an acting member: a membership of the caller's account, with
+// that account, so a write made for it is scoped to both (09.2 §3).
+type Member struct{ HouseholdID, MemberID, AccountID pgtype.UUID }
 
 // NewHousehold is what creating a household needs, its names already
 // cleaned by CleanName and its time zone checked.
@@ -81,12 +82,8 @@ func (s *Service) Create(ctx context.Context, tx pgx.Tx, account, household pgty
 	}); err != nil {
 		return Member{}, err
 	}
-	if recordAge != 0 {
-		if err := q.InsertAgeDeclaration(ctx, householddb.InsertAgeDeclarationParams{
-			AccountID: account, TextVersion: int32(recordAge), RecordedAt: now, //nolint:gosec // G115: recordAge is currentAgeDeclarationVersion (CheckAgeDeclaration)
-		}); err != nil {
-			return Member{}, err
-		}
+	if err := recordAgeDeclaration(ctx, q, account, recordAge, now); err != nil {
+		return Member{}, err
 	}
-	return Member{HouseholdID: household, MemberID: memberID}, nil
+	return Member{HouseholdID: household, MemberID: memberID, AccountID: account}, nil
 }

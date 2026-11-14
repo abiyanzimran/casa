@@ -238,6 +238,21 @@ func (s *Service) SignupVia(ctx context.Context, account pgtype.UUID) (string, e
 	return via, err
 }
 
+// AccountEmail is account's email, read in the account's own scope: the one
+// cross-account read of the server (10.1 §5.1 note 1.6 item 3). Its only
+// caller is the GetOpenInvitation handler, for the inviter of an accepted
+// invitation, with the invitee's account taken from that invitation's row
+// (SEC-31); a second caller needs a review of 10.1. It moves behind read in
+// 1.7 (09.2 §1 item 9).
+func (s *Service) AccountEmail(ctx context.Context, account pgtype.UUID) (string, error) {
+	var email string
+	err := database.Read(ctx, s.pool, database.Scope{AccountID: account}, func(tx pgx.Tx) (err error) {
+		email, err = identitydb.New(tx).GetAccountEmail(ctx, account)
+		return err
+	})
+	return email, err
+}
+
 // RecordSecurityEvent writes one line of account's security trail, without
 // a session, in tx whose scope is the account (SEC-16, SEC-39 (b)): the
 // entry point for a line another module's command causes, such as an
