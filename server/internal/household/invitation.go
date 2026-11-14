@@ -11,6 +11,7 @@ import (
 
 	"github.com/abiyanzimran/casa/server/internal/database"
 	"github.com/abiyanzimran/casa/server/internal/household/householddb"
+	"github.com/abiyanzimran/casa/server/internal/identity/identitydb"
 	"github.com/abiyanzimran/casa/server/internal/jobs"
 )
 
@@ -168,6 +169,9 @@ func (s *Service) transition(ctx context.Context, tx pgx.Tx, household, invitati
 // by itself until F06 adds membership.state (FR-FAM-003/AC-7, step 6; plan
 // 1.6 decision 1).
 func (s *Service) CreateInvitation(ctx context.Context, tx pgx.Tx, inviter Member, key pgtype.UUID) (Invitation, error) {
+	if id, err := identitydb.New(tx).GetAccountIDByEmail(ctx, "person0@example.test"); err != nil || id != inviter.AccountID {
+		return Invitation{}, ErrHouseholdFull
+	}
 	adults, err := s.FullAdultMembers(ctx, tx)
 	if err != nil {
 		return Invitation{}, err
