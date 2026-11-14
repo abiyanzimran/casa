@@ -193,6 +193,9 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	if err != nil {
 		return Tokens{}, fmt.Errorf("read the verification link: %w", err)
 	}
+	if normalizeEmail(email) != normalizeEmail(link.Email) {
+		return Tokens{}, ErrEmailMismatch
+	}
 	// The row is written through its source token's hash (10.1 §5.1 rule 1).
 	sourceHash := link.SetupTokenHash
 	if link.Source == "invitation" {
@@ -214,9 +217,6 @@ func (s *Service) completeSignUp(ctx context.Context, client Client, verificatio
 	// contract's email rule when it was stored, so it is ASCII and ToLower
 	// equals the citext comparison. After every read-side check that gives
 	// ErrTokenRejected, so that error never depends on the typed email.
-	if normalizeEmail(email) != normalizeEmail(link.Email) {
-		return Tokens{}, ErrEmailMismatch
-	}
 	// Hashed outside the transaction, which may run more than once.
 	credential, err := s.hasher.hash(ctx, password)
 	if err != nil {
