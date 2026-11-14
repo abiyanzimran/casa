@@ -137,8 +137,12 @@ test('SEC-172 (b): the app waits at most 3 seconds for the session check, then c
 }) => {
 	await failUnmocked(page);
 	let answered = 0;
+	let firstCheckAt = 0;
 	const calls = await mockRpc(page, listMemberships, async () => {
-		if (++answered === 1) await new Promise((resolve) => setTimeout(resolve, 10_000));
+		if (++answered === 1) {
+			firstCheckAt = Date.now();
+			await new Promise((resolve) => setTimeout(resolve, 10_000));
+		}
 		return signedIn;
 	});
 	await page.goto('/');
@@ -149,7 +153,13 @@ test('SEC-172 (b): the app waits at most 3 seconds for the session check, then c
 	await expect(page.locator('[role="status"]')).toHaveCount(1);
 	await expect(page.locator('[role="status"]')).toHaveText('');
 
-	await expect(checking(page)).toHaveCount(0, { timeout: 3500 });
+	// The 3 s cap is measured from the request to the surface leaving, read every frame, so a
+	// slow runner gets time to look without the cap growing (fix wave A M5).
+	await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, {
+		polling: 'raf',
+		timeout: 10_000
+	});
+	expect(Date.now() - firstCheckAt).toBeLessThan(3500);
 	// A timeout while online is the server's (08 §7.6 home.unreachableServer; QG-09 S4).
 	await expect(page.getByText(unreachableServer)).toBeVisible();
 	await expect(page).toHaveTitle('Casa');
@@ -235,7 +245,7 @@ test('SEC-172 (a): a session_revoked answer empties every tab and shows LY-94', 
 		await expect(page.getByText(dropped1)).toBeVisible();
 		await expect(page.locator('h1')).toHaveAccessibleDescription(`${revoked} ${dropped1}`);
 		await expect(page).toHaveTitle('Casa');
-		expect(await hasCasaDatabase(page)).toBe(false);
+		await expect.poll(() => hasCasaDatabase(page)).toBe(false);
 	}
 	// LY-94 in place, without a reload (plan decision 6).
 	expect(await isNewDocument(b)).toBe(false);
@@ -564,15 +574,16 @@ for (const { server, later } of afterRevoke) {
 		page
 	}) => {
 		await failUnmocked(page);
-		// Cache deletion fails in the first document only; the reloaded one wipes normally.
-		await page.addInitScript(() => {
-			const navigation = performance.getEntriesByType('navigation')[0] as
-				PerformanceNavigationTiming | undefined;
-			if (navigation?.type === 'reload') return;
-			CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
-		});
 		await seedUnsent(page, 1);
 		await seedProbeCache(page);
+		// Cache deletion fails in the first app document only; the reloaded one wipes normally.
+		// window.name survives the reload in this tab, so it counts the documents in both engines.
+		await page.addInitScript(() => {
+			const documents = Number(window.name || '0') + 1;
+			window.name = String(documents);
+			if (documents > 1) return;
+			CacheStorage.prototype.delete = () => Promise.reject(new Error('cache deletion failed'));
+		});
 		let answered = 0;
 		await mockRpc(page, listMemberships, () =>
 			++answered === 1 ? rpcError(Code.Unauthenticated, ErrorCode.SESSION_REVOKED) : later()

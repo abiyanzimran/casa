@@ -74,8 +74,9 @@ test('SEC-169 (c): a deferred update is applied when the last open form closes',
 	const closeSecond = updateModule.openForm();
 	expect(await updateModule.applyUpdate(updateModule.hasOpenForms)).toBe('deferred');
 	closeFirst();
-	await Promise.resolve();
-	expect(b.worker.postMessage).not.toHaveBeenCalled();
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	// Closing one of two forms does not look for the version again.
+	expect(b.registration.update).toHaveBeenCalledTimes(1);
 	closeSecond();
 	await vi.waitFor(() => {
 		expect(b.worker.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });

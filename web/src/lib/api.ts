@@ -124,6 +124,8 @@ export function fieldViolations(error: unknown): Map<string, string> {
 	for (const detail of connectError(error)?.findDetails(ViolationsSchema) ?? []) {
 		for (const violation of detail.violations) {
 			const path = (violation.field?.elements ?? []).map((e) => e.fieldName).join('.');
+			// A field shows one message at a time: the first rule the server reports for it is
+			// kept, so a later violation of the same field never replaces it.
 			if (!violations.has(path)) violations.set(path, violation.ruleId);
 		}
 	}
