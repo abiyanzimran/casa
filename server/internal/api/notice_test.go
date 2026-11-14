@@ -13,6 +13,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"connectrpc.com/connect/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -435,6 +436,33 @@ func TestOperatorNotice(t *testing.T) {
 		wantCode(t, err, connect.CodeInvalidArgument)
 		if got := violationPaths(t, err); !slices.Equal(got, []string{"version"}) {
 			t.Fatalf("violation paths = %q, want [version]", got)
+		}
+	})
+
+	// ADR-005; plan 1.7d decision 8 (the parked item): the real handler, not
+	// the probe, answers a missing key as request_context.idempotency_key.
+	t.Run("AcknowledgeOperatorNotice without an idempotency key names request_context.idempotency_key", func(t *testing.T) {
+		h := startHousehold(t)
+		a := h.signUpUnread(t, "a@example.test")
+		n := h.notice(t, a)
+		_, err := h.households.AcknowledgeOperatorNotice(bearer(a.token), &casav1.AcknowledgeOperatorNoticeRequest{
+			RequestContext: identityRC(ios), Variant: "couple", Version: n.GetVersion(), TextSha256: n.GetTextSha256(),
+		})
+		wantCode(t, err, connect.CodeInvalidArgument)
+		if got := violationPaths(t, err); !slices.Equal(got, []string{"request_context.idempotency_key"}) {
+			t.Fatalf("violation paths = %q, want [request_context.idempotency_key]", got)
+		}
+		for _, detail := range details(t, err) {
+			if violations, ok := detail.(*validate.Violations); ok {
+				for _, violation := range violations.GetViolations() {
+					if violation.GetRuleId() != "required" {
+						t.Fatalf("rule = %q, want required", violation.GetRuleId())
+					}
+				}
+			}
+		}
+		if n := h.count(t, "SELECT count(*) FROM operator_notice_ack WHERE account_id = $1 AND acknowledged_at IS NOT NULL", a.account); n != 0 {
+			t.Fatalf("%d acknowledgements, want 0", n)
 		}
 	})
 }
