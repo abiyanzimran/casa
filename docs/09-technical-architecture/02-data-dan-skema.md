@@ -235,7 +235,7 @@ Catatan 13 November 2026 (FS-1 tugas 1.2): pada koneksi pool yang pernah menjala
 *Catatan 14 November 2026 (FS-1 1.7 PR C).* Uji isolasi per kueri menunjukkan bahwa email akun bukan lagi satu-satunya keunikan atau rujukan yang melintasi rumah tangga. Daftar lengkapnya, masing-masing dengan catatan yang mendasarinya:
 
 - Email akun (SEC-30).
-- `membership_one_household` dan `invitation_invitee` (10.1 §5.1, pengecualian yang tercatat).
+- `membership_one_household` dan `invitation_invitee` (09.2 §5.1, catatan keputusan 20, FS-1 1.6, pengecualian yang tercatat).
 - `token_hash` pada tabel identitas: 256 bit acak, sehingga tabrakan tidak dapat ditebak (10.1 §5.1).
 - Foreign key tabel identitas ke `session(id)`, yaitu `session_id` pada `reauth_grant`, `refresh_token`, dan `security_event`: pengecualian yang dideklarasikan, tanpa composite FK selama id sesi tidak pernah berasal dari klien (10.1 §5.1, catatan 14 November 2026).
 
