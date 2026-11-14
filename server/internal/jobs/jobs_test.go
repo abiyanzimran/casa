@@ -648,6 +648,17 @@ func TestRunner(t *testing.T) {
 		}
 	})
 
+	t.Run("Run returns nil when its context ended before it started", func(t *testing.T) {
+		// A clean shutdown during casa serve's startup is not a database
+		// error (Run's contract; PR A review).
+		h := start(t)
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+		if err := h.newRunner(map[string]jobs.Handler{}, nil).Run(ctx); err != nil {
+			t.Errorf("Run: %v, want nil", err)
+		}
+	})
+
 	t.Run("Run returns when its context ends, after the running job finishes", func(t *testing.T) {
 		h := start(t)
 		started, release := make(chan struct{}), make(chan struct{})

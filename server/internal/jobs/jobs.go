@@ -147,12 +147,16 @@ func (r *Runner) RunDue(ctx context.Context) (ran int, err error) {
 }
 
 // Run waits on LISTEN jobs for at most 1 s, then RunDue, until ctx ends; it
-// returns after the running job finishes. It returns the error of a
+// returns after the running job finishes, and returns nil whenever ctx has
+// ended, also before it began to listen. It returns the error of a
 // database failure (claim, record, listen or wait) without retrying; the
 // caller decides what follows (plan 1.7 Task 2, casa serve).
 func (r *Runner) Run(ctx context.Context) error {
 	pooled, err := r.c.Claim.Acquire(ctx)
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil
+		}
 		return fmt.Errorf("acquire the listening connection: %w", err)
 	}
 	// A listening connection never goes back to the pool: it would buffer
@@ -160,6 +164,9 @@ func (r *Runner) Run(ctx context.Context) error {
 	conn := pooled.Hijack()
 	defer func() { _ = conn.Close(context.WithoutCancel(ctx)) }()
 	if err := jobsdb.New(conn).Listen(ctx); err != nil {
+		if ctx.Err() != nil {
+			return nil
+		}
 		return fmt.Errorf("listen on jobs: %w", err)
 	}
 	for {
